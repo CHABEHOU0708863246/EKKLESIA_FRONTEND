@@ -1,0 +1,20 @@
+@if (visible) {
+  <div class="dialog-overlay">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <h3>{{ title }}</h3>
+        <button class="close-btn" (click)="onCancel()">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <p>{{ message }}</p>
+        @if (details) {
+          <small class="text-muted">{{ details }}</small>
+        }
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-secondary" (click)="onCancel()">{{ cancelText }}</button>
+        <button class="btn btn-danger" (click)="onConfirm()">{{ confirmText }}</button>
+      </div>
+    </div>
+  </div>
+}

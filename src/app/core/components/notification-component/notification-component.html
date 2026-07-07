@@ -1,0 +1,21 @@
+<!-- src/app/core/components/notification-component/notification-component.html -->
+<div class="notification-container">
+  <div *ngFor="let notification of notifications"
+       class="notification-item"
+       [class]="notification.type"
+       (click)="remove(notification.id)">
+
+    <div class="notification-icon" *ngIf="notification.icon">
+      {{ notification.icon }}
+    </div>
+
+    <div class="notification-content">
+      <div class="notification-title">{{ notification.title }}</div>
+      <div class="notification-message">{{ notification.message }}</div>
+    </div>
+
+    <button class="notification-close" (click)="remove(notification.id); $event.stopPropagation()">
+      ✕
+    </button>
+  </div>
+</div>

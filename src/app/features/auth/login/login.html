@@ -1,0 +1,191 @@
+<div class="ekklesia-premium-container">
+  <!-- Grille de fond -->
+  <div class="background-grid"></div>
+
+  <!-- Effets lumineux -->
+  <div class="bg-glow"></div>
+  <div class="bg-glow bg-glow--secondary"></div>
+
+  <!-- Carte principale -->
+  <div class="main-glass-card">
+
+    <!-- Section gauche : Branding et fonctionnalités -->
+    <div class="brand-side">
+      <!-- Logo -->
+      <div class="logo-section">
+        <div class="logo-3d-wrapper">
+          <div class="cube">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+            <div class="cross-mark">✝</div>
+          </div>
+        </div>
+        <div class="brand-title">
+          <h1>EKKLESIA</h1>
+          <p class="tagline">Plateforme de gestion d'église</p>
+        </div>
+      </div>
+
+      <!-- Séparateur déco -->
+      <div class="brand-divider"></div>
+
+      <!-- Cartes de fonctionnalités -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap"><i class='bx bx-group'></i></div>
+          <h3>Suivi Pastoral</h3>
+          <p>Accompagnement individualisé des membres et visiteurs</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap"><i class='bx bx-layer'></i></div>
+          <h3>Multi-Sites</h3>
+          <p>Gérez plusieurs assemblées depuis un même espace</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap"><i class='bx bx-donate-heart'></i></div>
+          <h3>Finances Transparentes</h3>
+          <p>Collectes, dépenses et budgets sous contrôle</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap"><i class='bx bx-shield-alt'></i></div>
+          <h3>Confidentialité</h3>
+          <p>Données protégées et accès selon les rôles</p>
+        </div>
+      </div>
+
+      <!-- Verset : occupe l'espace bas de la colonne, en cohérence avec le sujet -->
+      <div class="verse-block">
+        <i class='bx bxs-quote-alt-left verse-mark'></i>
+        <p class="verse-text">Là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux.</p>
+        <span class="verse-ref">Matthieu 18:20</span>
+      </div>
+    </div>
+
+    <!-- Section droite : Formulaire -->
+    <div class="form-side">
+      <!-- En-tête du formulaire -->
+      <div class="form-header">
+        <div class="form-header-icon"><i class="bx bxs-church"></i></div>
+        <h2>Bienvenue 🙏</h2>
+        <p>Accédez à votre espace sécurisé</p>
+      </div>
+
+      <!-- Carte du formulaire -->
+      <div class="form-card">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+          <!-- Email -->
+          <div class="input-group-card">
+            <label for="email">Email</label>
+            <div class="input-with-icon">
+              <i class='bx bx-envelope'></i>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                placeholder="nom@eglise.ci"
+                autocomplete="email"
+                inputmode="email"
+                [class.input-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                required>
+            </div>
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <div class="error-message">
+                @if (loginForm.get('email')?.errors?.['required']) {
+                  <span><i class='bx bx-error-circle'></i> L'email est requis</span>
+                }
+                @if (loginForm.get('email')?.errors?.['email']) {
+                  <span><i class='bx bx-error-circle'></i> Format d'email invalide</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Mot de passe -->
+          <div class="input-group-card">
+            <label for="password">Mot de passe</label>
+            <div class="input-with-icon">
+              <i class='bx bx-lock-alt'></i>
+              <input
+                [type]="hidePassword ? 'password' : 'text'"
+                id="password"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                [class.input-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                required>
+              <i
+                class='bx password-toggle'
+                [class.bx-hide]="hidePassword"
+                [class.bx-show]="!hidePassword"
+                (click)="togglePasswordVisibility()">
+              </i>
+            </div>
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <div class="error-message">
+                @if (loginForm.get('password')?.errors?.['required']) {
+                  <span><i class='bx bx-error-circle'></i> Le mot de passe est requis</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Options -->
+          <div class="form-options-card">
+            <div class="remember-me">
+              <input type="checkbox" id="remember" formControlName="rememberMe">
+              <label for="remember">Se souvenir de moi</label>
+            </div>
+            <a
+              href="#"
+              class="forgot-link"
+              (click)="goToForgotPassword(); $event.preventDefault()">
+              Mot de passe oublié ?
+            </a>
+          </div>
+
+          <!-- Bouton de connexion -->
+          <button
+            type="submit"
+            class="btn-primary-card"
+            [disabled]="loginForm.invalid || isLoading">
+            @if (isLoading) {
+              <i class='bx bx-loader-alt bx-spin btn-icon'></i>
+              <span>CONNEXION EN COURS...</span>
+            } @else {
+              <i class='bx bx-log-in btn-icon'></i>
+              <span>SE CONNECTER</span>
+            }
+            <span class="btn-shine"></span>
+          </button>
+
+          @if (isLoading) {
+            <div class="loading-overlay">
+              <div class="loading-spinner"></div>
+            </div>
+          }
+
+        </form>
+      </div>
+
+      <!-- Footer formulaire -->
+      <div class="form-footer">
+        <span class="footer-sep-line"></span>
+        <p class="support-text">
+          <i class='bx bx-support'></i>
+          Besoin d'aide ? <a href="#">Contacter le support</a>
+        </p>
+        <p class="version-text">© 2026 Ekklesia — Version 1.0.0</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notification Component -->
+  <app-notification-component></app-notification-component>
+</div>
+<!-- <app-chatbot-widget></app-chatbot-widget> -->

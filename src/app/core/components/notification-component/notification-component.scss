@@ -1,0 +1,143 @@
+/* src/app/core/components/notification-component/notification-component.scss */
+
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+
+  .notification-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #6C5CE7;
+    animation: slideIn 0.3s ease-out;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateX(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &.success {
+      border-left-color: #00B894;
+
+      .notification-icon {
+        background: #00B894;
+        color: white;
+      }
+    }
+
+    &.error {
+      border-left-color: #E17055;
+
+      .notification-icon {
+        background: #E17055;
+        color: white;
+      }
+    }
+
+    &.warning {
+      border-left-color: #FDCB6E;
+
+      .notification-icon {
+        background: #FDCB6E;
+        color: #1A143A;
+      }
+    }
+
+    &.info {
+      border-left-color: #74B9FF;
+
+      .notification-icon {
+        background: #74B9FF;
+        color: white;
+      }
+    }
+
+    .notification-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: bold;
+      margin-right: 12px;
+      flex-shrink: 0;
+      background: #6C5CE7;
+      color: white;
+    }
+
+    .notification-content {
+      flex: 1;
+      min-width: 0;
+
+      .notification-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #1A143A;
+        margin-bottom: 2px;
+      }
+
+      .notification-message {
+        font-size: 13px;
+        color: #3D3566;
+        word-wrap: break-word;
+      }
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #9590BB;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 8px;
+      flex-shrink: 0;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #1A143A;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .notification-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+
+    .notification-item {
+      padding: 12px 14px;
+    }
+  }
+}

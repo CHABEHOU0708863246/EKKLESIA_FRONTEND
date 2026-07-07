@@ -1,0 +1,451 @@
+// ══════════════════════════════════════════════════════════════════════
+// EKKLESIA ERP — Sidebar Component SCSS
+// NOTE : Les variables sont reproduites ici en SCSS pour l'autonomie
+//        du composant, en miroir des CSS custom properties globales
+//        (--gold, --teal, etc.) déclarées dans :root.
+// ══════════════════════════════════════════════════════════════════════
+
+// ── Variables ────────────────────────────────────────────────────────
+$gold:            #B8862E;
+$gold-dark:       #8A6220;
+$gold-light:      #D9AE5F;
+$gold-glow:       rgba(184, 134, 46, 0.18);
+
+$teal:            #1F6F63;
+$teal-dark:       #14504A;
+$teal-light:      #4C9A8C;
+
+$burgundy:        #7A2E3B;
+$danger:          #A63A3A;
+
+$sidebar-w:       272px;
+$sidebar-bg:      #10121C;
+$sidebar-border:  rgba(255, 255, 255, 0.07);
+$sidebar-text:    rgba(255, 255, 255, 0.56);
+$sidebar-hover:   rgba(184, 134, 46, 0.14);
+$sidebar-active:  rgba(184, 134, 46, 0.20);
+
+$font:            'Inter', sans-serif;
+$font-display:    'Fraunces', serif;
+
+$radius:          10px;
+$transition:      all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ── Animations ───────────────────────────────────────────────────────
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .55; transform: scale(.8); }
+}
+
+// ── Host ─────────────────────────────────────────────────────────────
+:host {
+  display: block;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SIDEBAR CONTAINER
+// ══════════════════════════════════════════════════════════════════════
+.sidebar {
+  width: $sidebar-w;
+  background: $sidebar-bg;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.35);
+  transition: $transition;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(184, 134, 46, 0.16) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 90%, rgba(31, 111, 99, 0.12) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * { position: relative; z-index: 1; }
+
+  &::-webkit-scrollbar       { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(184, 134, 46, 0.25);
+    border-radius: 10px;
+    &:hover { background: $gold; }
+  }
+
+  // Sidebar réduite (icônes seules)
+  &.collapsed {
+    width: 76px;
+
+    .brand-tagline, .user-info-sidebar, .nav-section-label,
+    .nav-text, .nav-badge, .nav-chevron, .sidebar-footer-info { display: none; }
+
+    .sidebar-brand { justify-content: center; padding: 22px 0 18px; }
+    .sidebar-user-section { justify-content: center; }
+    .nav-link { justify-content: center; padding: 9px 0; }
+    .nav-sub { display: none !important; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// BRAND
+// ══════════════════════════════════════════════════════════════════════
+.sidebar-brand {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid $sidebar-border;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(160deg, $gold-light, $gold-dark);
+  border-radius: 22px 22px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  color: #1A140A;
+  box-shadow: 0 4px 18px rgba(184, 134, 46, 0.45);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: $font-display;
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  white-space: nowrap;
+
+  span { color: $gold-light; font-weight: 400; font-style: italic; }
+}
+
+.brand-tagline {
+  font-size: 9.5px;
+  color: $sidebar-text;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// USER SECTION
+// ══════════════════════════════════════════════════════════════════════
+.sidebar-user-section {
+  padding: 12px 18px;
+  border-bottom: 1px solid $sidebar-border;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-sidebar {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, $teal, $teal-dark);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: $font-display;
+
+  &--sm { width: 30px; height: 30px; font-size: 11px; }
+}
+
+.user-info-sidebar {
+  min-width: 0;
+
+  .uname {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.90);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .urole {
+    font-size: 10px;
+    color: $gold-light;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      background: #6EE7B7;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════════════
+.sidebar-nav {
+  flex: 1;
+  padding: 6px 0 16px;
+  overflow-y: auto;
+
+  ul { list-style: none; padding: 0; margin: 0; }
+
+  &::-webkit-scrollbar       { width: 2px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; }
+}
+
+.nav-section-label {
+  padding: 14px 20px 4px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  color: rgba(255, 255, 255, 0.26);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav-item { list-style: none; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 20px;
+  color: $sidebar-text;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: $font;
+  cursor: pointer;                 // ✅ curseur pointeur explicite
+  user-select: none;                // ✅ évite la sélection de texte au clic
+  border-left: 2px solid transparent;
+  transition: $transition;
+  position: relative;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.92);
+    background: $sidebar-hover;
+    border-left-color: rgba(184, 134, 46, 0.55);
+    text-decoration: none;
+
+    .nav-icon { opacity: 1; }
+  }
+
+  &:active { transform: scale(0.99); } // ✅ micro feedback tactile au clic
+
+  &:focus-visible {                    // ✅ accessibilité clavier
+    outline: 2px solid $gold-light;
+    outline-offset: -2px;
+  }
+}
+
+.nav-item.active > .nav-link {
+  color: #fff;
+  background: $sidebar-active;
+  border-left-color: $gold-light;
+  font-weight: 600;
+
+  .nav-icon { opacity: 1; }
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  opacity: 0.82;
+  transition: opacity $transition;
+}
+
+.nav-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.badge-gold { background: $gold; color: #1A140A; }
+  &.badge-teal { background: $teal; color: #fff; }
+  &.badge-red  { background: $danger; color: #fff; }
+}
+
+.nav-chevron {
+  font-size: 13px;
+  transition: transform 0.22s ease;
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.nav-item.open > .nav-link .nav-chevron {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+// ── Sous-menu : transition douce à l'ouverture/fermeture ─────────────
+.nav-sub {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.18);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .nav-link {
+    padding: 7.5px 20px 7.5px 51px;
+    font-size: 13px;
+    font-weight: 400;
+    border-left: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+      transition: background $transition;
+    }
+
+    &:hover::before { background: $gold-light; }
+  }
+
+  .nav-item.active > .nav-link {
+    background: rgba(184, 134, 46, 0.14);
+    color: rgba(255, 255, 255, 0.9);
+    border-left: none;
+
+    &::before { background: $gold-light; }
+  }
+}
+
+// Quand ouvert : hauteur suffisante pour afficher tous les enfants
+.nav-item.open > .nav-sub {
+  max-height: 500px; // large marge, ajuste si un sous-menu dépasse cette hauteur
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FOOTER
+// ══════════════════════════════════════════════════════════════════════
+.sidebar-footer {
+  padding: 12px 18px;
+  border-top: 1px solid $sidebar-border;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer-info { flex: 1; min-width: 0; }
+
+.sidebar-footer-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-footer-role {
+  font-size: 10px;
+  color: $gold-light;
+  margin-top: 1px;
+}
+
+.sidebar-footer-actions { display: flex; gap: 4px; }
+
+.footer-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: $transition;
+  font-size: 15px;
+  background: transparent;
+  border: none;
+  outline: none;
+
+  &:hover { background: rgba(255, 255, 255, 0.10); color: rgba(255, 255, 255, 0.90); }
+  &:focus-visible { outline: 2px solid $gold-light; outline-offset: 1px; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// OVERLAY MOBILE (fond sombre derrière la sidebar ouverte)
+// ══════════════════════════════════════════════════════════════════════
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1090;
+  backdrop-filter: blur(3px);
+
+  &.visible { display: block; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ══════════════════════════════════════════════════════════════════════
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+
+    &.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 32px rgba(0, 0, 0, 0.45);
+    }
+  }
+}

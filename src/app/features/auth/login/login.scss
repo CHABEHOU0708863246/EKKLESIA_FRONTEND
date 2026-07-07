@@ -1,0 +1,1000 @@
+// ══════════════════════════════════════════════════════════════════════
+// EKKLESIA — Login Component SCSS
+// Palette "vitrail" : violet crépuscule + or liturgique
+// v2 — mise en page plus dense, plus d'espace occupé, comportement PWA
+// ══════════════════════════════════════════════════════════════════════
+
+// ── Variables ─────────────────────────────────────────────────────────
+$primary:        #6B4BA8; // violet vitrail (accent principal)
+$primary-dark:   #3A2159; // violet profond
+$primary-deep:   #1F1033; // presque noir, fond
+$primary-glow:   rgba(107, 75, 168, 0.20);
+$primary-ultra:  rgba(107, 75, 168, 0.06);
+
+$gold:           #C9A227; // or liturgique
+$gold-dark:      #9C7D1A;
+$gold-light:     #E8CB6A;
+$gold-glow:      rgba(201, 162, 39, 0.22);
+
+$success:        #12B76A;
+$success-bg:     rgba(18, 183, 106, 0.10);
+$danger:         #F04438;
+$danger-bg:      rgba(240, 68, 56, 0.10);
+
+// ── Couleurs de fond (nuit / vitrail) ─────────────────────────────────
+$church-bg-deep: #1F1033;
+$church-bg-mid:  #34204F;
+$church-bg-dark: #100819;
+$glass-bg:       rgba(255, 255, 255, 0.06);
+$glass-border:   rgba(232, 203, 106, 0.14); // liseré doré très discret
+$surface-dark:   rgba(16, 8, 25, 0.75);
+
+// ── Typographie ───────────────────────────────────────────────────────
+$font:           'Inter', sans-serif;
+$font-display:   'Cormorant Garamond', 'Georgia', serif;
+
+// ── Rayons / ombres ───────────────────────────────────────────────────
+$radius-sm:      6px;
+$radius:         10px;
+$radius-lg:      16px;
+$radius-xl:      22px;
+
+$shadow-lg:      0 12px 40px rgba(31, 16, 51, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+$shadow-glow:    0 8px 28px rgba(201, 162, 39, 0.30);
+$sacred-glow:    0 0 24px rgba(201, 162, 39, 0.22);
+
+$transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ── Animations ────────────────────────────────────────────────────────
+@keyframes cardFloat {
+  0%   { opacity: 0; transform: translateY(28px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rosetteFloat {
+  0%   { transform: rotateX(0) rotateY(0); }
+  25%  { transform: rotateX(20deg) rotateY(90deg); }
+  50%  { transform: rotateX(0) rotateY(180deg); }
+  75%  { transform: rotateX(-20deg) rotateY(270deg); }
+  100% { transform: rotateX(0) rotateY(360deg); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .55; transform: scale(.8); }
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// HOST — plus de fond blanc possible, même pendant le rebond iOS/Android
+// ══════════════════════════════════════════════════════════════════════
+:host {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: $church-bg-dark; // fond de secours si le contenu ne couvre pas 100% de la hauteur
+  overscroll-behavior: none; // empêche le "pull-to-refresh" / rebond blanc typique d'une PWA mal câblée
+
+  @media (min-width: 993px) {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RESET BASE
+// ══════════════════════════════════════════════════════════════════════
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; // supprime le flash gris/blanc au tap sur mobile
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CONTENEUR PRINCIPAL
+// ══════════════════════════════════════════════════════════════════════
+.ekklesia-premium-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Respecte les encoches (notch) quand la page tourne en PWA plein écran (viewport-fit=cover)
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+           max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  position: relative;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  font-family: $font;
+
+  // Fond crépuscule, comme la nuit derrière un vitrail éclairé
+  background: linear-gradient(135deg, $church-bg-deep 0%, $church-bg-mid 45%, $church-bg-dark 100%);
+
+  // Ligne déco dorée en haut
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, $gold, $gold-light, transparent);
+    z-index: 2;
+  }
+
+  @media (min-width: 993px) {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    align-items: center;
+  }
+
+  @media (max-width: 576px) {
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    align-items: center;
+  }
+}
+
+// ── Grille de fond ────────────────────────────────────────────────────
+.background-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 1px 1px, rgba(201, 162, 39, 0.07) 1px, transparent 0);
+  background-size: 40px 40px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+// ── Glows d'arrière-plan (vitrail) ────────────────────────────────────
+.bg-glow {
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+
+  background: radial-gradient(circle, rgba(107, 75, 168, 0.25) 0%, transparent 70%);
+  top: -180px;
+  right: -180px;
+  opacity: 0.6;
+
+  &--secondary {
+    background: radial-gradient(circle, rgba(201, 162, 39, 0.14) 0%, transparent 70%);
+    bottom: -200px;
+    left: -100px;
+    top: auto;
+    right: auto;
+    width: 400px;
+    height: 400px;
+  }
+
+  @media (max-width: 576px) {
+    width: 280px;
+    height: 280px;
+    top: -100px;
+    right: -100px;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CARTE PRINCIPALE — un peu plus compacte, colonnes équilibrées
+// ══════════════════════════════════════════════════════════════════════
+.main-glass-card {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  max-width: 940px;
+  width: 100%;
+  max-height: 92vh;
+  max-height: 92dvh;
+  background: rgba(31, 16, 51, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid $glass-border;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  animation: cardFloat 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $primary, $gold-light, $primary);
+    background-size: 200% 100%;
+    z-index: 2;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201, 162, 39, 0.05), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    max-height: none;
+    border-radius: $radius-lg;
+  }
+
+  @media (max-width: 576px) {
+    max-width: 100%;
+    border-radius: $radius;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SECTION BRANDING (gauche) — colonne flex pour occuper toute la hauteur
+// ══════════════════════════════════════════════════════════════════════
+.brand-side {
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, rgba(16, 8, 25, 0.92) 0%, rgba(52, 32, 79, 0.60) 100%);
+  border-right: 1px solid $glass-border;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '✝';
+    position: absolute;
+    bottom: -30px;
+    right: -10px;
+    font-size: 160px;
+    font-family: $font-display;
+    color: rgba(201, 162, 39, 0.05);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  @media (max-width: 900px) {
+    border-right: none;
+    border-bottom: 1px solid $glass-border;
+    padding: 22px 20px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 18px 16px;
+  }
+}
+
+// ── Logo section ──────────────────────────────────────────────────────
+.logo-section {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.logo-3d-wrapper {
+  perspective: 1000px;
+  margin: 0 auto 12px;
+  width: 62px;
+  height: 62px;
+  position: relative;
+
+  .cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rosetteFloat 20s infinite linear;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+
+    .face {
+      position: absolute;
+      width: 62px;
+      height: 62px;
+      border: 1px solid rgba(201, 162, 39, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        background: linear-gradient(135deg, $primary, $primary-dark);
+        opacity: 0.85;
+      }
+    }
+
+    .front  { transform: translateZ(31px); }
+    .back   { transform: rotateY(180deg) translateZ(31px); }
+    .right  { transform: rotateY(90deg) translateZ(31px); }
+    .left   { transform: rotateY(-90deg) translateZ(31px); }
+    .top    { transform: rotateX(90deg) translateZ(31px); }
+    .bottom { transform: rotateX(-90deg) translateZ(31px); }
+  }
+
+  .cross-mark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: $font-display;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: $gold-light;
+    text-shadow: 0 0 12px rgba(201, 162, 39, 0.6);
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  @media (max-width: 576px) {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 8px;
+
+    .cube .face { width: 52px; height: 52px; }
+    .cube .front  { transform: translateZ(26px); }
+    .cube .back   { transform: rotateY(180deg) translateZ(26px); }
+    .cube .right  { transform: rotateY(90deg) translateZ(26px); }
+    .cube .left   { transform: rotateY(-90deg) translateZ(26px); }
+    .cube .top    { transform: rotateX(90deg) translateZ(26px); }
+    .cube .bottom { transform: rotateX(-90deg) translateZ(26px); }
+
+    .cross-mark { font-size: 1.35rem; }
+  }
+}
+
+.brand-title {
+  h1 {
+    font-family: $font-display;
+    font-size: 1.9rem;
+    font-weight: 700;
+    font-style: italic;
+    background: linear-gradient(135deg, #fff 0%, $gold-light 55%, $primary 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 2px;
+    margin-bottom: 3px;
+
+    @media (max-width: 768px) { font-size: 1.65rem; }
+    @media (max-width: 576px) { font-size: 1.45rem; }
+  }
+
+  .tagline {
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.40);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    font-family: $font;
+  }
+}
+
+// ── Séparateur déco ───────────────────────────────────────────────────
+.brand-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, $glass-border, transparent);
+  margin: 0 0 16px;
+}
+
+// ── Feature cards ─────────────────────────────────────────────────────
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (max-width: 340px) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.feature-card {
+  background: $glass-bg;
+  border: 1px solid $glass-border;
+  border-radius: $radius;
+  padding: 13px 11px;
+  text-align: center;
+  transition: $transition;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, $gold, $gold-light);
+    opacity: 0;
+    transition: $transition;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(201, 162, 39, 0.35);
+    box-shadow: $sacred-glow;
+    background: rgba(201, 162, 39, 0.06);
+
+    &::before { opacity: 1; }
+
+    .feature-icon-wrap { transform: scale(1.1); }
+  }
+
+  @media (hover: none) {
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 10px 8px;
+  }
+}
+
+.feature-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: $primary-glow;
+  border-radius: $radius-sm;
+  margin: 0 auto 7px;
+  transition: $transition;
+
+  i {
+    font-size: 1.2rem;
+    color: $gold-light;
+  }
+
+  @media (max-width: 576px) {
+    width: 30px;
+    height: 30px;
+    i { font-size: 1.05rem; }
+  }
+}
+
+.feature-card h3 {
+  font-family: $font-display;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+  color: #fff;
+  letter-spacing: 0.3px;
+
+  @media (max-width: 576px) {
+    font-size: 0.8rem;
+  }
+}
+
+.feature-card p {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.40);
+  line-height: 1.4;
+  font-family: $font;
+
+  @media (max-width: 576px) {
+    font-size: 0.64rem;
+  }
+}
+
+// ── Verset : occupe l'espace restant en bas de colonne ────────────────
+.verse-block {
+  margin-top: auto;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid $glass-border;
+  text-align: center;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+
+  .verse-mark {
+    font-size: 1.1rem;
+    color: rgba(201, 162, 39, 0.45);
+    margin-bottom: 6px;
+  }
+
+  .verse-text {
+    font-family: $font-display;
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 280px;
+    margin: 0 auto 8px;
+  }
+
+  .verse-ref {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: $gold-light;
+  }
+
+  @media (max-width: 900px) {
+    flex: none;
+    padding-top: 14px;
+    margin-top: 14px;
+
+    .verse-text { font-size: 0.9rem; }
+  }
+
+  @media (max-width: 576px) {
+    padding-top: 12px;
+    margin-top: 12px;
+
+    .verse-text { font-size: 0.84rem; max-width: 100%; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SECTION FORMULAIRE (droite)
+// ══════════════════════════════════════════════════════════════════════
+.form-side {
+  padding: 26px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(16, 8, 25, 0.72);
+  position: relative;
+  overscroll-behavior: contain; // le scroll interne ne "fuit" plus vers le body (plus de rebond blanc)
+
+  @media (min-width: 993px) {
+    overflow-y: auto;
+    max-height: 92vh;
+    max-height: 92dvh;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 162, 39, 0.35) transparent;
+
+    &::-webkit-scrollbar       { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba(201, 162, 39, 0.35); border-radius: 4px; }
+  }
+
+  @media (max-width: 900px) {
+    padding: 22px 20px;
+    justify-content: flex-start;
+  }
+
+  @media (max-width: 576px) {
+    padding: 18px 16px;
+  }
+}
+
+// ── En-tête formulaire ────────────────────────────────────────────────
+.form-header {
+  text-align: center;
+  margin-bottom: 20px;
+
+  @media (max-width: 576px) { margin-bottom: 16px; }
+}
+
+.form-header-icon {
+  width: 46px;
+  height: 46px;
+  background: $primary-glow;
+  border: 1px solid rgba(201, 162, 39, 0.30);
+  border-radius: $radius-lg;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+
+  i {
+    font-size: 21px;
+    color: $gold-light;
+  }
+}
+
+.form-header h2 {
+  font-family: $font-display;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+
+  @media (max-width: 576px) { font-size: 1.4rem; }
+}
+
+.form-header p {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: $font;
+
+  @media (max-width: 576px) { font-size: 0.78rem; }
+}
+
+// ── Carte du formulaire ───────────────────────────────────────────────
+.form-card {
+  background: $glass-bg;
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  padding: 22px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $gold, $primary);
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 18px 15px;
+    border-radius: $radius;
+  }
+
+  @media (max-width: 576px) {
+    padding: 15px 13px;
+  }
+}
+
+// ── Groupes de champs ─────────────────────────────────────────────────
+.input-group-card {
+  margin-bottom: 15px;
+
+  @media (max-width: 576px) { margin-bottom: 12px; }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.58);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: $font;
+  }
+
+  .input-with-icon {
+    position: relative;
+
+    > i:first-child {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $gold-light;
+      font-size: 1.02rem;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(16, 8, 25, 0.80);
+      border: 1px solid $glass-border;
+      border-radius: $radius;
+      color: #fff;
+      font-family: $font;
+      font-size: 16px; // évite zoom iOS
+      touch-action: manipulation;
+
+      @media (min-width: 577px) { font-size: 0.9rem; }
+
+      &::placeholder { color: rgba(255, 255, 255, 0.24); }
+
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        background: rgba(107, 75, 168, 0.08);
+        box-shadow: 0 0 0 3px $primary-glow;
+      }
+
+      &:hover:not(:focus) {
+        border-color: rgba(201, 162, 39, 0.35);
+      }
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.30);
+      cursor: pointer;
+      font-size: 1.12rem;
+      padding: 4px;
+      transition: $transition;
+      touch-action: manipulation;
+
+      &:hover { color: $gold-light; }
+    }
+  }
+}
+
+// ── Erreurs ───────────────────────────────────────────────────────────
+.error-message {
+  margin-top: 6px;
+  color: #F04438;
+  font-size: 12px;
+  font-family: $font;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  i { font-size: 13px; }
+}
+
+.input-error {
+  border-color: $danger !important;
+  background: rgba(240, 68, 56, 0.06) !important;
+  box-shadow: 0 0 0 3px $danger-bg !important;
+}
+
+// ── Options (remember / forgot) ───────────────────────────────────────
+.form-options-card {
+  background: rgba(16, 8, 25, 0.50);
+  border: 1px solid $glass-border;
+  border-radius: $radius;
+  padding: 10px 14px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  @media (max-width: 576px) {
+    padding: 9px 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 340px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+  }
+
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      min-width: 15px;
+      accent-color: $gold;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    label {
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 0.8rem;
+      font-family: $font;
+      cursor: pointer;
+      white-space: nowrap;
+
+      @media (max-width: 576px) { font-size: 0.74rem; }
+    }
+  }
+
+  .forgot-link {
+    color: $gold-light;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: $font;
+    transition: $transition;
+    white-space: nowrap;
+    touch-action: manipulation;
+
+    @media (max-width: 576px) { font-size: 0.74rem; }
+
+    &:hover {
+      color: $primary;
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── Bouton principal ──────────────────────────────────────────────────
+.btn-primary-card {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, $gold-dark 0%, $primary-dark 100%);
+  border: 1px solid rgba(232, 203, 106, 0.35);
+  border-radius: $radius;
+  color: #fff;
+  font-family: $font-display;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: $transition;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  touch-action: manipulation;
+  box-shadow: 0 4px 18px rgba(201, 162, 39, 0.30);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-glow;
+    background: linear-gradient(135deg, $gold 0%, $primary 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (hover: none) {
+    &:hover {
+      transform: none;
+      box-shadow: 0 4px 18px rgba(201, 162, 39, 0.30);
+    }
+
+    &:active {
+      opacity: 0.85;
+      transform: scale(0.98);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-icon { font-size: 1.02rem; }
+
+  .btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transform: skewX(-20deg);
+    transition: none;
+  }
+
+  &:hover:not(:disabled) .btn-shine {
+    animation: shimmer 0.7s ease forwards;
+  }
+
+  @media (max-width: 576px) {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+}
+
+// ── Overlay de chargement ─────────────────────────────────────────────
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 8, 25, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: inherit;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $primary-glow;
+  border-radius: 50%;
+  border-top-color: $gold;
+  animation: spin 0.85s linear infinite;
+}
+
+// ── Footer formulaire ─────────────────────────────────────────────────
+.form-footer {
+  margin-top: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+
+  @media (max-width: 576px) { margin-top: 13px; }
+}
+
+.footer-sep-line {
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: $glass-border;
+  margin-bottom: 3px;
+}
+
+.support-text {
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 0.78rem;
+  font-family: $font;
+
+  i {
+    margin-right: 4px;
+    color: $gold-light;
+    vertical-align: middle;
+  }
+
+  a {
+    color: $gold-light;
+    text-decoration: none;
+    font-weight: 600;
+    transition: $transition;
+
+    &:hover {
+      color: $primary;
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 576px) { font-size: 0.72rem; }
+}
+
+.version-text {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.20);
+  font-family: $font;
+  letter-spacing: 0.3px;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ══════════════════════════════════════════════════════════════════════
+@media (max-width: 900px) {
+  .main-glass-card { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 576px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-glass-card { animation: none; }
+  .cube            { animation: none !important; }
+  .loading-spinner { animation-duration: 1.5s; }
+}
