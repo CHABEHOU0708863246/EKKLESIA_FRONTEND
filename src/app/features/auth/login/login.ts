@@ -99,14 +99,16 @@ export class LoginComponent implements OnInit {
             'Bienvenue ! Redirection vers votre tableau de bord...'
           );
 
-          // Redirection après un court délai
-          setTimeout(() => {
-            this.router.navigate(['/dashboard']).then((success) => {
-              if (!success) {
-                window.location.href = '/dashboard';
-              }
-            });
-          }, 1500);
+          // ✅ Navigation SPA directe, sans délai artificiel ni fallback de rechargement complet
+          this.router.navigate(['/dashboard']).then((success) => {
+            if (!success) {
+              console.error('❌ Navigation vers /dashboard a échoué (success=false). Vérifiez les guards.');
+              console.log(localStorage.getItem('ekklesia_auth_data'));
+              console.log(localStorage.getItem('refresh_token'));
+            }
+          }).catch((err) => {
+            console.error('❌ Erreur lors de la navigation vers /dashboard:', err);
+          });
         } else {
           this.notificationService.error(
             'Échec de la connexion',

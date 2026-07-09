@@ -1,0 +1,313 @@
+<!-- ══ CONTENT AREA ══ -->
+<main class="content-area">
+
+  <!-- ══ HERO BANNER ══ -->
+  <div class="hero-banner">
+    <div class="hero-deco"><i class="bx bx-church"></i></div>
+    <div class="hero-content">
+      <div class="hero-greeting">Bienvenue sur votre tableau de bord MIAV ERP</div>
+      <div class="hero-title">Bonjour, <span>{{ userName }}</span> 👋</div>
+      <div class="hero-subtitle">
+        <!-- Section Membres -->
+        <ng-container *ngIf="dashboardStats.totalMembers > 0; else noMembers">
+          <strong>{{ dashboardStats.totalMembers }}</strong> membres actifs dans votre église,&nbsp;
+        </ng-container>
+        <ng-template #noMembers>
+          <span>Aucun membre enregistré,&nbsp;</span>
+        </ng-template>
+
+        <!-- Section Événements -->
+        <ng-container *ngIf="dashboardStats.upcomingEvents > 0; else noEvents">
+          <strong>{{ dashboardStats.upcomingEvents }} événement{{ dashboardStats.upcomingEvents > 1 ? 's' : ''
+            }}</strong> à venir,&nbsp;
+        </ng-container>
+        <ng-template #noEvents>
+          <span>aucun événement à venir,&nbsp;</span>
+        </ng-template>
+
+        <!-- Section Offrandes -->
+        <ng-container *ngIf="dashboardStats.totalOfferings > 0; else noOfferings">
+          <strong>{{ dashboardStats.totalOfferings | number:'1.0-0' }} FCFA</strong> collectés ce mois-ci.
+        </ng-container>
+        <ng-template #noOfferings>
+          <span>aucune offrande enregistrée ce mois-ci.</span>
+        </ng-template>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="hero-quick-actions">
+        <a [routerLink]="['/dashboard/membres/new']" class="hero-action-btn primary">
+          <i class="bx bx-plus"></i> Nouveau Membre
+        </a>
+        <a [routerLink]="['/dashboard/finances/offrandes/new']" class="hero-action-btn">
+          <i class="bx bx-donate-heart"></i> Enregistrer Offrande
+        </a>
+        <a [routerLink]="['/dashboard/evenements/new']" class="hero-action-btn">
+          <i class="bx bx-calendar-plus"></i> Créer Événement
+        </a>
+      </div>
+    </div>
+
+    <!-- Hero Stats -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-value">{{ dashboardStats.totalMembers }}</div>
+        <div class="hero-stat-label">Membres</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">{{ dashboardStats.activeCells }}</div>
+        <div class="hero-stat-label">Cellules</div>
+      </div>
+      <div class="hero-stat-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">{{ dashboardStats.attendanceRate }}<span>%</span></div>
+        <div class="hero-stat-label">Présence</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ KPI CARDS ══ -->
+  <div class="grid grid-4">
+
+    <!-- CARD 1: MEMBRES -->
+    <div class="kpi-card purple">
+      <div class="kpi-header">
+        <div class="kpi-icon purple"><i class="bx bx-group"></i></div>
+        <div class="kpi-trend" [class.up]="getMembersTrend() >= 0" [class.down]="getMembersTrend() < 0">
+          <i class="bx" [class.bx-trending-up]="getMembersTrend() >= 0"
+            [class.bx-trending-down]="getMembersTrend() < 0"></i>
+          {{ getMembersTrend() >= 0 ? '+' : '' }}{{ getMembersTrend() }}%
+        </div>
+      </div>
+      <div class="kpi-value">{{ dashboardStats.totalMembers }}</div>
+      <div class="kpi-label">Membres Actifs</div>
+      <div class="kpi-sublabel">+{{ dashboardStats.newMembersThisMonth }} ce mois-ci</div>
+    </div>
+
+    <!-- CARD 2: OFFRANDES -->
+    <div class="kpi-card gold">
+      <div class="kpi-header">
+        <div class="kpi-icon gold"><i class="bx bx-coin-stack"></i></div>
+        <div class="kpi-trend" [class.up]="getOfferingsTrend() >= 0" [class.down]="getOfferingsTrend() < 0">
+          <i class="bx" [class.bx-trending-up]="getOfferingsTrend() >= 0"
+            [class.bx-trending-down]="getOfferingsTrend() < 0"></i>
+          {{ getOfferingsTrend() >= 0 ? '+' : '' }}{{ getOfferingsTrend() }}%
+        </div>
+      </div>
+      <div class="kpi-value">{{ dashboardStats.totalOfferings | number:'1.0-0' }}<span class="kpi-value-sm"> FCFA</span>
+      </div>
+      <div class="kpi-label">Offrandes</div>
+      <div class="kpi-sublabel">Ce mois-ci</div>
+    </div>
+
+    <!-- CARD 3: ÉVÉNEMENTS -->
+    <div class="kpi-card teal">
+      <div class="kpi-header">
+        <div class="kpi-icon teal"><i class="bx bx-calendar-event"></i></div>
+        <div class="kpi-trend" [class.up]="getEventsTrend() >= 0" [class.down]="getEventsTrend() < 0">
+          <i class="bx" [class.bx-trending-up]="getEventsTrend() >= 0"
+            [class.bx-trending-down]="getEventsTrend() < 0"></i>
+          {{ getEventsTrend() >= 0 ? '+' : '' }}{{ getEventsTrend() }}%
+        </div>
+      </div>
+      <div class="kpi-value">{{ dashboardStats.upcomingEvents }}</div>
+      <div class="kpi-label">Événements à Venir</div>
+      <div class="kpi-sublabel">{{ dashboardStats.totalEvents }} au total</div>
+    </div>
+
+    <!-- CARD 4: PRÉSENCE -->
+    <div class="kpi-card burgundy">
+      <div class="kpi-header">
+        <div class="kpi-icon burgundy"><i class="bx bx-bar-chart-alt"></i></div>
+        <div class="kpi-trend" [class.up]="getAttendanceTrend() >= 0" [class.down]="getAttendanceTrend() < 0">
+          <i class="bx" [class.bx-trending-up]="getAttendanceTrend() >= 0"
+            [class.bx-trending-down]="getAttendanceTrend() < 0"></i>
+          {{ getAttendanceTrend() >= 0 ? '+' : '' }}{{ getAttendanceTrend() }}%
+        </div>
+      </div>
+      <div class="kpi-value">{{ dashboardStats.attendanceRate }}<span class="kpi-value-sm">%</span></div>
+      <div class="kpi-label">Taux de Présence</div>
+      <div class="kpi-sublabel">{{ dashboardStats.averageAttendance }} en moyenne</div>
+    </div>
+
+  </div>
+
+  <!-- ══ GRAPHIQUES ROW 1 ══ -->
+  <div class="grid grid-2" style="margin-top: 18px;">
+
+    <!-- Répartition des Membres -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des Membres</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Répartition des Offrandes -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title"><i class="bx bx-pie-chart-alt"></i> Offrandes par Type</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ GRAPHIQUES ROW 2 ══ -->
+  <div class="grid grid-2" style="margin-top: 18px;">
+
+    <!-- Évolution des Présences -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title"><i class="bx bx-line-chart"></i> Évolution des Présences</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiques Rapides -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bx bx-stats"></i> Statistiques Rapides</div>
+      </div>
+      <div class="card-body">
+        <div class="quick-stats-grid">
+
+          <div class="quick-stat-item">
+            <div class="quick-stat-icon gold"><i class="bx bx-group"></i></div>
+            <div class="quick-stat-info">
+              <div class="quick-stat-value">{{ dashboardStats.totalMembers }}</div>
+              <div class="quick-stat-label">Membres</div>
+            </div>
+          </div>
+
+          <div class="quick-stat-item">
+            <div class="quick-stat-icon teal"><i class="bx bx-home-heart"></i></div>
+            <div class="quick-stat-info">
+              <div class="quick-stat-value">{{ dashboardStats.activeCells }}</div>
+              <div class="quick-stat-label">Cellules</div>
+            </div>
+          </div>
+
+          <div class="quick-stat-item">
+            <div class="quick-stat-icon burgundy"><i class="bx bx-calendar-event"></i></div>
+            <div class="quick-stat-info">
+              <div class="quick-stat-value">{{ dashboardStats.totalEvents }}</div>
+              <div class="quick-stat-label">Événements</div>
+            </div>
+          </div>
+
+          <div class="quick-stat-item">
+            <div class="quick-stat-icon purple"><i class="bx bx-user-check"></i></div>
+            <div class="quick-stat-info">
+              <div class="quick-stat-value">{{ dashboardStats.visitorsThisMonth }}</div>
+              <div class="quick-stat-label">Visiteurs</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ DONNÉES RÉCENTES ══ -->
+  <div class="grid grid-2" style="margin-top: 18px;">
+
+    <!-- Derniers Membres -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bx bx-user-plus"></i> Derniers Membres</div>
+        <a [routerLink]="['/dashboard/membres']" class="btn btn-outline btn-sm">Voir tout</a>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Statut</th>
+              <th>Cellule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let member of recentMembers">
+              <td><span class="cell-name">{{ member.fullName }}</span></td>
+              <td>
+                <span class="status-badge" [ngClass]="getMemberStatusClass(member.status)">
+                  {{ getMemberStatusText(member.status) }}
+                </span>
+              </td>
+              <td><span class="cell-ref">{{ member.cellGroupName || '-' }}</span></td>
+            </tr>
+            <tr *ngIf="recentMembers.length === 0">
+              <td colspan="3" class="empty-state">Aucun membre récent</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Dernières Offrandes -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bx bx-coin-stack"></i> Dernières Offrandes</div>
+        <a [routerLink]="['/dashboard/finances/offrandes']" class="btn btn-outline btn-sm">Voir tout</a>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Montant</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let offering of recentOfferings">
+              <td><span class="cell-name">{{ getOfferingTypeText(offering.type) }}</span></td>
+              <td><span class="cell-amount positive">{{ offering.amount | number:'1.0-0' }} FCFA</span></td>
+              <td>
+                <span class="status-badge" [ngClass]="getOfferingStatusClass(offering.status)">
+                  {{ getOfferingStatusText(offering.status) }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="recentOfferings.length === 0">
+              <td colspan="3" class="empty-state">Aucune offrande récente</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="content-footer">
+    <div class="footer-text">
+      © 2026 EKKLESIA ERP — Version 1.0.0
+      <span class="footer-sep">•</span>
+      <a [routerLink]="['/dashboard/about']" class="footer-link">Aide &amp; Support</a>
+      <span class="footer-sep">•</span>
+      <a [routerLink]="['/dashboard/about']" class="footer-link">À propos</a>
+    </div>
+  </footer>
+</main>

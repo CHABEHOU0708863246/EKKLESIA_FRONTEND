@@ -198,6 +198,21 @@ export class Token {
   }
 
   /**
+ * Nettoie les données de session sans déclencher de navigation.
+ * À utiliser quand l'appelant (ex: un guard) gère lui-même la redirection,
+ * pour éviter une double navigation concurrente.
+ */
+clearSession(): void {
+  if (!this.isBrowser) return;
+
+  localStorage.removeItem(this.STORAGE_KEY);
+  localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+  localStorage.removeItem(this.REMEMBER_ME_KEY);
+  localStorage.removeItem('token');
+  sessionStorage.clear();
+}
+
+  /**
    * Déconnexion complète
    */
   logout(): void {

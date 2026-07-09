@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, HostListener, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule, RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subscription } from 'rxjs';
 import { Permissions } from '../../../core/services/Permissions/permissions';
+
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 import { User } from '../../../core/models/Users/user.model';
 import { Token } from '../../../core/services/Token/token';
@@ -47,7 +49,7 @@ export enum OfferingStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink, BaseChartDirective, SidebarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
@@ -163,17 +165,24 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   };
 
+  private isBrowser: boolean;
+
   private subscriptions: Subscription = new Subscription();
 
   constructor(
     private authService: Auth,
     private tokenService: Token,
     private router: Router,
-    public permission: Permissions
-  ) { }
+    public permission: Permissions,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
-    // Vérifier que le token est bien présent
+    // ✅ Côté serveur : on ne vérifie rien, le client validera après hydratation
+    if (!this.isBrowser) return;
+
     const token = this.tokenService.getToken();
 
     if (!token) {
@@ -441,6 +450,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   toggleSidebar(): void {
+    if (!this.isBrowser) return; // ✅ document n'existe pas côté serveur
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
 
     const sidebar = document.getElementById('sidebar');
@@ -460,6 +470,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   closeSidebar(): void {
+    if (!this.isBrowser) return;
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     if (sidebar) sidebar.classList.remove('open');
@@ -479,11 +490,13 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   checkMobileView(): void {
+    if (!this.isBrowser) return;
     this.isMobileView = window.innerWidth <= 768;
     if (this.isMobileView) {
       this.isSidebarCollapsed = true;
     }
   }
+
 
   /**
    * Déconnexion

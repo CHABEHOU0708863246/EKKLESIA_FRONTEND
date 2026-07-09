@@ -1,3 +1,4 @@
+// src/app/core/models/members/cell-group.model.ts
 import { Address, Member } from './member.model';
 
 export interface CellGroup {
@@ -22,6 +23,9 @@ export interface CellGroup {
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
+  // ✅ Propriétés de réponse
+  isSuccess?: boolean;
+  errorMessage?: string;
 }
 
 export interface CellGroupCreate {
@@ -78,18 +82,8 @@ export interface CellGroupListResponse {
   hasNextPage: boolean;
 }
 
-// Jours de la semaine
-export const WEEK_DAYS = [
-  'Lundi',
-  'Mardi',
-  'Mercredi',
-  'Jeudi',
-  'Vendredi',
-  'Samedi',
-  'Dimanche'
-];
+export const WEEK_DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-// Classe utilitaire
 export class CellGroupUtils {
   static getFormattedMeetingTime(time?: string): string {
     if (!time) return 'Non défini';
@@ -99,24 +93,16 @@ export class CellGroupUtils {
   }
 
   static getStatusBadge(isActive: boolean): { label: string; color: string } {
-    return isActive
-      ? { label: 'Actif', color: 'success' }
-      : { label: 'Inactif', color: 'danger' };
+    return isActive ? { label: 'Actif', color: 'success' } : { label: 'Inactif', color: 'danger' };
   }
 
   static getInitials(name: string): string {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
   }
 
   static searchCellGroups(groups: CellGroup[], searchTerm: string): CellGroup[] {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return groups;
-
     return groups.filter(group =>
       group.name.toLowerCase().includes(term) ||
       (group.location && group.location.toLowerCase().includes(term)) ||
@@ -132,6 +118,14 @@ export class CellGroupUtils {
 
   static sortByMemberCount(groups: CellGroup[]): CellGroup[] {
     return [...groups].sort((a, b) => b.memberCount - a.memberCount);
+  }
+
+  static isSuccessResponse(response: any): boolean {
+    return response?.isSuccess === true;
+  }
+
+  static getErrorMessage(response: any): string {
+    return response?.errorMessage || 'Une erreur est survenue';
   }
 }
 

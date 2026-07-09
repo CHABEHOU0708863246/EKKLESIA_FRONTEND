@@ -1,0 +1,331 @@
+<!-- src/app/features/members/member-create/member-create.html -->
+<div class="mc-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="mc-page-header">
+    <div class="mc-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="mc-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/membres']">Membres</a>
+      <span class="mc-breadcrumb-sep">/</span>
+      <span class="mc-breadcrumb-current">Nouveau membre</span>
+    </div>
+
+    <div class="mc-page-title-row">
+      <h1>Nouveau membre</h1>
+      <button type="button" class="mc-btn mc-btn--outline" [routerLink]="['/dashboard/membres']">
+        Annuler
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════ STEPPER HORIZONTAL ══════════════ -->
+  <nav class="mc-stepper" aria-label="Étapes du formulaire">
+    <button
+      type="button"
+      *ngFor="let step of steps; let i = index"
+      class="mc-step"
+      [class.is-active]="i === currentStepIndex()"
+      [class.is-done]="i < currentStepIndex()"
+      (click)="goToStep(i)"
+    >
+      <span class="mc-step-badge">
+        <svg *ngIf="i < currentStepIndex()" viewBox="0 0 24 24" fill="none">
+          <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span *ngIf="i >= currentStepIndex()">{{ i + 1 }}</span>
+      </span>
+      <span class="mc-step-label">{{ step.label }}</span>
+    </button>
+  </nav>
+
+  <!-- ══════════════ BANNIÈRE DE SUCCÈS (inline, pas d'overlay) ══════════════ -->
+  <div class="mc-banner mc-banner--success" *ngIf="submitSuccess()">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Membre enregistré avec succès. Redirection en cours…</span>
+  </div>
+
+  <!-- ══════════════ CONTENU ══════════════ -->
+  <form class="mc-form" [formGroup]="form" (ngSubmit)="isLastStep() ? submit() : next()">
+
+    <!-- ─────────── ÉTAPE 1 : IDENTITÉ & CONTACT ─────────── -->
+    <section class="mc-panel" *ngIf="currentStep().id === 'identite'" formGroupName="identite">
+      <div class="mc-panel-header">
+        <h2>Identité &amp; contact</h2>
+        <p>Renseignez les informations personnelles du membre.</p>
+      </div>
+
+      <div class="mc-panel-body">
+
+        <div class="mc-field mc-field--span-2">
+          <label>Civilité</label>
+          <div class="mc-radio-group" role="radiogroup">
+            <button type="button" *ngFor="let g of genderOptions"
+                    class="mc-radio-pill"
+                    [class.is-selected]="identiteGroup.get('gender')?.value === g.value"
+                    (click)="identiteGroup.get('gender')?.setValue(g.value)">
+              {{ g.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mc-field">
+          <label for="firstName">Prénom <span class="mc-required">*</span></label>
+          <input id="firstName" type="text" formControlName="firstName" placeholder="Ex. Kouadio" autocomplete="given-name">
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères min.)</p>
+        </div>
+
+        <div class="mc-field">
+          <label for="lastName">Nom <span class="mc-required">*</span></label>
+          <input id="lastName" type="text" formControlName="lastName" placeholder="Ex. Affery" autocomplete="family-name">
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères min.)</p>
+        </div>
+
+        <div class="mc-field">
+          <label for="phone">Téléphone <span class="mc-required">*</span></label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="07 00 00 00 00" autocomplete="tel">
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'phone')">Numéro invalide (8 à 15 chiffres)</p>
+        </div>
+
+        <div class="mc-field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" formControlName="email" placeholder="exemple@eglise.org" autocomplete="email">
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'email')">Format d'e-mail invalide</p>
+        </div>
+
+        <div class="mc-field">
+          <label for="birthDate">Date de naissance</label>
+          <input id="birthDate" type="date" formControlName="birthDate">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── ÉTAPE 2 : STATUT SPIRITUEL ─────────── -->
+    <section class="mc-panel" *ngIf="currentStep().id === 'statut'" formGroupName="statut">
+      <div class="mc-panel-header">
+        <h2>Statut spirituel</h2>
+        <p>Situation actuelle du membre au sein de la communauté.</p>
+      </div>
+
+      <div class="mc-panel-body">
+
+        <div class="mc-field mc-field--span-2">
+          <label>Statut du membre</label>
+          <div class="mc-select-wrap">
+            <select formControlName="status">
+              <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+            </select>
+            <svg class="mc-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="mc-field mc-field--span-2">
+          <label>Statut spirituel</label>
+          <div class="mc-select-wrap">
+            <select formControlName="spiritualStatus">
+              <option *ngFor="let s of spiritualStatusOptions" [value]="s.value">{{ s.label }}</option>
+            </select>
+            <svg class="mc-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="mc-checkbox-row mc-field--span-2">
+          <label class="mc-checkbox">
+            <input type="checkbox" formControlName="isBaptized">
+            <span class="mc-checkbox-box"></span>
+            <span class="mc-checkbox-text">
+              <strong>Baptisé(e)</strong>
+              <small>Immersion ou aspersion déjà reçue</small>
+            </span>
+          </label>
+
+          <label class="mc-checkbox">
+            <input type="checkbox" formControlName="isLeader">
+            <span class="mc-checkbox-box"></span>
+            <span class="mc-checkbox-text">
+              <strong>Leader / Responsable</strong>
+              <small>Occupe une fonction de direction</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="mc-field" *ngIf="statutGroup.get('isBaptized')?.value">
+          <label for="baptizedDate">Date de baptême</label>
+          <input id="baptizedDate" type="date" formControlName="baptizedDate">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── ÉTAPE 3 : AFFECTATION ─────────── -->
+    <section class="mc-panel" *ngIf="currentStep().id === 'affectation'" formGroupName="affectation">
+      <div class="mc-panel-header">
+        <h2>Affectation</h2>
+        <p>Rattachement à une cellule, un ministère ou un parrain.</p>
+      </div>
+
+      <div class="mc-panel-body">
+
+        <div class="mc-field">
+          <label for="cellGroupId">Cellule de maison</label>
+          <div class="mc-select-wrap">
+            <select id="cellGroupId" formControlName="cellGroupId" [disabled]="loadingCellGroups()">
+              <option value="">— Aucune cellule —</option>
+              <option *ngFor="let cg of cellGroups" [value]="cg.id">{{ cg.name }}</option>
+            </select>
+            <svg class="mc-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="mc-hint" *ngIf="loadingCellGroups()">Chargement des cellules…</p>
+        </div>
+
+        <div class="mc-field">
+          <label for="ministryId">Ministère</label>
+          <div class="mc-select-wrap">
+            <select id="ministryId" formControlName="ministryId">
+              <option value="">— Aucun ministère —</option>
+              <option value="louange">Louange &amp; Adoration</option>
+              <option value="accueil">Accueil &amp; Hospitalité</option>
+              <option value="intercession">Intercession</option>
+              <option value="jeunesse">Jeunesse</option>
+              <option value="technique">Média &amp; Technique</option>
+            </select>
+            <svg class="mc-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="mc-field mc-field--span-2 mc-godfather">
+          <label for="godfatherSearch">Parrain / Marraine</label>
+
+          <div class="mc-selected-row" *ngIf="selectedGodfather">
+            <div class="mc-mini-avatar">{{ getInitials(selectedGodfather.firstName, selectedGodfather.lastName) }}</div>
+            <div class="mc-mini-info">
+              <strong>{{ selectedGodfather.fullName || (selectedGodfather.firstName + ' ' + selectedGodfather.lastName) }}</strong>
+              <span>{{ selectedGodfather.phone }}</span>
+            </div>
+            <button type="button" class="mc-icon-btn" (click)="clearGodfather()" aria-label="Retirer">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+
+          <input *ngIf="!selectedGodfather" id="godfatherSearch" type="text" placeholder="Rechercher par nom…"
+                 (input)="onGodfatherInput($any($event.target).value)">
+
+          <div class="mc-search-dropdown" *ngIf="showGodfatherResults() && !selectedGodfather">
+            <p class="mc-search-status" *ngIf="searchingGodfather()">Recherche en cours…</p>
+            <p class="mc-search-status" *ngIf="!searchingGodfather() && godfatherResults.length === 0">Aucun membre trouvé</p>
+            <button type="button" class="mc-search-result" *ngFor="let m of godfatherResults" (click)="selectGodfather(m)">
+              <div class="mc-mini-avatar">{{ getInitials(m.firstName, m.lastName) }}</div>
+              <div class="mc-mini-info">
+                <strong>{{ m.fullName || (m.firstName + ' ' + m.lastName) }}</strong>
+                <span>{{ m.phone }}</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── ÉTAPE 4 : RÉCAPITULATIF ─────────── -->
+    <section class="mc-panel" *ngIf="currentStep().id === 'recap'">
+      <div class="mc-panel-header">
+        <h2>Récapitulatif</h2>
+        <p>Vérifiez les informations avant l'enregistrement.</p>
+      </div>
+
+      <div class="mc-panel-body mc-recap-body">
+
+        <table class="mc-recap-table">
+          <tbody>
+            <tr>
+              <th colspan="2">
+                Identité
+                <button type="button" class="mc-link-btn" (click)="goToStep(0)">Modifier</button>
+              </th>
+            </tr>
+            <tr>
+              <td>Nom complet</td>
+              <td>{{ identiteGroup.get('firstName')?.value }} {{ identiteGroup.get('lastName')?.value }}</td>
+            </tr>
+            <tr>
+              <td>Téléphone</td>
+              <td>{{ identiteGroup.get('phone')?.value }}</td>
+            </tr>
+            <tr *ngIf="identiteGroup.get('email')?.value">
+              <td>E-mail</td>
+              <td>{{ identiteGroup.get('email')?.value }}</td>
+            </tr>
+
+            <tr>
+              <th colspan="2">
+                Statut spirituel
+                <button type="button" class="mc-link-btn" (click)="goToStep(1)">Modifier</button>
+              </th>
+            </tr>
+            <tr>
+              <td>Statut</td>
+              <td>{{ statutGroup.get('status')?.value }}</td>
+            </tr>
+            <tr>
+              <td>Statut spirituel</td>
+              <td>{{ statutGroup.get('spiritualStatus')?.value }}</td>
+            </tr>
+            <tr>
+              <td>Baptisé(e)</td>
+              <td>{{ statutGroup.get('isBaptized')?.value ? 'Oui' : 'Non' }}</td>
+            </tr>
+            <tr>
+              <td>Leader</td>
+              <td>{{ statutGroup.get('isLeader')?.value ? 'Oui' : 'Non' }}</td>
+            </tr>
+
+            <tr>
+              <th colspan="2">
+                Affectation
+                <button type="button" class="mc-link-btn" (click)="goToStep(2)">Modifier</button>
+              </th>
+            </tr>
+            <tr>
+              <td>Cellule</td>
+              <td>{{ getCellGroupName(affectationGroup.get('cellGroupId')?.value) }}</td>
+            </tr>
+            <tr>
+              <td>Parrain / Marraine</td>
+              <td>{{ selectedGodfather ? (selectedGodfather.fullName || (selectedGodfather.firstName + ' ' + selectedGodfather.lastName)) : 'Aucun' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="mc-field">
+          <label for="notes">Observations</label>
+          <textarea id="notes" rows="3" [formControl]="$any(form.get('notes'))" placeholder="Contexte, remarques utiles à l'équipe pastorale…"></textarea>
+        </div>
+
+        <div class="mc-banner mc-banner--error" *ngIf="submitError()">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span>{{ submitError() }}</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════ BARRE D'ACTIONS ══════════════ -->
+    <footer class="mc-actions">
+      <button type="button" class="mc-btn mc-btn--ghost" *ngIf="!isFirstStep()" (click)="previous()">
+        Précédent
+      </button>
+      <span class="mc-actions-spacer"></span>
+
+      <button type="button" class="mc-btn mc-btn--primary" *ngIf="!isLastStep()" (click)="next()">
+        Continuer
+      </button>
+
+      <button type="submit" class="mc-btn mc-btn--primary" *ngIf="isLastStep()" [disabled]="isSubmitting()">
+        <span *ngIf="!isSubmitting()">Enregistrer le membre</span>
+        <span class="mc-spinner" *ngIf="isSubmitting()"></span>
+      </button>
+    </footer>
+
+  </form>
+</div>

@@ -1,0 +1,150 @@
+<!-- src/app/features/dashboard/dashboard/members/member-list/member-list.html -->
+<div class="ml-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="ml-page-header">
+    <div class="ml-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="ml-breadcrumb-sep">/</span>
+      <span class="ml-breadcrumb-current">Membres</span>
+    </div>
+
+    <div class="ml-page-title-row">
+      <h1>Annuaire des membres</h1>
+      <a [routerLink]="['/dashboard/membres/new']" class="ml-btn ml-btn--primary">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Nouveau membre
+      </a>
+    </div>
+  </header>
+
+  <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
+  <div class="ml-toolbar">
+    <div class="ml-search">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" [formControl]="searchControl" placeholder="Rechercher par nom, téléphone…">
+    </div>
+
+    <div class="ml-select-wrap">
+      <select [formControl]="statusControl">
+        <option *ngFor="let s of statusFilterOptions" [value]="s.value">{{ s.label }}</option>
+      </select>
+      <svg class="ml-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="ml-select-wrap">
+      <select [formControl]="cellGroupControl">
+        <option value="">Toutes les cellules</option>
+        <option *ngFor="let cg of cellGroups()" [value]="cg.id">{{ cg.name }}</option>
+      </select>
+      <svg class="ml-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <button type="button" class="ml-btn ml-btn--ghost" (click)="resetFilters()">
+      Réinitialiser
+    </button>
+
+    <button type="button" class="ml-icon-btn" (click)="refresh()" aria-label="Actualiser" title="Actualiser">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="ml-banner ml-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <!-- ══════════════ TABLEAU ══════════════ -->
+  <div class="ml-table-card">
+    <table class="ml-table">
+      <thead>
+        <tr>
+          <th class="ml-col-member">Membre</th>
+          <th>Téléphone</th>
+          <th>Statut</th>
+          <th>Statut spirituel</th>
+          <th>Cellule</th>
+          <th class="ml-col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- Ligne de chargement -->
+        <tr *ngIf="loading()">
+          <td colspan="6" class="ml-state-cell">
+            <span class="ml-spinner"></span> Chargement des membres…
+          </td>
+        </tr>
+
+        <!-- État vide -->
+        <tr *ngIf="isEmpty()">
+          <td colspan="6" class="ml-state-cell ml-state-cell--empty">
+            Aucun membre ne correspond à ces critères.
+          </td>
+        </tr>
+
+        <!-- Lignes de données -->
+        <tr *ngFor="let member of members()" class="ml-row" (click)="viewMember(member)">
+          <td class="ml-col-member">
+            <div class="ml-member-cell">
+              <div class="ml-avatar">{{ getInitials(member) }}</div>
+              <div class="ml-member-info">
+                <strong>{{ getFullName(member) }}</strong>
+                <span *ngIf="member.email">{{ member.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ member.phone }}</td>
+          <td>
+            <span class="ml-badge" [ngClass]="getStatusClass(member.status)">
+              {{ getStatusLabel(member.status) }}
+            </span>
+          </td>
+          <td>
+            <span class="ml-text-muted">{{ getSpiritualStatusLabel(member.spiritualStatus) }}</span>
+          </td>
+          <td>
+            <span class="ml-text-muted">{{ getCellGroupName(member.cellGroupId) }}</span>
+          </td>
+          <td class="ml-col-actions">
+            <button type="button" class="ml-icon-btn" (click)="editMember(member, $event)" aria-label="Modifier" title="Modifier">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" class="ml-icon-btn ml-icon-btn--danger" (click)="deleteMember(member, $event)" aria-label="Supprimer" title="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ PAGINATION ══════════════ -->
+  <div class="ml-pagination" *ngIf="!isEmpty()">
+    <div class="ml-pagination-info">
+      {{ pageRangeLabel }}
+    </div>
+
+    <div class="ml-pagination-controls">
+      <div class="ml-select-wrap ml-select-wrap--sm">
+        <select [value]="pageSize()" (change)="onPageSizeChange($any($event.target).value)">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
+        </select>
+        <svg class="ml-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <button type="button" class="ml-icon-btn" [disabled]="currentPage() === 1" (click)="previousPage()" aria-label="Page précédente">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+      <span class="ml-page-indicator">Page {{ currentPage() }} / {{ totalPages() }}</span>
+
+      <button type="button" class="ml-icon-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()" aria-label="Page suivante">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>

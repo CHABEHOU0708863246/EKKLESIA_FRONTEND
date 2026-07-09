@@ -1,3 +1,4 @@
+// src/app/core/models/members/cell-group-attendance.model.ts
 import { Member } from './member.model';
 
 export interface CellGroupAttendance {
@@ -19,6 +20,9 @@ export interface CellGroupAttendance {
   formattedDate: string;
   formattedCreatedAt: string;
   attendanceRate: number;
+  // ✅ Propriétés de réponse
+  isSuccess?: boolean;
+  errorMessage?: string;
 }
 
 export interface CellGroupAttendanceCreate {
@@ -59,7 +63,6 @@ export interface CellGroupAttendanceListResponse {
   hasNextPage: boolean;
 }
 
-// Classe utilitaire
 export class CellGroupAttendanceUtils {
   static getFormattedDate(date: string): string {
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -97,6 +100,14 @@ export class CellGroupAttendanceUtils {
 
   static getMemberNames(members: Member[]): string {
     return members.map(m => m.fullName).join(', ');
+  }
+
+  static isSuccessResponse(response: any): boolean {
+    return response?.isSuccess === true;
+  }
+
+  static getErrorMessage(response: any): string {
+    return response?.errorMessage || 'Une erreur est survenue';
   }
 }
 

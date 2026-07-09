@@ -8,6 +8,13 @@ export enum MemberStatus {
   ExMember = 'ExMember'
 }
 
+export enum VisitorStage {
+  FirstContact = 'FirstContact',
+  Invited = 'Invited',
+  InClass = 'InClass',
+  Adhered = 'Adhered'
+}
+
 export enum SpiritualStatus {
   NonBeliever = 'NonBeliever',
   Catechumen = 'Catechumen',
@@ -15,6 +22,13 @@ export enum SpiritualStatus {
   Baptized = 'Baptized',
   Disciple = 'Disciple',
   Leader = 'Leader'
+}
+
+export enum AttachmentType {
+  JustificatifPhoto = 'JustificatifPhoto',
+  CNI = 'CNI',
+  CertificatBapteme = 'CertificatBapteme',
+  Other = 'Other'
 }
 
 export interface Address {
@@ -47,6 +61,18 @@ export interface MemberNote {
   isPrivate: boolean;
 }
 
+export interface MemberAttachment {
+  id: string;
+  type: AttachmentType;
+  typeLabel: string;
+  fileUrl: string;
+  label?: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  isActive: boolean;
+  formattedUploadedAt: string;
+}
+
 export interface Member {
   id: string;
   userId?: string;
@@ -59,7 +85,10 @@ export interface Member {
   gender?: string;
   address?: Address;
   photoUrl?: string;
+  attachments: MemberAttachment[];
   status: MemberStatus;
+  visitorStage?: VisitorStage;
+  visitorStageLabel?: string;
   spiritualStatus: SpiritualStatus;
   baptismDate?: string;
   baptismPlace?: string;
@@ -88,6 +117,9 @@ export interface Member {
   createdBy: string;
   notes: MemberNote[];
   age: number;
+  // ✅ Propriétés de réponse
+  isSuccess?: boolean;
+  errorMessage?: string;
 }
 
 export interface MemberCreate {
@@ -100,7 +132,9 @@ export interface MemberCreate {
   gender?: string;
   address?: Address;
   photoUrl?: string;
+  attachments?: MemberAttachment[];
   status?: MemberStatus;
+  visitorStage?: VisitorStage;
   spiritualStatus?: SpiritualStatus;
   baptismDate?: string;
   baptismPlace?: string;
@@ -128,7 +162,9 @@ export interface MemberUpdate {
   gender?: string;
   address?: Address;
   photoUrl?: string;
+  attachments?: MemberAttachment[];
   status?: MemberStatus;
+  visitorStage?: VisitorStage;
   spiritualStatus?: SpiritualStatus;
   baptismDate?: string;
   baptismPlace?: string;
@@ -154,6 +190,7 @@ export interface MemberFilter {
   phone?: string;
   email?: string;
   status?: MemberStatus;
+  visitorStage?: VisitorStage;
   spiritualStatus?: SpiritualStatus;
   isActive?: boolean;
   isBaptized?: boolean;
@@ -171,6 +208,7 @@ export interface MemberFilter {
   lastAttendanceTo?: string;
   minAttendanceCount?: number;
   maxAttendanceCount?: number;
+  hasAttachments?: boolean;
   page: number;
   pageSize: number;
   sortBy?: string;
@@ -201,6 +239,7 @@ export interface MemberSummary {
   membersByCellGroup: Record<string, number>;
   membersByGender: Record<string, number>;
   membersByAgeGroup: Record<number, number>;
+  visitorsByStage?: Record<VisitorStage, number>;
   recentMembers: Member[];
   mostActiveMembers: Member[];
   membersNeedingFollowUp: Member[];
@@ -208,13 +247,34 @@ export interface MemberSummary {
   baptismRate: number;
 }
 
-// Labels pour les statuts
+// ✅ Labels
 export const MemberStatusLabels: Record<MemberStatus, string> = {
   [MemberStatus.Visitor]: 'Visiteur',
   [MemberStatus.Adherent]: 'Adhérent',
   [MemberStatus.Active]: 'Actif',
   [MemberStatus.Inactive]: 'Inactif',
   [MemberStatus.ExMember]: 'Ancien membre'
+};
+
+export const VisitorStageLabels: Record<VisitorStage, string> = {
+  [VisitorStage.FirstContact]: '1er contact',
+  [VisitorStage.Invited]: 'Invité',
+  [VisitorStage.InClass]: 'En cours',
+  [VisitorStage.Adhered]: 'Adhésion'
+};
+
+export const VisitorStageColors: Record<VisitorStage, string> = {
+  [VisitorStage.FirstContact]: 'secondary',
+  [VisitorStage.Invited]: 'info',
+  [VisitorStage.InClass]: 'warning',
+  [VisitorStage.Adhered]: 'success'
+};
+
+export const VisitorStageOrder: Record<VisitorStage, number> = {
+  [VisitorStage.FirstContact]: 1,
+  [VisitorStage.Invited]: 2,
+  [VisitorStage.InClass]: 3,
+  [VisitorStage.Adhered]: 4
 };
 
 export const SpiritualStatusLabels: Record<SpiritualStatus, string> = {
@@ -243,7 +303,21 @@ export const SpiritualStatusColors: Record<SpiritualStatus, string> = {
   [SpiritualStatus.Leader]: 'danger'
 };
 
-// Classe utilitaire
+export const AttachmentTypeLabels: Record<AttachmentType, string> = {
+  [AttachmentType.JustificatifPhoto]: 'Photo justificative',
+  [AttachmentType.CNI]: 'CNI / Pièce d\'identité',
+  [AttachmentType.CertificatBapteme]: 'Certificat de baptême',
+  [AttachmentType.Other]: 'Autre'
+};
+
+export const AttachmentTypeColors: Record<AttachmentType, string> = {
+  [AttachmentType.JustificatifPhoto]: 'success',
+  [AttachmentType.CNI]: 'primary',
+  [AttachmentType.CertificatBapteme]: 'info',
+  [AttachmentType.Other]: 'secondary'
+};
+
+// ✅ Classe utilitaire
 export class MemberUtils {
   static getFullName(member: Member | MemberCreate): string {
     return `${member.firstName} ${member.lastName}`.trim();
@@ -283,6 +357,53 @@ export class MemberUtils {
     return SpiritualStatusColors[status] || 'secondary';
   }
 
+  static getVisitorStageLabel(stage?: VisitorStage): string {
+    if (!stage) return 'Non défini';
+    return VisitorStageLabels[stage] || stage;
+  }
+
+  static getVisitorStageColor(stage?: VisitorStage): string {
+    if (!stage) return 'secondary';
+    return VisitorStageColors[stage] || 'secondary';
+  }
+
+  static getVisitorStageOrder(stage?: VisitorStage): number {
+    if (!stage) return 0;
+    return VisitorStageOrder[stage] || 0;
+  }
+
+  static getNextVisitorStage(currentStage?: VisitorStage): VisitorStage | null {
+    if (!currentStage) return VisitorStage.FirstContact;
+    const stages = Object.keys(VisitorStageOrder) as VisitorStage[];
+    const currentIndex = stages.indexOf(currentStage);
+    if (currentIndex === -1 || currentIndex === stages.length - 1) return null;
+    return stages[currentIndex + 1];
+  }
+
+  static getPreviousVisitorStage(currentStage?: VisitorStage): VisitorStage | null {
+    if (!currentStage) return null;
+    const stages = Object.keys(VisitorStageOrder) as VisitorStage[];
+    const currentIndex = stages.indexOf(currentStage);
+    if (currentIndex <= 0) return null;
+    return stages[currentIndex - 1];
+  }
+
+  static getAttachmentTypeLabel(type: AttachmentType): string {
+    return AttachmentTypeLabels[type] || type;
+  }
+
+  static getAttachmentTypeColor(type: AttachmentType): string {
+    return AttachmentTypeColors[type] || 'secondary';
+  }
+
+  static getActiveAttachments(attachments: MemberAttachment[]): MemberAttachment[] {
+    return attachments.filter(a => a.isActive);
+  }
+
+  static getAttachmentsByType(attachments: MemberAttachment[], type: AttachmentType): MemberAttachment[] {
+    return attachments.filter(a => a.type === type && a.isActive);
+  }
+
   static getFormattedDate(date?: string): string {
     if (!date) return 'Non renseigné';
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -314,7 +435,6 @@ export class MemberUtils {
   static searchMembers(members: Member[], searchTerm: string): Member[] {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return members;
-
     return members.filter(member =>
       member.firstName.toLowerCase().includes(term) ||
       member.lastName.toLowerCase().includes(term) ||
@@ -329,6 +449,44 @@ export class MemberUtils {
     return address.fullAddress || address.formattedAddress ||
            `${address.city || ''} ${address.country || ''}`.trim() ||
            'Adresse non renseignée';
+  }
+
+  static getVisitorStatusSummary(member: Member): string {
+    if (member.status !== MemberStatus.Visitor) {
+      return `Membre ${this.getStatusLabel(member.status)}`;
+    }
+    if (member.visitorStage) {
+      return `Visiteur - ${this.getVisitorStageLabel(member.visitorStage)}`;
+    }
+    return 'Visiteur';
+  }
+
+  static hasAttachments(member: Member): boolean {
+    return member.attachments && member.attachments.some(a => a.isActive);
+  }
+
+  static countAttachmentsByType(member: Member): Record<AttachmentType, number> {
+    const counts: Record<AttachmentType, number> = {
+      [AttachmentType.JustificatifPhoto]: 0,
+      [AttachmentType.CNI]: 0,
+      [AttachmentType.CertificatBapteme]: 0,
+      [AttachmentType.Other]: 0
+    };
+    if (!member.attachments) return counts;
+    member.attachments.forEach(a => {
+      if (a.isActive) {
+        counts[a.type] = (counts[a.type] || 0) + 1;
+      }
+    });
+    return counts;
+  }
+
+  static isSuccessResponse(response: any): boolean {
+    return response?.isSuccess === true;
+  }
+
+  static getErrorMessage(response: any): string {
+    return response?.errorMessage || 'Une erreur est survenue';
   }
 }
 

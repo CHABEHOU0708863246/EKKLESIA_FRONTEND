@@ -22,7 +22,8 @@
     "axe/forms": [
       "default",
       {
-        "label": "off"
+        "label": "off",
+        "select-name": "off"
       }
     ],
     "axe/structure": [
@@ -36,6 +37,12 @@
       "default",
       {
         "image-alt": "off"
+      }
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-attr": "off"
       }
     ]
   }

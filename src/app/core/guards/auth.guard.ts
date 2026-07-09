@@ -1,279 +1,269 @@
-import { inject } from "@angular/core";
-import { CanActivateFn, Router } from "@angular/router";
-import { Token } from "../services/Token/token";
-import { Auth } from "../services/Auth/auth";
-import { Permissions } from "../services/Permissions/permissions";
+import { inject, isDevMode, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { Token } from '../services/Token/token';
+import { Permissions } from '../services/Permissions/permissions';
 
 /**
- * `authGuard` : Fonction de garde pour protéger les routes en fonction de l'authentification
- * et des permissions/rôles.
+ * Log conditionnel : actif uniquement en développement, pour ne pas polluer
+ * la console en production.
  */
-export const authGuard: CanActivateFn = (route, state) => {
-  const authService = inject(Auth);
-  const tokenService = inject(Token);
-  const permissions = inject(Permissions);
-  const router = inject(Router);
+function log(...args: unknown[]): void {
+  if (isDevMode()) {
+    console.log(...args);
+  }
+}
 
-  console.log('🔍 AuthGuard: Vérification de l\'authentification...');
 
-  // 1️⃣ Vérifier l'authentification
+
+/**
+ * Vérifie l'authentification (token présent + non expiré).
+ * Retourne `true` si OK, ou l'UrlTree de redirection vers login sinon.
+ * Ne redirige jamais côté serveur (SSR) : le token n'y est de toute façon
+ * pas accessible, donc on laisse passer et le client re-vérifiera après
+ * hydratation.
+ */
+function checkAuthenticated(
+  tokenService: Token,
+  router: Router,
+  guardName: string
+): true | UrlTree {
   const isLogged = tokenService.isLogged();
   const isExpired = tokenService.isTokenExpired();
 
-  console.log('📊 AuthGuard: isLogged =', isLogged, 'isExpired =', isExpired);
+  log(`📊 ${guardName}: isLogged =`, isLogged, 'isExpired =', isExpired);
 
   if (!isLogged || isExpired) {
-    console.log('❌ AuthGuard: Token invalide ou expiré - Redirection vers login');
-    tokenService.logout();
-    // ✅ Retourner l'UrlTree correctement
+    log(`❌ ${guardName}: Token invalide ou expiré - Redirection vers login`);
+    tokenService.clearSession();
     return router.createUrlTree(['/auth/login']);
   }
 
-  console.log('✅ AuthGuard: Utilisateur authentifié');
-
-  // 2️⃣ Récupérer les permissions et rôles requis depuis les données de la route
-  const requiredPermissions = route.data?.['permissions'] as string[] || [];
-  const requiredRoles = route.data?.['roles'] as string[] || [];
-
-  console.log('📋 AuthGuard: Permissions requises:', requiredPermissions);
-  console.log('📋 AuthGuard: Rôles requis:', requiredRoles);
-
-  // 3️⃣ Vérifier les permissions
-  if (requiredPermissions.length > 0) {
-    const hasPermission = permissions.hasAnyPermission(...requiredPermissions);
-    console.log('🔑 AuthGuard: A les permissions ?', hasPermission);
-    if (!hasPermission) {
-      console.log('❌ AuthGuard: Permissions manquantes - Redirection vers dashboard');
-      return router.createUrlTree(['/dashboard']);
-    }
-    console.log('✅ AuthGuard: Permissions vérifiées avec succès');
-  }
-
-  // 4️⃣ Vérifier les rôles
-  if (requiredRoles.length > 0) {
-    const hasRole = permissions.hasAnyRole(...requiredRoles);
-    console.log('👤 AuthGuard: A les rôles ?', hasRole);
-    if (!hasRole) {
-      console.log('❌ AuthGuard: Rôles manquants - Redirection vers dashboard');
-      return router.createUrlTree(['/dashboard']);
-    }
-    console.log('✅ AuthGuard: Rôles vérifiés avec succès');
-  }
-
-  // ✅ Retourner true pour autoriser l'accès
+  log(`✅ ${guardName}: Utilisateur authentifié`);
   return true;
-};
+}
 
 /**
- * Guard pour vérifier uniquement l'authentification
+ * `authGuard` : Garde complète — authentification + permissions/rôles optionnels
+ * définis via `route.data`.
  */
-export const simpleAuthGuard: CanActivateFn = (route, state) => {
-  const tokenService = inject(Token);
-  const router = inject(Router);
+export const authGuard: CanActivateFn = (route) => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
 
-  console.log('🔍 SimpleAuthGuard: Vérification de l\'authentification...');
-
-  const isLogged = tokenService.isLogged();
-  const isExpired = tokenService.isTokenExpired();
-
-  if (isLogged && !isExpired) {
-    console.log('✅ SimpleAuthGuard: Utilisateur authentifié');
-    return true;
-  }
-
-  console.log('❌ SimpleAuthGuard: Non authentifié - Redirection vers login');
-  tokenService.logout();
-  return router.createUrlTree(['/auth/login']);
-};
-
-/**
- * Guard pour la page de login - Empêche l'accès si déjà connecté
- */
-export const loginGuard: CanActivateFn = (route, state) => {
-  const tokenService = inject(Token);
-  const router = inject(Router);
-
-  console.log('🔍 LoginGuard: Vérification de l\'authentification...');
-
-  const isLogged = tokenService.isLogged();
-  const isExpired = tokenService.isTokenExpired();
-
-  if (isLogged && !isExpired) {
-    console.log('✅ LoginGuard: Utilisateur déjà connecté - Redirection vers dashboard');
-    return router.createUrlTree(['/dashboard']);
-  }
-
-  console.log('✅ LoginGuard: Accès à la page de login autorisé');
-  return true;
-};
-
-/**
- * Guard pour vérifier les permissions uniquement
- */
-export const permissionGuard: CanActivateFn = (route, state) => {
   const tokenService = inject(Token);
   const permissions = inject(Permissions);
   const router = inject(Router);
 
-  // Vérifier l'authentification d'abord
-  if (!tokenService.isLogged() || tokenService.isTokenExpired()) {
-    console.log('❌ PermissionGuard: Non authentifié - Redirection vers login');
-    tokenService.logout();
-    return router.createUrlTree(['/auth/login']);
+  log("🔍 AuthGuard: Vérification de l'authentification...");
+
+  const authResult = checkAuthenticated(tokenService, router, 'AuthGuard');
+  if (authResult !== true) return authResult;
+
+  const requiredPermissions = (route.data?.['permissions'] as string[]) ?? [];
+  const requiredRoles = (route.data?.['roles'] as string[]) ?? [];
+
+  log('📋 AuthGuard: Permissions requises:', requiredPermissions);
+  log('📋 AuthGuard: Rôles requis:', requiredRoles);
+
+  if (requiredPermissions.length > 0 && !permissions.hasAnyPermission(...requiredPermissions)) {
+    log('❌ AuthGuard: Permissions manquantes - Redirection vers dashboard');
+    return router.createUrlTree(['/dashboard']);
   }
 
-  // Récupérer les permissions requises
-  const requiredPermissions = route.data?.['permissions'] as string[] || [];
+  if (requiredRoles.length > 0 && !permissions.hasAnyRole(...requiredRoles)) {
+    log('❌ AuthGuard: Rôles manquants - Redirection vers dashboard');
+    return router.createUrlTree(['/dashboard']);
+  }
+
+  log('✅ AuthGuard: Toutes les conditions vérifiées');
+  return true;
+};
+
+/**
+ * Garde légère : authentification uniquement, sans vérification de permissions/rôles.
+ */
+export const simpleAuthGuard: CanActivateFn = () => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
+  const tokenService = inject(Token);
+  const router = inject(Router);
+
+  log("🔍 SimpleAuthGuard: Vérification de l'authentification...");
+  return checkAuthenticated(tokenService, router, 'SimpleAuthGuard');
+};
+
+/**
+ * Garde pour la page de login — empêche l'accès si déjà connecté.
+ */
+export const loginGuard: CanActivateFn = () => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
+  const tokenService = inject(Token);
+  const router = inject(Router);
+
+  log("🔍 LoginGuard: Vérification de l'authentification...");
+
+  const isLogged = tokenService.isLogged();
+  const isExpired = tokenService.isTokenExpired();
+
+  if (isLogged && !isExpired) {
+    log('✅ LoginGuard: Utilisateur déjà connecté - Redirection vers dashboard');
+    return router.createUrlTree(['/dashboard']);
+  }
+
+  log('✅ LoginGuard: Accès à la page de login autorisé');
+  return true;
+};
+
+/**
+ * Garde pour vérifier uniquement les permissions (authentification incluse).
+ */
+export const permissionGuard: CanActivateFn = (route) => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
+  const tokenService = inject(Token);
+  const permissions = inject(Permissions);
+  const router = inject(Router);
+
+  const authResult = checkAuthenticated(tokenService, router, 'PermissionGuard');
+  if (authResult !== true) return authResult;
+
+  const requiredPermissions = (route.data?.['permissions'] as string[]) ?? [];
 
   if (requiredPermissions.length === 0) {
-    console.log('✅ PermissionGuard: Aucune permission requise');
+    log('✅ PermissionGuard: Aucune permission requise');
     return true;
   }
 
-  // Vérifier les permissions
-  const hasPermission = permissions.hasAnyPermission(...requiredPermissions);
-
-  if (!hasPermission) {
-    console.log(`❌ PermissionGuard: Permissions manquantes (${requiredPermissions.join(', ')})`);
+  if (!permissions.hasAnyPermission(...requiredPermissions)) {
+    log(`❌ PermissionGuard: Permissions manquantes (${requiredPermissions.join(', ')})`);
     return router.createUrlTree(['/dashboard']);
   }
 
-  console.log('✅ PermissionGuard: Permissions vérifiées avec succès');
+  log('✅ PermissionGuard: Permissions vérifiées avec succès');
   return true;
 };
 
 /**
- * Guard pour vérifier les rôles uniquement
+ * Garde pour vérifier uniquement les rôles (authentification incluse).
  */
-export const roleGuard: CanActivateFn = (route, state) => {
+export const roleGuard: CanActivateFn = (route) => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
   const tokenService = inject(Token);
   const permissions = inject(Permissions);
   const router = inject(Router);
 
-  // Vérifier l'authentification d'abord
-  if (!tokenService.isLogged() || tokenService.isTokenExpired()) {
-    console.log('❌ RoleGuard: Non authentifié - Redirection vers login');
-    tokenService.logout();
-    return router.createUrlTree(['/auth/login']);
-  }
+  const authResult = checkAuthenticated(tokenService, router, 'RoleGuard');
+  if (authResult !== true) return authResult;
 
-  // Récupérer les rôles requis
-  const requiredRoles = route.data?.['roles'] as string[] || [];
+  const requiredRoles = (route.data?.['roles'] as string[]) ?? [];
 
   if (requiredRoles.length === 0) {
-    console.log('✅ RoleGuard: Aucun rôle requis');
+    log('✅ RoleGuard: Aucun rôle requis');
     return true;
   }
 
-  // Vérifier les rôles
-  const hasRole = permissions.hasAnyRole(...requiredRoles);
-
-  if (!hasRole) {
-    console.log(`❌ RoleGuard: Rôles manquants (${requiredRoles.join(', ')})`);
+  if (!permissions.hasAnyRole(...requiredRoles)) {
+    log(`❌ RoleGuard: Rôles manquants (${requiredRoles.join(', ')})`);
     return router.createUrlTree(['/dashboard']);
   }
 
-  console.log('✅ RoleGuard: Rôles vérifiés avec succès');
+  log('✅ RoleGuard: Rôles vérifiés avec succès');
   return true;
 };
 
 /**
- * Guard pour vérifier si l'utilisateur est Super Admin
+ * Garde réservée aux Super Admins.
  */
-export const superAdminGuard: CanActivateFn = (route, state) => {
+export const superAdminGuard: CanActivateFn = () => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
   const tokenService = inject(Token);
   const permissions = inject(Permissions);
   const router = inject(Router);
 
-  if (!tokenService.isLogged() || tokenService.isTokenExpired()) {
-    console.log('❌ SuperAdminGuard: Non authentifié - Redirection vers login');
-    tokenService.logout();
-    return router.createUrlTree(['/auth/login']);
-  }
+  const authResult = checkAuthenticated(tokenService, router, 'SuperAdminGuard');
+  if (authResult !== true) return authResult;
 
   if (!permissions.isSuperAdmin()) {
-    console.log('❌ SuperAdminGuard: Accès réservé aux Super Admins');
+    log('❌ SuperAdminGuard: Accès réservé aux Super Admins');
     return router.createUrlTree(['/dashboard']);
   }
 
-  console.log('✅ SuperAdminGuard: Super Admin vérifié');
+  log('✅ SuperAdminGuard: Super Admin vérifié');
   return true;
 };
 
 /**
- * Guard pour vérifier si l'utilisateur est un pasteur ou supérieur
+ * Garde réservée aux pasteurs et rôles supérieurs.
  */
-export const pastorGuard: CanActivateFn = (route, state) => {
+export const pastorGuard: CanActivateFn = () => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
   const tokenService = inject(Token);
   const permissions = inject(Permissions);
   const router = inject(Router);
 
-  if (!tokenService.isLogged() || tokenService.isTokenExpired()) {
-    console.log('❌ PastorGuard: Non authentifié - Redirection vers login');
-    tokenService.logout();
-    return router.createUrlTree(['/auth/login']);
-  }
+  const authResult = checkAuthenticated(tokenService, router, 'PastorGuard');
+  if (authResult !== true) return authResult;
 
   if (!permissions.isAdminOrAbove()) {
-    console.log('❌ PastorGuard: Accès réservé aux pasteurs');
+    log('❌ PastorGuard: Accès réservé aux pasteurs');
     return router.createUrlTree(['/dashboard']);
   }
 
-  console.log('✅ PastorGuard: Pasteur vérifié');
+  log('✅ PastorGuard: Pasteur vérifié');
   return true;
 };
 
 /**
- * Guard combiné - Vérifie plusieurs conditions
+ * Garde combinée — vérifie authentification, Super Admin, Admin,
+ * permissions et rôles selon les données de la route.
  */
-export const combinedGuard: CanActivateFn = (route, state) => {
+export const combinedGuard: CanActivateFn = (route) => {
+  const platformId = inject(PLATFORM_ID);
+  if (!isPlatformBrowser(platformId)) return true;
+
   const tokenService = inject(Token);
   const permissions = inject(Permissions);
   const router = inject(Router);
 
-  // 1️⃣ Vérifier l'authentification
-  if (!tokenService.isLogged() || tokenService.isTokenExpired()) {
-    console.log('❌ CombinedGuard: Non authentifié - Redirection vers login');
-    tokenService.logout();
-    return router.createUrlTree(['/auth/login']);
-  }
+  const authResult = checkAuthenticated(tokenService, router, 'CombinedGuard');
+  if (authResult !== true) return authResult;
 
-  // 2️⃣ Récupérer les conditions depuis les données de la route
-  const requiredPermissions = route.data?.['permissions'] as string[] || [];
-  const requiredRoles = route.data?.['roles'] as string[] || [];
-  const requireSuperAdmin = route.data?.['superAdmin'] as boolean || false;
-  const requireAdmin = route.data?.['admin'] as boolean || false;
+  const requiredPermissions = (route.data?.['permissions'] as string[]) ?? [];
+  const requiredRoles = (route.data?.['roles'] as string[]) ?? [];
+  const requireSuperAdmin = (route.data?.['superAdmin'] as boolean) ?? false;
+  const requireAdmin = (route.data?.['admin'] as boolean) ?? false;
 
-  // 3️⃣ Vérifier Super Admin
   if (requireSuperAdmin && !permissions.isSuperAdmin()) {
-    console.log('❌ CombinedGuard: Super Admin requis');
+    log('❌ CombinedGuard: Super Admin requis');
     return router.createUrlTree(['/dashboard']);
   }
 
-  // 4️⃣ Vérifier Admin
   if (requireAdmin && !permissions.isAdminOrAbove()) {
-    console.log('❌ CombinedGuard: Admin requis');
+    log('❌ CombinedGuard: Admin requis');
     return router.createUrlTree(['/dashboard']);
   }
 
-  // 5️⃣ Vérifier les permissions
-  if (requiredPermissions.length > 0) {
-    const hasPermission = permissions.hasAnyPermission(...requiredPermissions);
-    if (!hasPermission) {
-      console.log(`❌ CombinedGuard: Permissions manquantes (${requiredPermissions.join(', ')})`);
-      return router.createUrlTree(['/dashboard']);
-    }
+  if (requiredPermissions.length > 0 && !permissions.hasAnyPermission(...requiredPermissions)) {
+    log(`❌ CombinedGuard: Permissions manquantes (${requiredPermissions.join(', ')})`);
+    return router.createUrlTree(['/dashboard']);
   }
 
-  // 6️⃣ Vérifier les rôles
-  if (requiredRoles.length > 0) {
-    const hasRole = permissions.hasAnyRole(...requiredRoles);
-    if (!hasRole) {
-      console.log(`❌ CombinedGuard: Rôles manquants (${requiredRoles.join(', ')})`);
-      return router.createUrlTree(['/dashboard']);
-    }
+  if (requiredRoles.length > 0 && !permissions.hasAnyRole(...requiredRoles)) {
+    log(`❌ CombinedGuard: Rôles manquants (${requiredRoles.join(', ')})`);
+    return router.createUrlTree(['/dashboard']);
   }
 
-  console.log('✅ CombinedGuard: Toutes les conditions vérifiées');
+  log('✅ CombinedGuard: Toutes les conditions vérifiées');
   return true;
 };

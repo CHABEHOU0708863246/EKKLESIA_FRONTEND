@@ -1,3 +1,4 @@
+// src/app/core/models/members/pastoral-note.model.ts
 
 export interface PastoralNote {
   id: string;
@@ -16,6 +17,9 @@ export interface PastoralNote {
   updatedAt?: string;
   formattedDate: string;
   formattedFollowUpDate: string;
+  // ✅ Propriétés de réponse
+  isSuccess?: boolean;
+  errorMessage?: string;
 }
 
 export interface PastoralNoteCreate {
@@ -64,7 +68,6 @@ export interface PastoralNoteListResponse {
   hasNextPage: boolean;
 }
 
-// Interaction types
 export const INTERACTION_TYPES = [
   { value: 'Visite', label: 'Visite à domicile' },
   { value: 'Appel', label: 'Appel téléphonique' },
@@ -83,7 +86,6 @@ export const INTERACTION_TYPE_COLORS: Record<string, string> = {
   'Autre': 'secondary'
 };
 
-// Classe utilitaire
 export class PastoralNoteUtils {
   static getFormattedDate(date: string): string {
     return new Date(date).toLocaleString('fr-FR', {
@@ -139,13 +141,20 @@ export class PastoralNoteUtils {
   static searchNotes(notes: PastoralNote[], searchTerm: string): PastoralNote[] {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return notes;
-
     return notes.filter(note =>
       note.memberName.toLowerCase().includes(term) ||
       note.pastorName.toLowerCase().includes(term) ||
       note.summary.toLowerCase().includes(term) ||
       note.interactionType.toLowerCase().includes(term)
     );
+  }
+
+  static isSuccessResponse(response: any): boolean {
+    return response?.isSuccess === true;
+  }
+
+  static getErrorMessage(response: any): string {
+    return response?.errorMessage || 'Une erreur est survenue';
   }
 }
 

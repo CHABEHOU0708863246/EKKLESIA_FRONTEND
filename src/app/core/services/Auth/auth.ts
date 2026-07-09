@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { EMPTY, Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { LoginRequest } from '../../models/Login/LoginRequest';
 import { LoginResponse } from '../../models/Login/LoginResponse';
@@ -16,17 +17,21 @@ import { ValidateResetTokenRequest } from '../../models/Tolen/ValidateResetToken
 })
 export class Auth {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Auth`;
+  private isBrowser: boolean;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   /**
    * Authentifie un utilisateur et génère un token JWT
    */
   authenticate(loginRequest: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, loginRequest)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -34,9 +39,7 @@ export class Auth {
    */
   logout(): Observable<Response> {
     return this.http.post<Response>(`${this.baseUrl}/logout`, {})
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -44,9 +47,7 @@ export class Auth {
    */
   refreshToken(refreshTokenRequest: RefreshTokenRequest): Observable<RefreshTokenRequest> {
     return this.http.post<RefreshTokenRequest>(`${this.baseUrl}/refresh-token`, refreshTokenRequest)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -56,9 +57,7 @@ export class Auth {
     return this.http.post<Response>(
       `${this.baseUrl}/forgot-password`,
       forgotPasswordRequest
-    ).pipe(
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   /**
@@ -71,9 +70,7 @@ export class Auth {
     };
 
     return this.http.post<Response>(`${this.baseUrl}/validate-reset-token`, decodedRequest)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -81,9 +78,7 @@ export class Auth {
    */
   resetPassword(resetPasswordRequest: ResetPasswordRequest): Observable<Response> {
     return this.http.post<Response>(`${this.baseUrl}/reset-password`, resetPasswordRequest)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -91,38 +86,43 @@ export class Auth {
    */
   changePassword(changePasswordRequest: ChangePasswordRequest): Observable<Response> {
     return this.http.post<Response>(`${this.baseUrl}/change-password`, changePasswordRequest)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   /**
    * Obtenir les informations de l'utilisateur connecté
+   * ✅ Ne fait pas l'appel côté serveur (pas de token disponible pendant le SSR)
    */
   getCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.baseUrl}/me`, {
-      headers: this.getAuthHeaders()
-    }).pipe(
-      catchError(this.handleError)
-    );
+  if (!this.isBrowser) {
+    return EMPTY; // ✅ Ne rien émettre, pas d'erreur, silencieux côté SSR
   }
+
+  return this.http.get<User>(`${this.baseUrl}/me`, {
+    headers: this.getAuthHeaders()
+  }).pipe(catchError(this.handleError));
+}
 
   /**
    * Vérifier si l'utilisateur est authentifié
+   * ✅ Ne fait pas l'appel côté serveur
    */
   checkAuth(): Observable<Response> {
+    if (!this.isBrowser) {
+      return throwError(() => new Error('SSR: checkAuth ignoré côté serveur'));
+    }
+
     return this.http.get<Response>(`${this.baseUrl}/check-auth`, {
       headers: this.getAuthHeaders()
-    }).pipe(
-      catchError(this.handleError)
-    );
+    }).pipe(catchError(this.handleError));
   }
 
   /**
    * Obtenir les headers d'authentification
+   * ✅ Ne touche localStorage que côté navigateur
    */
   private getAuthHeaders(): { [header: string]: string } {
-    const token = localStorage.getItem('token');
+    const token = this.isBrowser ? localStorage.getItem('token') : null;
     return {
       'Authorization': `Bearer ${token || ''}`
     };

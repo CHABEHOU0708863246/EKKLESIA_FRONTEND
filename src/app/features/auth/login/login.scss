@@ -1,7 +1,8 @@
+
 // ══════════════════════════════════════════════════════════════════════
 // EKKLESIA — Login Component SCSS
 // Palette "vitrail" : violet crépuscule + or liturgique
-// v2 — mise en page plus dense, plus d'espace occupé, comportement PWA
+// v3 — MOBILE-FIRST PWA : design natif, gestes optimisés, rebond éliminé
 // ══════════════════════════════════════════════════════════════════════
 
 // ── Variables ─────────────────────────────────────────────────────────
@@ -26,7 +27,7 @@ $church-bg-deep: #1F1033;
 $church-bg-mid:  #34204F;
 $church-bg-dark: #100819;
 $glass-bg:       rgba(255, 255, 255, 0.06);
-$glass-border:   rgba(232, 203, 106, 0.14); // liseré doré très discret
+$glass-border:   rgba(232, 203, 106, 0.14);
 $surface-dark:   rgba(16, 8, 25, 0.75);
 
 // ── Typographie ───────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ $shadow-glow:    0 8px 28px rgba(201, 162, 39, 0.30);
 $sacred-glow:    0 0 24px rgba(201, 162, 39, 0.22);
 
 $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+$touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
 
 // ── Animations ────────────────────────────────────────────────────────
 @keyframes cardFloat {
@@ -63,31 +65,21 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   to { transform: rotate(360deg); }
 }
 
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: .55; transform: scale(.8); }
-}
-
 @keyframes shimmer {
   0%   { left: -100%; }
   100% { left: 100%; }
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// HOST — plus de fond blanc possible, même pendant le rebond iOS/Android
+// HOST — BASE PWA : pas de fond blanc, pas de rebond
 // ══════════════════════════════════════════════════════════════════════
 :host {
   display: block;
   min-height: 100vh;
   min-height: 100dvh;
-  background: $church-bg-dark; // fond de secours si le contenu ne couvre pas 100% de la hauteur
-  overscroll-behavior: none; // empêche le "pull-to-refresh" / rebond blanc typique d'une PWA mal câblée
-
-  @media (min-width: 993px) {
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
+  background: $church-bg-dark;
+  overscroll-behavior: none; // Supprime le pull-to-refresh
+  -webkit-overflow-scrolling: touch;
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -97,11 +89,12 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; // supprime le flash gris/blanc au tap sur mobile
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// CONTENEUR PRINCIPAL
+// CONTENEUR PRINCIPAL — MOBILE-FIRST
 // ══════════════════════════════════════════════════════════════════════
 .ekklesia-premium-container {
   min-height: 100vh;
@@ -110,52 +103,47 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  // Respecte les encoches (notch) quand la page tourne en PWA plein écran (viewport-fit=cover)
-  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
-           max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: none;
   font-family: $font;
-
-  // Fond crépuscule, comme la nuit derrière un vitrail éclairé
   background: linear-gradient(135deg, $church-bg-deep 0%, $church-bg-mid 45%, $church-bg-dark 100%);
 
   // Ligne déco dorée en haut
   &::before {
     content: '';
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, $gold, $gold-light, transparent);
-    z-index: 2;
+    z-index: 10;
+  }
+
+  // Version mobile : padding réduit, centrage vertical
+  padding: 12px;
+
+  @media (min-width: 577px) {
+    padding: 20px;
   }
 
   @media (min-width: 993px) {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    align-items: center;
-  }
-
-  @media (max-width: 576px) {
-    padding-top: max(16px, env(safe-area-inset-top));
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-    align-items: center;
+    padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+             max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   }
 }
 
 // ── Grille de fond ────────────────────────────────────────────────────
 .background-grid {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-image: radial-gradient(circle at 1px 1px, rgba(201, 162, 39, 0.07) 1px, transparent 0);
   background-size: 40px 40px;
   opacity: 0.6;
@@ -166,8 +154,6 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 // ── Glows d'arrière-plan (vitrail) ────────────────────────────────────
 .bg-glow {
   position: fixed;
-  width: 500px;
-  height: 500px;
   border-radius: 50%;
   filter: blur(100px);
   pointer-events: none;
@@ -177,6 +163,8 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   top: -180px;
   right: -180px;
   opacity: 0.6;
+  width: 500px;
+  height: 500px;
 
   &--secondary {
     background: radial-gradient(circle, rgba(201, 162, 39, 0.14) 0%, transparent 70%);
@@ -188,34 +176,42 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     height: 400px;
   }
 
+  // Mobile : glows réduits
   @media (max-width: 576px) {
-    width: 280px;
-    height: 280px;
-    top: -100px;
-    right: -100px;
+    width: 200px;
+    height: 200px;
+    top: -80px;
+    right: -80px;
+    filter: blur(60px);
+
+    &--secondary {
+      width: 180px;
+      height: 180px;
+      bottom: -80px;
+      left: -60px;
+    }
   }
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// CARTE PRINCIPALE — un peu plus compacte, colonnes équilibrées
+// CARTE PRINCIPALE — MOBILE-FIRST : hauteur automatique, pas de scroll interne
 // ══════════════════════════════════════════════════════════════════════
 .main-glass-card {
   display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  max-width: 940px;
+  grid-template-columns: 1fr;
+  max-width: 100%;
   width: 100%;
-  max-height: 92vh;
-  max-height: 92dvh;
-  background: rgba(31, 16, 51, 0.65);
+  background: rgba(31, 16, 51, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid $glass-border;
-  border-radius: $radius-xl;
+  border-radius: $radius;
   box-shadow: $shadow-lg;
   overflow: hidden;
   position: relative;
   z-index: 1;
   animation: cardFloat 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+  max-height: none; // Pas de limite pour éviter le scroll interne
 
   &::before {
     content: '';
@@ -238,16 +234,22 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
   }
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    max-width: 440px;
-    max-height: none;
+  // Tablette et plus : deux colonnes
+  @media (min-width: 577px) {
+    max-width: 500px;
     border-radius: $radius-lg;
   }
 
-  @media (max-width: 576px) {
-    max-width: 100%;
-    border-radius: $radius;
+  @media (min-width: 769px) {
+    max-width: 600px;
+  }
+
+  @media (min-width: 993px) {
+    grid-template-columns: 1fr 1.05fr;
+    max-width: 940px;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: $radius-xl;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -256,51 +258,55 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// SECTION BRANDING (gauche) — colonne flex pour occuper toute la hauteur
+// SECTION BRANDING (gauche) — MOBILE : en haut, compact
 // ══════════════════════════════════════════════════════════════════════
 .brand-side {
-  padding: 26px 24px;
+  padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
   background: linear-gradient(160deg, rgba(16, 8, 25, 0.92) 0%, rgba(52, 32, 79, 0.60) 100%);
-  border-right: 1px solid $glass-border;
+  border-bottom: 1px solid $glass-border;
   position: relative;
   overflow: hidden;
 
   &::after {
     content: '✝';
     position: absolute;
-    bottom: -30px;
-    right: -10px;
-    font-size: 160px;
+    bottom: -20px;
+    right: -5px;
+    font-size: 100px;
     font-family: $font-display;
-    color: rgba(201, 162, 39, 0.05);
+    color: rgba(201, 162, 39, 0.04);
     pointer-events: none;
     line-height: 1;
   }
 
-  @media (max-width: 900px) {
-    border-right: none;
-    border-bottom: 1px solid $glass-border;
-    padding: 22px 20px;
+  @media (min-width: 577px) {
+    padding: 24px 20px 18px;
   }
 
-  @media (max-width: 576px) {
-    padding: 18px 16px;
+  @media (min-width: 993px) {
+    border-right: 1px solid $glass-border;
+    border-bottom: none;
+    padding: 26px 24px;
   }
 }
 
 // ── Logo section ──────────────────────────────────────────────────────
 .logo-section {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+
+  @media (min-width: 577px) {
+    margin-bottom: 16px;
+  }
 }
 
 .logo-3d-wrapper {
   perspective: 1000px;
-  margin: 0 auto 12px;
-  width: 62px;
-  height: 62px;
+  margin: 0 auto 10px;
+  width: 48px;
+  height: 48px;
   position: relative;
 
   .cube {
@@ -316,8 +322,8 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
     .face {
       position: absolute;
-      width: 62px;
-      height: 62px;
+      width: 48px;
+      height: 48px;
       border: 1px solid rgba(201, 162, 39, 0.35);
       display: flex;
       align-items: center;
@@ -332,12 +338,12 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
 
-    .front  { transform: translateZ(31px); }
-    .back   { transform: rotateY(180deg) translateZ(31px); }
-    .right  { transform: rotateY(90deg) translateZ(31px); }
-    .left   { transform: rotateY(-90deg) translateZ(31px); }
-    .top    { transform: rotateX(90deg) translateZ(31px); }
-    .bottom { transform: rotateX(-90deg) translateZ(31px); }
+    .front  { transform: translateZ(24px); }
+    .back   { transform: rotateY(180deg) translateZ(24px); }
+    .right  { transform: rotateY(90deg) translateZ(24px); }
+    .left   { transform: rotateY(-90deg) translateZ(24px); }
+    .top    { transform: rotateX(90deg) translateZ(24px); }
+    .bottom { transform: rotateX(-90deg) translateZ(24px); }
   }
 
   .cross-mark {
@@ -346,7 +352,7 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     left: 50%;
     transform: translate(-50%, -50%);
     font-family: $font-display;
-    font-size: 1.7rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: $gold-light;
     text-shadow: 0 0 12px rgba(201, 162, 39, 0.6);
@@ -354,46 +360,62 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
   }
 
-  @media (max-width: 576px) {
-    width: 52px;
-    height: 52px;
-    margin-bottom: 8px;
+  @media (min-width: 577px) {
+    width: 56px;
+    height: 56px;
 
-    .cube .face { width: 52px; height: 52px; }
-    .cube .front  { transform: translateZ(26px); }
-    .cube .back   { transform: rotateY(180deg) translateZ(26px); }
-    .cube .right  { transform: rotateY(90deg) translateZ(26px); }
-    .cube .left   { transform: rotateY(-90deg) translateZ(26px); }
-    .cube .top    { transform: rotateX(90deg) translateZ(26px); }
-    .cube .bottom { transform: rotateX(-90deg) translateZ(26px); }
+    .cube .face { width: 56px; height: 56px; }
+    .cube .front  { transform: translateZ(28px); }
+    .cube .back   { transform: rotateY(180deg) translateZ(28px); }
+    .cube .right  { transform: rotateY(90deg) translateZ(28px); }
+    .cube .left   { transform: rotateY(-90deg) translateZ(28px); }
+    .cube .top    { transform: rotateX(90deg) translateZ(28px); }
+    .cube .bottom { transform: rotateX(-90deg) translateZ(28px); }
 
-    .cross-mark { font-size: 1.35rem; }
+    .cross-mark { font-size: 1.5rem; }
+  }
+
+  @media (min-width: 993px) {
+    width: 62px;
+    height: 62px;
+
+    .cube .face { width: 62px; height: 62px; }
+    .cube .front  { transform: translateZ(31px); }
+    .cube .back   { transform: rotateY(180deg) translateZ(31px); }
+    .cube .right  { transform: rotateY(90deg) translateZ(31px); }
+    .cube .left   { transform: rotateY(-90deg) translateZ(31px); }
+    .cube .top    { transform: rotateX(90deg) translateZ(31px); }
+    .cube .bottom { transform: rotateX(-90deg) translateZ(31px); }
+
+    .cross-mark { font-size: 1.7rem; }
   }
 }
 
 .brand-title {
   h1 {
     font-family: $font-display;
-    font-size: 1.9rem;
+    font-size: 1.5rem;
     font-weight: 700;
     font-style: italic;
     background: linear-gradient(135deg, #fff 0%, $gold-light 55%, $primary 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    letter-spacing: 2px;
-    margin-bottom: 3px;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
 
-    @media (max-width: 768px) { font-size: 1.65rem; }
-    @media (max-width: 576px) { font-size: 1.45rem; }
+    @media (min-width: 577px) { font-size: 1.7rem; }
+    @media (min-width: 993px) { font-size: 1.9rem; letter-spacing: 2px; }
   }
 
   .tagline {
-    font-size: 0.74rem;
+    font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.40);
     font-weight: 400;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     font-family: $font;
+
+    @media (min-width: 577px) { font-size: 0.7rem; }
   }
 }
 
@@ -401,31 +423,38 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 .brand-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, $glass-border, transparent);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
+
+  @media (min-width: 577px) { margin: 0 0 14px; }
 }
 
 // ── Feature cards ─────────────────────────────────────────────────────
 .features-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 8px;
 
   @media (max-width: 340px) {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px;
+  }
+
+  @media (min-width: 577px) {
+    gap: 10px;
   }
 }
 
 .feature-card {
   background: $glass-bg;
   border: 1px solid $glass-border;
-  border-radius: $radius;
-  padding: 13px 11px;
+  border-radius: $radius-sm;
+  padding: 10px 8px;
   text-align: center;
   transition: $transition;
   cursor: default;
   position: relative;
   overflow: hidden;
+  -webkit-touch-callout: none;
 
   &::before {
     content: '';
@@ -439,26 +468,26 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     transition: $transition;
   }
 
-  &:hover {
-    transform: translateY(-3px);
-    border-color: rgba(201, 162, 39, 0.35);
-    box-shadow: $sacred-glow;
-    background: rgba(201, 162, 39, 0.06);
-
-    &::before { opacity: 1; }
-
-    .feature-icon-wrap { transform: scale(1.1); }
+  &:active {
+    transform: scale(0.97);
+    background: rgba(201, 162, 39, 0.08);
   }
 
-  @media (hover: none) {
+  @media (hover: hover) {
     &:hover {
-      transform: none;
-      box-shadow: none;
+      transform: translateY(-3px);
+      border-color: rgba(201, 162, 39, 0.35);
+      box-shadow: $sacred-glow;
+      background: rgba(201, 162, 39, 0.06);
+
+      &::before { opacity: 1; }
+      .feature-icon-wrap { transform: scale(1.1); }
     }
   }
 
-  @media (max-width: 576px) {
-    padding: 10px 8px;
+  @media (min-width: 577px) {
+    padding: 12px 10px;
+    border-radius: $radius;
   }
 }
 
@@ -466,117 +495,124 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   background: $primary-glow;
   border-radius: $radius-sm;
-  margin: 0 auto 7px;
+  margin: 0 auto 5px;
   transition: $transition;
 
   i {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: $gold-light;
   }
 
-  @media (max-width: 576px) {
-    width: 30px;
-    height: 30px;
-    i { font-size: 1.05rem; }
+  @media (min-width: 577px) {
+    width: 32px;
+    height: 32px;
+    i { font-size: 1.1rem; }
+  }
+
+  @media (min-width: 993px) {
+    width: 34px;
+    height: 34px;
+    i { font-size: 1.2rem; }
   }
 }
 
 .feature-card h3 {
   font-family: $font-display;
-  font-size: 0.88rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   color: #fff;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 
-  @media (max-width: 576px) {
-    font-size: 0.8rem;
-  }
+  @media (min-width: 577px) { font-size: 0.82rem; }
+  @media (min-width: 993px) { font-size: 0.88rem; }
 }
 
 .feature-card p {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.40);
-  line-height: 1.4;
+  line-height: 1.3;
   font-family: $font;
 
-  @media (max-width: 576px) {
-    font-size: 0.64rem;
-  }
+  @media (min-width: 577px) { font-size: 0.65rem; }
+  @media (min-width: 993px) { font-size: 0.68rem; }
 }
 
-// ── Verset : occupe l'espace restant en bas de colonne ────────────────
+// ── Verset ──────────────────────────────────────────────────────────────
 .verse-block {
-  margin-top: auto;
-  padding-top: 18px;
-  margin-top: 18px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid $glass-border;
   text-align: center;
   position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
 
   .verse-mark {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: rgba(201, 162, 39, 0.45);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .verse-text {
     font-family: $font-display;
     font-style: italic;
-    font-size: 0.98rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.4;
     color: rgba(255, 255, 255, 0.72);
-    max-width: 280px;
-    margin: 0 auto 8px;
+    max-width: 100%;
+    margin: 0 auto 6px;
   }
 
   .verse-ref {
     display: inline-block;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     color: $gold-light;
   }
 
-  @media (max-width: 900px) {
-    flex: none;
-    padding-top: 14px;
+  @media (min-width: 577px) {
     margin-top: 14px;
+    padding-top: 14px;
 
-    .verse-text { font-size: 0.9rem; }
+    .verse-text { font-size: 0.9rem; max-width: 280px; }
+    .verse-ref { font-size: 0.65rem; }
   }
 
-  @media (max-width: 576px) {
-    padding-top: 12px;
-    margin-top: 12px;
+  @media (min-width: 993px) {
+    margin-top: 18px;
+    padding-top: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    .verse-text { font-size: 0.84rem; max-width: 100%; }
+    .verse-text { font-size: 0.98rem; }
   }
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// SECTION FORMULAIRE (droite)
+// SECTION FORMULAIRE (droite) — MOBILE : en bas, sans scroll interne
 // ══════════════════════════════════════════════════════════════════════
 .form-side {
-  padding: 26px 32px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   background: rgba(16, 8, 25, 0.72);
   position: relative;
-  overscroll-behavior: contain; // le scroll interne ne "fuit" plus vers le body (plus de rebond blanc)
+  overscroll-behavior: contain;
+
+  @media (min-width: 577px) {
+    padding: 20px 24px;
+  }
 
   @media (min-width: 993px) {
+    padding: 26px 32px;
     overflow-y: auto;
     max-height: 92vh;
     max-height: 92dvh;
@@ -587,66 +623,72 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     &::-webkit-scrollbar-track { background: transparent; }
     &::-webkit-scrollbar-thumb { background: rgba(201, 162, 39, 0.35); border-radius: 4px; }
   }
-
-  @media (max-width: 900px) {
-    padding: 22px 20px;
-    justify-content: flex-start;
-  }
-
-  @media (max-width: 576px) {
-    padding: 18px 16px;
-  }
 }
 
 // ── En-tête formulaire ────────────────────────────────────────────────
 .form-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 
-  @media (max-width: 576px) { margin-bottom: 16px; }
+  @media (min-width: 577px) { margin-bottom: 18px; }
+  @media (min-width: 993px) { margin-bottom: 20px; }
 }
 
 .form-header-icon {
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   background: $primary-glow;
   border: 1px solid rgba(201, 162, 39, 0.30);
   border-radius: $radius-lg;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 
   i {
-    font-size: 21px;
+    font-size: 18px;
     color: $gold-light;
+  }
+
+  @media (min-width: 577px) {
+    width: 44px;
+    height: 44px;
+    i { font-size: 20px; }
+  }
+
+  @media (min-width: 993px) {
+    width: 46px;
+    height: 46px;
+    i { font-size: 21px; }
   }
 }
 
 .form-header h2 {
   font-family: $font-display;
-  font-size: 1.65rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 
-  @media (max-width: 576px) { font-size: 1.4rem; }
+  @media (min-width: 577px) { font-size: 1.5rem; }
+  @media (min-width: 993px) { font-size: 1.65rem; }
 }
 
 .form-header p {
-  font-size: 0.84rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.42);
   font-family: $font;
 
-  @media (max-width: 576px) { font-size: 0.78rem; }
+  @media (min-width: 577px) { font-size: 0.8rem; }
+  @media (min-width: 993px) { font-size: 0.84rem; }
 }
 
 // ── Carte du formulaire ───────────────────────────────────────────────
 .form-card {
   background: $glass-bg;
   border: 1px solid $glass-border;
-  border-radius: $radius-lg;
-  padding: 22px;
+  border-radius: $radius;
+  padding: 16px 14px;
   position: relative;
 
   &::before {
@@ -657,34 +699,36 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, $gold, $primary);
-    border-radius: $radius-lg $radius-lg 0 0;
+    border-radius: $radius $radius 0 0;
   }
 
-  @media (max-width: 768px) {
-    padding: 18px 15px;
-    border-radius: $radius;
+  @media (min-width: 577px) {
+    padding: 20px 18px;
+    border-radius: $radius-lg;
   }
 
-  @media (max-width: 576px) {
-    padding: 15px 13px;
+  @media (min-width: 993px) {
+    padding: 22px;
   }
 }
 
 // ── Groupes de champs ─────────────────────────────────────────────────
 .input-group-card {
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 
-  @media (max-width: 576px) { margin-bottom: 12px; }
+  @media (min-width: 993px) { margin-bottom: 15px; }
 
   label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 0.74rem;
+    margin-bottom: 5px;
+    font-size: 0.65rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.58);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.6px;
     font-family: $font;
+
+    @media (min-width: 577px) { font-size: 0.7rem; }
   }
 
   .input-with-icon {
@@ -692,27 +736,33 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
     > i:first-child {
       position: absolute;
-      left: 14px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
       color: $gold-light;
-      font-size: 1.02rem;
+      font-size: 0.95rem;
       z-index: 1;
       pointer-events: none;
+
+      @media (min-width: 577px) { font-size: 1rem; }
     }
 
     input {
       width: 100%;
-      padding: 12px 14px 12px 42px;
+      padding: 12px 14px 12px 38px;
       background: rgba(16, 8, 25, 0.80);
       border: 1px solid $glass-border;
       border-radius: $radius;
       color: #fff;
       font-family: $font;
-      font-size: 16px; // évite zoom iOS
+      font-size: 16px; // Évite le zoom iOS
       touch-action: manipulation;
+      min-height: $touch-size;
 
-      @media (min-width: 577px) { font-size: 0.9rem; }
+      @media (min-width: 577px) {
+        font-size: 0.9rem;
+        padding: 12px 14px 12px 42px;
+      }
 
       &::placeholder { color: rgba(255, 255, 255, 0.24); }
 
@@ -722,40 +772,47 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         background: rgba(107, 75, 168, 0.08);
         box-shadow: 0 0 0 3px $primary-glow;
       }
-
-      &:hover:not(:focus) {
-        border-color: rgba(201, 162, 39, 0.35);
-      }
     }
 
     .password-toggle {
       position: absolute;
-      right: 14px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
       color: rgba(255, 255, 255, 0.30);
       cursor: pointer;
-      font-size: 1.12rem;
-      padding: 4px;
+      font-size: 1.1rem;
+      padding: 8px; // Agrandit la zone tactile
       transition: $transition;
       touch-action: manipulation;
+      min-height: $touch-size;
+      min-width: $touch-size;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-      &:hover { color: $gold-light; }
+      &:active { color: $gold-light; }
+
+      @media (hover: hover) {
+        &:hover { color: $gold-light; }
+      }
     }
   }
 }
 
 // ── Erreurs ───────────────────────────────────────────────────────────
 .error-message {
-  margin-top: 6px;
+  margin-top: 5px;
   color: #F04438;
-  font-size: 12px;
+  font-size: 11px;
   font-family: $font;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 
-  i { font-size: 13px; }
+  i { font-size: 12px; }
+
+  @media (min-width: 577px) { font-size: 12px; }
 }
 
 .input-error {
@@ -769,22 +826,24 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   background: rgba(16, 8, 25, 0.50);
   border: 1px solid $glass-border;
   border-radius: $radius;
-  padding: 10px 14px;
-  margin-bottom: 15px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 
-  @media (max-width: 576px) {
-    padding: 9px 12px;
-    margin-bottom: 12px;
+  @media (min-width: 577px) {
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap;
   }
 
-  @media (max-width: 340px) {
+  @media (max-width: 360px) {
     flex-direction: column;
     align-items: flex-start;
-    gap: 7px;
+    gap: 6px;
   }
 
   .remember-me {
@@ -793,9 +852,9 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     gap: 8px;
 
     input[type="checkbox"] {
-      width: 15px;
-      height: 15px;
-      min-width: 15px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
       accent-color: $gold;
       cursor: pointer;
       touch-action: manipulation;
@@ -803,46 +862,51 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
     label {
       color: rgba(255, 255, 255, 0.52);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-family: $font;
       cursor: pointer;
       white-space: nowrap;
 
-      @media (max-width: 576px) { font-size: 0.74rem; }
+      @media (min-width: 577px) { font-size: 0.8rem; }
     }
   }
 
   .forgot-link {
     color: $gold-light;
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     font-family: $font;
     transition: $transition;
     white-space: nowrap;
     touch-action: manipulation;
+    padding: 4px 0; // Agrandit la zone tactile
 
-    @media (max-width: 576px) { font-size: 0.74rem; }
+    &:active { color: $primary; }
 
-    &:hover {
-      color: $primary;
-      text-decoration: underline;
+    @media (hover: hover) {
+      &:hover {
+        color: $primary;
+        text-decoration: underline;
+      }
     }
+
+    @media (min-width: 577px) { font-size: 0.8rem; }
   }
 }
 
 // ── Bouton principal ──────────────────────────────────────────────────
 .btn-primary-card {
   width: 100%;
-  padding: 13px 20px;
+  padding: 12px 16px;
   background: linear-gradient(135deg, $gold-dark 0%, $primary-dark 100%);
   border: 1px solid rgba(232, 203, 106, 0.35);
   border-radius: $radius;
   color: #fff;
   font-family: $font-display;
-  font-size: 0.96rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -850,41 +914,32 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 46px;
+  gap: 6px;
+  min-height: $touch-size;
   touch-action: manipulation;
   box-shadow: 0 4px 18px rgba(201, 162, 39, 0.30);
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-glow;
-    background: linear-gradient(135deg, $gold 0%, $primary 100%);
-  }
-
   &:active {
-    transform: translateY(0);
+    transform: scale(0.97);
+    opacity: 0.85;
   }
 
-  @media (hover: none) {
+  @media (hover: hover) {
     &:hover {
-      transform: none;
-      box-shadow: 0 4px 18px rgba(201, 162, 39, 0.30);
-    }
-
-    &:active {
-      opacity: 0.85;
-      transform: scale(0.98);
+      transform: translateY(-2px);
+      box-shadow: $shadow-glow;
+      background: linear-gradient(135deg, $gold 0%, $primary 100%);
     }
   }
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-    transform: none;
+    transform: none !important;
     box-shadow: none;
   }
 
-  .btn-icon { font-size: 1.02rem; }
+  .btn-icon { font-size: 1rem; }
 
   .btn-shine {
     position: absolute;
@@ -897,13 +952,20 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     transition: none;
   }
 
-  &:hover:not(:disabled) .btn-shine {
-    animation: shimmer 0.7s ease forwards;
+  @media (hover: hover) {
+    &:hover:not(:disabled) .btn-shine {
+      animation: shimmer 0.7s ease forwards;
+    }
   }
 
-  @media (max-width: 576px) {
-    padding: 12px;
-    font-size: 0.85rem;
+  @media (min-width: 577px) {
+    padding: 13px 20px;
+    font-size: 0.9rem;
+  }
+
+  @media (min-width: 993px) {
+    font-size: 0.96rem;
+    padding: 13px 20px;
   }
 }
 
@@ -921,41 +983,48 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loading-spinner {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: 3px solid $primary-glow;
   border-radius: 50%;
   border-top-color: $gold;
   animation: spin 0.85s linear infinite;
+
+  @media (min-width: 577px) {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 // ── Footer formulaire ─────────────────────────────────────────────────
 .form-footer {
-  margin-top: 16px;
+  margin-top: 14px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
 
-  @media (max-width: 576px) { margin-top: 13px; }
+  @media (min-width: 577px) { margin-top: 16px; }
 }
 
 .footer-sep-line {
   display: block;
-  width: 60px;
+  width: 50px;
   height: 1px;
   background: $glass-border;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
+
+  @media (min-width: 577px) { width: 60px; }
 }
 
 .support-text {
   color: rgba(255, 255, 255, 0.34);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-family: $font;
 
   i {
-    margin-right: 4px;
+    margin-right: 3px;
     color: $gold-light;
     vertical-align: middle;
   }
@@ -965,36 +1034,84 @@ $transition:     all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     font-weight: 600;
     transition: $transition;
+    touch-action: manipulation;
 
-    &:hover {
-      color: $primary;
-      text-decoration: underline;
+    &:active { color: $primary; }
+
+    @media (hover: hover) {
+      &:hover {
+        color: $primary;
+        text-decoration: underline;
+      }
     }
   }
 
-  @media (max-width: 576px) { font-size: 0.72rem; }
+  @media (min-width: 577px) { font-size: 0.75rem; }
 }
 
 .version-text {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.20);
   font-family: $font;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+
+  @media (min-width: 577px) { font-size: 0.65rem; }
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// RESPONSIVE
+// PWA SPECIFICS — plein écran, status bar, safe areas
 // ══════════════════════════════════════════════════════════════════════
-@media (max-width: 900px) {
-  .main-glass-card { grid-template-columns: 1fr; }
+@media (display-mode: standalone) {
+  .ekklesia-premium-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
-@media (max-width: 576px) {
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
+// ── Réduction des animations pour les appareils à batterie limitée ──
 @media (prefers-reduced-motion: reduce) {
   .main-glass-card { animation: none; }
-  .cube            { animation: none !important; }
+  .cube { animation: none !important; }
   .loading-spinner { animation-duration: 1.5s; }
+}
+
+// ── Support des écrans très petits ──────────────────────────────────
+@media (max-width: 360px) {
+  .brand-side { padding: 14px 12px; }
+  .form-side { padding: 12px; }
+  .form-card { padding: 12px 10px; }
+  .features-grid { grid-template-columns: 1fr; gap: 6px; }
+  .feature-card { padding: 8px 6px; }
+  .feature-card h3 { font-size: 0.7rem; }
+  .feature-card p { font-size: 0.55rem; }
+  .verse-block .verse-text { font-size: 0.75rem; }
+}
+
+// ── Support des écrans larges (tablettes) ──────────────────────────
+@media (min-width: 577px) and (max-width: 992px) {
+  .main-glass-card { max-width: 520px; }
+}
+
+// ── Mode paysage sur mobile ──────────────────────────────────────────
+@media (max-height: 500px) and (orientation: landscape) {
+  .ekklesia-premium-container {
+    align-items: flex-start;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .brand-side { padding: 12px 16px; }
+  .form-side { padding: 12px 16px; }
+  .logo-3d-wrapper { width: 36px; height: 36px; }
+  .brand-title h1 { font-size: 1.2rem; }
+  .features-grid { grid-template-columns: repeat(4, 1fr); }
+  .feature-card { padding: 6px 8px; }
+  .feature-card p { display: none; }
+  .verse-block { display: none; }
+  .form-header { margin-bottom: 10px; }
+  .form-header h2 { font-size: 1.1rem; }
+  .form-card { padding: 10px; }
+  .input-group-card { margin-bottom: 8px; }
+  .form-options-card { margin-bottom: 8px; padding: 6px 10px; }
+  .btn-primary-card { min-height: 36px; padding: 8px 12px; font-size: 0.75rem; }
 }
