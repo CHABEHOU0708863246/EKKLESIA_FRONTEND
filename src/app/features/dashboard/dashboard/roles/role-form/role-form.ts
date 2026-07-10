@@ -315,9 +315,9 @@ export class RoleForm implements OnInit, OnDestroy {
 
   cancel(): void {
     if (this.isEditMode() && this.roleId) {
-      this.router.navigate(['/dashboard/admin/parametres/roles', this.roleId]);
+      this.router.navigate(['/dashboard/admin/roles', this.roleId]);
     } else {
-      this.router.navigate(['/dashboard/admin/parametres/roles']);
+      this.router.navigate(['/dashboard/admin/roles']);
     }
   }
 }

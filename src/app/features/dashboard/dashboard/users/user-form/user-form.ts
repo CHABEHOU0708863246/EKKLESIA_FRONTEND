@@ -6,6 +6,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, takeUntil } from 'rxjs';
 import { User, UserCreate, UserUpdate } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
+import { RoleDropdownDto } from '../../../../../core/models/Roles/role.models';
+import { Roles } from '../../../../../core/services/Roles/roles';
 
 
 const AVAILABLE_ROLES = [
@@ -47,7 +49,8 @@ export class UserForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private userId: string | null = null;
 
-  readonly availableRoles = AVAILABLE_ROLES;
+  availableRoles = signal<RoleDropdownDto[]>([]);
+  loadingRoles = signal(false);
   readonly genderOptions = GENDER_OPTIONS;
   readonly maritalStatusOptions = MARITAL_STATUS_OPTIONS;
 
@@ -67,6 +70,7 @@ export class UserForm implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private userService: Users,
     private route: ActivatedRoute,
+    private roleService: Roles,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -105,6 +109,7 @@ export class UserForm implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadRoles();
     this.userId = this.route.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.userId);
 
@@ -121,6 +126,24 @@ export class UserForm implements OnInit, OnDestroy {
     this.form.get('password')?.updateValueAndValidity();
     this.form.get('confirmPassword')?.updateValueAndValidity();
   }
+
+  private loadRoles(): void {
+  this.loadingRoles.set(true);
+  this.roleService
+    .getRolesForDropdown()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.availableRoles.set(response.data);
+        }
+        this.loadingRoles.set(false);
+      },
+      error: () => {
+        this.loadingRoles.set(false);
+      },
+    });
+}
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -196,18 +219,18 @@ export class UserForm implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   toggleRole(roleValue: string): void {
-    const current: string[] = this.form.get('roles')?.value ?? [];
-    if (current.includes(roleValue)) {
-      this.form.get('roles')?.setValue(current.filter((r) => r !== roleValue));
-    } else {
-      this.form.get('roles')?.setValue([...current, roleValue]);
-    }
+  const current: string[] = this.form.get('roles')?.value ?? [];
+  if (current.includes(roleValue)) {
+    this.form.get('roles')?.setValue(current.filter((r) => r !== roleValue));
+  } else {
+    this.form.get('roles')?.setValue([...current, roleValue]);
   }
+}
 
   isRoleSelected(roleValue: string): boolean {
-    const current: string[] = this.form.get('roles')?.value ?? [];
-    return current.includes(roleValue);
-  }
+  const current: string[] = this.form.get('roles')?.value ?? [];
+  return current.includes(roleValue);
+}
 
   // ───────────────────────────────────────────────────────────────
   // PHOTO

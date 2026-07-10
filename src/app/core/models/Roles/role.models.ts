@@ -134,11 +134,15 @@ export interface RoleDropdownDto {
 // 🔍 DTOs DE FILTRE ET RECHERCHE
 // ──────────────────────────────────────────────────────────────
 
-/**
- * DTO pour le filtrage des rôles
- * Correspond à RoleFilterDto en C#
- */
+// src/app/core/models/Roles/role.models.ts
+
 export interface RoleFilterDto {
+  /** Recherche par terme (nom, code, description) - alias pour searchTerm */
+  searchTerm?: string;
+
+  /** Recherche par terme (nom, code, description) - alias pour search */
+  search?: string;
+
   /** Filtrer par code */
   code?: string;
 
@@ -178,6 +182,7 @@ export interface RoleFilterDto {
   /** Ordre de tri ('asc' ou 'desc') */
   sortOrder?: 'asc' | 'desc';
 }
+
 
 // ──────────────────────────────────────────────────────────────
 // 📊 DTOs DE LISTE ET RÉSUMÉ
@@ -757,173 +762,173 @@ export const PERMISSIONS = {
 /**
  * Groupes de permissions par module
  */
-export const PERMISSIONS_BY_MODULE = {
+export const PERMISSIONS_BY_MODULE: Record<string, string[]> = {
   Membres: [
-    PERMISSIONS.Member_Create,
-    PERMISSIONS.Member_Read,
-    PERMISSIONS.Member_Update,
-    PERMISSIONS.Member_Delete,
-    PERMISSIONS.Member_Validate,
-    PERMISSIONS.Member_Export,
-    PERMISSIONS.Member_Import,
-    PERMISSIONS.Member_Status_Manage,
-    PERMISSIONS.Member_History_View,
-    PERMISSIONS.Member_Family_Manage,
-    PERMISSIONS.Member_Report_Generate
+    'Member_Create',
+    'Member_Read',
+    'Member_Update',
+    'Member_Delete',
+    'Member_Validate',
+    'Member_Export',
+    'Member_Import',
+    'Member_Status_Manage',
+    'Member_History_View',
+    'Member_Family_Manage',
+    'Member_Report_Generate'
   ],
   Pastoral: [
-    PERMISSIONS.Pastoral_Note_Create,
-    PERMISSIONS.Pastoral_Note_Read,
-    PERMISSIONS.Pastoral_Note_Update,
-    PERMISSIONS.Pastoral_Note_Delete,
-    PERMISSIONS.Pastoral_Note_Export,
-    PERMISSIONS.Pastoral_Note_View_All,
-    PERMISSIONS.Pastoral_Appointment_Manage,
-    PERMISSIONS.Pastoral_Prayer_Manage,
-    PERMISSIONS.Pastoral_Report_Generate
+    'Pastoral_Note_Create',
+    'Pastoral_Note_Read',
+    'Pastoral_Note_Update',
+    'Pastoral_Note_Delete',
+    'Pastoral_Note_Export',
+    'Pastoral_Note_View_All',
+    'Pastoral_Appointment_Manage',
+    'Pastoral_Prayer_Manage',
+    'Pastoral_Report_Generate'
   ],
   Cellules: [
-    PERMISSIONS.Cell_Create,
-    PERMISSIONS.Cell_Read,
-    PERMISSIONS.Cell_Update,
-    PERMISSIONS.Cell_Delete,
-    PERMISSIONS.Cell_Assign,
-    PERMISSIONS.Cell_Attendance_Read,
-    PERMISSIONS.Cell_Attendance_Update,
-    PERMISSIONS.Cell_Report_Submit,
-    PERMISSIONS.Cell_Report_Generate,
-    PERMISSIONS.Cell_Leader_Manage
+    'Cell_Create',
+    'Cell_Read',
+    'Cell_Update',
+    'Cell_Delete',
+    'Cell_Assign',
+    'Cell_Attendance_Read',
+    'Cell_Attendance_Update',
+    'Cell_Report_Submit',
+    'Cell_Report_Generate',
+    'Cell_Leader_Manage'
   ],
   Finances: [
-    PERMISSIONS.Finance_Offering_Create,
-    PERMISSIONS.Finance_Offering_Read,
-    PERMISSIONS.Finance_Offering_Update,
-    PERMISSIONS.Finance_Offering_Delete,
-    PERMISSIONS.Finance_Offering_Validate,
-    PERMISSIONS.Finance_Offering_Export,
-    PERMISSIONS.Finance_Receipt_Generate,
-    PERMISSIONS.Finance_Expense_Create,
-    PERMISSIONS.Finance_Expense_Read,
-    PERMISSIONS.Finance_Expense_Update,
-    PERMISSIONS.Finance_Expense_Validate,
-    PERMISSIONS.Finance_Expense_Approve,
-    PERMISSIONS.Finance_Expense_Export,
-    PERMISSIONS.Finance_Budget_Create,
-    PERMISSIONS.Finance_Budget_Read,
-    PERMISSIONS.Finance_Budget_Update,
-    PERMISSIONS.Finance_Budget_Approve,
-    PERMISSIONS.Finance_Budget_Follow,
-    PERMISSIONS.Finance_Consolidated_View,
-    PERMISSIONS.Finance_Report_Generate,
-    PERMISSIONS.Finance_Report_Export,
-    PERMISSIONS.Finance_Bank_Manage,
-    PERMISSIONS.Finance_Transfer_Make
+    'Finance_Offering_Create',
+    'Finance_Offering_Read',
+    'Finance_Offering_Update',
+    'Finance_Offering_Delete',
+    'Finance_Offering_Validate',
+    'Finance_Offering_Export',
+    'Finance_Receipt_Generate',
+    'Finance_Expense_Create',
+    'Finance_Expense_Read',
+    'Finance_Expense_Update',
+    'Finance_Expense_Validate',
+    'Finance_Expense_Approve',
+    'Finance_Expense_Export',
+    'Finance_Budget_Create',
+    'Finance_Budget_Read',
+    'Finance_Budget_Update',
+    'Finance_Budget_Approve',
+    'Finance_Budget_Follow',
+    'Finance_Consolidated_View',
+    'Finance_Report_Generate',
+    'Finance_Report_Export',
+    'Finance_Bank_Manage',
+    'Finance_Transfer_Make'
   ],
   Événements: [
-    PERMISSIONS.Event_Create,
-    PERMISSIONS.Event_Read,
-    PERMISSIONS.Event_Update,
-    PERMISSIONS.Event_Delete,
-    PERMISSIONS.Event_Register,
-    PERMISSIONS.Event_Registration_Manage,
-    PERMISSIONS.Event_Checkin,
-    PERMISSIONS.Event_Payment_Manage,
-    PERMISSIONS.Event_Report_Generate
+    'Event_Create',
+    'Event_Read',
+    'Event_Update',
+    'Event_Delete',
+    'Event_Register',
+    'Event_Registration_Manage',
+    'Event_Checkin',
+    'Event_Payment_Manage',
+    'Event_Report_Generate'
   ],
   Cultes: [
-    PERMISSIONS.Service_Create,
-    PERMISSIONS.Service_Read,
-    PERMISSIONS.Service_Update,
-    PERMISSIONS.Service_Attendance_Record,
-    PERMISSIONS.Service_Attendance_Read,
-    PERMISSIONS.Service_Planning_Manage,
-    PERMISSIONS.Service_Team_Manage
+    'Service_Create',
+    'Service_Read',
+    'Service_Update',
+    'Service_Attendance_Record',
+    'Service_Attendance_Read',
+    'Service_Planning_Manage',
+    'Service_Team_Manage'
   ],
   Patrimoine: [
-    PERMISSIONS.Property_Create,
-    PERMISSIONS.Property_Read,
-    PERMISSIONS.Property_Update,
-    PERMISSIONS.Property_Delete,
-    PERMISSIONS.Property_Export,
-    PERMISSIONS.Contract_Create,
-    PERMISSIONS.Contract_Read,
-    PERMISSIONS.Contract_Update,
-    PERMISSIONS.Contract_Validate,
-    PERMISSIONS.Contract_Terminate,
-    PERMISSIONS.Contract_Renew,
-    PERMISSIONS.Contract_Export,
-    PERMISSIONS.Maintenance_Report,
-    PERMISSIONS.Maintenance_Manage,
-    PERMISSIONS.Maintenance_Assign,
-    PERMISSIONS.Maintenance_Complete,
-    PERMISSIONS.Insurance_Manage
+    'Property_Create',
+    'Property_Read',
+    'Property_Update',
+    'Property_Delete',
+    'Property_Export',
+    'Contract_Create',
+    'Contract_Read',
+    'Contract_Update',
+    'Contract_Validate',
+    'Contract_Terminate',
+    'Contract_Renew',
+    'Contract_Export',
+    'Maintenance_Report',
+    'Maintenance_Manage',
+    'Maintenance_Assign',
+    'Maintenance_Complete',
+    'Insurance_Manage'
   ],
   Communication: [
-    PERMISSIONS.Content_Create,
-    PERMISSIONS.Content_Read,
-    PERMISSIONS.Content_Update,
-    PERMISSIONS.Content_Delete,
-    PERMISSIONS.Content_Publish,
-    PERMISSIONS.Content_Archive,
-    PERMISSIONS.Content_Export,
-    PERMISSIONS.Communication_Broadcast,
-    PERMISSIONS.Communication_Newsletter,
-    PERMISSIONS.Communication_Template_Manage,
-    PERMISSIONS.Communication_Plan,
-    PERMISSIONS.Communication_Stats_View,
-    PERMISSIONS.Communication_Sms_Manage,
-    PERMISSIONS.Communication_Email_Manage
+    'Content_Create',
+    'Content_Read',
+    'Content_Update',
+    'Content_Delete',
+    'Content_Publish',
+    'Content_Archive',
+    'Content_Export',
+    'Communication_Broadcast',
+    'Communication_Newsletter',
+    'Communication_Template_Manage',
+    'Communication_Plan',
+    'Communication_Stats_View',
+    'Communication_Sms_Manage',
+    'Communication_Email_Manage'
   ],
   RH: [
-    PERMISSIONS.Employee_Create,
-    PERMISSIONS.Employee_Read,
-    PERMISSIONS.Employee_Update,
-    PERMISSIONS.Employee_Delete,
-    PERMISSIONS.Employee_Export,
-    PERMISSIONS.Payroll_Calculate,
-    PERMISSIONS.Payroll_Read,
-    PERMISSIONS.Payroll_Export,
-    PERMISSIONS.Leave_Manage,
-    PERMISSIONS.Leave_Approve,
-    PERMISSIONS.Volunteer_Create,
-    PERMISSIONS.Volunteer_Read,
-    PERMISSIONS.Volunteer_Update,
-    PERMISSIONS.Volunteer_Delete,
-    PERMISSIONS.Volunteer_Assign,
-    PERMISSIONS.Volunteer_Schedule_Manage,
-    PERMISSIONS.Volunteer_Schedule_Read,
-    PERMISSIONS.Volunteer_Schedule_Confirm,
-    PERMISSIONS.Volunteer_Export
+    'Employee_Create',
+    'Employee_Read',
+    'Employee_Update',
+    'Employee_Delete',
+    'Employee_Export',
+    'Payroll_Calculate',
+    'Payroll_Read',
+    'Payroll_Export',
+    'Leave_Manage',
+    'Leave_Approve',
+    'Volunteer_Create',
+    'Volunteer_Read',
+    'Volunteer_Update',
+    'Volunteer_Delete',
+    'Volunteer_Assign',
+    'Volunteer_Schedule_Manage',
+    'Volunteer_Schedule_Read',
+    'Volunteer_Schedule_Confirm',
+    'Volunteer_Export'
   ],
   Dashboard: [
-    PERMISSIONS.Dashboard_View,
-    PERMISSIONS.Dashboard_Customize,
-    PERMISSIONS.Dashboard_Export,
-    PERMISSIONS.Report_Generate,
-    PERMISSIONS.Report_Read,
-    PERMISSIONS.Report_Export,
-    PERMISSIONS.Report_Schedule
+    'Dashboard_View',
+    'Dashboard_Customize',
+    'Dashboard_Export',
+    'Report_Generate',
+    'Report_Read',
+    'Report_Export',
+    'Report_Schedule'
   ],
   Notifications: [
-    PERMISSIONS.Notification_Read,
-    PERMISSIONS.Notification_Send,
-    PERMISSIONS.Notification_Configure,
-    PERMISSIONS.Notification_Template_Manage
+    'Notification_Read',
+    'Notification_Send',
+    'Notification_Configure',
+    'Notification_Template_Manage'
   ],
   Administration: [
-    PERMISSIONS.User_Create,
-    PERMISSIONS.User_Read,
-    PERMISSIONS.User_Update,
-    PERMISSIONS.User_Delete,
-    PERMISSIONS.User_Activate,
-    PERMISSIONS.User_Deactivate,
-    PERMISSIONS.Role_Manage,
-    PERMISSIONS.Permission_Manage,
-    PERMISSIONS.Audit_Read,
-    PERMISSIONS.Audit_Export,
-    PERMISSIONS.Settings_Read,
-    PERMISSIONS.Settings_Update,
-    PERMISSIONS.Church_Settings_Manage,
-    PERMISSIONS.Site_Manage
+    'User_Create',
+    'User_Read',
+    'User_Update',
+    'User_Delete',
+    'User_Activate',
+    'User_Deactivate',
+    'Role_Manage',
+    'Permission_Manage',
+    'Audit_Read',
+    'Audit_Export',
+    'Settings_Read',
+    'Settings_Update',
+    'Church_Settings_Manage',
+    'Site_Manage'
   ]
 };

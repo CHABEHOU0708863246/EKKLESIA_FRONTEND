@@ -39,7 +39,7 @@ export class Roles {
       );
   }
 
-  /**
+/**
    * Récupérer tous les rôles avec pagination et filtres
    * GET /api/v1/Role
    */
@@ -49,11 +49,29 @@ export class Roles {
       .set('page', finalFilter.page.toString())
       .set('pageSize', finalFilter.pageSize.toString());
 
+    if (finalFilter.searchTerm) params = params.set('searchTerm', finalFilter.searchTerm);
     if (finalFilter.isVisible !== undefined) params = params.set('isVisible', finalFilter.isVisible.toString());
     if (finalFilter.isSystem !== undefined) params = params.set('isSystem', finalFilter.isSystem.toString());
 
-    return this.http.get<ApiResponse<RoleListResponseDto>>(`${this.baseUrl}`, { params })
+    return this.http.get<any>(`${this.baseUrl}`, { params })
       .pipe(
+        map(response => {
+          // ✅ Transformer la réponse du backend vers le format attendu par le frontend
+          return {
+            success: response.success || true,
+            message: response.message || 'Rôles récupérés avec succès',
+            data: {
+              items: response.data || [],
+              totalCount: response.totalCount || 0,
+              currentPage: response.pageNumber || 1,
+              totalPages: response.totalPages || 1,
+              pageSize: response.pageSize || 20,
+              hasPreviousPage: (response.pageNumber || 1) > 1,
+              hasNextPage: (response.pageNumber || 1) < (response.totalPages || 1)
+            },
+            errors: response.errors || []
+          } as ApiResponse<RoleListResponseDto>;
+        }),
         tap(response => {
           if (response.success) {
             console.log(`📋 ${response.data?.totalCount || 0} rôles récupérés`);

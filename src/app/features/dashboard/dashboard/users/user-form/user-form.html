@@ -109,11 +109,11 @@
       </div>
       <div class="uf-panel-body">
         <div class="uf-role-grid">
-          <button type="button" *ngFor="let role of availableRoles"
+          <button type="button" *ngFor="let role of availableRoles()"
                   class="uf-role-chip"
-                  [class.is-selected]="isRoleSelected(role.value)"
-                  (click)="toggleRole(role.value)">
-            {{ role.label }}
+                  [class.is-selected]="isRoleSelected(role.roleName)"
+                  (click)="toggleRole(role.roleName)">
+            {{ role.roleName }}
           </button>
         </div>
       </div>
