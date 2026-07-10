@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7252',
+  // ✅ URL du BACKEND en production (API déployée)
+  apiUrl: 'https://ekklesia-backend.onrender.com',
+
 };
