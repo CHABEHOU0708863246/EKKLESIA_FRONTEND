@@ -33,7 +33,10 @@
             "styles": [
               "src/styles.scss"
             ],
-            "outputMode": "static"
+            "outputMode": "static",
+            "outputPath": {
+              "base": "dist/EKKLESIA_FRONTEND"
+            }
           },
           "configurations": {
             "production": {
@@ -50,7 +53,9 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "optimization": true,
+              "sourceMap": false,
+              "extractLicenses": true
             },
             "development": {
               "optimization": false,
