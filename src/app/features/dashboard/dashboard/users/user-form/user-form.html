@@ -1,0 +1,233 @@
+<!-- src/app/features/dashboard/dashboard/admin/users/user-form/user-form.html -->
+<div class="uf-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="uf-page-header">
+    <div class="uf-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="uf-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/admin/utilisateurs']">Utilisateurs</a>
+      <span class="uf-breadcrumb-sep">/</span>
+      <span class="uf-breadcrumb-current">{{ isEditMode() ? 'Modifier' : 'Nouvel utilisateur' }}</span>
+    </div>
+
+    <div class="uf-page-title-row">
+      <h1>{{ isEditMode() ? "Modifier l'utilisateur" : 'Nouvel utilisateur' }}</h1>
+      <button type="button" class="uf-btn uf-btn--outline" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="uf-loading-state" *ngIf="loading()">
+    <span class="uf-spinner"></span> Chargement de l'utilisateur…
+  </div>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="uf-banner uf-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <form class="uf-form" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading()">
+
+    <!-- ─────────── PHOTO DE PROFIL ─────────── -->
+    <section class="uf-panel">
+      <div class="uf-panel-header"><h2>Photo de profil</h2></div>
+      <div class="uf-panel-body uf-photo-row">
+        <div class="uf-photo-preview">
+          <img *ngIf="photoPreviewUrl()" [src]="photoPreviewUrl()" alt="Aperçu">
+          <span *ngIf="!photoPreviewUrl()">{{ getInitials() }}</span>
+        </div>
+        <div class="uf-photo-actions">
+          <label class="uf-btn uf-btn--ghost uf-file-label">
+            Choisir une photo
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden>
+          </label>
+          <button type="button" class="uf-link-btn" *ngIf="photoPreviewUrl()" (click)="clearPhoto()">Retirer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── IDENTITÉ DE COMPTE ─────────── -->
+    <section class="uf-panel">
+      <div class="uf-panel-header"><h2>Identité &amp; connexion</h2></div>
+      <div class="uf-panel-body uf-panel-body--grid">
+
+        <div class="uf-field">
+          <label for="firstName">Prénom <span class="uf-required">*</span></label>
+          <input id="firstName" type="text" formControlName="firstName">
+          <p class="uf-error" *ngIf="isFieldInvalid('firstName')">Le prénom est requis (2 caractères min.)</p>
+        </div>
+
+        <div class="uf-field">
+          <label for="lastName">Nom <span class="uf-required">*</span></label>
+          <input id="lastName" type="text" formControlName="lastName">
+          <p class="uf-error" *ngIf="isFieldInvalid('lastName')">Le nom est requis (2 caractères min.)</p>
+        </div>
+
+        <div class="uf-field">
+          <label for="username">Nom d'utilisateur <span class="uf-required">*</span></label>
+          <input id="username" type="text" formControlName="username" placeholder="Ex. jean.kouassi">
+          <p class="uf-error" *ngIf="isFieldInvalid('username')">3 caractères minimum</p>
+          <p class="uf-error" *ngIf="fieldErrors()['username']">{{ fieldErrors()['username'] }}</p>
+        </div>
+
+        <div class="uf-field">
+          <label for="email">E-mail <span class="uf-required">*</span></label>
+          <input id="email" type="email" formControlName="email">
+          <p class="uf-error" *ngIf="isFieldInvalid('email')">Format d'e-mail invalide</p>
+          <p class="uf-error" *ngIf="fieldErrors()['email']">{{ fieldErrors()['email'] }}</p>
+        </div>
+
+        <div class="uf-field">
+          <label for="phone">Téléphone <span class="uf-required">*</span></label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="07 00 00 00 00">
+          <p class="uf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide (8 à 15 chiffres)</p>
+        </div>
+
+        <ng-container *ngIf="!isEditMode()">
+          <div class="uf-field">
+            <label for="password">Mot de passe <span class="uf-required">*</span></label>
+            <input id="password" type="password" formControlName="password" autocomplete="new-password">
+            <p class="uf-error" *ngIf="isFieldInvalid('password')">8 caractères minimum</p>
+          </div>
+
+          <div class="uf-field">
+            <label for="confirmPassword">Confirmer le mot de passe <span class="uf-required">*</span></label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password">
+          </div>
+        </ng-container>
+
+      </div>
+    </section>
+
+    <!-- ─────────── RÔLES ─────────── -->
+    <section class="uf-panel">
+      <div class="uf-panel-header">
+        <h2>Rôles</h2>
+        <p>Détermine les permissions accordées à cet utilisateur.</p>
+      </div>
+      <div class="uf-panel-body">
+        <div class="uf-role-grid">
+          <button type="button" *ngFor="let role of availableRoles"
+                  class="uf-role-chip"
+                  [class.is-selected]="isRoleSelected(role.value)"
+                  (click)="toggleRole(role.value)">
+            {{ role.label }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── PROFIL COMPLÉMENTAIRE (repliable) ─────────── -->
+    <section class="uf-panel">
+      <button type="button" class="uf-panel-header uf-panel-header--toggle" (click)="toggleProfileSection()">
+        <div>
+          <h2>Informations complémentaires</h2>
+          <p>Facultatif — civilité, adresse, contact d'urgence…</p>
+        </div>
+        <svg class="uf-toggle-caret" [class.is-open]="showProfileSection()" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="uf-panel-body uf-panel-body--grid" *ngIf="showProfileSection()" formGroupName="profile">
+
+        <div class="uf-field">
+          <label>Civilité</label>
+          <div class="uf-radio-group">
+            <button type="button" *ngFor="let g of genderOptions"
+                    class="uf-radio-pill"
+                    [class.is-selected]="form.get('profile.gender')?.value === g.value"
+                    (click)="form.get('profile.gender')?.setValue(g.value)">
+              {{ g.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="uf-field">
+          <label for="maritalStatus">Situation matrimoniale</label>
+          <div class="uf-select-wrap">
+            <select id="maritalStatus" formControlName="maritalStatus">
+              <option value="">— Non renseigné —</option>
+              <option *ngFor="let m of maritalStatusOptions" [value]="m.value">{{ m.label }}</option>
+            </select>
+            <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="uf-field">
+          <label for="dateOfBirth">Date de naissance</label>
+          <input id="dateOfBirth" type="date" formControlName="dateOfBirth">
+        </div>
+
+        <div class="uf-field">
+          <label for="profession">Profession</label>
+          <input id="profession" type="text" formControlName="profession">
+        </div>
+
+        <div class="uf-field uf-field--span-2">
+          <label for="address">Adresse</label>
+          <input id="address" type="text" formControlName="address">
+        </div>
+
+        <div class="uf-field">
+          <label for="city">Ville</label>
+          <input id="city" type="text" formControlName="city">
+        </div>
+
+        <div class="uf-field">
+          <label for="country">Pays</label>
+          <input id="country" type="text" formControlName="country">
+        </div>
+
+        <div class="uf-field">
+          <label for="postalCode">Code postal</label>
+          <input id="postalCode" type="text" formControlName="postalCode">
+        </div>
+
+        <div class="uf-field">
+          <label for="nationalId">N° pièce d'identité</label>
+          <input id="nationalId" type="text" formControlName="nationalId">
+        </div>
+
+        <div class="uf-field">
+          <label for="emergencyContact">Contact d'urgence</label>
+          <input id="emergencyContact" type="text" formControlName="emergencyContact">
+        </div>
+
+        <div class="uf-field">
+          <label for="emergencyPhone">Téléphone d'urgence</label>
+          <input id="emergencyPhone" type="tel" formControlName="emergencyPhone">
+        </div>
+
+        <div class="uf-field">
+          <label for="numberOfChildren">Nombre d'enfants</label>
+          <input id="numberOfChildren" type="number" min="0" formControlName="numberOfChildren">
+        </div>
+
+        <div class="uf-field">
+          <label for="education">Niveau d'études</label>
+          <input id="education" type="text" formControlName="education">
+        </div>
+
+        <div class="uf-field uf-field--span-2">
+          <label for="notes">Notes</label>
+          <textarea id="notes" rows="3" formControlName="notes"></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════ BARRE D'ACTIONS ══════════════ -->
+    <footer class="uf-actions">
+      <button type="button" class="uf-btn uf-btn--ghost" (click)="cancel()">Annuler</button>
+      <span class="uf-actions-spacer"></span>
+      <button type="submit" class="uf-btn uf-btn--primary" [disabled]="saving()">
+        <span *ngIf="!saving()">{{ isEditMode() ? 'Enregistrer' : "Créer l'utilisateur" }}</span>
+        <span class="uf-spinner uf-spinner--btn" *ngIf="saving()"></span>
+      </button>
+    </footer>
+
+  </form>
+</div>

@@ -1,0 +1,111 @@
+<!-- src/app/features/dashboard/dashboard/members/visitor-pipeline/visitor-pipeline.html -->
+<div class="vp-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="vp-page-header">
+
+    <div class="vp-page-title-row">
+      <div>
+        <h1>Pipeline des visiteurs</h1>
+        <p class="vp-subtitle">{{ totalVisitors() }} visiteur{{ totalVisitors() > 1 ? 's' : '' }} en cours de suivi</p>
+      </div>
+
+      <div class="vp-header-actions">
+        <div class="vp-search">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input type="text" [formControl]="searchControl" placeholder="Rechercher un visiteur…">
+        </div>
+        <button type="button" class="vp-icon-btn" (click)="refresh()" aria-label="Actualiser" title="Actualiser">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="vp-banner vp-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="vp-loading-state" *ngIf="loading()">
+    <span class="vp-spinner"></span> Chargement du pipeline…
+  </div>
+
+  <!-- ══════════════ TABLEAU KANBAN ══════════════ -->
+  <div class="vp-board" *ngIf="!loading()">
+
+    <div class="vp-column"
+         *ngFor="let col of stageColumns"
+         [ngClass]="col.colorClass"
+         [class.is-drag-over]="dragOverStage() === col.key"
+         (dragover)="onColumnDragOver(col.key, $event)"
+         (dragleave)="onColumnDragLeave(col.key)"
+         (drop)="onColumnDrop(col.key, $event)">
+
+      <div class="vp-column-header">
+        <div class="vp-column-title-row">
+          <h2>{{ col.label }}</h2>
+          <span class="vp-column-count">{{ columnsData()[col.key].length }}</span>
+        </div>
+        <p class="vp-column-hint">{{ col.hint }}</p>
+      </div>
+
+      <div class="vp-column-body">
+
+        <p class="vp-column-empty" *ngIf="columnsData()[col.key].length === 0">
+          Aucun visiteur ici.
+        </p>
+
+        <div class="vp-card"
+             *ngFor="let visitor of columnsData()[col.key]"
+             [class.is-dragging]="draggedMemberId() === visitor.id"
+             [class.is-moving]="movingMemberId() === visitor.id"
+             [class.is-stale]="isStale(visitor)"
+             draggable="true"
+             (dragstart)="onDragStart(visitor, $event)"
+             (dragend)="onDragEnd()"
+             (click)="openMember(visitor)">
+
+          <div class="vp-card-head">
+            <div class="vp-card-avatar">{{ getInitials(visitor) }}</div>
+            <div class="vp-card-identity">
+              <strong>{{ getFullName(visitor) }}</strong>
+              <span>{{ visitor.phone }}</span>
+            </div>
+          </div>
+
+          <div class="vp-card-meta">
+            <span class="vp-days-badge" [class.is-stale]="isStale(visitor)">
+              {{ getDaysInStage(visitor) }} j. dans cette étape
+            </span>
+          </div>
+
+          <div class="vp-card-actions" (click)="$event.stopPropagation()">
+            <button type="button" class="vp-card-btn"
+                    [disabled]="!canMoveBack(visitor) || movingMemberId() === visitor.id"
+                    (click)="moveBack(visitor, $event)"
+                    aria-label="Étape précédente" title="Étape précédente">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+
+            <span class="vp-card-spinner" *ngIf="movingMemberId() === visitor.id"></span>
+
+            <button type="button" class="vp-card-btn vp-card-btn--primary"
+                    *ngIf="movingMemberId() !== visitor.id"
+                    [disabled]="!canMoveForward(visitor)"
+                    (click)="moveForward(visitor, $event)"
+                    aria-label="Étape suivante" title="Étape suivante">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

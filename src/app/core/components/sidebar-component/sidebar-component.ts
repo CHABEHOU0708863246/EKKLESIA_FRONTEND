@@ -122,8 +122,4 @@ export class SidebarComponent implements OnInit, OnDestroy {
         }
       });
   }
-
-  private isProduction(): boolean {
-    return window.location.hostname !== 'localhost';
-  }
 }

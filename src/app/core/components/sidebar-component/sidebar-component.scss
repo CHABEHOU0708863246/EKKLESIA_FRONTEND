@@ -864,3 +864,66 @@ $touch-size:      44px;
     padding: 0 3px !important;
   }
 }
+
+
+
+// sidebar-component.scss
+
+.nav-icon-sub {
+  font-size: 14px;
+  width: 20px;
+  display: inline-block;
+  text-align: center;
+  margin-right: 8px;
+  color: var(--sidebar-sub-icon-color, #8898aa);
+  transition: color 0.2s;
+}
+
+.nav-item {
+  &.active {
+    .nav-icon-sub {
+      color: var(--sidebar-active-color, #5e72e4);
+    }
+  }
+
+  &:hover {
+    .nav-icon-sub {
+      color: var(--sidebar-hover-color, #5e72e4);
+    }
+  }
+}
+
+// Badges
+.nav-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  &.badge-gold {
+    background: #f5a623;
+    color: #fff;
+  }
+
+  &.badge-teal {
+    background: #2ecc71;
+    color: #fff;
+  }
+
+  &.badge-red {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  &.badge-blue {
+    background: #3498db;
+    color: #fff;
+  }
+
+  &.badge-purple {
+    background: #9b59b6;
+    color: #fff;
+  }
+}

@@ -10,7 +10,7 @@ export interface User {
   fullName: string;
   photoUrl?: string;
   isActive: boolean;
-  roles: string[];
+  roles: string[] | null;
   permissions: string[];
   lastLogin?: string;
   createdAt: string;

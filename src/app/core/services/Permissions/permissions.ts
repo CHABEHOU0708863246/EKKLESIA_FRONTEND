@@ -230,6 +230,8 @@ private loadUserPermissions(): void {
     );
   }
 
+
+
   public canViewMembers(): boolean {
     return this.hasAnyPermission(
       'Member_Read',

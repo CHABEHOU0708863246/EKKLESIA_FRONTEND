@@ -44,6 +44,12 @@
       {
         "aria-required-attr": "off"
       }
+    ],
+    "axe/keyboard": [
+      "default",
+      {
+        "nested-interactive": "off"
+      }
     ]
   }
 }

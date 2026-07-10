@@ -1,0 +1,152 @@
+<!-- src/app/features/dashboard/dashboard/admin/roles/role-form/role-form.html -->
+<div class="rf-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="rf-page-header">
+    <div class="rf-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="rf-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/admin/parametres/roles']">Rôles</a>
+      <span class="rf-breadcrumb-sep">/</span>
+      <span class="rf-breadcrumb-current">{{ isEditMode() ? 'Modifier' : 'Nouveau rôle' }}</span>
+    </div>
+
+    <div class="rf-page-title-row">
+      <h1>{{ isEditMode() ? 'Modifier le rôle' : 'Nouveau rôle' }}</h1>
+      <button type="button" class="rf-btn rf-btn--outline" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="rf-loading-state" *ngIf="loading()">
+    <span class="rf-spinner"></span> Chargement du rôle…
+  </div>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="rf-banner rf-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <!-- ══════════════ AVERTISSEMENT RÔLE SYSTÈME ══════════════ -->
+  <div class="rf-banner rf-banner--warning" *ngIf="isSystemRole()">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Ce rôle est un rôle système. Son code ne peut pas être modifié, mais les permissions restent ajustables.</span>
+  </div>
+
+  <form class="rf-form" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading()">
+
+    <!-- ─────────── INFORMATIONS DU RÔLE ─────────── -->
+    <section class="rf-panel">
+      <div class="rf-panel-header"><h2>Informations du rôle</h2></div>
+      <div class="rf-panel-body rf-panel-body--grid">
+
+        <div class="rf-field">
+          <label for="roleName">Nom du rôle <span class="rf-required">*</span></label>
+          <input id="roleName" type="text" formControlName="roleName"
+                 placeholder="Ex. Responsable de cellule"
+                 (blur)="onRoleNameChange()">
+          <p class="rf-error" *ngIf="isFieldInvalid('roleName')">3 caractères minimum</p>
+        </div>
+
+        <div class="rf-field">
+          <label for="code">Code <span class="rf-required">*</span></label>
+          <input id="code" type="text" formControlName="code" placeholder="Ex. CELL_LEADER" style="text-transform: uppercase;">
+          <p class="rf-error" *ngIf="isFieldInvalid('code')">Lettres majuscules, chiffres et underscores uniquement</p>
+          <p class="rf-hint" *ngIf="!isEditMode()">Généré automatiquement à partir du nom, modifiable si besoin.</p>
+        </div>
+
+        <div class="rf-field rf-field--span-2">
+          <label for="description">Description</label>
+          <textarea id="description" rows="3" formControlName="description"
+                     placeholder="Rôle et responsabilités associées à ce profil…"></textarea>
+        </div>
+
+        <div class="rf-field rf-field--span-2">
+          <label class="rf-checkbox">
+            <input type="checkbox" formControlName="isVisible">
+            <span class="rf-checkbox-box"></span>
+            <span class="rf-checkbox-text">
+              <strong>Visible dans les listes</strong>
+              <small>Apparaît dans les sélecteurs de rôle lors de l'attribution aux utilisateurs</small>
+            </span>
+          </label>
+        </div>
+
+      </div>
+    </section>
+
+<!-- ─────────── PERMISSIONS ─────────── -->
+<section class="rf-panel">
+  <div class="rf-panel-header rf-permissions-header">
+    <div>
+      <h2>Permissions</h2>
+      <p>{{ selectedCount() }} / {{ totalPermissionsCount() }} permissions sélectionnées</p>
+    </div>
+    <div class="rf-permissions-actions">
+      <button type="button" class="rf-link-btn" (click)="selectAllPermissions()">Tout sélectionner</button>
+      <span class="rf-dot-sep">•</span>
+      <button type="button" class="rf-link-btn" (click)="clearAllPermissions()">Tout désélectionner</button>
+    </div>
+  </div>
+
+  <div class="rf-panel-body">
+
+    <div class="rf-permission-search">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <!-- <input type="text" [ngModel]="permissionSearch()" (ngModelChange)="permissionSearch.set($event)"
+             [ngModelOptions]="{standalone: true}"
+             placeholder="Rechercher une permission…"> -->
+    </div>
+
+    <div class="rf-module-list">
+      <div class="rf-module" *ngFor="let entry of filteredModules()">
+
+        <button type="button" class="rf-module-header" (click)="toggleModuleExpanded(entry[0])">
+          <label class="rf-checkbox rf-module-checkbox" (click)="$event.stopPropagation()">
+            <input type="checkbox"
+                   [checked]="isModuleFullySelected(entry[1])"
+                   [indeterminate]="isModulePartiallySelected(entry[1])"
+                   (change)="toggleModule(entry[1])">
+            <span class="rf-checkbox-box"></span>
+          </label>
+
+          <span class="rf-module-name">{{ entry[0] }}</span>
+          <span class="rf-module-count">{{ getModuleSelectedCount(entry[1]) }} / {{ entry[1].length }}</span>
+
+          <svg class="rf-module-caret" [class.is-open]="isModuleExpanded(entry[0])" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="rf-module-body" *ngIf="isModuleExpanded(entry[0])">
+          <label class="rf-permission-item" *ngFor="let permission of entry[1]">
+            <input type="checkbox"
+                   [checked]="isPermissionSelected(permission)"
+                   (change)="togglePermission(permission)">
+            <span class="rf-checkbox-box"></span>
+            <span class="rf-permission-name">
+              {{ getPermissionLabel(permission) }}
+              <!-- <span class="rf-permission-code">({{ permission }})</span> -->
+            </span>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+    <!-- ══════════════ BARRE D'ACTIONS ══════════════ -->
+    <footer class="rf-actions">
+      <button type="button" class="rf-btn rf-btn--ghost" (click)="cancel()">Annuler</button>
+      <span class="rf-actions-spacer"></span>
+      <button type="submit" class="rf-btn rf-btn--primary" [disabled]="saving()">
+        <span *ngIf="!saving()">{{ isEditMode() ? 'Enregistrer' : 'Créer le rôle' }}</span>
+        <span class="rf-spinner rf-spinner--btn" *ngIf="saving()"></span>
+      </button>
+    </footer>
+
+  </form>
+</div>
