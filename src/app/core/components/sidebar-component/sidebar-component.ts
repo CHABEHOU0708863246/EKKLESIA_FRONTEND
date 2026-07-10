@@ -17,6 +17,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  /** Point de rupture mobile / desktop, aligné sur le SCSS (@media min-width: 901px) */
+  private static readonly DESKTOP_BREAKPOINT = 901;
+
   isCollapsed: boolean = false;
   /** Sidebar visible en mode mobile (off-canvas) */
   isMobileOpen: boolean = false;
@@ -93,8 +96,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.isMobileOpen = false;
   }
 
+  /** Réduit/étend la sidebar en mode desktop (icônes seules) */
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  /**
+   * Point d'entrée unique pour le bouton "hamburger" du Topbar.
+   * Sur mobile : ouvre/ferme le panneau off-canvas.
+   * Sur desktop : bascule le mode réduit (icônes seules).
+   * C'est cette méthode que le Dashboard doit appeler (via ViewChild),
+   * au lieu de manipuler le DOM directement.
+   */
+  onMenuToggleClick(): void {
+    const isMobile = typeof window !== 'undefined'
+      && window.innerWidth < SidebarComponent.DESKTOP_BREAKPOINT;
+
+    if (isMobile) {
+      this.toggleMobileSidebar();
+    } else {
+      this.toggleSidebar();
+    }
   }
 
   getUserInitials(): string {

@@ -1,4 +1,3 @@
-
 import { FormsModule } from '@angular/forms';
 import { RouterModule, RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subscription } from 'rxjs';
@@ -56,6 +55,16 @@ export enum OfferingStatus {
 export class Dashboard implements OnInit, OnDestroy {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
+
+  /**
+   * Référence directe au SidebarComponent enfant.
+   * On délègue TOUTE la logique d'ouverture/fermeture (mobile off-canvas
+   * ou collapse desktop) au sidebar lui-même : c'est lui qui possède
+   * les propriétés isMobileOpen / isCollapsed liées dans son propre
+   * template et son propre SCSS. Le Dashboard ne doit plus jamais
+   * manipuler le DOM du sidebar à la main.
+   */
+  @ViewChild(SidebarComponent) sidebarComponent!: SidebarComponent;
 
   // Données pour graphiques
   chartData: any = {
@@ -120,8 +129,6 @@ export class Dashboard implements OnInit, OnDestroy {
   recentOfferings: any[] = [];
 
   isLoading: boolean = true;
-  isSidebarCollapsed: boolean = false;
-  isMobileView: boolean = false;
 
   // Options des graphiques
   chartOptions: any = {
@@ -191,24 +198,12 @@ export class Dashboard implements OnInit, OnDestroy {
       return;
     }
 
-    this.checkMobileView();
     this.loadCurrentUser();
     this.loadDashboardData();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-  }
-
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any): void {
-    this.checkMobileView();
-
-    if (this.isMobileView) {
-      this.isSidebarCollapsed = true;
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) sidebar.classList.add('collapsed');
-    }
   }
 
   /**
@@ -449,32 +444,14 @@ export class Dashboard implements OnInit, OnDestroy {
     return value.toLocaleString('fr-FR');
   }
 
+  /**
+   * Point d'entrée du bouton hamburger du Topbar.
+   * Toute la logique (mobile off-canvas vs desktop collapse) vit
+   * désormais dans SidebarComponent — le Dashboard se contente de
+   * déléguer via la référence @ViewChild.
+   */
   toggleSidebar(): void {
-    if (!this.isBrowser) return; // ✅ document n'existe pas côté serveur
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
-
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.querySelector('.main-content');
-
-    if (sidebar && mainContent) {
-      if (this.isSidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        (mainContent as HTMLElement).style.marginLeft = '0';
-      } else {
-        sidebar.classList.remove('collapsed');
-        if (!this.isMobileView) {
-          (mainContent as HTMLElement).style.marginLeft = '272px';
-        }
-      }
-    }
-  }
-
-  closeSidebar(): void {
-    if (!this.isBrowser) return;
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    if (sidebar) sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('visible');
+    this.sidebarComponent?.onMenuToggleClick();
   }
 
   toggleUserMenu(): void {
@@ -488,15 +465,6 @@ export class Dashboard implements OnInit, OnDestroy {
       this.showUserMenu = false;
     }
   }
-
-  checkMobileView(): void {
-    if (!this.isBrowser) return;
-    this.isMobileView = window.innerWidth <= 768;
-    if (this.isMobileView) {
-      this.isSidebarCollapsed = true;
-    }
-  }
-
 
   /**
    * Déconnexion
