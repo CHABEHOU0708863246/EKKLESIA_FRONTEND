@@ -107,7 +107,6 @@ export class Users {
       );
   }
 
-  // src/app/core/services/api/user.service.ts
 
   /**
    * ✅ Récupérer l'URL complète de la photo d'un utilisateur
@@ -137,7 +136,25 @@ export class Users {
     return `${environment.apiUrl}/api/v1/User/photo/${photoId}`;
   }
 
-  // src/app/core/services/api/user.service.ts
+
+  /**
+ * Mettre à jour la photo d'un utilisateur spécifique (Admin)
+ * PUT /api/v1/User/{id}/photo
+ */
+updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> {
+  const formData = new FormData();
+  formData.append('photoFile', photoFile);
+
+  return this.http.put<ApiResponse<User>>(`${this.baseUrl}/${id}/photo`, formData)
+    .pipe(
+      tap(response => {
+        if (response.success) {
+          console.log('✅ Photo utilisateur mise à jour (admin)');
+        }
+      }),
+      catchError(this.handleError<User>('updateUserPhotoById'))
+    );
+}
 
   /**
    * ✅ Récupérer la photo en tant que Blob

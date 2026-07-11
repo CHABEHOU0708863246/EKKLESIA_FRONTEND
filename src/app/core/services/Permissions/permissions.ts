@@ -140,25 +140,40 @@ private loadUserPermissions(): void {
   // ───────────────────────────────────────────────────────────────
 
   /**
-   * Vérifie si l'utilisateur a UNE permission spécifique
-   */
+ * Vérifie si l'utilisateur a UNE permission spécifique
+ * SUPER_ADMIN et PASTOR_PRINCIPAL ont un bypass total (miroir du backend)
+ */
   public hasPermission(permission: string): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
     return this.userPermissions.includes(permission);
   }
 
   /**
-   * Vérifie si l'utilisateur a AU MOINS UNE des permissions
-   */
+ * Vérifie si l'utilisateur a AU MOINS UNE des permissions
+ */
   public hasAnyPermission(...permissions: string[]): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
     return permissions.some(p => this.userPermissions.includes(p));
   }
 
   /**
-   * Vérifie si l'utilisateur a TOUTES les permissions
-   */
+ * Vérifie si l'utilisateur a TOUTES les permissions
+ */
   public hasAllPermissions(...permissions: string[]): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
     return permissions.every(p => this.userPermissions.includes(p));
   }
+
+    public clearPermissions(): void {
+      this.userPermissions = [];
+      this.userRoles = [];
+    }
 
   /**
    * Vérifie si l'utilisateur a un rôle spécifique

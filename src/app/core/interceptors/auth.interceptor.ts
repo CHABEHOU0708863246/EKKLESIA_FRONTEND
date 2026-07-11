@@ -1,3 +1,5 @@
+// auth.interceptor.ts
+
 import { Injectable, Inject, PLATFORM_ID, isDevMode } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
@@ -19,8 +21,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // ✅ Côté serveur, pas de token disponible : on transmet la requête telle quelle,
-    // sans logs ni tentative de lecture du token (localStorage n'existe pas sur Node).
+    // ❌ Côté serveur, pas de token disponible
     if (!this.isBrowser) {
       return next.handle(request);
     }
@@ -38,11 +39,21 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => new Error('Token expiré'));
     }
 
+    // ✅ Vérifier si la requête contient un FormData
+    const isFormData = request.body instanceof FormData;
+
+    // ✅ Construire les headers sans forcer Content-Type pour FormData
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    // ✅ Ne pas définir Content-Type si c'est un FormData (le navigateur le fera)
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const clonedRequest = request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      setHeaders: headers,
     });
 
     this.log('✅ Interceptor: Requête avec token envoyée à:', request.url);

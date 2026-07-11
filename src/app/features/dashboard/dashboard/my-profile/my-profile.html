@@ -1,0 +1,299 @@
+<!-- src/app/features/dashboard/dashboard/admin/my-profile/my-profile.html -->
+<div class="mp-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="mp-page-header">
+    <div class="mp-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="mp-breadcrumb-sep">/</span>
+      <span class="mp-breadcrumb-current">Mon profil</span>
+    </div>
+    <h1>Mon profil</h1>
+  </header>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="mp-loading-state" *ngIf="loading()">
+    <span class="mp-spinner"></span> Chargement de votre profil…
+  </div>
+
+  <div class="mp-banner mp-banner--error" *ngIf="!loading() && error() && !currentUser()">
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <ng-container *ngIf="!loading() && currentUser() as user">
+
+    <!-- ══════════════ CARTE IDENTITÉ + PHOTO ══════════════ -->
+    <section class="mp-panel mp-identity-panel">
+      <div class="mp-panel-body mp-identity-row">
+
+        <div class="mp-photo-wrap">
+          <div class="mp-photo-preview">
+            <img *ngIf="photoPreviewUrl()" [src]="photoPreviewUrl()" alt="Photo de profil">
+            <span *ngIf="!photoPreviewUrl()">{{ getInitials() }}</span>
+            <div class="mp-photo-overlay" *ngIf="uploadingPhoto()">
+              <span class="mp-spinner mp-spinner--light"></span>
+            </div>
+          </div>
+          <label class="mp-photo-edit-btn">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden>
+          </label>
+        </div>
+
+        <div class="mp-identity-info">
+          <h2>{{ user.fullName || (user.firstName + ' ' + user.lastName) }}</h2>
+          <p class="mp-username">&#64;{{ user.username }}</p>
+          <div class="mp-role-tags">
+            <span class="mp-role-tag" *ngFor="let role of user.roles">{{ role }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="mp-error mp-error--inline" *ngIf="photoError()">{{ photoError() }}</p>
+    </section>
+
+    <!-- ══════════════ BANNIÈRES ══════════════ -->
+    <div class="mp-banner mp-banner--success" *ngIf="saveSuccess()">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span>Profil mis à jour avec succès.</span>
+    </div>
+    <div class="mp-banner mp-banner--error" *ngIf="saveError()">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span>{{ saveError() }}</span>
+    </div>
+
+    <!-- ══════════════ IDENTITÉ DE COMPTE (lecture seule) ══════════════ -->
+    <section class="mp-panel">
+      <div class="mp-panel-header">
+        <h2>Identifiants de connexion</h2>
+      </div>
+      <div class="mp-panel-body mp-panel-body--grid">
+        <div class="mp-info-row"><span>Nom d'utilisateur</span><strong>{{ user.username }}</strong></div>
+        <div class="mp-info-row"><span>E-mail</span><strong>{{ user.email }}</strong></div>
+        <div class="mp-info-row"><span>Téléphone</span><strong>{{ user.phone }}</strong></div>
+        <div class="mp-info-row"><span>Dernière connexion</span><strong>{{ user.lastLogin ? formatDate(user.lastLogin) :
+            'Première connexion' }}</strong></div>
+      </div>
+      <div class="mp-panel-footer">
+        <p class="mp-hint">Pour modifier votre nom d'utilisateur, e-mail ou téléphone, contactez un administrateur.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ INFORMATIONS COMPLÉMENTAIRES ══════════════ -->
+    <section class="mp-panel">
+      <div class="mp-panel-header">
+        <h2>Informations complémentaires</h2>
+        <div class="mp-header-actions" *ngIf="!isEditMode()">
+          <button type="button" class="mp-btn mp-btn--primary mp-btn--sm" (click)="enterEditMode()">Modifier</button>
+        </div>
+      </div>
+
+      <form class="mp-panel-body mp-panel-body--grid" [formGroup]="form" *ngIf="isEditMode()">
+
+        <div class="mp-field">
+          <label>Civilité</label>
+          <div class="mp-radio-group">
+            <button type="button" *ngFor="let g of genderOptions" class="mp-radio-pill"
+              [class.is-selected]="form.get('gender')?.value === g.value"
+              (click)="form.get('gender')?.setValue(g.value)">
+              {{ g.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="mp-field">
+          <label for="maritalStatus">Situation matrimoniale</label>
+          <div class="mp-select-wrap">
+            <select id="maritalStatus" formControlName="maritalStatus">
+              <option value="">— Non renseigné —</option>
+              <option *ngFor="let m of maritalStatusOptions" [value]="m.value">{{ m.label }}</option>
+            </select>
+            <svg class="mp-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="mp-field">
+          <label for="dateOfBirth">Date de naissance</label>
+          <input id="dateOfBirth" type="date" formControlName="dateOfBirth">
+        </div>
+
+        <div class="mp-field">
+          <label for="profession">Profession</label>
+          <input id="profession" type="text" formControlName="profession">
+        </div>
+
+        <div class="mp-field mp-field--span-2">
+          <label for="address">Adresse</label>
+          <input id="address" type="text" formControlName="address">
+        </div>
+
+        <div class="mp-field">
+          <label for="city">Ville</label>
+          <input id="city" type="text" formControlName="city">
+        </div>
+
+        <div class="mp-field">
+          <label for="country">Pays</label>
+          <input id="country" type="text" formControlName="country">
+        </div>
+
+        <div class="mp-field">
+          <label for="postalCode">Code postal</label>
+          <input id="postalCode" type="text" formControlName="postalCode">
+        </div>
+
+        <div class="mp-field">
+          <label for="nationalId">N° pièce d'identité</label>
+          <input id="nationalId" type="text" formControlName="nationalId">
+        </div>
+
+        <div class="mp-field">
+          <label for="emergencyContact">Contact d'urgence</label>
+          <input id="emergencyContact" type="text" formControlName="emergencyContact">
+        </div>
+
+        <div class="mp-field">
+          <label for="emergencyPhone">Téléphone d'urgence</label>
+          <input id="emergencyPhone" type="tel" formControlName="emergencyPhone">
+        </div>
+
+        <div class="mp-field">
+          <label for="numberOfChildren">Nombre d'enfants</label>
+          <input id="numberOfChildren" type="number" min="0" formControlName="numberOfChildren">
+        </div>
+
+        <div class="mp-field">
+          <label for="education">Niveau d'études</label>
+          <input id="education" type="text" formControlName="education">
+        </div>
+
+        <div class="mp-field mp-field--span-2">
+          <label for="notes">Notes</label>
+          <textarea id="notes" rows="3" formControlName="notes"></textarea>
+        </div>
+
+        <div class="mp-field mp-field--span-2 mp-form-actions">
+          <button type="button" class="mp-btn mp-btn--ghost" (click)="cancelEditMode()">Annuler</button>
+          <button type="button" class="mp-btn mp-btn--primary" (click)="save()" [disabled]="saving()">
+            <span *ngIf="!saving()">Enregistrer</span>
+            <span class="mp-spinner mp-spinner--btn" *ngIf="saving()"></span>
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Lecture seule -->
+      <!-- Lecture seule -->
+      <div class="mp-panel-body mp-panel-body--grid" *ngIf="!isEditMode()">
+        <div class="mp-info-row">
+          <span>Civilité</span>
+          <strong>{{ getGenderLabel(user.profile?.gender) }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Situation matrimoniale</span>
+          <strong>{{ getMaritalStatusLabel(user.profile?.maritalStatus) }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Date de naissance</span>
+          <strong>{{ formatDate(user.profile?.dateOfBirth) }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Profession</span>
+          <strong>{{ user.profile?.profession || 'Non renseigné' }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Adresse</span>
+          <strong>{{ user.profile?.address || 'Non renseigné' }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Ville</span>
+          <strong>{{ user.profile?.city || 'Non renseigné' }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Contact d'urgence</span>
+          <strong>{{ user.profile?.emergencyContact || 'Non renseigné' }}</strong>
+        </div>
+        <div class="mp-info-row">
+          <span>Téléphone d'urgence</span>
+          <strong>{{ user.profile?.emergencyPhone || 'Non renseigné' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SÉCURITÉ / MOT DE PASSE ══════════════ -->
+    <section class="mp-panel">
+      <button type="button" class="mp-panel-header mp-panel-header--toggle" (click)="togglePasswordSection()">
+        <div>
+          <h2>Sécurité</h2>
+          <p>Changer votre mot de passe</p>
+        </div>
+        <svg class="mp-toggle-caret" [class.is-open]="showPasswordSection()" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+
+      <form class="mp-panel-body mp-panel-body--grid" [formGroup]="passwordForm" *ngIf="showPasswordSection()"
+        (ngSubmit)="changePassword()">
+
+        <div class="mp-field mp-field--span-2">
+          <label for="currentPassword">Mot de passe actuel <span class="mp-required">*</span></label>
+          <input id="currentPassword" type="password" formControlName="currentPassword" autocomplete="current-password">
+          <p class="mp-error" *ngIf="isPasswordFieldInvalid('currentPassword')">Ce champ est requis</p>
+        </div>
+
+        <div class="mp-field">
+          <label for="newPassword">Nouveau mot de passe <span class="mp-required">*</span></label>
+          <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password">
+          <p class="mp-error" *ngIf="isPasswordFieldInvalid('newPassword')">8 caractères minimum</p>
+        </div>
+
+        <div class="mp-field">
+          <label for="confirmNewPassword">Confirmer le nouveau mot de passe <span class="mp-required">*</span></label>
+          <input id="confirmNewPassword" type="password" formControlName="confirmPassword" autocomplete="new-password">
+        </div>
+
+        <div class="mp-banner mp-banner--success mp-field--span-2" *ngIf="passwordSuccess()">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span>Mot de passe modifié avec succès.</span>
+        </div>
+        <div class="mp-banner mp-banner--error mp-field--span-2" *ngIf="passwordError()">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+            <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <span>{{ passwordError() }}</span>
+        </div>
+
+        <div class="mp-field mp-field--span-2 mp-form-actions">
+          <button type="submit" class="mp-btn mp-btn--primary" [disabled]="changingPassword()">
+            <span *ngIf="!changingPassword()">Changer le mot de passe</span>
+            <span class="mp-spinner mp-spinner--btn" *ngIf="changingPassword()"></span>
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+  </ng-container>
+</div>

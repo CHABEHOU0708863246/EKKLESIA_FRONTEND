@@ -130,18 +130,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    console.log('🚪 Déconnexion en cours...');
-    this.tokenService.logout();
+  console.log('🚪 Déconnexion en cours...');
+  this.tokenService.logout();
+  this.permission.clearPermissions();
 
-    this.authService
-      .logout()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.router.navigate(['/auth/login']),
-        error: (error) => {
-          console.warn('⚠️ Erreur API déconnexion (ignorée):', error);
-          this.router.navigate(['/auth/login']);
-        }
-      });
-  }
+  this.authService
+    .logout()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: (error) => {
+        console.warn('⚠️ Erreur API déconnexion (ignorée):', error);
+        this.router.navigate(['/auth/login']);
+      }
+    });
+}
 }

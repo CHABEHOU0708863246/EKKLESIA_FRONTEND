@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import { NotificationComponent } from "../../../core/components/notification-component/notification-component";
 import { Notification } from '../../../core/services/Notification/notification';
 import { Auth } from '../../../core/services/Auth/auth';
+import { Permissions } from '../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit {
 
   private tokenService = inject(Token);
   private authService = inject(Auth);
+  private permissionsService = inject(Permissions);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private notificationService = inject(Notification);
@@ -56,15 +58,13 @@ export class LoginComponent implements OnInit {
       rememberMe: rememberMe,
     };
 
-    this.authService.authenticate(loginRequest).subscribe({
+   this.authService.authenticate(loginRequest).subscribe({
       next: (response: any) => {
         this.isLoading = false;
 
-        // Vérification de la réponse
         if (response && response.token) {
           const token = response.token;
 
-          // Décodage du token pour extraire le rôle
           let userRole = 'user';
           try {
             if (token) {
@@ -80,9 +80,12 @@ export class LoginComponent implements OnInit {
             console.error('Erreur lors du décodage du token:', error);
           }
 
-          // Stockage du token
           if (token) {
             this.tokenService.saveToken(token, userRole);
+
+            // ✅ AJOUT CRITIQUE — recharge les permissions avec le nouveau token
+            // juste après qu'il ait été écrit en storage, avant toute navigation.
+            this.permissionsService.reloadPermissions();
 
             if (response.refreshToken) {
               localStorage.setItem('refresh_token', response.refreshToken);
@@ -93,18 +96,14 @@ export class LoginComponent implements OnInit {
             }
           }
 
-          // ✅ Notification de succès
           this.notificationService.success(
             'Connexion réussie',
             'Bienvenue ! Redirection vers votre tableau de bord...'
           );
 
-          // ✅ Navigation SPA directe, sans délai artificiel ni fallback de rechargement complet
           this.router.navigate(['/dashboard']).then((success) => {
             if (!success) {
               console.error('❌ Navigation vers /dashboard a échoué (success=false). Vérifiez les guards.');
-              console.log(localStorage.getItem('ekklesia_auth_data'));
-              console.log(localStorage.getItem('refresh_token'));
             }
           }).catch((err) => {
             console.error('❌ Erreur lors de la navigation vers /dashboard:', err);
@@ -114,7 +113,6 @@ export class LoginComponent implements OnInit {
             'Échec de la connexion',
             'Réponse du serveur invalide. Token manquant.'
           );
-          console.error('Réponse sans token:', response);
         }
       },
       error: (err) => {

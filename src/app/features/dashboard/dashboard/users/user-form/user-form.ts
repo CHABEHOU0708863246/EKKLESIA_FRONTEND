@@ -204,8 +204,8 @@ export class UserForm implements OnInit, OnDestroy {
     }, { emitEvent: false });
 
     if (user.photoUrl) {
-      this.photoPreviewUrl.set(user.photoUrl);
-    }
+    this.photoPreviewUrl.set(this.userService.getUserPhotoUrl(user.photoUrl));
+  }
   }
 
   private toDateInputValue(date: string | null | undefined): string {
@@ -299,39 +299,60 @@ export class UserForm implements OnInit, OnDestroy {
     }
   }
 
-  private createNewUser(): void {
-    const value = this.form.value;
-    const payload: UserCreate = {
-      username: value.username,
-      email: value.email,
-      phone: value.phone,
-      firstName: value.firstName,
-      lastName: value.lastName,
-      password: value.password,
-      confirmPassword: value.confirmPassword,
-      roles: value.roles,
-      profile: this.cleanProfile(value.profile),
-    };
+private createNewUser(): void {
+  const value = this.form.value;
+  const payload: UserCreate = {
+    username: value.username,
+    email: value.email,
+    phone: value.phone,
+    firstName: value.firstName,
+    lastName: value.lastName,
+    password: value.password,
+    confirmPassword: value.confirmPassword,
+    roles: value.roles,
+    profile: this.cleanProfile(value.profile),
+  };
 
-    this.userService
-      .register(payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: { success: any; data: any }) => {
-          this.saving.set(false);
-          if (response.success && response.data) {
-            this.router.navigate(['/dashboard/admin/utilisateurs', response.data.id]);
+  this.userService
+    .register(payload)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response: any) => {
+        // ✅ adapté au format réel du backend (plat, isSuccess)
+        if (response.isSuccess && response.id) {
+          const newUserId = response.id;
+
+          if (this.photoFile) {
+            this.userService
+              .updateUserPhotoById(newUserId, this.photoFile)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => {
+                  this.saving.set(false);
+                  this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
+                },
+                error: (err: any) => {
+                  console.error('⚠️ Utilisateur créé mais échec upload photo:', err);
+                  this.saving.set(false);
+                  this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
+                },
+              });
           } else {
-            this.applyErrorResponse(response);
+            this.saving.set(false);
+            this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
           }
-        },
-        error: (err: any) => {
-          console.error('❌ Erreur lors de la création:', err);
+        } else {
           this.saving.set(false);
-          this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
-        },
-      });
-  }
+          this.applyErrorResponse(response);
+        }
+      },
+      error: (err: any) => {
+        console.error('❌ Erreur lors de la création:', err);
+        this.saving.set(false);
+        this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
+      },
+    });
+}
 
   private updateExistingUser(): void {
     if (!this.userId) return;
@@ -379,15 +400,15 @@ export class UserForm implements OnInit, OnDestroy {
   }
 
   private applyErrorResponse(response: any): void {
-    this.error.set(response.message || 'Une erreur est survenue.');
-    if (response.errors?.length) {
-      const map: Record<string, string> = {};
-      for (const e of response.errors) {
-        if (e.field) map[e.field] = e.message ?? e;
-      }
-      this.fieldErrors.set(map);
+  this.error.set(response.message || 'Une erreur est survenue.');
+  if (response.errors?.length) {
+    const map: Record<string, string> = {};
+    for (const e of response.errors) {
+      if (e.field) map[e.field] = e.message ?? e;
     }
+    this.fieldErrors.set(map);
   }
+}
 
   cancel(): void {
     if (this.isEditMode() && this.userId) {

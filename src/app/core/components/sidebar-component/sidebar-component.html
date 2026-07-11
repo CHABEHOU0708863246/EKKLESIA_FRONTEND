@@ -544,6 +544,14 @@
       @if (permission.canViewAdministration()) {
       <div class="nav-section-label">Administration</div>
 
+      <!-- Mon profil - accessible à tout utilisateur connecté -->
+        <li class="nav-item">
+          <a [routerLink]="['/dashboard/admin/mon-profil']" class="nav-link" (click)="closeMobileSidebar()">
+            <i class="nav-icon bx bx-id-card"></i>
+            <span class="nav-text">Mon profil</span>
+          </a>
+        </li>
+
       <!-- Utilisateurs & rôles - Avec sous-menu -->
       @if (permission.canManageUsers() || permission.canManageRoles()) {
       <li class="nav-item" routerLinkActive="active open">
@@ -603,18 +611,10 @@
           </li>
           }
 
-          <!-- Journaux d'audit -->
-          @if (permission.canViewAudit()) {
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/admin/audit']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-history"></i>
-              <span class="nav-text">Journal d'audit</span>
-            </a>
-          </li>
-          }
         </ul>
       </li>
       }
+
 
       <!-- Journal d'audit -->
       @if (permission.canViewAudit()) {
@@ -673,16 +673,6 @@
               (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-bell"></i>
               <span class="nav-text">Notifications</span>
-            </a>
-          </li>
-          }
-
-          <!-- Roles & permissions (Admin avancé) -->
-          @if (permission.canManageRoles()) {
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/admin/parametres/roles']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-lock"></i>
-              <span class="nav-text">Rôles & permissions</span>
             </a>
           </li>
           }

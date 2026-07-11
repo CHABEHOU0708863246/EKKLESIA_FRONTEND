@@ -26,18 +26,11 @@ export const DASHBOARD_ROUTES: Routes = [
       loadChildren: () =>
         import('./dashboard/roles/roles.routes').then((m) => m.ROLES_ROUTES),
     },
-    // // Route pour l'audit
-    // {
-    //   path: 'admin/audit',
-    //   loadComponent: () =>
-    //     import('./dashboard/audit/audit-log').then((m) => m.AuditLog),
-    // },
-    // // Routes pour les paramètres
-    // {
-    //   path: 'admin/parametres',
-    //   loadChildren: () =>
-    //     import('./dashboard/parametres/parametres.routes').then((m) => m.PARAMETRES_ROUTES),
-    // },
+    {
+      path: 'admin/mon-profil',
+      loadComponent: () => import('./dashboard/my-profile/my-profile').then((m) => m.MyProfile),
+      title: 'Mon profil — EKKLESIA',
+    },
   ],
 },
 ];
