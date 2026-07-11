@@ -135,6 +135,116 @@ private loadUserPermissions(): void {
     this.loadUserPermissions();
   }
 
+// ───────────────────────────────────────────────────────────────
+  // 🧩 AGRÉGATEURS DE MODULE (visibilité de section dans le sidebar)
+  // ───────────────────────────────────────────────────────────────
+  // Principe : une section n'est visible QUE si l'utilisateur a
+  // accès à AU MOINS UNE fonctionnalité qu'elle contient.
+  // Chaque lien individuel reste ensuite filtré par sa permission
+  // précise (Member_Create, Cell_Read, etc.) — pas de raccourci.
+
+  /**
+   * Section "Membres" : annuaire, création, pipeline, suivi pastoral,
+   * cellules, import.
+   */
+  public canAccessMemberModule(): boolean {
+    return this.hasAnyPermission(
+      'Member_Read', 'Member_Create', 'Member_Update', 'Member_Delete', 'Member_Validate',
+      'Member_Export', 'Member_Import',
+      'Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update', 'Pastoral_Note_Delete',
+      'Cell_Read', 'Cell_Create', 'Cell_Update', 'Cell_Delete', 'Cell_Assign'
+    );
+  }
+
+  /**
+   * Section "Communauté" : disponibilités et planning des bénévoles.
+   */
+  public canAccessCommunityModule(): boolean {
+    return this.hasAnyPermission(
+      'Volunteer_Schedule_Read', 'Volunteer_Schedule_Manage', 'Volunteer_Schedule_Confirm'
+    );
+  }
+
+  /**
+   * Section "Vie d'église" : cultes, événements, rendez-vous pastoraux.
+   */
+  public canAccessChurchLifeModule(): boolean {
+    return this.hasAnyPermission(
+      'Service_Read', 'Service_Create', 'Service_Update', 'Service_Attendance_Read', 'Service_Attendance_Record',
+      'Event_Read', 'Event_Create', 'Event_Update', 'Event_Delete', 'Event_Register', 'Event_Registration_Manage',
+      'Pastoral_Appointment_Manage'
+    );
+  }
+
+  /**
+   * Sous-section "Événements" seule (utile pour un affichage plus fin
+   * si besoin de dissocier de Cultes/Rendez-vous).
+   */
+  public canAccessEventModule(): boolean {
+    return this.hasAnyPermission(
+      'Event_Read', 'Event_Create', 'Event_Update', 'Event_Delete',
+      'Event_Register', 'Event_Registration_Manage'
+    );
+  }
+
+  /**
+   * Section "Finances" : offrandes, dépenses, budget, consolidation.
+   */
+  public canAccessFinanceModule(): boolean {
+    return this.hasAnyPermission(
+      'Finance_Offering_Read', 'Finance_Offering_Create', 'Finance_Offering_Validate',
+      'Finance_Expense_Read', 'Finance_Expense_Create', 'Finance_Expense_Validate', 'Finance_Expense_Approve',
+      'Finance_Budget_Read', 'Finance_Budget_Create', 'Finance_Budget_Update', 'Finance_Budget_Approve',
+      'Finance_Consolidated_View'
+    );
+  }
+
+  /**
+   * Section "Patrimoine & Communication" : biens, contrats, maintenance,
+   * contenus, médias.
+   */
+  public canAccessPropertyModule(): boolean {
+    return this.hasAnyPermission(
+      'Property_Read', 'Property_Create', 'Property_Update', 'Property_Delete',
+      'Contract_Read', 'Contract_Create', 'Contract_Update', 'Contract_Validate',
+      'Maintenance_Report', 'Maintenance_Manage'
+    );
+  }
+
+  public canAccessCommunicationModule(): boolean {
+    return this.hasAnyPermission(
+      'Content_Read', 'Content_Create', 'Content_Update', 'Content_Delete', 'Content_Publish',
+      'Communication_Broadcast', 'Communication_Newsletter'
+    );
+  }
+
+  /**
+   * Section "Ressources Humaines" : employés, bénévoles.
+   */
+  public canAccessHRModule(): boolean {
+    return this.hasAnyPermission(
+      'Employee_Read', 'Employee_Create', 'Employee_Update', 'Employee_Delete',
+      'Payroll_Read', 'Payroll_Calculate', 'Leave_Manage', 'Leave_Approve',
+      'Volunteer_Read', 'Volunteer_Create', 'Volunteer_Update', 'Volunteer_Delete', 'Volunteer_Assign'
+    );
+  }
+
+  /**
+   * Section "Administration" : utilisateurs, rôles, permissions,
+   * audit, paramètres généraux/église/sites, notifications système.
+   * ⚠️ Ne couvre QUE l'administration — jamais "Mon profil", qui est
+   * accessible à tout utilisateur connecté indépendamment de ceci.
+   */
+  public canAccessAdministrationModule(): boolean {
+    return this.hasAnyPermission(
+      'User_Read', 'User_Create', 'User_Update', 'User_Delete', 'User_Activate', 'User_Deactivate',
+      'Role_Manage', 'Permission_Manage',
+      'Audit_Read', 'Audit_Export',
+      'Settings_Read', 'Settings_Update', 'Church_Settings_Manage', 'Site_Manage',
+      'Notification_Configure', 'Notification_Template_Manage'
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────
   // MÉTHODES DE BASE
   // ───────────────────────────────────────────────────────────────
