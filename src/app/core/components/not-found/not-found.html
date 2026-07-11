@@ -1,54 +1,80 @@
+<!-- not-found.component.html -->
 <div class="not-found-wrapper">
-  <!-- Effet de fond avec grille -->
-  <div class="background-grid"></div>
 
-  <!-- Glow d'arrière-plan -->
-  <div class="bg-glow"></div>
+  <!-- Fond avec dégradé dynamique -->
+  <div class="dynamic-bg"></div>
 
-  <div class="not-found-container">
+  <!-- Grille 3D perspective -->
+  <div class="grid-3d"></div>
 
-    <!-- Logo/Back button -->
-    <div class="not-found-header">
+  <!-- Particules flottantes -->
+  <div class="particles-container">
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
+    <div class="particle p5"></div>
+    <div class="particle p6"></div>
+    <div class="particle p7"></div>
+    <div class="particle p8"></div>
+    <div class="particle p9"></div>
+    <div class="particle p10"></div>
+  </div>
+
+  <!-- Glow principal -->
+  <div class="main-glow"></div>
+
+  <!-- Conteneur principal -->
+  <div class="not-found-container" (mousemove)="onMouseMove($event)">
+
+    <!-- Header -->
+    <header class="not-found-header">
       <a [routerLink]="['/dashboard']" class="back-home-btn">
         <i class="bx bx-arrow-back"></i>
         <span>Retour à l'accueil</span>
       </a>
-    </div>
+    </header>
 
-    <!-- Contenu principal -->
-    <div class="not-found-content">
+    <!-- Contenu 3D -->
+    <main class="not-found-content">
 
-      <!-- Animation 3D avec effet parallax -->
-      <div class="scene-wrapper">
-        <div class="scene">
-          <div class="circle-bg"></div>
-
-          <!-- Éléments flottants décoratifs -->
-          <div class="floating-element elem-1">
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
+      <!-- Scene 3D avec effet de cube -->
+      <div class="scene-wrapper" #sceneWrapper>
+        <div class="scene-3d" [style.transform]="getSceneTransform()">
+          <!-- Face avant du cube -->
+          <div class="cube-face front">
+            <div class="error-number">404</div>
           </div>
-
-          <div class="floating-element elem-2">
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
+          <!-- Faces latérales décoratives -->
+          <div class="cube-face left">
+            <div class="decor-shape"></div>
           </div>
-
-          <div class="floating-element elem-3">
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
-            <div class="floating-piece"></div>
+          <div class="cube-face right">
+            <div class="decor-shape"></div>
           </div>
-
-          <!-- Le nombre 404 -->
-          <div class="error-number">404</div>
-          <div class="error-number blur">404</div>
+          <div class="cube-face top">
+            <div class="decor-shape"></div>
+          </div>
+          <div class="cube-face bottom">
+            <div class="decor-shape"></div>
+          </div>
+          <div class="cube-face back">
+            <div class="error-number blur">404</div>
+          </div>
+        </div>
+        <!-- Éléments flottants autour du cube -->
+        <div class="float-element float-1">
+          <div class="float-shape"></div>
+        </div>
+        <div class="float-element float-2">
+          <div class="float-shape"></div>
+        </div>
+        <div class="float-element float-3">
+          <div class="float-shape"></div>
         </div>
       </div>
 
-      <!-- Texte d'information -->
+      <!-- Texte et boutons -->
       <div class="info-text">
         <h2>Page introuvable</h2>
         <p>
@@ -66,15 +92,15 @@
           </button>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <div class="not-found-footer">
-      <span>© 2026 Logistik</span>
+    <footer class="not-found-footer">
+      <span>© 2026 MIAV</span>
       <span class="separator">•</span>
       <a [routerLink]="['/dashboard/about']">Aide & Support</a>
       <span class="separator">•</span>
       <a [routerLink]="['/dashboard/about']">À propos</a>
-    </div>
+    </footer>
   </div>
 </div>
