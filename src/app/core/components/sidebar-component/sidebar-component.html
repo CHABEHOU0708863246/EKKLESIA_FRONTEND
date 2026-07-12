@@ -36,24 +36,24 @@
       </li>
 
       @if (permission.canViewNotifications()) {
-        <li class="nav-item">
-          <a [routerLink]="['/dashboard/mes-notifications']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon bx bx-bell"></i>
-            <span class="nav-text">Mes notifications</span>
-          </a>
-        </li>
+      <li class="nav-item">
+        <a [routerLink]="['/dashboard/mes-notifications']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-bell"></i>
+          <span class="nav-text">Mes notifications</span>
+        </a>
+      </li>
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 📊 TABLEAU DE BORD                                         -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canViewDashboard()) {
-        <li class="nav-item">
-          <a [routerLink]="['/dashboard']" class="nav-link">
-            <i class="nav-icon bx bxs-dashboard"></i>
-            <span class="nav-text">Tableau de bord</span>
-          </a>
-        </li>
+      <li class="nav-item">
+        <a [routerLink]="['/dashboard']" class="nav-link">
+          <i class="nav-icon bx bxs-dashboard"></i>
+          <span class="nav-text">Tableau de bord</span>
+        </a>
+      </li>
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
@@ -62,523 +62,523 @@
       <!-- Chaque lien reste filtré par SA permission exacte.          -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessMemberModule()) {
-        <div class="nav-section-label">Membres</div>
+      <div class="nav-section-label">Membres</div>
 
-        <li class="nav-item" routerLinkActive="active open">
-          <a class="nav-link" (click)="toggleMenu($event)">
-            <i class="nav-icon bx bx-user"></i>
-            <span class="nav-text">Membres</span>
-            <i class="nav-chevron bx bx-chevron-right"></i>
-          </a>
-          <ul class="nav-sub">
-            @if (permission.canViewMembers()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Annuaire</span>
-                </a>
-              </li>
-            }
-            @if (permission.canCreateMember()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/new']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-user-plus"></i>
-                  <span class="nav-text">Nouveau membre</span>
-                  <span class="nav-badge badge-gold">+</span>
-                </a>
-              </li>
-            }
-            @if (permission.canViewMembers()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/pipeline-visiteurs']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-trending-up"></i>
-                  <span class="nav-text">Pipeline visiteurs</span>
-                </a>
-              </li>
-            }
-            @if (permission.canViewPastoralNotes()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/suivi-pastoral']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-heart"></i>
-                  <span class="nav-text">Suivi pastoral</span>
-                  <span class="nav-badge badge-teal">{{ suiviPastoralCount }}</span>
-                </a>
-              </li>
-            }
-            @if (permission.canManagePastoralNotes()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/actes-pastoraux']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-file"></i>
-                  <span class="nav-text">Actes pastoraux</span>
-                </a>
-              </li>
-            }
-            @if (permission.canViewCells()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-home-heart"></i>
-                  <span class="nav-text">Cellules de maison</span>
-                </a>
-              </li>
-            }
-            @if (permission.canImportMembers()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/membres/import']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-upload"></i>
-                  <span class="nav-text">Import en masse</span>
-                </a>
-              </li>
-            }
-          </ul>
-        </li>
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-user"></i>
+          <span class="nav-text">Membres</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewMembers()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Annuaire</span>
+            </a>
+          </li>
+          }
+          @if (permission.canCreateMember()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-user-plus"></i>
+              <span class="nav-text">Nouveau membre</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewMembers()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/pipeline-visiteurs']" class="nav-link">
+              <i class="nav-icon-sub bx bx-trending-up"></i>
+              <span class="nav-text">Pipeline visiteurs</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewPastoralNotes()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/suivi-pastoral']" class="nav-link">
+              <i class="nav-icon-sub bx bx-heart"></i>
+              <span class="nav-text">Suivi pastoral</span>
+              <span class="nav-badge badge-teal">{{ suiviPastoralCount }}</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManagePastoralNotes()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/actes-pastoraux']" class="nav-link">
+              <i class="nav-icon-sub bx bx-file"></i>
+              <span class="nav-text">Actes pastoraux</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewCells()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link">
+              <i class="nav-icon-sub bx bx-home-heart"></i>
+              <span class="nav-text">Cellules de maison</span>
+            </a>
+          </li>
+          }
+          @if (permission.canImportMembers()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/membres/import']" class="nav-link">
+              <i class="nav-icon-sub bx bx-upload"></i>
+              <span class="nav-text">Import en masse</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 🏠 COMMUNAUTÉ                                               -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessCommunityModule()) {
-        <div class="nav-section-label">Communauté</div>
+      <div class="nav-section-label">Communauté</div>
 
-        <li class="nav-item" routerLinkActive="active open">
-          <a class="nav-link" (click)="toggleMenu($event)">
-            <i class="nav-icon bx bx-calendar-check"></i>
-            <span class="nav-text">Disponibilité</span>
-            <i class="nav-chevron bx bx-chevron-right"></i>
-          </a>
-          <ul class="nav-sub">
-            @if (permission.canViewVolunteerSchedule()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/disponibilite']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-time"></i>
-                  <span class="nav-text">Disponibilités bénévoles</span>
-                </a>
-              </li>
-            }
-            @if (permission.canManageVolunteerSchedule()) {
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/disponibilite/planning']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-calendar-event"></i>
-                  <span class="nav-text">Planning des services</span>
-                  <span class="nav-badge badge-red">{{ planningAlertsCount }}</span>
-                </a>
-              </li>
-            }
-          </ul>
-        </li>
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-calendar-check"></i>
+          <span class="nav-text">Disponibilité</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/disponibilite']" class="nav-link">
+              <i class="nav-icon-sub bx bx-time"></i>
+              <span class="nav-text">Disponibilités bénévoles</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/disponibilite/planning']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-event"></i>
+              <span class="nav-text">Planning des services</span>
+              <span class="nav-badge badge-red">{{ planningAlertsCount }}</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 📅 VIE D'ÉGLISE                                            -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessChurchLifeModule()) {
-        <div class="nav-section-label">Vie d'église</div>
+      <div class="nav-section-label">Vie d'église</div>
 
-        @if (permission.canViewServices()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bxs-church"></i>
-              <span class="nav-text">Cultes</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canViewServices()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bxs-church"></i>
+          <span class="nav-text">Cultes</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/cultes']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-check"></i>
+              <span class="nav-text">Programmation</span>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/cultes']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-list-check"></i>
-                  <span class="nav-text">Programmation</span>
-                </a>
-              </li>
-              @if (permission.canCreateService()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/cultes/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouveau culte</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canViewServiceAttendance()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/cultes/presence']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-show"></i>
-                    <span class="nav-text">Présence & statistiques</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canViewContent()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/cultes/sermons']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-book-open"></i>
-                    <span class="nav-text">Bibliothèque de sermons</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          @if (permission.canCreateService()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/cultes/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouveau culte</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewServiceAttendance()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/cultes/presence']" class="nav-link">
+              <i class="nav-icon-sub bx bx-show"></i>
+              <span class="nav-text">Présence & statistiques</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewContent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/cultes/sermons']" class="nav-link">
+              <i class="nav-icon-sub bx bx-book-open"></i>
+              <span class="nav-text">Bibliothèque de sermons</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
 
-        @if (permission.canAccessEventModule()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-calendar-star"></i>
-              <span class="nav-text">Événements</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canAccessEventModule()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-calendar-star"></i>
+          <span class="nav-text">Événements</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewEvents()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/evenements']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Tous les événements</span>
             </a>
-            <ul class="nav-sub">
-              @if (permission.canViewEvents()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/evenements']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-list-ul"></i>
-                    <span class="nav-text">Tous les événements</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canRegisterToEvent()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/evenements/mes-inscriptions']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-check-circle"></i>
-                    <span class="nav-text">Mes inscriptions</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canCreateEvent()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/evenements/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Créer un événement</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageEventRegistrations()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/evenements/inscriptions']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-user-check"></i>
-                    <span class="nav-text">Inscriptions & billetterie</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          }
+          @if (permission.canRegisterToEvent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/evenements/mes-inscriptions']" class="nav-link">
+              <i class="nav-icon-sub bx bx-check-circle"></i>
+              <span class="nav-text">Mes inscriptions</span>
+            </a>
+          </li>
+          }
+          @if (permission.canCreateEvent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/evenements/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Créer un événement</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageEventRegistrations()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/evenements/inscriptions']" class="nav-link">
+              <i class="nav-icon-sub bx bx-user-check"></i>
+              <span class="nav-text">Inscriptions & billetterie</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
 
-        @if (permission.canManageAppointments()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-calendar-edit"></i>
-              <span class="nav-text">Rendez-vous</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canManageAppointments()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-calendar-edit"></i>
+          <span class="nav-text">Rendez-vous</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rendez-vous']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar"></i>
+              <span class="nav-text">Agenda pastoral</span>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/rendez-vous']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-calendar"></i>
-                  <span class="nav-text">Agenda pastoral</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/rendez-vous/new']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-plus-circle"></i>
-                  <span class="nav-text">Nouveau rendez-vous</span>
-                  <span class="nav-badge badge-gold">+</span>
-                </a>
-              </li>
-            </ul>
           </li>
-        }
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rendez-vous/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouveau rendez-vous</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 💰 FINANCES                                                 -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessFinanceModule()) {
-        <div class="nav-section-label">Finances</div>
+      <div class="nav-section-label">Finances</div>
 
-        @if (permission.canViewOfferings()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-donate-heart"></i>
-              <span class="nav-text">Dons & Offrandes</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
-            </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/finances/offrandes']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-collection"></i>
-                  <span class="nav-text">Collecte du dimanche</span>
-                </a>
-              </li>
-              @if (permission.canCreateOffering()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/finances/offrandes/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouvelle collecte</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/finances/offrandes/par-membre']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-user-circle"></i>
-                  <span class="nav-text">Dons par membre</span>
-                </a>
-              </li>
-              @if (permission.canGenerateReceipt()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/finances/offrandes/recus']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-receipt"></i>
-                    <span class="nav-text">Reçus fiscaux</span>
-                  </a>
-                </li>
-              }
-            </ul>
-          </li>
-        }
-
-        @if (permission.canViewExpenses()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-wallet"></i>
-              <span class="nav-text">Dépenses</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
-            </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/finances/depenses']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Toutes les dépenses</span>
-                  <span class="nav-badge badge-red">{{ depensesEnAttenteCount }}</span>
-                </a>
-              </li>
-              @if (permission.canCreateExpense()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/finances/depenses/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouvelle demande</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-            </ul>
-          </li>
-        }
-
-        @if (permission.canViewBudgets()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-line-chart"></i>
-              <span class="nav-text">Budget</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
-            </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/finances/budget']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-show"></i>
-                  <span class="nav-text">Suivi budgétaire</span>
-                </a>
-              </li>
-              @if (permission.canCreateBudget()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/finances/budget/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouveau budget</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-            </ul>
-          </li>
-        }
-
-        @if (permission.canViewConsolidated()) {
+      @if (permission.canViewOfferings()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-donate-heart"></i>
+          <span class="nav-text">Dons & Offrandes</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
           <li class="nav-item">
-            <a [routerLink]="['/dashboard/finances/consolide']" class="nav-link">
-              <i class="nav-icon bx bx-merge"></i>
-              <span class="nav-text">Consolidation multi-sites</span>
+            <a [routerLink]="['/dashboard/finances/offrandes']" class="nav-link">
+              <i class="nav-icon-sub bx bx-collection"></i>
+              <span class="nav-text">Collecte du dimanche</span>
             </a>
           </li>
-        }
+          @if (permission.canCreateOffering()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/offrandes/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvelle collecte</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/offrandes/par-membre']" class="nav-link">
+              <i class="nav-icon-sub bx bx-user-circle"></i>
+              <span class="nav-text">Dons par membre</span>
+            </a>
+          </li>
+          @if (permission.canGenerateReceipt()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/offrandes/recus']" class="nav-link">
+              <i class="nav-icon-sub bx bx-receipt"></i>
+              <span class="nav-text">Reçus fiscaux</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      @if (permission.canViewExpenses()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-wallet"></i>
+          <span class="nav-text">Dépenses</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/depenses']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Toutes les dépenses</span>
+              <span class="nav-badge badge-red">{{ depensesEnAttenteCount }}</span>
+            </a>
+          </li>
+          @if (permission.canCreateExpense()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/depenses/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvelle demande</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      @if (permission.canViewBudgets()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-line-chart"></i>
+          <span class="nav-text">Budget</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/budget']" class="nav-link">
+              <i class="nav-icon-sub bx bx-show"></i>
+              <span class="nav-text">Suivi budgétaire</span>
+            </a>
+          </li>
+          @if (permission.canCreateBudget()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/finances/budget/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouveau budget</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      @if (permission.canViewConsolidated()) {
+      <li class="nav-item">
+        <a [routerLink]="['/dashboard/finances/consolide']" class="nav-link">
+          <i class="nav-icon bx bx-merge"></i>
+          <span class="nav-text">Consolidation multi-sites</span>
+        </a>
+      </li>
+      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 🏢 PATRIMOINE & COMMUNICATION                               -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessPropertyModule() || permission.canAccessCommunicationModule()) {
-        <div class="nav-section-label">Patrimoine & Communication</div>
+      <div class="nav-section-label">Patrimoine & Communication</div>
 
-        @if (permission.canAccessPropertyModule()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-building-house"></i>
-              <span class="nav-text">Patrimoine</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canAccessPropertyModule()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-building-house"></i>
+          <span class="nav-text">Patrimoine</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewProperties()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/patrimoine/biens']" class="nav-link">
+              <i class="nav-icon-sub bx bx-building"></i>
+              <span class="nav-text">Biens & locaux</span>
             </a>
-            <ul class="nav-sub">
-              @if (permission.canViewProperties()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/patrimoine/biens']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-building"></i>
-                    <span class="nav-text">Biens & locaux</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canCreateProperty()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/patrimoine/biens/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Ajouter un bien</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canViewContracts()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/patrimoine/contrats']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-file"></i>
-                    <span class="nav-text">Contrats & baux</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageMaintenance() || permission.canReportMaintenance()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/patrimoine/maintenance']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-wrench"></i>
-                    <span class="nav-text">Maintenance</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          }
+          @if (permission.canCreateProperty()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/patrimoine/biens/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Ajouter un bien</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewContracts()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/patrimoine/contrats']" class="nav-link">
+              <i class="nav-icon-sub bx bx-file"></i>
+              <span class="nav-text">Contrats & baux</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageMaintenance() || permission.canReportMaintenance()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/patrimoine/maintenance']" class="nav-link">
+              <i class="nav-icon-sub bx bx-wrench"></i>
+              <span class="nav-text">Maintenance</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
 
-        @if (permission.canAccessCommunicationModule()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-broadcast"></i>
-              <span class="nav-text">Médias</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canAccessCommunicationModule()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-broadcast"></i>
+          <span class="nav-text">Médias</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewContent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/medias/bibliotheque']" class="nav-link">
+              <i class="nav-icon-sub bx bx-library"></i>
+              <span class="nav-text">Bibliothèque</span>
             </a>
-            <ul class="nav-sub">
-              @if (permission.canViewContent()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/medias/bibliotheque']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-library"></i>
-                    <span class="nav-text">Bibliothèque</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canCreateContent()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/medias/bibliotheque/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Ajouter un contenu</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canBroadcast()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/medias/diffusion']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-live"></i>
-                    <span class="nav-text">Diffusion en direct</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageNewsletter()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/medias/newsletter']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-envelope"></i>
-                    <span class="nav-text">Newsletters</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          }
+          @if (permission.canCreateContent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/medias/bibliotheque/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Ajouter un contenu</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canBroadcast()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/medias/diffusion']" class="nav-link">
+              <i class="nav-icon-sub bx bx-live"></i>
+              <span class="nav-text">Diffusion en direct</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageNewsletter()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/medias/newsletter']" class="nav-link">
+              <i class="nav-icon-sub bx bx-envelope"></i>
+              <span class="nav-text">Newsletters</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 👤 RESSOURCES HUMAINES                                      -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessHRModule()) {
-        <div class="nav-section-label">Ressources Humaines</div>
+      <div class="nav-section-label">Ressources Humaines</div>
 
-        @if (permission.canViewEmployees()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-id-card"></i>
-              <span class="nav-text">Employés</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canViewEmployees()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-id-card"></i>
+          <span class="nav-text">Employés</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/employes']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Tous les employés</span>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/rh/employes']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Tous les employés</span>
-                </a>
-              </li>
-              @if (permission.canCreateEmployee()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/rh/employes/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouvel employé</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManagePayroll()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/rh/paie']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-money"></i>
-                    <span class="nav-text">Paie & salaires</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageLeave()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/rh/conges']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-calendar-check"></i>
-                    <span class="nav-text">Congés</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          @if (permission.canCreateEmployee()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/employes/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvel employé</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManagePayroll()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/paie']" class="nav-link">
+              <i class="nav-icon-sub bx bx-money"></i>
+              <span class="nav-text">Paie & salaires</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageLeave()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/conges']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-check"></i>
+              <span class="nav-text">Congés</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
 
-        @if (permission.canViewVolunteers()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-group"></i>
-              <span class="nav-text">Bénévoles</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
+      @if (permission.canViewVolunteers()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-group"></i>
+          <span class="nav-text">Bénévoles</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Tous les bénévoles</span>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item">
-                <a [routerLink]="['/dashboard/rh/benevoles']" class="nav-link">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Tous les bénévoles</span>
-                </a>
-              </li>
-              @if (permission.canCreateVolunteer()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/rh/benevoles/new']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-plus-circle"></i>
-                    <span class="nav-text">Nouveau bénévole</span>
-                    <span class="nav-badge badge-gold">+</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageVolunteerSchedule()) {
-                <li class="nav-item">
-                  <a [routerLink]="['/dashboard/rh/benevoles/planning']" class="nav-link">
-                    <i class="nav-icon-sub bx bx-calendar-event"></i>
-                    <span class="nav-text">Planning</span>
-                  </a>
-                </li>
-              }
-            </ul>
           </li>
-        }
+          @if (permission.canCreateVolunteer()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouveau bénévole</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles/planning']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-event"></i>
+              <span class="nav-text">Planning</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
@@ -587,121 +587,139 @@
       <!-- "Mon profil" n'apparaît PLUS ici (voir "Mon compte" ci-dessus) -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessAdministrationModule()) {
-        <div class="nav-section-label">Administration</div>
+      <div class="nav-section-label">Administration</div>
 
-        @if (permission.canManageUsers() || permission.canManageRoles()) {
+      @if (permission.canManageUsers() || permission.canManageRoles()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-shield-quarter"></i>
+          <span class="nav-text">Administration</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canManageUsers()) {
           <li class="nav-item" routerLinkActive="active open">
             <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-shield-quarter"></i>
-              <span class="nav-text">Administration</span>
+              <i class="nav-icon bx bx-user"></i>
+              <span class="nav-text">Utilisateurs</span>
               <i class="nav-chevron bx bx-chevron-right"></i>
             </a>
             <ul class="nav-sub">
-              @if (permission.canManageUsers()) {
-                <li class="nav-item" routerLinkActive="active open">
-                  <a class="nav-link" (click)="toggleMenu($event)">
-                    <i class="nav-icon bx bx-user"></i>
-                    <span class="nav-text">Utilisateurs</span>
-                    <i class="nav-chevron bx bx-chevron-right"></i>
-                  </a>
-                  <ul class="nav-sub">
-                    <li class="nav-item" routerLinkActive="active">
-                      <a [routerLink]="['/dashboard/admin/users']" class="nav-link" (click)="closeMobileSidebar()">
-                        <i class="nav-icon-sub bx bx-list-ul"></i>
-                        <span class="nav-text">Liste des utilisateurs</span>
-                      </a>
-                    </li>
-                    @if (permission.canCreateUser()) {
-                      <li class="nav-item" routerLinkActive="active">
-                        <a [routerLink]="['/dashboard/admin/users/new']" class="nav-link" (click)="closeMobileSidebar()">
-                          <i class="nav-icon-sub bx bx-user-plus"></i>
-                          <span class="nav-text">Ajouter un utilisateur</span>
-                        </a>
-                      </li>
-                    }
-                  </ul>
-                </li>
-              }
-
-              @if (permission.canManageRoles()) {
-                <li class="nav-item" routerLinkActive="active open">
-                  <a class="nav-link" (click)="toggleMenu($event)">
-                    <i class="nav-icon bx bx-shield"></i>
-                    <span class="nav-text">Rôles</span>
-                    <i class="nav-chevron bx bx-chevron-right"></i>
-                  </a>
-                  <ul class="nav-sub">
-                    <li class="nav-item" routerLinkActive="active">
-                      <a [routerLink]="['/dashboard/admin/roles']" class="nav-link" (click)="closeMobileSidebar()">
-                        <i class="nav-icon-sub bx bx-list-ul"></i>
-                        <span class="nav-text">Liste des rôles</span>
-                      </a>
-                    </li>
-                    <li class="nav-item" routerLinkActive="active">
-                      <a [routerLink]="['/dashboard/admin/roles/new']" class="nav-link" (click)="closeMobileSidebar()">
-                        <i class="nav-icon-sub bx bx-plus-circle"></i>
-                        <span class="nav-text">Créer un rôle</span>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/users']" class="nav-link" (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-list-ul"></i>
+                  <span class="nav-text">Liste des utilisateurs</span>
+                </a>
+              </li>
+              @if (permission.canCreateUser()) {
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/users/new']" class="nav-link" (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-user-plus"></i>
+                  <span class="nav-text">Ajouter un utilisateur</span>
+                </a>
+              </li>
               }
             </ul>
           </li>
-        }
+          }
 
-        @if (permission.canViewAudit()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/admin/audit']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon bx bx-history"></i>
-              <span class="nav-text">Journal d'audit</span>
-            </a>
-          </li>
-        }
-
-        @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications() || permission.canManageChurchSettings() || permission.canManageSites()) {
+          @if (permission.canManageRoles()) {
           <li class="nav-item" routerLinkActive="active open">
             <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-cog"></i>
-              <span class="nav-text">Paramètres</span>
+              <i class="nav-icon bx bx-shield"></i>
+              <span class="nav-text">Rôles</span>
               <i class="nav-chevron bx bx-chevron-right"></i>
             </a>
             <ul class="nav-sub">
-              @if (permission.canViewSettings()) {
-                <li class="nav-item" routerLinkActive="active">
-                  <a [routerLink]="['/dashboard/admin/parametres/generaux']" class="nav-link" (click)="closeMobileSidebar()">
-                    <i class="nav-icon-sub bx bx-slider"></i>
-                    <span class="nav-text">Paramètres généraux</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageChurchSettings()) {
-                <li class="nav-item" routerLinkActive="active">
-                  <a [routerLink]="['/dashboard/admin/parametres/eglise']" class="nav-link" (click)="closeMobileSidebar()">
-                    <i class="nav-icon-sub bx bx-church"></i>
-                    <span class="nav-text">Gestion des églises</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canManageSites()) {
-                <li class="nav-item" routerLinkActive="active">
-                  <a [routerLink]="['/dashboard/admin/parametres/sites']" class="nav-link" (click)="closeMobileSidebar()">
-                    <i class="nav-icon-sub bx bx-map"></i>
-                    <span class="nav-text">Sites & assemblées</span>
-                  </a>
-                </li>
-              }
-              @if (permission.canConfigureNotifications()) {
-                <li class="nav-item" routerLinkActive="active">
-                  <a [routerLink]="['/dashboard/admin/parametres/notifications']" class="nav-link" (click)="closeMobileSidebar()">
-                    <i class="nav-icon-sub bx bx-bell"></i>
-                    <span class="nav-text">Notifications</span>
-                  </a>
-                </li>
-              }
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/roles']" class="nav-link" (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-list-ul"></i>
+                  <span class="nav-text">Liste des rôles</span>
+                </a>
+              </li>
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/roles/new']" class="nav-link" (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-plus-circle"></i>
+                  <span class="nav-text">Créer un rôle</span>
+                </a>
+              </li>
             </ul>
           </li>
-        }
+          }
+        </ul>
+      </li>
+      }
+
+      @if (permission.canViewAudit()) {
+      <li class="nav-item">
+        <a [routerLink]="['/dashboard/admin/audit']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-history"></i>
+          <span class="nav-text">Journal d'audit</span>
+        </a>
+      </li>
+      }
+
+      @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications() ||
+      permission.canManageChurchSettings() || permission.canManageSites()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-cog"></i>
+          <span class="nav-text">Paramètres</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+
+          <!-- Paramètres généraux -->
+          @if (permission.canViewSettings()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/parametres/generaux']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-slider"></i>
+              <span class="nav-text">Paramètres généraux</span>
+            </a>
+          </li>
+          }
+
+          <!-- ⭐ Gestion des églises — sous-menu -->
+          @if (permission.canManageChurchSettings()) {
+          <li class="nav-item" routerLinkActive="active open">
+            <a class="nav-link" (click)="toggleMenu($event)">
+              <i class="nav-icon-sub bx bx-church"></i>
+              <span class="nav-text">Gestion des églises et sites</span>
+              <i class="nav-chevron bx bx-chevron-right"></i>
+            </a>
+            <ul class="nav-sub">
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/parametres/eglise/new']" class="nav-link"
+                  (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-info-circle"></i>
+                  <span class="nav-text">Crée églises et sites</span>
+                </a>
+              </li>
+              <li class="nav-item" routerLinkActive="active">
+                <a [routerLink]="['/dashboard/admin/parametres/eglise/list']" class="nav-link"
+                  (click)="closeMobileSidebar()">
+                  <i class="nav-icon-sub bx bx-edit"></i>
+                  <span class="nav-text">Liste églises et sites</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          }
+
+          <!-- Notification -->
+          @if (permission.canConfigureNotifications()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/parametres/notifications']" class="nav-link"
+              (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-bell"></i>
+              <span class="nav-text">Notifications</span>
+            </a>
+          </li>
+          }
+
+        </ul>
+      </li>
+      }
       }
 
     </ul>

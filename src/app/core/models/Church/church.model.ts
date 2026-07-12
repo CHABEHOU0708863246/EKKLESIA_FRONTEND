@@ -1,4 +1,3 @@
-// src/app/core/models/churchs/church.model.ts
 import { Address, AddressUtils, Site, SiteCreate, SiteUtils } from './site.model';
 import { ChurchSettings } from './church-settings.model';
 

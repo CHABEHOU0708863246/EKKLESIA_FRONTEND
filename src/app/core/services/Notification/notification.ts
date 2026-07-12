@@ -69,6 +69,8 @@ export class Notification {
     });
   }
 
+
+
   private show(notification: Omit<AppNotification, 'id'>): void {
     if (!this.isBrowser) return;
 

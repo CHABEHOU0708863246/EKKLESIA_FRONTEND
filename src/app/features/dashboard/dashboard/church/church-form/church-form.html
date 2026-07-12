@@ -1,0 +1,365 @@
+<!-- src/app/features/dashboard/dashboard/admin/church/church-form/church-form.html -->
+<div class="cf-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="cf-page-header">
+    <div class="cf-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="cf-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/admin/parametres/eglise']">Gestion des églises</a>
+      <span class="cf-breadcrumb-sep">/</span>
+      <span class="cf-breadcrumb-current">{{ isEditMode() ? 'Modifier' : 'Nouvelle église' }}</span>
+    </div>
+
+    <div class="cf-page-title-row">
+      <h1>{{ isEditMode() ? "Modifier l'église" : 'Nouvelle église' }}</h1>
+      <button type="button" class="cf-btn cf-btn--outline" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="cf-loading-state" *ngIf="loading()">
+    <span class="cf-spinner"></span> Chargement de l'église…
+  </div>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="cf-banner cf-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <form class="cf-form" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading()">
+
+    <!-- ─────────── LOGO ─────────── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Logo de l'église</h2></div>
+      <div class="cf-panel-body cf-logo-row">
+        <div class="cf-logo-preview">
+          <img *ngIf="logoPreviewUrl()" [src]="logoPreviewUrl()" alt="Logo">
+          <span *ngIf="!logoPreviewUrl()">{{ getInitials() }}</span>
+        </div>
+        <div class="cf-logo-actions">
+          <label class="cf-btn cf-btn--ghost cf-file-label">
+            Choisir un logo
+            <input type="file" accept="image/*" (change)="onLogoSelected($event)" hidden>
+          </label>
+          <button type="button" class="cf-link-btn" *ngIf="logoPreviewUrl()" (click)="clearLogo()">Retirer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── INFORMATIONS GÉNÉRALES ─────────── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Informations générales</h2></div>
+      <div class="cf-panel-body cf-panel-body--grid">
+
+        <div class="cf-field">
+          <label for="name">Nom de l'église <span class="cf-required">*</span></label>
+          <input id="name" type="text" formControlName="name" placeholder="Ex. Église Vie Nouvelle">
+          <p class="cf-error" *ngIf="isFieldInvalid('name')">2 caractères minimum</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="legalName">Raison sociale</label>
+          <input id="legalName" type="text" formControlName="legalName">
+        </div>
+
+        <div class="cf-field">
+          <label for="phone">Téléphone <span class="cf-required">*</span></label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="+225 27 20 21 34 56">
+          <p class="cf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" formControlName="email" placeholder="contact&#64;monEglise.org">
+          <p class="cf-error" *ngIf="isFieldInvalid('email')">Format d'e-mail invalide</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="website">Site web</label>
+          <input id="website" type="text" formControlName="website" placeholder="www.monEglise.org">
+        </div>
+
+        <div class="cf-field">
+          <label for="denomination">Dénomination</label>
+          <input id="denomination" type="text" formControlName="denomination" placeholder="Ex. Évangélique, Baptiste…">
+        </div>
+
+        <div class="cf-field">
+          <label for="taxId">Numéro fiscal</label>
+          <input id="taxId" type="text" formControlName="taxId">
+        </div>
+
+        <div class="cf-field">
+          <label for="registrationNumber">N° d'enregistrement</label>
+          <input id="registrationNumber" type="text" formControlName="registrationNumber">
+        </div>
+
+        <div class="cf-field">
+          <label for="foundedDate">Date de fondation</label>
+          <input id="foundedDate" type="date" formControlName="foundedDate">
+        </div>
+
+        <div class="cf-field cf-field--span-2">
+          <label class="cf-checkbox">
+            <input type="checkbox" formControlName="isHeadquarters">
+            <span class="cf-checkbox-box"></span>
+            <span class="cf-checkbox-text">
+              <strong>Église siège (réseau principal)</strong>
+              <small>Décochez s'il s'agit d'une filiale rattachée à une église mère</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="cf-field cf-field--span-2" *ngIf="!form.get('isHeadquarters')?.value">
+          <label for="parentChurchId">ID de l'église mère</label>
+          <input id="parentChurchId" type="text" formControlName="parentChurchId" placeholder="Identifiant de l'église rattachée">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── MISSION & VISION ─────────── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Mission &amp; vision</h2></div>
+      <div class="cf-panel-body cf-panel-body--grid">
+        <div class="cf-field cf-field--span-2">
+          <label for="missionStatement">Déclaration de mission</label>
+          <textarea id="missionStatement" rows="3" formControlName="missionStatement"></textarea>
+        </div>
+        <div class="cf-field cf-field--span-2">
+          <label for="visionStatement">Déclaration de vision</label>
+          <textarea id="visionStatement" rows="3" formControlName="visionStatement"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── ADRESSE ─────────── -->
+    <section class="cf-panel" formGroupName="address">
+      <div class="cf-panel-header"><h2>Adresse du siège</h2></div>
+      <div class="cf-panel-body cf-panel-body--grid">
+
+        <div class="cf-field cf-field--span-2">
+          <label for="street">Rue / Quartier <span class="cf-required">*</span></label>
+          <input id="street" type="text" formControlName="street" placeholder="Ex. Cocody, Rue des Jardins">
+        </div>
+
+        <div class="cf-field">
+          <label for="city">Ville <span class="cf-required">*</span></label>
+          <input id="city" type="text" formControlName="city">
+        </div>
+
+        <div class="cf-field">
+          <label for="state">Région / État</label>
+          <input id="state" type="text" formControlName="state">
+        </div>
+
+        <div class="cf-field">
+          <label for="country">Pays <span class="cf-required">*</span></label>
+          <input id="country" type="text" formControlName="country">
+        </div>
+
+        <div class="cf-field">
+          <label for="postalCode">Code postal</label>
+          <input id="postalCode" type="text" formControlName="postalCode">
+        </div>
+
+        <div class="cf-field">
+          <label for="latitude">Latitude</label>
+          <input id="latitude" type="number" step="any" formControlName="latitude">
+        </div>
+
+        <div class="cf-field">
+          <label for="longitude">Longitude</label>
+          <input id="longitude" type="number" step="any" formControlName="longitude">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── PARAMÈTRES ─────────── -->
+    <section class="cf-panel" formGroupName="settings">
+      <button type="button" class="cf-panel-header cf-panel-header--toggle" (click)="showSettingsSection.set(!showSettingsSection())">
+        <div>
+          <h2>Paramètres régionaux</h2>
+          <p>Langue, fuseau horaire, devise et horaires de culte</p>
+        </div>
+        <svg class="cf-toggle-caret" [class.is-open]="showSettingsSection()" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="cf-panel-body" *ngIf="showSettingsSection()">
+
+        <div class="cf-panel-body--grid">
+          <div class="cf-field">
+            <label for="defaultLanguage">Langue par défaut</label>
+            <div class="cf-select-wrap">
+              <select id="defaultLanguage" formControlName="defaultLanguage">
+                <option *ngFor="let lang of languages" [value]="lang.value">{{ lang.label }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label for="timezone">Fuseau horaire</label>
+            <div class="cf-select-wrap">
+              <select id="timezone" formControlName="timezone">
+                <option *ngFor="let tz of timezones" [value]="tz.value">{{ tz.label }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label for="currency">Devise</label>
+            <div class="cf-select-wrap">
+              <select id="currency" formControlName="currency">
+                <option *ngFor="let c of currencies" [value]="c.value">{{ c.label }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="cf-field">
+            <label for="fiscalYearStart">Début d'exercice fiscal</label>
+            <div class="cf-select-wrap">
+              <select id="fiscalYearStart" formControlName="fiscalYearStart">
+                <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horaires de culte du siège -->
+        <div class="cf-subsection">
+          <div class="cf-subsection-header">
+            <h3>Horaires de culte (siège)</h3>
+            <button type="button" class="cf-link-btn" (click)="addServiceTime()">+ Ajouter un horaire</button>
+          </div>
+
+          <p class="cf-empty-hint" *ngIf="serviceTimesArray.length === 0">Aucun horaire défini.</p>
+
+          <div class="cf-service-time-row" *ngFor="let st of serviceTimesArray.controls; let i = index" [formGroup]="$any(st)">
+            <div class="cf-select-wrap">
+              <select formControlName="day">
+                <option *ngFor="let day of weekDays" [value]="day">{{ day }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <input type="time" formControlName="time">
+            <div class="cf-select-wrap">
+              <select formControlName="type">
+                <option *ngFor="let type of serviceTypes" [value]="type">{{ type }}</option>
+              </select>
+              <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <button type="button" class="cf-icon-btn cf-icon-btn--danger" (click)="removeServiceTime(i)" aria-label="Retirer">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── SITES ─────────── -->
+    <section class="cf-panel" *ngIf="!isEditMode()">
+      <button type="button" class="cf-panel-header cf-panel-header--toggle" (click)="showSitesSection.set(!showSitesSection())">
+        <div>
+          <h2>Sites &amp; assemblées</h2>
+          <p>Ajoutez les sites qui composent cette église (multi-site)</p>
+        </div>
+        <svg class="cf-toggle-caret" [class.is-open]="showSitesSection()" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="cf-panel-body" *ngIf="showSitesSection()">
+
+        <div class="cf-site-card" *ngFor="let site of sitesArray.controls; let siteIndex = index" [formGroup]="$any(site)">
+
+          <div class="cf-site-header">
+            <h3>Site {{ siteIndex + 1 }}</h3>
+            <button type="button" class="cf-icon-btn cf-icon-btn--danger" (click)="removeSite(siteIndex)" *ngIf="sitesArray.length > 1" aria-label="Retirer ce site">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+          <div class="cf-panel-body--grid">
+            <div class="cf-field cf-field--span-2">
+              <label>Nom du site <span class="cf-required">*</span></label>
+              <input type="text" formControlName="name" placeholder="Ex. Site Principal - Cocody">
+              <p class="cf-error" *ngIf="isSiteFieldInvalid(siteIndex, 'name')">2 caractères minimum</p>
+            </div>
+
+            <ng-container formGroupName="address">
+              <div class="cf-field cf-field--span-2">
+                <label>Adresse</label>
+                <input type="text" formControlName="street" placeholder="Rue / quartier">
+              </div>
+              <div class="cf-field">
+                <label>Ville <span class="cf-required">*</span></label>
+                <input type="text" formControlName="city">
+              </div>
+              <div class="cf-field">
+                <label>Pays</label>
+                <input type="text" formControlName="country">
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Horaires de culte du site -->
+          <div class="cf-subsection">
+            <div class="cf-subsection-header">
+              <h4>Horaires de culte de ce site</h4>
+              <button type="button" class="cf-link-btn" (click)="addSiteServiceTime(siteIndex)">+ Ajouter un horaire</button>
+            </div>
+
+            <p class="cf-empty-hint" *ngIf="getSiteServiceTimes(siteIndex).length === 0">Aucun horaire défini pour ce site.</p>
+
+            <div class="cf-service-time-row" *ngFor="let st of getSiteServiceTimes(siteIndex).controls; let timeIndex = index" [formGroup]="$any(st)">
+              <div class="cf-select-wrap">
+                <select formControlName="day">
+                  <option *ngFor="let day of weekDays" [value]="day">{{ day }}</option>
+                </select>
+                <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <input type="time" formControlName="time">
+              <div class="cf-select-wrap">
+                <select formControlName="type">
+                  <option *ngFor="let type of serviceTypes" [value]="type">{{ type }}</option>
+                </select>
+                <svg class="cf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <button type="button" class="cf-icon-btn cf-icon-btn--danger" (click)="removeSiteServiceTime(siteIndex, timeIndex)" aria-label="Retirer">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <button type="button" class="cf-btn cf-btn--ghost cf-add-site-btn" (click)="addSite()">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Ajouter un autre site
+        </button>
+
+      </div>
+    </section>
+
+    <!-- ══════════════ BARRE D'ACTIONS ══════════════ -->
+    <footer class="cf-actions">
+      <button type="button" class="cf-btn cf-btn--ghost" (click)="cancel()">Annuler</button>
+      <span class="cf-actions-spacer"></span>
+      <button type="submit" class="cf-btn cf-btn--primary" [disabled]="saving()">
+        <span *ngIf="!saving()">{{ isEditMode() ? 'Enregistrer' : "Créer l'église" }}</span>
+        <span class="cf-spinner cf-spinner--btn" *ngIf="saving()"></span>
+      </button>
+    </footer>
+
+  </form>
+</div>

@@ -1,0 +1,341 @@
+<!-- src/app/features/dashboard/dashboard/admin/church/church-edit/church-edit.html -->
+
+<div class="ce-overlay" (click)="closePanel()"></div>
+
+<aside class="ce-panel" role="dialog" aria-labelledby="ce-title">
+  <header class="ce-panel-header">
+    <h2 id="ce-title">
+      {{ isEditMode() ? 'Modifier l’église' : 'Nouvelle église' }}
+    </h2>
+    <button type="button" class="ce-close-btn" (click)="closePanel()" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+
+  <div class="ce-panel-body" *ngIf="!loading(); else loadingTemplate">
+
+    <!-- ── Message d'erreur ── -->
+    <div class="ce-banner ce-banner--error" *ngIf="error()">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>{{ error() }}</span>
+      <button class="ce-banner-close" (click)="error.set(null)">×</button>
+    </div>
+
+    <!-- ── FORMULAIRE ÉGLISE ── -->
+    <form [formGroup]="churchForm" (ngSubmit)="saveChurch()" class="ce-form">
+
+      <!-- Section : Identité -->
+      <fieldset class="ce-fieldset">
+        <legend class="ce-legend">Identité de l’église</legend>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-name">Nom *</label>
+            <input id="ce-name" formControlName="name" type="text" placeholder="Nom de l'église" />
+            <span class="ce-error" *ngIf="churchForm.get('name')?.invalid && churchForm.get('name')?.touched">Requis</span>
+          </div>
+          <div class="ce-col">
+            <label for="ce-legalName">Nom légal</label>
+            <input id="ce-legalName" formControlName="legalName" type="text" placeholder="Nom officiel (si différent)" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-phone">Téléphone *</label>
+            <input id="ce-phone" formControlName="phone" type="tel" placeholder="+225..." />
+            <span class="ce-error" *ngIf="churchForm.get('phone')?.invalid && churchForm.get('phone')?.touched">Requis</span>
+          </div>
+          <div class="ce-col">
+            <label for="ce-email">Email</label>
+            <input id="ce-email" formControlName="email" type="email" placeholder="contact@eglise.ci" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-website">Site web</label>
+            <input id="ce-website" formControlName="website" type="url" placeholder="https://..." />
+          </div>
+          <div class="ce-col">
+            <label for="ce-logoUrl">URL du logo</label>
+            <input id="ce-logoUrl" formControlName="logoUrl" type="url" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-taxId">N° d'identification fiscale</label>
+            <input id="ce-taxId" formControlName="taxId" type="text" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-registrationNumber">N° d'enregistrement</label>
+            <input id="ce-registrationNumber" formControlName="registrationNumber" type="text" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-foundedDate">Date de fondation</label>
+            <input id="ce-foundedDate" formControlName="foundedDate" type="date" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-denomination">Dénomination</label>
+            <input id="ce-denomination" formControlName="denomination" type="text" placeholder="Pentecôtiste, Baptiste, ..." />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-missionStatement">Mission</label>
+            <textarea id="ce-missionStatement" formControlName="missionStatement" rows="2" placeholder="Énoncé de mission"></textarea>
+          </div>
+          <div class="ce-col">
+            <label for="ce-visionStatement">Vision</label>
+            <textarea id="ce-visionStatement" formControlName="visionStatement" rows="2" placeholder="Énoncé de vision"></textarea>
+          </div>
+        </div>
+
+        <!-- <div class="ce-row">
+          <div class="ce-col ce-col--checkbox">
+            <label class="ce-checkbox">
+              <input type="checkbox" formControlName="isHeadquarters" />
+              <span>Siège / Église mère</span>
+            </label>
+          </div>
+          <div class="ce-col">
+            <label for="ce-parentChurchId">Église mère (ID)</label>
+            <input id="ce-parentChurchId" formControlName="parentChurchId" type="text" placeholder="ID de l'église mère" />
+          </div>
+        </div> -->
+      </fieldset>
+
+      <!-- Section : Adresse -->
+      <fieldset class="ce-fieldset">
+        <legend class="ce-legend">Adresse</legend>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-addressStreet">Rue</label>
+            <input id="ce-addressStreet" formControlName="addressStreet" type="text" placeholder="Rue, numéro, quartier" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-addressCity">Ville</label>
+            <input id="ce-addressCity" formControlName="addressCity" type="text" placeholder="Abidjan" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-addressState">État / Région</label>
+            <input id="ce-addressState" formControlName="addressState" type="text" placeholder="Cocody" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-addressCountry">Pays</label>
+            <input id="ce-addressCountry" formControlName="addressCountry" type="text" placeholder="Côte d'Ivoire" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-addressPostalCode">Code postal</label>
+            <input id="ce-addressPostalCode" formControlName="addressPostalCode" type="text" placeholder="225" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-addressLatitude">Latitude</label>
+            <input id="ce-addressLatitude" formControlName="addressLatitude" type="number" step="any" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-addressLongitude">Longitude</label>
+            <input id="ce-addressLongitude" formControlName="addressLongitude" type="number" step="any" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Section : Paramètres -->
+      <fieldset class="ce-fieldset">
+        <legend class="ce-legend">Paramètres</legend>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-settingsDefaultLanguage">Langue par défaut</label>
+            <input id="ce-settingsDefaultLanguage" formControlName="settingsDefaultLanguage" type="text" placeholder="fr" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-settingsTimezone">Fuseau horaire</label>
+            <input id="ce-settingsTimezone" formControlName="settingsTimezone" type="text" placeholder="Africa/Abidjan" />
+          </div>
+        </div>
+
+        <div class="ce-row">
+          <div class="ce-col">
+            <label for="ce-settingsCurrency">Devise</label>
+            <input id="ce-settingsCurrency" formControlName="settingsCurrency" type="text" placeholder="FCFA" />
+          </div>
+          <div class="ce-col">
+            <label for="ce-settingsFiscalYearStart">Début exercice (mois)</label>
+            <input id="ce-settingsFiscalYearStart" formControlName="settingsFiscalYearStart" type="number" min="1" max="12" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Boutons d'action pour l'église -->
+      <div class="ce-form-actions">
+        <button type="button" class="ce-btn ce-btn--secondary" (click)="closePanel()">Annuler</button>
+        <button type="submit" class="ce-btn ce-btn--primary" [disabled]="saving()">
+          <span *ngIf="saving()" class="ce-spinner ce-spinner--sm"></span>
+          {{ saving() ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- ── SECTION SITES ── -->
+    <hr class="ce-divider" />
+
+    <div class="ce-sites-section">
+      <div class="ce-sites-header">
+        <h3>Sites de l'église</h3>
+        <button type="button" class="ce-btn ce-btn--primary ce-btn--sm" (click)="startAddSite()">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Ajouter un site
+        </button>
+      </div>
+
+      <!-- Message d'erreur sites -->
+      <div class="ce-banner ce-banner--error ce-banner--sm" *ngIf="siteError()">
+        <span>{{ siteError() }}</span>
+        <button class="ce-banner-close" (click)="siteError.set(null)">×</button>
+      </div>
+
+      <!-- Liste des sites -->
+      <div class="ce-site-list">
+        <div *ngIf="loadingSites()" class="ce-loading-text">
+          <span class="ce-spinner ce-spinner--sm"></span> Chargement des sites…
+        </div>
+        <div *ngIf="!loadingSites() && sites().length === 0" class="ce-empty-text">
+          Aucun site pour cette église.
+        </div>
+
+        <div class="ce-site-item" *ngFor="let site of sites()">
+          <div class="ce-site-info">
+            <div class="ce-site-name-row">
+              <strong>{{ site.name }}</strong>
+              <span class="ce-badge" [ngClass]="'is-' + getSiteStatusBadge(site.isActive).color">
+                {{ getSiteStatusBadge(site.isActive).label }}
+              </span>
+            </div>
+            <p class="ce-site-address">{{ getSiteAddress(site) }}</p>
+            <p class="ce-site-services" *ngIf="site.serviceTimes.length">{{ getSiteServices(site) }}</p>
+          </div>
+          <div class="ce-site-actions">
+            <button type="button" class="ce-icon-btn" (click)="startEditSite(site, $event)" aria-label="Modifier">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8"/></svg>
+            </button>
+            <button type="button" class="ce-icon-btn ce-icon-btn--danger" (click)="deleteSite(site, $event)" aria-label="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8"/></svg>
+            </button>
+            <button type="button" class="ce-status-toggle" [ngClass]="'is-' + getSiteStatusBadge(site.isActive).color" (click)="toggleSiteStatus(site, $event)">
+              {{ site.isActive ? 'Désactiver' : 'Activer' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FORMULAIRE D'AJOUT/MODIFICATION DE SITE (modale interne) ── -->
+      <div class="ce-site-form-container" *ngIf="showSiteForm()">
+        <div class="ce-site-form-header">
+          <h4>{{ editingSite() ? 'Modifier le site' : 'Ajouter un site' }}</h4>
+          <button type="button" class="ce-close-btn ce-close-btn--sm" (click)="cancelSiteForm()">×</button>
+        </div>
+        <form [formGroup]="siteForm" (ngSubmit)="saveSite()" class="ce-site-form">
+          <div class="ce-row">
+            <div class="ce-col">
+              <label for="ce-site-name">Nom du site *</label>
+              <input id="ce-site-name" formControlName="name" type="text" placeholder="Site Cocody" />
+              <span class="ce-error" *ngIf="siteForm.get('name')?.invalid && siteForm.get('name')?.touched">Requis</span>
+            </div>
+          </div>
+          <div class="ce-row">
+            <div class="ce-col">
+              <label for="ce-site-phone">Téléphone</label>
+              <input id="ce-site-phone" formControlName="phone" type="tel" />
+            </div>
+            <div class="ce-col">
+              <label for="ce-site-email">Email</label>
+              <input id="ce-site-email" formControlName="email" type="email" />
+            </div>
+          </div>
+          <div class="ce-row">
+            <div class="ce-col">
+              <label for="ce-site-pastorId">ID du pasteur</label>
+              <input id="ce-site-pastorId" formControlName="pastorId" type="text" placeholder="ID du membre pasteur" />
+            </div>
+            <div class="ce-col ce-col--checkbox">
+              <label class="ce-checkbox">
+                <input type="checkbox" formControlName="isActive" />
+                <span>Actif</span>
+              </label>
+            </div>
+          </div>
+          <fieldset class="ce-fieldset ce-fieldset--nested">
+            <legend class="ce-legend ce-legend--nested">Adresse du site</legend>
+            <div class="ce-row">
+              <div class="ce-col">
+                <label for="ce-site-addressStreet">Rue</label>
+                <input id="ce-site-addressStreet" formControlName="addressStreet" type="text" />
+              </div>
+            </div>
+            <div class="ce-row">
+              <div class="ce-col">
+                <label for="ce-site-addressCity">Ville</label>
+                <input id="ce-site-addressCity" formControlName="addressCity" type="text" />
+              </div>
+              <div class="ce-col">
+                <label for="ce-site-addressState">État/Région</label>
+                <input id="ce-site-addressState" formControlName="addressState" type="text" />
+              </div>
+            </div>
+            <div class="ce-row">
+              <div class="ce-col">
+                <label for="ce-site-addressCountry">Pays</label>
+                <input id="ce-site-addressCountry" formControlName="addressCountry" type="text" />
+              </div>
+              <div class="ce-col">
+                <label for="ce-site-addressPostalCode">Code postal</label>
+                <input id="ce-site-addressPostalCode" formControlName="addressPostalCode" type="text" />
+              </div>
+            </div>
+            <div class="ce-row">
+              <div class="ce-col">
+                <label for="ce-site-addressLatitude">Latitude</label>
+                <input id="ce-site-addressLatitude" formControlName="addressLatitude" type="number" step="any" />
+              </div>
+              <div class="ce-col">
+                <label for="ce-site-addressLongitude">Longitude</label>
+                <input id="ce-site-addressLongitude" formControlName="addressLongitude" type="number" step="any" />
+              </div>
+            </div>
+          </fieldset>
+          <div class="ce-form-actions ce-form-actions--nested">
+            <button type="button" class="ce-btn ce-btn--secondary" (click)="cancelSiteForm()">Annuler</button>
+            <button type="submit" class="ce-btn ce-btn--primary" [disabled]="savingSite()">
+              <span *ngIf="savingSite()" class="ce-spinner ce-spinner--sm"></span>
+              {{ savingSite() ? 'Enregistrement...' : (editingSite() ? 'Mettre à jour' : 'Ajouter') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="ce-loading-state">
+      <span class="ce-spinner"></span>
+      <p>Chargement de l'église…</p>
+    </div>
+  </ng-template>
+</aside>

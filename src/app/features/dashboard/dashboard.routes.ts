@@ -31,6 +31,10 @@ export const DASHBOARD_ROUTES: Routes = [
       loadComponent: () => import('./dashboard/my-profile/my-profile').then((m) => m.MyProfile),
       title: 'Mon profil — EKKLESIA',
     },
+    {
+      path: 'admin/parametres/eglise',
+      loadChildren: () => import('./dashboard/church/church.routes').then((m) => m.CHURCH_ROUTES),
+    }
   ],
 },
 ];
