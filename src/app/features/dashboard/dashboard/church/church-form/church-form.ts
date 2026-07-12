@@ -1,14 +1,25 @@
+import { Users } from '../../../../../core/services/Users/users';
+import { User } from '../../../../../core/models/Users/user.model';
+
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, takeUntil, finalize, debounceTime, distinctUntilChanged } from 'rxjs';
 
-
-import { Church } from '../../../../../core/services/Church/church';
-import { AVAILABLE_LANGUAGES, AVAILABLE_TIMEZONES, AVAILABLE_CURRENCIES, MONTHS, SERVICE_TYPES } from '../../../../../core/models/Church/church-settings.model';
+import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import {
+  AVAILABLE_LANGUAGES,
+  AVAILABLE_TIMEZONES,
+  AVAILABLE_CURRENCIES,
+  MONTHS,
+  SERVICE_TYPES
+} from '../../../../../core/models/Church/church-settings.model';
 import { WEEK_DAYS } from '../../../../../core/models/Members/cell-group.model';
 import { ChurchCreate, ChurchUpdate, ChurchUtils } from '../../../../../core/models/Church/church.model';
+import { Member } from '../../../../../core/models/Members/member.model';
+import { Members } from '../../../../../core/services/Members/members';
+import { Roles } from '../../../../../core/services/Roles/roles';
 
 @Component({
   selector: 'app-church-form',
@@ -20,6 +31,15 @@ import { ChurchCreate, ChurchUpdate, ChurchUtils } from '../../../../../core/mod
 export class ChurchForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private churchId: string | null = null;
+  private siteDestroyMap = new Map<number, Subject<void>>();
+
+  pastorSearchControl = new FormControl('');
+  searchingPastor = signal(false);
+  pastorResults = signal<User[]>([]);        // ✅ User au lieu de Member
+  selectedPastorMap = new Map<number, User>(); //
+
+  showPastorResults = signal(false);
+  currentSearchSiteIndex = -1;
 
   readonly languages = AVAILABLE_LANGUAGES;
   readonly timezones = AVAILABLE_TIMEZONES;
@@ -38,13 +58,17 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   showSettingsSection = signal(true);
   showSitesSection = signal(true);
+  pastorRoleNames = signal<string[]>([]);
 
   form: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private churchService: Church,
+    private churchService: ChurchService,
+    private userService: Users,
+    private roleService: Roles,
     private route: ActivatedRoute,
+    private memberService: Members,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -93,6 +117,8 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.loadPastorRoleNames();
+
 
     this.churchId = this.route.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.churchId);
@@ -100,14 +126,132 @@ export class ChurchForm implements OnInit, OnDestroy {
     if (this.isEditMode()) {
       this.loadChurch();
     } else {
-      // Un premier site par défaut pour guider la saisie (retirable)
+      // Un premier site par défaut pour guider la saisie
       this.addSite();
     }
+
+    this.pastorSearchControl.valueChanges
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((term) => {
+        if (term && term.trim().length >= 2) {
+          this.performPastorSearch(term.trim());
+        } else {
+          this.pastorResults.set([]);
+          this.showPastorResults.set(false);
+        }
+      });
+  }
+
+  /**
+ * Récupère les vrais libellés (roleName) des rôles pastoraux à partir
+ * de leur code, car AddToRolesAsync stocke le Name/roleName sur
+ * l'utilisateur — jamais le code.
+ */
+  private loadPastorRoleNames(): void {
+  const pastorCodes = ['PASTOR_PRINCIPAL', 'PASTEUR_SITE'];
+  const names: string[] = [];
+  let remaining = pastorCodes.length;
+
+  for (const code of pastorCodes) {
+    this.roleService
+      .getRoleByCode(code)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log(`🔍 getRoleByCode(${code}):`, response); // ← debug
+          if (response.success && response.data) {
+            names.push(response.data.roleName);
+          }
+          remaining--;
+          if (remaining === 0) {
+            console.log('✅ pastorRoleNames final:', names); // ← debug
+            this.pastorRoleNames.set(names);
+          }
+        },
+        error: (err) => {
+          console.error(`❌ Erreur getRoleByCode(${code}):`, err); // ← debug
+          remaining--;
+          if (remaining === 0) this.pastorRoleNames.set(names);
+        },
+      });
+  }
+}
+
+  getInitialsFromUser(user: User): string {
+    const f = user.firstName?.charAt(0) || '?';
+    const l = user.lastName?.charAt(0) || '?';
+    return `${f}${l}`.toUpperCase();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private performPastorSearch(term: string): void {
+  this.searchingPastor.set(true);
+  this.showPastorResults.set(true);
+
+  this.userService
+    .getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        console.log('🔍 getUsers réponse brute:', response); // ← debug
+        if (response.success && response.data) {
+          const allowedNames = this.pastorRoleNames();
+          const items = (response.data.items ?? []) as User[];
+          console.log('🔍 items reçus AVANT filtre rôle:', items); // ← debug
+          console.log('🔍 allowedNames utilisés pour filtrer:', allowedNames); // ← debug
+
+          const filtered = allowedNames.length > 0
+            ? items.filter((u) => (u.roles ?? []).some((r) => allowedNames.includes(r)))
+            : items;
+
+          console.log('🔍 items APRÈS filtre rôle:', filtered); // ← debug
+          this.pastorResults.set(filtered);
+        } else {
+          this.pastorResults.set([]);
+        }
+        this.searchingPastor.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Erreur getUsers:', err); // ← debug
+        this.pastorResults.set([]);
+        this.searchingPastor.set(false);
+      },
+    });
+}
+
+
+  selectPastor(pastor: User): void {
+    const index = this.currentSearchSiteIndex;
+    if (index < 0) return;
+    const siteGroup = this.sitesArray.at(index) as FormGroup;
+    siteGroup.patchValue({
+      pastorId: pastor.memberId,
+      pastorName: pastor.fullName || `${pastor.firstName} ${pastor.lastName}`
+    });
+    // Mettre à jour le champ de recherche pour l'affichage
+    siteGroup.get('pastorSearch')?.setValue(pastor.fullName || `${pastor.firstName} ${pastor.lastName}`);
+    this.showPastorResults.set(false);
+    this.pastorResults.set([]);
+  }
+
+  clearPastor(siteIndex: number): void {
+    const siteGroup = this.sitesArray.at(siteIndex) as FormGroup;
+    siteGroup.get('pastorId')?.setValue('');
+    this.selectedPastorMap.delete(siteIndex);
+
+    const searchControl = siteGroup.get('pastorSearch') as FormControl;
+    if (searchControl) {
+      searchControl.setValue('');
+    }
+  }
+
+  getPastorSearchControl(siteIndex: number): FormControl {
+    const group = this.sitesArray.at(siteIndex) as FormGroup;
+    return group.get('pastorSearch') as FormControl;
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -122,9 +266,9 @@ export class ChurchForm implements OnInit, OnDestroy {
       .getChurchById(this.churchId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: { success: any; data: any; message: any; }) => {
+        next: (response) => {
           if (response.success && response.data) {
-            this.populateForm(response.data as any);
+            this.populateForm(response.data);
           } else {
             this.error.set(response.message || 'Impossible de charger cette église.');
           }
@@ -175,14 +319,13 @@ export class ChurchForm implements OnInit, OnDestroy {
       this.serviceTimesArray.push(this.buildServiceTimeGroup(st));
     }
 
-    // Reconstruire le FormArray des sites (en édition, on n'affiche que
-    // la liste ; l'ajout/retrait de site se fait normalement via un
-    // écran de détail dédié — ici on permet quand même la relecture)
+    // Reconstruire le FormArray des sites
     this.sitesArray.clear();
     for (const site of church.sites ?? []) {
       this.sitesArray.push(this.buildSiteGroup(site));
     }
 
+    // Charger le logo si présent
     if (church.logoUrl) {
       this.logoPreviewUrl.set(church.logoUrl);
     }
@@ -202,6 +345,16 @@ export class ChurchForm implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+
+    // Vérifier le type et la taille
+    if (!file.type.startsWith('image/')) {
+      this.error.set('Veuillez sélectionner une image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.error.set('Le logo ne doit pas dépasser 5 Mo.');
+      return;
+    }
 
     this.logoFile = file;
     const reader = new FileReader();
@@ -224,7 +377,7 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   private buildServiceTimeGroup(value?: { day?: string; time?: string; type?: string }): FormGroup {
     return this.fb.group({
-      day: [value?.day ?? this.weekDays[6], Validators.required], // Dimanche par défaut
+      day: [value?.day ?? this.weekDays[6], Validators.required],
       time: [value?.time ?? '08:00', Validators.required],
       type: [value?.type ?? this.serviceTypes[0], Validators.required],
     });
@@ -249,6 +402,10 @@ export class ChurchForm implements OnInit, OnDestroy {
   private buildSiteGroup(value?: any): FormGroup {
     const group = this.fb.group({
       name: [value?.name ?? '', [Validators.required, Validators.minLength(2)]],
+      phone: [value?.phone ?? ''],
+      email: [value?.email ?? '', [Validators.email]],
+      pastorId: [value?.pastorId ?? ''],
+      isActive: [value?.isActive ?? true],
       address: this.fb.group({
         street: [value?.address?.street ?? ''],
         city: [value?.address?.city ?? '', Validators.required],
@@ -257,20 +414,60 @@ export class ChurchForm implements OnInit, OnDestroy {
         postalCode: [value?.address?.postalCode ?? ''],
         latitude: [value?.address?.latitude ?? null],
         longitude: [value?.address?.longitude ?? null],
+        pastorSearch: [''],
+        pastorName: [value?.pastorName ?? ''],
       }),
       serviceTimes: this.fb.array(
         (value?.serviceTimes ?? []).map((st: any) => this.buildServiceTimeGroup(st))
       ),
     });
+    //group.addControl('pastorSearch', new FormControl(''));
     return group;
   }
 
   addSite(): void {
-    this.sitesArray.push(this.buildSiteGroup());
+    const group = this.buildSiteGroup();
+    const index = this.sitesArray.length;
+    this.sitesArray.push(group);
+
+    const searchControl = group.get('pastorSearch') as FormControl;
+    const siteDestroy$ = new Subject<void>();
+    this.siteDestroyMap.set(index, siteDestroy$);
+
+    searchControl.valueChanges
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        takeUntil(siteDestroy$),
+        takeUntil(this.destroy$) // double sécurité
+      )
+      .subscribe((term) => {
+        this.currentSearchSiteIndex = index; // <-- on mémorise le site actif
+        if (term && term.trim().length >= 2) {
+          this.performPastorSearch(term.trim());
+        } else {
+          this.pastorResults.set([]);
+          this.showPastorResults.set(false);
+        }
+      });
   }
 
   removeSite(index: number): void {
+    // Nettoyer la subscription du site
+    const destroy$ = this.siteDestroyMap.get(index);
+    if (destroy$) {
+      destroy$.next();
+      destroy$.complete();
+      this.siteDestroyMap.delete(index);
+    }
     this.sitesArray.removeAt(index);
+
+    // Réindexer selectedPastorMap ou mieux, stocker le pasteur dans le formulaire
+    this.rebuildPastorMap();
+  }
+
+  private rebuildPastorMap(): void {
+    this.selectedPastorMap = new Map<number, User>();
   }
 
   getSiteServiceTimes(siteIndex: number): FormArray {
@@ -318,12 +515,52 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   private createNewChurch(): void {
     const value = this.form.value;
+
+    // ✅ Nettoyer les sites : retirer ceux qui n'ont pas de nom
+    const cleanedSites = (value.sites || [])
+      .filter((site: any) => site.name && site.name.trim().length > 0)
+      .map((site: any) => ({
+        name: site.name,
+        phone: site.phone || undefined,
+        email: site.email || undefined,
+        pastorId: site.pastorId || undefined,
+        isActive: site.isActive ?? true,
+        address: {
+          street: site.address?.street || undefined,
+          city: site.address?.city || undefined,
+          state: site.address?.state || undefined,
+          country: site.address?.country || 'Côte d\'Ivoire',
+          postalCode: site.address?.postalCode || undefined,
+          latitude: site.address?.latitude || undefined,
+          longitude: site.address?.longitude || undefined,
+          fullAddress: '',        // ✅ Ajouté
+          formattedAddress: '',   // ✅ Ajouté
+        },
+        serviceTimes: (site.serviceTimes || [])
+          .filter((st: any) => st.day && st.time)
+          .map((st: any) => ({
+            day: st.day,
+            time: st.time,
+            type: st.type || undefined,
+          })),
+      }));
+
     const payload: ChurchCreate = {
       name: value.name,
       legalName: value.legalName || undefined,
       email: value.email || undefined,
       phone: value.phone,
-      address: value.address,
+      address: {
+        street: value.address?.street || undefined,
+        city: value.address?.city || undefined,
+        state: value.address?.state || undefined,
+        country: value.address?.country || 'Côte d\'Ivoire',
+        postalCode: value.address?.postalCode || undefined,
+        latitude: value.address?.latitude || undefined,
+        longitude: value.address?.longitude || undefined,
+        fullAddress: '',        // ✅ Ajouté
+        formattedAddress: '',   // ✅ Ajouté
+      },
       website: value.website || undefined,
       taxId: value.taxId || undefined,
       registrationNumber: value.registrationNumber || undefined,
@@ -333,25 +570,39 @@ export class ChurchForm implements OnInit, OnDestroy {
       visionStatement: value.visionStatement || undefined,
       isHeadquarters: value.isHeadquarters,
       parentChurchId: value.parentChurchId || undefined,
-      sites: value.sites,
-      settings: value.settings,
+      sites: cleanedSites.length > 0 ? cleanedSites : undefined,
+      settings: {
+        defaultLanguage: value.settings?.defaultLanguage || 'fr',
+        timezone: value.settings?.timezone || 'Africa/Abidjan',
+        currency: value.settings?.currency || 'FCFA',
+        fiscalYearStart: value.settings?.fiscalYearStart || 1,
+        serviceTimes: (value.settings?.serviceTimes || [])
+          .filter((st: any) => st.day && st.time)
+          .map((st: any) => ({
+            day: st.day,
+            time: st.time,
+            type: st.type || undefined,
+          })),
+      },
     };
 
-    this.churchService
-      .createChurch(payload)
-      .pipe(takeUntil(this.destroy$))
+    // ✅ Gestion du logo
+    const createObservable = this.logoFile
+      ? this.churchService.createChurchWithLogo(payload, this.logoFile)
+      : this.churchService.createChurch(payload);
+
+    createObservable
+      .pipe(takeUntil(this.destroy$), finalize(() => this.saving.set(false)))
       .subscribe({
-        next: (response: { success: any; data: any; message: any; }) => {
-          this.saving.set(false);
+        next: (response) => {
           if (response.success && response.data) {
-            this.router.navigate(['/dashboard/admin/parametres/eglise/list', (response.data as any).id]);
+            this.router.navigate(['/dashboard/admin/parametres/eglise/list', response.data.id]);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la création.');
           }
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('❌ Erreur lors de la création de l’église:', err);
-          this.saving.set(false);
           this.error.set('Une erreur est survenue lors de la création.');
         },
       });
@@ -359,13 +610,24 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   private updateExistingChurch(): void {
     if (!this.churchId) return;
+
     const value = this.form.value;
     const payload: ChurchUpdate = {
       name: value.name,
       legalName: value.legalName || undefined,
       email: value.email || undefined,
       phone: value.phone,
-      address: value.address,
+      address: {
+        street: value.address?.street || undefined,
+        city: value.address?.city || undefined,
+        state: value.address?.state || undefined,
+        country: value.address?.country || 'Côte d\'Ivoire',
+        postalCode: value.address?.postalCode || undefined,
+        latitude: value.address?.latitude || undefined,
+        longitude: value.address?.longitude || undefined,
+        fullAddress: '',        // ✅ Ajouté
+        formattedAddress: '',   // ✅ Ajouté
+      },
       website: value.website || undefined,
       taxId: value.taxId || undefined,
       registrationNumber: value.registrationNumber || undefined,
@@ -375,24 +637,34 @@ export class ChurchForm implements OnInit, OnDestroy {
       visionStatement: value.visionStatement || undefined,
       isHeadquarters: value.isHeadquarters,
       parentChurchId: value.parentChurchId || undefined,
-      settings: value.settings,
+      settings: {
+        defaultLanguage: value.settings?.defaultLanguage || 'fr',
+        timezone: value.settings?.timezone || 'Africa/Abidjan',
+        currency: value.settings?.currency || 'FCFA',
+        fiscalYearStart: value.settings?.fiscalYearStart || 1,
+        serviceTimes: (value.settings?.serviceTimes || [])
+          .filter((st: any) => st.day && st.time)
+          .map((st: any) => ({
+            day: st.day,
+            time: st.time,
+            type: st.type || undefined,
+          })),
+      },
     };
 
     this.churchService
       .updateChurch(this.churchId, payload)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this.destroy$), finalize(() => this.saving.set(false)))
       .subscribe({
-        next: (response: { success: any; message: any; }) => {
-          this.saving.set(false);
+        next: (response) => {
           if (response.success) {
             this.router.navigate(['/dashboard/admin/parametres/eglise/list', this.churchId]);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
           }
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('❌ Erreur lors de la mise à jour de l’église:', err);
-          this.saving.set(false);
           this.error.set('Une erreur est survenue lors de la mise à jour.');
         },
       });
@@ -400,9 +672,9 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   cancel(): void {
     if (this.isEditMode() && this.churchId) {
-      this.router.navigate(['/dashboard/admin/parametres/eglise', this.churchId]);
+      this.router.navigate(['/dashboard/admin/parametres/eglise/list', this.churchId]);
     } else {
-      this.router.navigate(['/dashboard/admin/parametres/eglise']);
+      this.router.navigate(['/dashboard/admin/parametres/eglise/list']);
     }
   }
 

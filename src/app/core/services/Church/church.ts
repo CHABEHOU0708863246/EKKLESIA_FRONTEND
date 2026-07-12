@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   Church as ChurchModel,
@@ -82,17 +82,47 @@ export class Church {
       );
   }
 
-  getAllChurches(): Observable<ApiResponse<ChurchModel[]>> {
-    return this.http.get<ApiResponse<ChurchModel[]>>(`${this.baseUrl}`)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            console.log(`👥 ${response.data?.length || 0} églises récupérées`);
-          }
-        }),
-        catchError(this.handleError<ChurchModel[]>('getAllChurches'))
-      );
-  }
+
+  // src/app/core/services/Church/church.ts
+
+/**
+ * Crée une église avec un logo (upload de fichier)
+ * POST /api/v1/Church avec multipart/form-data
+ */
+createChurchWithLogo(churchData: ChurchCreate, logoFile: File): Observable<ApiResponse<ChurchModel>> {
+  const formData = new FormData();
+
+  // Ajouter les données JSON
+  formData.append('church', JSON.stringify(churchData));
+
+  // Ajouter le fichier logo
+  formData.append('logoFile', logoFile);
+
+  return this.http.post<ApiResponse<ChurchModel>>(`${this.baseUrl}/with-logo`, formData)
+    .pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          console.log('✅ Église créée avec logo:', response.data.name);
+        }
+      }),
+      catchError(this.handleError<ChurchModel>('createChurchWithLogo'))
+    );
+}
+
+ getAllChurches(): Observable<ApiResponse<ChurchModel[]>> {
+  return this.http.get<ApiResponse<ChurchListResponse>>(`${this.baseUrl}`).pipe(
+    map(response => ({
+      ...response,
+      data: response.data?.items || []
+    }) as ApiResponse<ChurchModel[]>),
+    tap(response => {
+      if (response.success) {
+        console.log(`👥 ${response.data?.length || 0} églises récupérées`);
+      }
+    }),
+    catchError(this.handleError<ChurchModel[]>('getAllChurches'))
+  );
+}
 
   updateChurch(id: string, churchData: ChurchUpdate): Observable<ApiResponse<ChurchModel>> {
     return this.http.put<ApiResponse<ChurchModel>>(`${this.baseUrl}/${id}`, churchData)

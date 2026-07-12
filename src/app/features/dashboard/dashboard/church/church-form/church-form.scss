@@ -274,3 +274,115 @@
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
 }
+
+
+// Dans church-form.scss, ajouter :
+
+.cf-hint {
+  font-size: 12px;
+  color: var(--ekk-ink-muted);
+  margin-top: 4px;
+}
+
+// Pour le champ pastorId
+.cf-field input[type="text"][formControlName="pastorId"] {
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+// Pour les checkbox dans les sites
+.cf-site-card .cf-checkbox {
+  margin-top: 0;
+}
+
+
+
+
+// ── Recherche de pasteur ──
+.cf-pastor-search {
+  position: relative;
+}
+
+.cf-selected-pastor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--ekk-border);
+  border-radius: 7px;
+  background: var(--ekk-bg);
+}
+
+.cf-mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ekk-violet-700);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cf-mini-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  strong { font-size: 13px; }
+  span { font-size: 12px; color: var(--ekk-ink-muted); }
+}
+
+.cf-icon-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ekk-ink-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg { width: 14px; height: 14px; }
+  &:hover { background: var(--ekk-bg); color: var(--ekk-ruby); }
+}
+
+.cf-search-dropdown {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--ekk-surface);
+  border: 1px solid var(--ekk-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -8px rgba(31, 36, 48, 0.18);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.cf-search-status {
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: var(--ekk-ink-muted);
+  margin: 0;
+}
+
+.cf-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid var(--ekk-border);
+  background: var(--ekk-surface);
+  cursor: pointer;
+  text-align: left;
+  &:hover { background: var(--ekk-violet-100); }
+  &:last-child { border-bottom: none; }
+}

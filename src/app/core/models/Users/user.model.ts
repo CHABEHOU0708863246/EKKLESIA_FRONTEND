@@ -1,6 +1,7 @@
 import { UserProfile, UserProfileCreate, UserProfileUpdate } from "./user-profile.model";
 
 export interface User {
+  memberId: any;
   id: string;
   username: string;
   email: string;
@@ -30,7 +31,9 @@ export interface UserCreate {
   confirmPassword: string;
   photoUrl?: string;
   roles?: string[];
-  churchId?: string;
+  churchId?: string;   // ✅ Ajout
+  siteId?: string;     // ✅ Ajout
+  memberId?: string;
   profile?: UserProfileCreate;
 }
 
@@ -44,7 +47,9 @@ export interface UserUpdate {
   isActive?: boolean;
   roles?: string[];
   permissions?: string[];
-  churchId?: string;
+  churchId?: string;   // ✅ Ajout
+  siteId?: string;     // ✅ Ajout
+  memberId?: string;
   profile?: UserProfileUpdate;
 }
 

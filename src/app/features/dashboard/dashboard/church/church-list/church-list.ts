@@ -27,6 +27,7 @@ export class ChurchList implements OnInit, OnDestroy {
   searchControl = new FormControl('');
   statusControl = new FormControl('');
   typeControl = new FormControl('');
+  existingSites = signal<Site[]>([]);
 
   churches = signal<Church[]>([]);
   loading = signal(false);

@@ -1,13 +1,20 @@
 // src/app/features/dashboard/dashboard/admin/users/user-form/user-form.ts
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { Church as ChurchModel, ChurchUtils } from '../../../../../core/models/Church/church.model';
+import { Site as SiteModel } from '../../../../../core/models/Church/site.model';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { User, UserCreate, UserUpdate } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { RoleDropdownDto } from '../../../../../core/models/Roles/role.models';
 import { Roles } from '../../../../../core/services/Roles/roles';
+import { Church } from '../../../../../core/services/Church/church';
+import { Members } from '../../../../../core/services/Members/members';
+import { Member, MemberListResponse } from '../../../../../core/models/Members/member.model';
+import { Site } from '../../../../../core/models/Church/site.model';
 
 
 const AVAILABLE_ROLES = [
@@ -48,6 +55,7 @@ const MARITAL_STATUS_OPTIONS = [
 export class UserForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private userId: string | null = null;
+  private memberSearch$ = new Subject<string>();
 
   availableRoles = signal<RoleDropdownDto[]>([]);
   loadingRoles = signal(false);
@@ -64,6 +72,19 @@ export class UserForm implements OnInit, OnDestroy {
   photoFile: File | null = null;
   photoPreviewUrl = signal<string | null>(null);
 
+  // ── Églises et Sites ──
+  churches = signal<ChurchModel[]>([]);
+  loadingChurches = signal(false);
+  sites = signal<SiteModel[]>([]);
+  loadingSites = signal(false);
+
+  // ── Recherche de membre ──
+  memberSearchControl = new FormControl('');
+  memberResults = signal<Member[]>([]);
+  searchingMember = signal(false);
+  showMemberResults = signal(false);
+  selectedMember = signal<Member | null>(null);
+
   form: FormGroup;
 
   constructor(
@@ -71,6 +92,8 @@ export class UserForm implements OnInit, OnDestroy {
     private userService: Users,
     private route: ActivatedRoute,
     private roleService: Roles,
+    private churchService: Church, // ✅ Ajout
+    private memberService: Members,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -87,6 +110,11 @@ export class UserForm implements OnInit, OnDestroy {
 
       // ── Rôles ──
       roles: [[] as string[]],
+
+      // ── Affiliation ──
+      churchId: [''],
+      siteId: [''],
+      memberId: [''],
 
       // ── Profil complémentaire (optionnel) ──
       profile: this.fb.group({
@@ -110,8 +138,20 @@ export class UserForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadRoles();
+    this.loadChurches();
     this.userId = this.route.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.userId);
+
+    this.memberSearchControl.valueChanges
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((term) => {
+        if (term && term.trim().length >= 2) {
+          this.performMemberSearch(term.trim());
+        } else {
+          this.memberResults.set([]);
+          this.showMemberResults.set(false);
+        }
+      });
 
     if (this.isEditMode()) {
       // En édition, mot de passe non requis
@@ -127,23 +167,132 @@ export class UserForm implements OnInit, OnDestroy {
     this.form.get('confirmPassword')?.updateValueAndValidity();
   }
 
-  private loadRoles(): void {
-  this.loadingRoles.set(true);
-  this.roleService
-    .getRolesForDropdown()
+private performMemberSearch(term: string): void {
+  this.searchingMember.set(true);
+  this.showMemberResults.set(true);
+  this.memberService
+    .getMembers({ fullName: term, page: 1, pageSize: 10 })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.availableRoles.set(response.data);
+      next: (response: MemberListResponse) => {
+        // ✅ La réponse est directement MemberListResponse
+        if (response && response.items) {
+          this.memberResults.set(response.items);
+        } else {
+          this.memberResults.set([]);
         }
-        this.loadingRoles.set(false);
+        this.searchingMember.set(false);
+        // Si aucun résultat, on laisse la dropdown afficher "Aucun membre trouvé"
       },
       error: () => {
-        this.loadingRoles.set(false);
+        console.error('❌ Erreur lors de la recherche de membres');
+        this.memberResults.set([]);
+        this.searchingMember.set(false);
+        this.showMemberResults.set(false);
       },
     });
 }
+
+  selectMember(member: Member): void {
+    this.selectedMember.set(member);
+    this.form.get('memberId')?.setValue(member.id);
+
+    // Auto-fill church and site if not already set
+    if (!this.form.get('churchId')?.value && member.churchId) {
+      this.form.get('churchId')?.setValue(member.churchId);
+      this.loadSites(member.churchId);
+    }
+    if (!this.form.get('siteId')?.value && member.siteId) {
+      this.form.get('siteId')?.setValue(member.siteId);
+    }
+
+    this.memberSearchControl.setValue(this.getFullName(member));
+    this.showMemberResults.set(false);
+  }
+
+  clearMember(): void {
+    this.selectedMember.set(null);
+    this.form.get('memberId')?.setValue('');
+    this.memberSearchControl.setValue('');
+    this.memberResults.set([]);
+    this.showMemberResults.set(false);
+  }
+
+  getFullName(member: Member | null): string {
+    if (!member) return '';
+    return member.fullName || `${member.firstName} ${member.lastName}`;
+  }
+
+
+
+  private loadChurches(): void {
+    this.loadingChurches.set(true);
+    this.churchService
+      .getAllChurches()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.churches.set(response.data); // ✅ response.data est ChurchModel[]
+          }
+          this.loadingChurches.set(false);
+        },
+        error: () => this.loadingChurches.set(false),
+      });
+  }
+
+  private loadSites(churchId: string): void {
+    if (!churchId) {
+      this.sites.set([]);
+      return;
+    }
+    this.loadingSites.set(true);
+    this.churchService
+      .getSitesByChurchId(churchId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.sites.set(response.data); // ✅ response.data est SiteModel[]
+          }
+          this.loadingSites.set(false);
+        },
+        error: () => this.loadingSites.set(false),
+      });
+  }
+
+
+
+  getInitialsFromMember(member: Member | null): string {
+    if (!member) return '?';
+    const f = member.firstName?.charAt(0) || '';
+    const l = member.lastName?.charAt(0) || '';
+    return `${f}${l}`.toUpperCase();
+  }
+
+  onChurchChange(churchId: string): void {
+    this.form.get('churchId')?.setValue(churchId);
+    this.form.get('siteId')?.setValue('');
+    this.loadSites(churchId);
+  }
+
+  private loadRoles(): void {
+    this.loadingRoles.set(true);
+    this.roleService
+      .getRolesForDropdown()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.availableRoles.set(response.data);
+          }
+          this.loadingRoles.set(false);
+        },
+        error: () => {
+          this.loadingRoles.set(false);
+        },
+      });
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -204,8 +353,8 @@ export class UserForm implements OnInit, OnDestroy {
     }, { emitEvent: false });
 
     if (user.photoUrl) {
-    this.photoPreviewUrl.set(this.userService.getUserPhotoUrl(user.photoUrl));
-  }
+      this.photoPreviewUrl.set(this.userService.getUserPhotoUrl(user.photoUrl));
+    }
   }
 
   private toDateInputValue(date: string | null | undefined): string {
@@ -219,18 +368,18 @@ export class UserForm implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   toggleRole(roleValue: string): void {
-  const current: string[] = this.form.get('roles')?.value ?? [];
-  if (current.includes(roleValue)) {
-    this.form.get('roles')?.setValue(current.filter((r) => r !== roleValue));
-  } else {
-    this.form.get('roles')?.setValue([...current, roleValue]);
+    const current: string[] = this.form.get('roles')?.value ?? [];
+    if (current.includes(roleValue)) {
+      this.form.get('roles')?.setValue(current.filter((r) => r !== roleValue));
+    } else {
+      this.form.get('roles')?.setValue([...current, roleValue]);
+    }
   }
-}
 
   isRoleSelected(roleValue: string): boolean {
-  const current: string[] = this.form.get('roles')?.value ?? [];
-  return current.includes(roleValue);
-}
+    const current: string[] = this.form.get('roles')?.value ?? [];
+    return current.includes(roleValue);
+  }
 
   // ───────────────────────────────────────────────────────────────
   // PHOTO
@@ -299,60 +448,63 @@ export class UserForm implements OnInit, OnDestroy {
     }
   }
 
-private createNewUser(): void {
-  const value = this.form.value;
-  const payload: UserCreate = {
-    username: value.username,
-    email: value.email,
-    phone: value.phone,
-    firstName: value.firstName,
-    lastName: value.lastName,
-    password: value.password,
-    confirmPassword: value.confirmPassword,
-    roles: value.roles,
-    profile: this.cleanProfile(value.profile),
-  };
+  private createNewUser(): void {
+    const value = this.form.value;
+    const payload: UserCreate = {
+      username: value.username,
+      email: value.email,
+      phone: value.phone,
+      firstName: value.firstName,
+      lastName: value.lastName,
+      password: value.password,
+      confirmPassword: value.confirmPassword,
+      roles: value.roles,
+      churchId: value.churchId,
+      siteId: value.siteId,
+      memberId: value.memberId,
+      profile: this.cleanProfile(value.profile),
+    };
 
-  this.userService
-    .register(payload)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response: any) => {
-        // ✅ adapté au format réel du backend (plat, isSuccess)
-        if (response.isSuccess && response.id) {
-          const newUserId = response.id;
+    this.userService
+      .register(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // ✅ adapté au format réel du backend (plat, isSuccess)
+          if (response.isSuccess && response.id) {
+            const newUserId = response.id;
 
-          if (this.photoFile) {
-            this.userService
-              .updateUserPhotoById(newUserId, this.photoFile)
-              .pipe(takeUntil(this.destroy$))
-              .subscribe({
-                next: () => {
-                  this.saving.set(false);
-                  this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
-                },
-                error: (err: any) => {
-                  console.error('⚠️ Utilisateur créé mais échec upload photo:', err);
-                  this.saving.set(false);
-                  this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
-                },
-              });
+            if (this.photoFile) {
+              this.userService
+                .updateUserPhotoById(newUserId, this.photoFile)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: () => {
+                    this.saving.set(false);
+                    this.router.navigate(['/dashboard/admin/users', newUserId]);
+                  },
+                  error: (err: any) => {
+                    console.error('⚠️ Utilisateur créé mais échec upload photo:', err);
+                    this.saving.set(false);
+                    this.router.navigate(['/dashboard/admin/users', newUserId]);
+                  },
+                });
+            } else {
+              this.saving.set(false);
+              this.router.navigate(['/dashboard/admin/users', newUserId]);
+            }
           } else {
             this.saving.set(false);
-            this.router.navigate(['/dashboard/admin/utilisateurs', newUserId]);
+            this.applyErrorResponse(response);
           }
-        } else {
+        },
+        error: (err: any) => {
+          console.error('❌ Erreur lors de la création:', err);
           this.saving.set(false);
-          this.applyErrorResponse(response);
-        }
-      },
-      error: (err: any) => {
-        console.error('❌ Erreur lors de la création:', err);
-        this.saving.set(false);
-        this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
-      },
-    });
-}
+          this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
+        },
+      });
+  }
 
   private updateExistingUser(): void {
     if (!this.userId) return;
@@ -364,6 +516,9 @@ private createNewUser(): void {
       firstName: value.firstName,
       lastName: value.lastName,
       roles: value.roles,
+      churchId: value.churchId,        // ✅ Ajout
+      siteId: value.siteId,            // ✅ Ajout
+      memberId: value.memberId,        // ✅ Ajout
       profile: this.cleanProfile(value.profile),
     };
 
@@ -374,7 +529,7 @@ private createNewUser(): void {
         next: (response: { success: any; }) => {
           this.saving.set(false);
           if (response.success) {
-            this.router.navigate(['/dashboard/admin/utilisateurs', this.userId]);
+            this.router.navigate(['/dashboard/admin/users', this.userId]);
           } else {
             this.applyErrorResponse(response);
           }
@@ -400,15 +555,15 @@ private createNewUser(): void {
   }
 
   private applyErrorResponse(response: any): void {
-  this.error.set(response.message || 'Une erreur est survenue.');
-  if (response.errors?.length) {
-    const map: Record<string, string> = {};
-    for (const e of response.errors) {
-      if (e.field) map[e.field] = e.message ?? e;
+    this.error.set(response.message || 'Une erreur est survenue.');
+    if (response.errors?.length) {
+      const map: Record<string, string> = {};
+      for (const e of response.errors) {
+        if (e.field) map[e.field] = e.message ?? e;
+      }
+      this.fieldErrors.set(map);
     }
-    this.fieldErrors.set(map);
   }
-}
 
   cancel(): void {
     if (this.isEditMode() && this.userId) {

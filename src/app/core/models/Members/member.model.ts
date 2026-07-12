@@ -216,6 +216,8 @@ export interface MemberFilter {
 }
 
 export interface MemberListResponse {
+  success: any;
+  data: any;
   items: Member[];
   totalCount: number;
   currentPage: number;

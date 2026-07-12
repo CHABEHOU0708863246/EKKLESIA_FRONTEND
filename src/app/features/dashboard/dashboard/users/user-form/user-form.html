@@ -24,7 +24,10 @@
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
   <div class="uf-banner uf-banner--error" *ngIf="error()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
   </div>
 
@@ -32,7 +35,9 @@
 
     <!-- ─────────── PHOTO DE PROFIL ─────────── -->
     <section class="uf-panel">
-      <div class="uf-panel-header"><h2>Photo de profil</h2></div>
+      <div class="uf-panel-header">
+        <h2>Photo de profil</h2>
+      </div>
       <div class="uf-panel-body uf-photo-row">
         <div class="uf-photo-preview">
           <img *ngIf="photoPreviewUrl()" [src]="photoPreviewUrl()" alt="Aperçu">
@@ -50,7 +55,9 @@
 
     <!-- ─────────── IDENTITÉ DE COMPTE ─────────── -->
     <section class="uf-panel">
-      <div class="uf-panel-header"><h2>Identité &amp; connexion</h2></div>
+      <div class="uf-panel-header">
+        <h2>Identité &amp; connexion</h2>
+      </div>
       <div class="uf-panel-body uf-panel-body--grid">
 
         <div class="uf-field">
@@ -109,13 +116,87 @@
       </div>
       <div class="uf-panel-body">
         <div class="uf-role-grid">
-          <button type="button" *ngFor="let role of availableRoles()"
-                  class="uf-role-chip"
-                  [class.is-selected]="isRoleSelected(role.roleName)"
-                  (click)="toggleRole(role.roleName)">
+          <button type="button" *ngFor="let role of availableRoles()" class="uf-role-chip"
+            [class.is-selected]="isRoleSelected(role.roleName)" (click)="toggleRole(role.roleName)">
             {{ role.roleName }}
           </button>
         </div>
+      </div>
+    </section>
+
+    <!-- ─────────── AFFILIATION ─────────── -->
+    <section class="uf-panel">
+      <div class="uf-panel-header">
+        <h2>Affiliation</h2>
+        <p>Église, site et membre associé (obligatoire pour les leaders).</p>
+      </div>
+      <div class="uf-panel-body uf-panel-body--grid">
+
+        <!-- Église -->
+        <!-- Église -->
+        <div class="uf-field">
+          <label for="churchId">Église</label>
+          <div class="uf-select-wrap">
+            <select id="churchId" formControlName="churchId" (change)="onChurchChange($any($event.target).value)">
+              <option value="">— Sélectionner une église —</option>
+              <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+            </select>
+            <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Site -->
+        <div class="uf-field">
+          <label for="siteId">Site</label>
+          <div class="uf-select-wrap">
+            <select id="siteId" formControlName="siteId" [disabled]="loadingSites()">
+              <option value="">— Sélectionner un site —</option>
+              <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+            </select>
+            <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Membre lié -->
+        <div class="uf-field uf-field--span-2">
+          <label>Membre lié</label>
+          <div class="uf-member-search">
+            <div *ngIf="selectedMember()" class="uf-selected-member">
+              <div class="uf-mini-avatar">{{ getInitialsFromMember(selectedMember()) }}</div>
+              <div class="uf-mini-info">
+                <strong>{{ getFullName(selectedMember()) }}</strong>
+                <span>{{ selectedMember()?.phone }}</span>
+              </div>
+              <button type="button" class="uf-icon-btn" (click)="clearMember()" aria-label="Retirer">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+            <input *ngIf="!selectedMember()" [formControl]="memberSearchControl" type="text"
+              placeholder="Rechercher un membre par nom…">
+            <div class="uf-search-dropdown" *ngIf="showMemberResults() && !selectedMember()">
+              <p class="uf-search-status" *ngIf="searchingMember()">Recherche en cours…</p>
+              <p class="uf-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé
+              </p>
+              <button type="button" class="uf-search-result" *ngFor="let m of memberResults()"
+                (click)="selectMember(m)">
+                <div class="uf-mini-avatar">{{ getInitialsFromMember(m) }}</div>
+                <div class="uf-mini-info">
+                  <strong>{{ getFullName(m) }}</strong>
+                  <span>{{ m.phone }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -127,7 +208,8 @@
           <p>Facultatif — civilité, adresse, contact d'urgence…</p>
         </div>
         <svg class="uf-toggle-caret" [class.is-open]="showProfileSection()" viewBox="0 0 24 24" fill="none">
-          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
       </button>
 
@@ -136,10 +218,9 @@
         <div class="uf-field">
           <label>Civilité</label>
           <div class="uf-radio-group">
-            <button type="button" *ngFor="let g of genderOptions"
-                    class="uf-radio-pill"
-                    [class.is-selected]="form.get('profile.gender')?.value === g.value"
-                    (click)="form.get('profile.gender')?.setValue(g.value)">
+            <button type="button" *ngFor="let g of genderOptions" class="uf-radio-pill"
+              [class.is-selected]="form.get('profile.gender')?.value === g.value"
+              (click)="form.get('profile.gender')?.setValue(g.value)">
               {{ g.label }}
             </button>
           </div>
@@ -152,7 +233,10 @@
               <option value="">— Non renseigné —</option>
               <option *ngFor="let m of maritalStatusOptions" [value]="m.value">{{ m.label }}</option>
             </select>
-            <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
           </div>
         </div>
 
