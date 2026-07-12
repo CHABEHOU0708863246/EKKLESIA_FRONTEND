@@ -12,34 +12,34 @@
     </div>
 
     <div class="cgl-page-title-row">
-      <div class="cgl-title-left">
-        <h1>Cellules de maison</h1>
-        <!-- Affichage de l'église active -->
-        <div class="cgl-church-context" *ngIf="currentChurch$ | async as church">
-          <!-- ICONE EGLISE EN SVG -->
-          <svg class="cgl-church-icon" viewBox="0 0 24 24" fill="none" width="20" height="20">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="cgl-church-name">{{ church.name }}</span>
-          <button type="button" class="cgl-btn cgl-btn--sm cgl-btn--ghost" (click)="openChurchSelector()">
-            Changer
-          </button>
-        </div>
-        <div class="cgl-church-context cgl-church-context--empty" *ngIf="!(currentChurch$ | async)">
-          <span class="cgl-warning">⚠️ Aucune église sélectionnée</span>
-          <button type="button" class="cgl-btn cgl-btn--sm cgl-btn--primary" (click)="openChurchSelector()">
-            Sélectionner une église
-          </button>
-        </div>
-      </div>
-      <button type="button" class="cgl-btn cgl-btn--primary" (click)="openCreatePanel()" [disabled]="!(currentChurch$ | async)">
+      <h1>Cellules de maison</h1>
+      <button type="button" class="cgl-btn cgl-btn--primary"
+              (click)="openCreatePanel()"
+              [disabled]="!canCreate()"
+              [title]="!canCreate() ? 'Sélectionnez une église pour créer une cellule' : ''">
         <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
         Nouvelle cellule
       </button>
     </div>
+
+    <!-- ═══ Sélecteur d'église (Lookup, filtre parent) ═══ -->
+    <div class="cgl-church-lookup">
+      <label for="churchLookup">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Église
+      </label>
+      <div class="cgl-select-wrap cgl-select-wrap--church">
+        <select id="churchLookup" [ngModel]="selectedChurchId()" (ngModelChange)="onChurchSelected($event)" [disabled]="loadingChurches()">
+          <option value="">— Toutes les églises / sélectionner —</option>
+          <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+        </select>
+        <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="cgl-lookup-hint" *ngIf="!canCreate()">⚠️ Sélectionnez une église pour activer la création</span>
+    </div>
   </header>
 
-  <!-- ══════════════ PANNEAU DE CRÉATION (slide-over) ══════════════ -->
+  <!-- ══════════════ PANNEAU DE CRÉATION (Right Panel / Drawer) ══════════════ -->
   <div class="cgl-overlay" *ngIf="showCreatePanel()" (click)="closeCreatePanel()"></div>
   <aside class="cgl-drawer" *ngIf="showCreatePanel()">
     <div class="cgl-drawer-header">
@@ -51,34 +51,13 @@
 
     <form class="cgl-drawer-body" [formGroup]="createForm" (ngSubmit)="createCellGroup()">
 
-      <!-- ═══ Sélection de l'Église ═══ -->
       <div class="cgl-field">
-        <label for="churchSelect">Église <span class="cgl-required">*</span></label>
-
-        <!-- Si une église est déjà sélectionnée dans le contexte -->
-        <div *ngIf="currentChurch$ | async as church" class="cgl-selected-church">
-          <div class="cgl-church-badge">
-            <!-- ICONE EGLISE EN SVG -->
-            <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>{{ church.name }}</span>
-          </div>
-          <small class="cgl-text-muted">La cellule sera créée dans cette église</small>
+        <label>Église</label>
+        <div class="cgl-selected-church-static">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>{{ selectedChurch()?.name }}</span>
         </div>
-
-        <!-- Sélecteur d'église si aucune n'est sélectionnée -->
-        <div *ngIf="!(currentChurch$ | async)" class="cgl-select-wrap">
-          <select id="churchSelect" formControlName="churchId" required>
-            <option value="">— Sélectionnez une église —</option>
-            <option *ngFor="let church of churches$ | async" [value]="church.id">
-              {{ church.name }}
-            </option>
-          </select>
-          <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-
-        <p class="cgl-error" *ngIf="isFieldInvalid('churchId')">Une église est requise</p>
+        <p class="cgl-hint">La cellule sera créée dans cette église.</p>
       </div>
 
       <div class="cgl-field">
@@ -149,7 +128,7 @@
 
       <div class="cgl-drawer-footer">
         <button type="button" class="cgl-btn cgl-btn--ghost" (click)="closeCreatePanel()">Annuler</button>
-        <button type="submit" class="cgl-btn cgl-btn--primary" [disabled]="creating() || !hasChurchContext()">
+        <button type="submit" class="cgl-btn cgl-btn--primary" [disabled]="creating()">
           <span *ngIf="!creating()">Créer la cellule</span>
           <span class="cgl-spinner cgl-spinner--btn" *ngIf="creating()"></span>
         </button>
@@ -194,14 +173,14 @@
     <span>{{ error() }}</span>
   </div>
 
-  <!-- ══════════════ TABLEAU ══════════════ -->
+  <!-- ══════════════ DATAGRID ══════════════ -->
   <div class="cgl-table-card">
     <table class="cgl-table">
       <thead>
         <tr>
-          <th class="cgl-col-name">Cellule</th>
+          <th class="cgl-col-name">Nom de la cellule</th>
+          <th>Église rattachée</th>
           <th>Responsable</th>
-          <th>Rencontre</th>
           <th>Membres</th>
           <th>Statut</th>
           <th class="cgl-col-actions">Actions</th>
@@ -231,10 +210,14 @@
               </div>
             </div>
           </td>
-          <td>{{ cg.leaderName || '—' }}</td>
           <td>
-            <span class="cgl-text-muted">{{ getMeetingDayLabel(cg.meetingDay) }}</span>
-            <span class="cgl-text-muted" *ngIf="cg.meetingTime"> · {{ getFormattedMeetingTime(cg.meetingTime) }}</span>
+            <span class="cgl-text-muted">{{ cg.churchName || '—' }}</span>
+          </td>
+          <td>
+            <div class="cgl-leader-cell">
+              <span>{{ cg.leaderName || '—' }}</span>
+              <span class="cgl-role-badge" *ngIf="getLeaderRoleLabel(cg.leaderId) as roleLabel">{{ roleLabel }}</span>
+            </div>
           </td>
           <td>{{ cg.memberCount }}</td>
           <td>
@@ -243,6 +226,9 @@
             </span>
           </td>
           <td class="cgl-col-actions">
+            <button type="button" class="cgl-icon-btn" (click)="editCellGroup(cg, $event)" aria-label="Modifier" title="Modifier">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <button type="button" class="cgl-icon-btn cgl-icon-btn--danger" (click)="requestDelete(cg, $event)" aria-label="Supprimer" title="Supprimer">
               <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>

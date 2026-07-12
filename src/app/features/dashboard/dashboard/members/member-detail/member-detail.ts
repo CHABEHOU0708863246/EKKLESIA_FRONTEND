@@ -10,6 +10,7 @@ import { Member } from '../../../../../core/models/Members/member.model';
 import { PastoralNote } from '../../../../../core/models/Members/pastoral-note.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
+import { environment } from '../../../../../../environments/environment';
 
 // ── Libellés français pour les enums backend ──
 const STATUS_LABELS: Record<string, string> = {
@@ -64,6 +65,11 @@ export class MemberDetail implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private memberId = '';
   private godfatherSearch$ = new Subject<string>();
+
+  photoFile = signal<File | null>(null);
+photoPreviewUrl = signal<string | null>(null);
+uploadingPhoto = signal(false);
+photoUploadError = signal<string | null>(null);
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly spiritualStatusOptions = SPIRITUAL_STATUS_OPTIONS;
@@ -126,6 +132,7 @@ export class MemberDetail implements OnInit, OnDestroy {
         phone: ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
         email: ['', [Validators.email]],
         birthDate: [''],
+        photoUrl: [''],
       }),
       statut: this.fb.group({
         status: ['Visitor', Validators.required],
@@ -142,6 +149,79 @@ export class MemberDetail implements OnInit, OnDestroy {
       notes: [''],
     });
   }
+
+
+  onPhotoSelected(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    this.photoUploadError.set('Veuillez sélectionner une image.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    this.photoUploadError.set("L'image ne doit pas dépasser 5 Mo.");
+    return;
+  }
+
+  this.photoFile.set(file);
+  const reader = new FileReader();
+  reader.onload = () => this.photoPreviewUrl.set(reader.result as string);
+  reader.readAsDataURL(file);
+  this.photoUploadError.set(null);
+}
+
+removePhoto(): void {
+  this.photoFile.set(null);
+  this.photoPreviewUrl.set(null);
+  this.identiteGroup.get('photoUrl')?.setValue('');
+}
+
+uploadPhoto(): void {
+  if (!this.photoFile()) return;
+
+  this.uploadingPhoto.set(true);
+  this.photoUploadError.set(null);
+
+  const formData = new FormData();
+  formData.append('photoFile', this.photoFile()!);
+
+  this.memberService
+    .updateMemberPhoto(this.memberId, formData)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response: { photoUrl: string }) => {   // ✅ Type correct
+        this.uploadingPhoto.set(false);
+        const photoUrl = response.photoUrl;
+        this.identiteGroup.get('photoUrl')?.setValue(photoUrl);
+        this.photoPreviewUrl.set(null);
+        this.photoFile.set(null);
+        const m = this.member();
+        if (m) {
+          m.photoUrl = photoUrl;
+          this.member.set(m);
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur upload photo:', err);
+        this.uploadingPhoto.set(false);
+        this.photoUploadError.set("Impossible d'enregistrer la photo.");
+      },
+    });
+}
+
+
+getPhotoUrl(photoIdOrUrl: string | undefined): string {
+  if (!photoIdOrUrl) return '';
+  // Si c'est une URL complète, on la retourne directement
+  if (photoIdOrUrl.startsWith('http://') || photoIdOrUrl.startsWith('https://')) {
+    return photoIdOrUrl;
+  }
+  // Sinon, on construit l'URL vers l'API (à adapter selon votre backend)
+  return `${environment.apiUrl}/api/v1/Member/photo/${photoIdOrUrl}`;
+}
+
 
   ngOnInit(): void {
     this.memberId = this.route.snapshot.paramMap.get('id') ?? '';

@@ -344,7 +344,7 @@ export class ChurchForm implements OnInit, OnDestroy {
         next: (response: { success: any; data: any; message: any; }) => {
           this.saving.set(false);
           if (response.success && response.data) {
-            this.router.navigate(['/dashboard/admin/parametres/eglise', (response.data as any).id]);
+            this.router.navigate(['/dashboard/admin/parametres/eglise/list', (response.data as any).id]);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la création.');
           }
@@ -385,7 +385,7 @@ export class ChurchForm implements OnInit, OnDestroy {
         next: (response: { success: any; message: any; }) => {
           this.saving.set(false);
           if (response.success) {
-            this.router.navigate(['/dashboard/admin/parametres/eglise', this.churchId]);
+            this.router.navigate(['/dashboard/admin/parametres/eglise/list', this.churchId]);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
           }

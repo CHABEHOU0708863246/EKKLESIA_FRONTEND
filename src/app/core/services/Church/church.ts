@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
-  Church as ChurchModel,          // ✅ alias explicite vers le modèle
+  Church as ChurchModel,
   ChurchCreate,
   ChurchFilter,
   ChurchListResponse,
@@ -83,7 +83,7 @@ export class Church {
   }
 
   getAllChurches(): Observable<ApiResponse<ChurchModel[]>> {
-    return this.http.get<ApiResponse<ChurchModel[]>>(`${this.baseUrl}/all`)
+    return this.http.get<ApiResponse<ChurchModel[]>>(`${this.baseUrl}`)
       .pipe(
         tap(response => {
           if (response.success) {

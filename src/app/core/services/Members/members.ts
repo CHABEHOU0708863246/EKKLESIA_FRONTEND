@@ -1,6 +1,6 @@
 // src/app/core/services/Members/member.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Member,
@@ -37,11 +37,19 @@ import { environment } from '../../../../environments/environment';
 export class Members {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Member`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ───────────────────────────────────────────────────────────────
   // MEMBRES
   // ───────────────────────────────────────────────────────────────
+
+  /**
+ * Met à jour la photo d'un membre
+ * POST /api/v1/Member/{id}/photo
+ */
+  updateMemberPhoto(id: string, formData: FormData): Observable<{ photoUrl: string }> {
+    return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${id}/photo`, formData);
+  }
 
   /**
    * Crée un nouveau membre
@@ -107,8 +115,13 @@ export class Members {
    * Met à jour l'étape du parcours d'un visiteur
    */
   updateVisitorStage(id: string, stage: string): Observable<Member> {
-    return this.http.put<Member>(`${this.baseUrl}/${id}/visitor-stage`, stage);
-  }
+  const headers = new HttpHeaders().set('Content-Type', 'application/json');
+  return this.http.put<Member>(
+    `${this.baseUrl}/${id}/visitor-stage`,
+    JSON.stringify(stage), // Force la sérialisation JSON
+    { headers }
+  );
+}
 
   /**
    * Récupère la liste des visiteurs par étape

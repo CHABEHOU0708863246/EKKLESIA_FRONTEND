@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
+import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { ChurchListResponse, Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { CellGroup } from '../../../../../core/models/Members/cell-group.model';
 import {
   Member,
@@ -11,6 +12,7 @@ import {
   DEFAULT_MEMBER_FILTER,
 } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
+import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
 
 interface WizardStep {
   id: 'identite' | 'statut' | 'affectation' | 'recap';
@@ -53,6 +55,7 @@ export class MemberCreate implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private godfatherSearch$ = new Subject<string>();
 
+
   readonly statusOptions = STATUS_OPTIONS;
   readonly spiritualStatusOptions = SPIRITUAL_STATUS_OPTIONS;
   readonly genderOptions = GENDER_OPTIONS;
@@ -67,7 +70,13 @@ export class MemberCreate implements OnInit, OnDestroy {
   currentStepIndex = signal(0);
   isSubmitting = signal(false);
   submitError = signal<string | null>(null);
+  photoFile = signal<File | null>(null);
+  photoPreviewUrl = signal<string | null>(null);
   submitSuccess = signal(false);
+  churches = signal<ChurchModel[]>([]);
+  loadingChurches = signal(false);
+
+  selectedChurchId = signal<string>('');
 
   cellGroups: CellGroup[] = [];
   loadingCellGroups = signal(false);
@@ -79,14 +88,20 @@ export class MemberCreate implements OnInit, OnDestroy {
 
   form: FormGroup;
 
+
+
   currentStep = computed(() => this.steps[this.currentStepIndex()]);
   progressPercent = computed(() => ((this.currentStepIndex() + 1) / this.steps.length) * 100);
   isLastStep = computed(() => this.currentStepIndex() === this.steps.length - 1);
   isFirstStep = computed(() => this.currentStepIndex() === 0);
+  error: any;
+
+
 
   constructor(
     private fb: FormBuilder,
     private memberService: Members,
+    private churchService: ChurchService,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -106,6 +121,7 @@ export class MemberCreate implements OnInit, OnDestroy {
         isLeader: [false],
       }),
       affectation: this.fb.group({
+        churchId: ['', Validators.required],
         cellGroupId: [''],
         ministryId: [''],
         godfatherId: [''],
@@ -116,6 +132,7 @@ export class MemberCreate implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCellGroups();
+    this.loadChurches();
 
     this.godfatherSearch$
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -127,28 +144,95 @@ export class MemberCreate implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+loadChurches(): void {
+    this.loadingChurches.set(true);
+    this.churchService
+      .getChurches({ page: 1, pageSize: 100 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: ApiResponse<ChurchListResponse>) => {
+          if (response.success && response.data) {
+            this.churches.set(response.data.items);
+            if (response.data.items.length > 0 && !this.selectedChurchId()) {
+              const firstChurch = response.data.items[0];
+              this.selectedChurchId.set(firstChurch.id);
+              this.affectationGroup.get('churchId')?.setValue(firstChurch.id);
+              this.loadCellGroups(firstChurch.id);
+            }
+          } else {
+            this.submitError.set(response.message || 'Aucune église trouvée.');
+          }
+          this.loadingChurches.set(false);
+        },
+        error: (err) => {
+          console.error('❌ Erreur getChurches:', err);
+          this.loadingChurches.set(false);
+          this.submitError.set('Impossible de charger la liste des églises.');
+        },
+      });
+  }
+
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // Vérifier le type et la taille
+    if (!file.type.startsWith('image/')) {
+      this.submitError.set('Veuillez sélectionner une image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.submitError.set('L\'image ne doit pas dépasser 5 Mo.');
+      return;
+    }
+
+    this.photoFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => this.photoPreviewUrl.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto(): void {
+    this.photoFile.set(null);
+    this.photoPreviewUrl.set(null);
+  }
+
+
+
+
+
+
   // ───────────────────────────────────────────────────────────────
   // CHARGEMENT DES DONNÉES LIÉES
   // ───────────────────────────────────────────────────────────────
 
-  private loadCellGroups(): void {
+  private loadCellGroups(churchId?: string): void {
     this.loadingCellGroups.set(true);
     this.memberService
-      .getCellGroups(undefined, true)
+      .getCellGroups(churchId, true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (groups) => {
           this.cellGroups = groups ?? [];
           this.loadingCellGroups.set(false);
-          console.log('✅ Cellules chargées:', this.cellGroups.length);
         },
-        error: (error) => {
-          console.warn('⚠️ Impossible de charger les cellules:', error);
+        error: () => {
           this.cellGroups = [];
           this.loadingCellGroups.set(false);
         },
       });
   }
+
+  onChurchChange(churchId: string): void {
+    this.affectationGroup.get('churchId')?.setValue(churchId);
+    this.affectationGroup.get('cellGroupId')?.setValue(''); // Réinitialiser
+    this.loadCellGroups(churchId);
+  }
+
+
+
 
   onGodfatherInput(term: string): void {
     if (this.selectedGodfather && term !== this.selectedGodfather.fullName) {
@@ -300,7 +384,7 @@ export class MemberCreate implements OnInit, OnDestroy {
             this.isSubmitting.set(false);
             this.submitError.set(
               error?.error?.message ??
-                "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer."
+              "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer."
             );
           },
         });
@@ -317,23 +401,26 @@ export class MemberCreate implements OnInit, OnDestroy {
     const affectation = this.affectationGroup.value;
     const notes = this.form.get('notes')?.value;
 
+    const photoUrl = this.photoFile() ? 'temp-photo-url' : undefined;
+
     return {
-      gender: identite.gender || undefined,
       firstName: identite.firstName,
       lastName: identite.lastName,
       phone: identite.phone,
       email: identite.email || undefined,
-      birthDate: identite.birthDate || undefined,
+      gender: identite.gender || undefined,
+      dateOfBirth: identite.birthDate || undefined,
+      photoUrl: photoUrl,
       status: statut.status,
       spiritualStatus: statut.spiritualStatus,
       isBaptized: statut.isBaptized,
-      baptizedDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
+      baptismDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
       isLeader: statut.isLeader,
+      churchId: affectation.churchId,        // ✅ Obligatoire
       cellGroupId: affectation.cellGroupId || undefined,
-      ministryId: affectation.ministryId || undefined,
+      ministryIds: affectation.ministryId ? [affectation.ministryId] : undefined,
       godfatherId: affectation.godfatherId || undefined,
-      notes: notes || undefined,
-    } as unknown as MemberCreatePayload;
+    };
   }
 
   resetForm(): void {

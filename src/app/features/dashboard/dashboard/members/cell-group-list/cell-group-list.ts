@@ -1,9 +1,9 @@
 // src/app/features/dashboard/dashboard/members/cell-group-list/cell-group-list.ts
-import { Component, OnDestroy, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil, BehaviorSubject } from 'rxjs';
+import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import {
   CellGroup,
@@ -13,36 +13,58 @@ import {
   WEEK_DAYS,
   CellGroupUtils,
 } from '../../../../../core/models/Members/cell-group.model';
-import { Member } from '../../../../../core/models/Members/member.model';
+import { Member, MemberListResponse } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
-import { Church } from '../../../../../core/models/Church/church.model';
+import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
+import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { Users } from '../../../../../core/services/Users/users';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
+// Libellés lisibles pour les codes de rôle système
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  PASTOR_PRINCIPAL: 'Pasteur Principal',
+  PASTEUR_SITE: 'Pasteur de Site',
+  ELDER: 'Ancien / Diacre',
+  TREASURER: 'Trésorier',
+  PASTORAL_SECRETARY: 'Secrétaire Pastoral',
+  CELL_LEADER: 'Chef de Cellule',
+  DEPARTMENT_HEAD: 'Resp. Département',
+  HR_MANAGER: 'Resp. RH',
+  COMMUNICATION: 'Resp. Communication',
+  PROPERTY_MANAGER: 'Resp. Patrimoine',
+  MEMBER: 'Membre',
+  VOLUNTEER: 'Bénévole',
+};
 
 @Component({
   selector: 'app-cell-group-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    ReactiveFormsModule,
-    ConfirmDialog
-  ],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, ConfirmDialog],
   templateUrl: './cell-group-list.html',
   styleUrl: './cell-group-list.scss',
 })
 export class CellGroupList implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private leaderSearch$ = new Subject<string>();
+  private leaderNameCache = new Map<string, string | null>()
 
   readonly weekDays = WEEK_DAYS;
   readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
-  // ── Contexte de l'église ──
-  private churchSubject = new BehaviorSubject<Church | null>(null);
-  currentChurch$ = this.churchSubject.asObservable();
-  churches$ = new BehaviorSubject<Church[]>([]);
+  // ── Contexte église (sélecteur réel) ──
+  churches = signal<ChurchModel[]>([]);
+  loadingChurches = signal(false);
+  selectedChurchId = signal<string>('');
+
+  selectedChurch = computed(() =>
+    this.churches().find((c) => c.id === this.selectedChurchId()) ?? null
+  );
+
+  // Le bouton "Nouvelle cellule" n'est activable QUE si une église est sélectionnée
+  canCreate = computed(() => !!this.selectedChurchId());
 
   // ── Filtres de liste ──
   searchControl = new FormControl('');
@@ -61,13 +83,13 @@ export class CellGroupList implements OnInit, OnDestroy {
 
   private filter: CellGroupFilter = { ...DEFAULT_CELL_GROUP_FILTER };
 
-  // ── Panneau de création ──
+  // ── Panneau de création (right panel) ──
   showCreatePanel = signal(false);
   creating = signal(false);
   createError = signal<string | null>(null);
   createForm: FormGroup;
 
-  // ── Recherche du leader ──
+  // ── Recherche du responsable ──
   leaderResults: Member[] = [];
   searchingLeader = signal(false);
   showLeaderResults = signal(false);
@@ -78,10 +100,17 @@ export class CellGroupList implements OnInit, OnDestroy {
   cellGroupToDelete = signal<CellGroup | null>(null);
   deleting = signal(false);
 
+  // ── Cache des rôles système par ID de membre (pour le badge dans le tableau) ──
+  private leaderRoleCache = new Map<string, string[] | null>();
+  leaderRolesVersion = signal(0); // force le rafraîchissement du template après un lookup async
+
   constructor(
     private fb: FormBuilder,
     private memberService: Members,
-    private router: Router
+    private churchService: ChurchService,
+    private userService: Users,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.createForm = this.fb.group({
       churchId: ['', Validators.required],
@@ -94,40 +123,25 @@ export class CellGroupList implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     this.loadChurches();
-    this.loadCurrentChurchContext();
-    this.loadCellGroups();
 
     this.searchControl.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.currentPage.set(1);
-        this.loadCellGroups();
-      });
+      .subscribe(() => { this.currentPage.set(1); this.loadCellGroups(); });
 
     this.dayControl.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.currentPage.set(1);
-        this.loadCellGroups();
-      });
+      .subscribe(() => { this.currentPage.set(1); this.loadCellGroups(); });
 
     this.statusControl.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.currentPage.set(1);
-        this.loadCellGroups();
-      });
+      .subscribe(() => { this.currentPage.set(1); this.loadCellGroups(); });
 
     this.leaderSearch$
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((term) => this.performLeaderSearch(term));
-
-    this.currentChurch$.pipe(takeUntil(this.destroy$)).subscribe((church) => {
-      if (church) {
-        this.createForm.patchValue({ churchId: church.id });
-      }
-    });
   }
 
   ngOnDestroy(): void {
@@ -135,64 +149,73 @@ export class CellGroupList implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+
+  private loadLeaderName(memberId: string): void {
+  if (!memberId || this.leaderNameCache.has(memberId)) return;
+
+  this.leaderNameCache.set(memberId, null); // marque "en cours"
+
+  this.memberService
+    .getMemberById(memberId)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (member) => {
+        const fullName = member?.fullName || `${member?.firstName || ''} ${member?.lastName || ''}`.trim();
+        const name = fullName || null;
+        this.leaderNameCache.set(memberId, name);
+
+        // Met à jour la cellule correspondante dans le signal
+        this.cellGroups.update((groups) =>
+          groups.map((cg) => {
+            if (cg.leaderId === memberId) {
+              return { ...cg, leaderName: name || cg.leaderName };
+            }
+            return cg;
+          })
+        );
+        this.leaderRolesVersion.update((v) => v + 1);
+      },
+      error: () => {
+        this.leaderNameCache.set(memberId, null);
+        this.leaderRolesVersion.update((v) => v + 1);
+      },
+    });
+}
+
   // ───────────────────────────────────────────────────────────────
-  // GESTION DE L'ÉGLISE
+  // ÉGLISES (Selectbox / Lookup)
   // ───────────────────────────────────────────────────────────────
 
-  loadChurches(): void {
-    // TODO: Remplacer par l'appel à votre service d'églises
-    // Exemple avec des données mock
-    const mockChurches: Church[] = []; // ← Vide pour simuler l'absence d'églises
+loadChurches(): void {
+  this.loadingChurches.set(true);
+  this.churchService
+    .getChurches({ page: 1, pageSize: 100 }) // Récupère un grand nombre d’églises
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          // ✅ response.data.items est bien le tableau d’églises
+          this.churches.set(response.data.items);
+        } else {
+          this.error.set(response.message || 'Aucune église trouvée.');
+        }
+        this.loadingChurches.set(false);
+        this.loadCellGroups();
+      },
+      error: (err) => {
+        console.error('❌ Erreur getChurches:', err);
+        this.loadingChurches.set(false);
+        this.error.set('Impossible de charger la liste des églises.');
+        this.loadCellGroups();
+      },
+    });
+}
 
-    // Pour tester avec des données
-    // const mockChurches: Church[] = [
-    //   { id: 'church_001', name: 'Église Vie Nouvelle - Abidjan' },
-    //   { id: 'church_002', name: 'Église Vie Nouvelle - Yamoussoukro' },
-    // ];
-
-    this.churches$.next(mockChurches);
-
-    // Si aucune église n'existe, on redirige automatiquement vers la création
-    if (mockChurches.length === 0) {
-      // Optionnel: Afficher un message ou rediriger
-      console.warn('⚠️ Aucune église trouvée dans le système');
-    }
-  }
-
-  loadCurrentChurchContext(): void {
-    // TODO: Récupérer l'église du contexte utilisateur
-    // Si l'utilisateur n'a pas d'église et qu'il y a des églises disponibles
-    const churches = this.churches$.value;
-    if (churches.length > 0) {
-      // Option 1: Sélectionner la première église par défaut
-      // this.churchSubject.next(churches[0]);
-
-      // Option 2: Récupérer depuis le localStorage
-      // const savedChurchId = localStorage.getItem('currentChurchId');
-      // const savedChurch = churches.find(c => c.id === savedChurchId);
-      // this.churchSubject.next(savedChurch || churches[0]);
-
-      // Option 3: Laisser l'utilisateur choisir
-      this.churchSubject.next(null);
-    } else {
-      this.churchSubject.next(null);
-    }
-  }
-
-  hasChurchContext(): boolean {
-    return this.churchSubject.value !== null;
-  }
-
-  openChurchSelector(): void {
-    // TODO: Ouvrir un modal de sélection d'église
-    console.log('Ouvrir sélecteur d\'église');
-  }
-
-  goToCreateChurch(): void {
-    // Navigation vers la page de création d'église
-    this.router.navigate(['/dashboard/parametres/eglises/creer']);
-    // ou selon votre routing
-    // this.router.navigate(['/dashboard/churches/create']);
+  onChurchSelected(churchId: string): void {
+    this.selectedChurchId.set(churchId);
+    this.currentPage.set(1);
+    this.leaderRoleCache.clear();
+    this.loadCellGroups();
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -200,60 +223,65 @@ export class CellGroupList implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   loadCellGroups(): void {
-    const currentChurch = this.churchSubject.value;
+  this.loading.set(true);
+  this.error.set(null);
 
-    // Si aucune église n'existe, on ne charge rien
-    if (this.churches$.value.length === 0) {
-      this.cellGroups.set([]);
-      this.loading.set(false);
-      return;
-    }
+  const churchId = this.selectedChurchId() || undefined;
 
-    this.loading.set(true);
-    this.error.set(null);
+  this.filter = {
+    ...DEFAULT_CELL_GROUP_FILTER,
+    page: this.currentPage(),
+    pageSize: this.pageSize(),
+    name: this.searchControl.value || undefined,
+    meetingDay: this.dayControl.value || undefined,
+    isActive: this.statusControl.value === '' ? undefined : this.statusControl.value === 'true',
+  };
 
-    this.filter = {
-      ...DEFAULT_CELL_GROUP_FILTER,
-      page: this.currentPage(),
-      pageSize: this.pageSize(),
-      name: this.searchControl.value || undefined,
-      meetingDay: this.dayControl.value || undefined,
-      isActive: this.statusControl.value === '' ? undefined : this.statusControl.value === 'true',
-    };
+  this.memberService
+    .getCellGroups(churchId, this.filter.isActive)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (groups) => {
+        let filtered = groups ?? [];
 
-    this.memberService
-      .getCellGroups(currentChurch?.id, this.filter.isActive)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (groups) => {
-          let filtered = groups ?? [];
+        if (this.filter.name) filtered = CellGroupUtils.searchCellGroups(filtered, this.filter.name);
+        if (this.filter.meetingDay) {
+          filtered = filtered.filter(
+            (g) => (g.meetingDay || '').toLowerCase() === this.filter.meetingDay!.toLowerCase()
+          );
+        }
 
-          if (currentChurch?.id) {
-            filtered = filtered.filter(g => g.churchId === currentChurch.id);
+        this.totalCount.set(filtered.length);
+        const start = (this.currentPage() - 1) * this.pageSize();
+        const page = filtered.slice(start, start + this.pageSize());
+
+        // ✅ Enrichir avec le nom de l'église
+        const enriched = page.map((cg) => {
+          const church = this.churches().find((c) => c.id === cg.churchId);
+          return {
+            ...cg,
+            churchName: church?.name || cg.churchName || '—',
+          };
+        });
+
+        this.cellGroups.set(enriched);
+        this.loading.set(false);
+
+        // ✅ Charger les noms des responsables et les rôles
+        for (const cg of enriched) {
+          if (cg.leaderId) {
+            this.loadLeaderName(cg.leaderId);
+            this.loadLeaderRole(cg.leaderId);
           }
-
-          if (this.filter.name) {
-            filtered = CellGroupUtils.searchCellGroups(filtered, this.filter.name);
-          }
-          if (this.filter.meetingDay) {
-            filtered = filtered.filter(
-              (g) => (g.meetingDay || '').toLowerCase() === this.filter.meetingDay!.toLowerCase()
-            );
-          }
-
-          this.totalCount.set(filtered.length);
-
-          const start = (this.currentPage() - 1) * this.pageSize();
-          this.cellGroups.set(filtered.slice(start, start + this.pageSize()));
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.cellGroups.set([]);
-          this.loading.set(false);
-          this.error.set('Impossible de charger la liste des cellules.');
-        },
-      });
-  }
+        }
+      },
+      error: () => {
+        this.cellGroups.set([]);
+        this.loading.set(false);
+        this.error.set('Impossible de charger la liste des cellules.');
+      },
+    });
+}
 
   refresh(): void {
     this.loadCellGroups();
@@ -265,6 +293,38 @@ export class CellGroupList implements OnInit, OnDestroy {
     this.statusControl.setValue('', { emitEvent: false });
     this.currentPage.set(1);
     this.loadCellGroups();
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // RÔLE SYSTÈME DU RESPONSABLE (badge discret)
+  // ───────────────────────────────────────────────────────────────
+
+  private loadLeaderRole(memberId: string | undefined): void {
+    if (!memberId || this.leaderRoleCache.has(memberId)) return;
+
+    this.leaderRoleCache.set(memberId, null); // marque "en cours" pour éviter les doublons
+
+    this.userService
+      .getUserByMemberId(memberId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const roles = response.success && response.data ? response.data.roles ?? [] : [];
+          this.leaderRoleCache.set(memberId, roles);
+          this.leaderRolesVersion.update((v) => v + 1);
+        },
+        error: () => {
+          this.leaderRoleCache.set(memberId, []);
+          this.leaderRolesVersion.update((v) => v + 1);
+        },
+      });
+  }
+
+  getLeaderRoleLabel(memberId: string | undefined): string | null {
+    if (!memberId) return null;
+    const roles = this.leaderRoleCache.get(memberId);
+    if (!roles || roles.length === 0) return null;
+    return ROLE_LABELS[roles[0]] ?? roles[0];
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -293,38 +353,21 @@ export class CellGroupList implements OnInit, OnDestroy {
   }
 
   // ───────────────────────────────────────────────────────────────
-  // PANNEAU DE CRÉATION
+  // PANNEAU DE CRÉATION (Right Panel)
   // ───────────────────────────────────────────────────────────────
 
   openCreatePanel(): void {
-    // Vérifier qu'il y a des églises dans le système
-    if (this.churches$.value.length === 0) {
-      this.createError.set('Aucune église disponible. Veuillez d\'abord créer une église.');
-      return;
-    }
-
-    const currentChurch = this.churchSubject.value;
-    if (!currentChurch) {
-      this.createError.set('Veuillez d\'abord sélectionner une église.');
-      // Optionnel: ouvrir le sélecteur d'église
-      this.openChurchSelector();
-      return;
-    }
-
+    if (!this.canCreate()) return; // sécurité, le bouton est déjà disabled
     this.showCreatePanel.set(true);
     this.createError.set(null);
-    this.createForm.patchValue({ churchId: currentChurch.id });
+    this.createForm.patchValue({ churchId: this.selectedChurchId() });
   }
 
   closeCreatePanel(): void {
     this.showCreatePanel.set(false);
     this.createForm.reset({
-      name: '',
-      leaderId: '',
-      location: '',
-      meetingDay: '',
-      meetingTime: '',
-      churchId: this.churchSubject.value?.id || ''
+      churchId: this.selectedChurchId(),
+      name: '', leaderId: '', location: '', meetingDay: '', meetingTime: '',
     });
     this.selectedLeader = null;
     this.leaderResults = [];
@@ -345,22 +388,27 @@ export class CellGroupList implements OnInit, OnDestroy {
   }
 
   private performLeaderSearch(term: string): void {
-    this.searchingLeader.set(true);
-    this.showLeaderResults.set(true);
-    this.memberService
-      .getMembers({ page: 1, pageSize: 6, fullName: term } as any)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res) => {
-          this.leaderResults = (res as any)?.items ?? (res as any) ?? [];
-          this.searchingLeader.set(false);
-        },
-        error: () => {
-          this.leaderResults = [];
-          this.searchingLeader.set(false);
-        },
-      });
-  }
+  this.searchingLeader.set(true);
+  this.showLeaderResults.set(true);
+
+  this.memberService
+    .getMembers({ page: 1, pageSize: 6, fullName: term } as any)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res: MemberListResponse) => {
+        // ✅ res.items est le tableau de membres
+        this.leaderResults = res.items || [];
+        this.searchingLeader.set(false);
+        // Si aucun résultat, on laisse le message "Aucun membre trouvé" s'afficher
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de la recherche de responsables:', err);
+        this.leaderResults = [];
+        this.searchingLeader.set(false);
+        this.showLeaderResults.set(false); // masque la dropdown pour ne pas afficher d'erreur
+      },
+    });
+}
 
   selectLeader(member: Member): void {
     this.selectedLeader = member;
@@ -412,17 +460,22 @@ export class CellGroupList implements OnInit, OnDestroy {
         error: (err) => {
           console.error('❌ Erreur lors de la création de la cellule:', err);
           this.creating.set(false);
-          this.createError.set("Une erreur est survenue lors de la création. Veuillez réessayer.");
+          this.createError.set('Une erreur est survenue lors de la création. Veuillez réessayer.');
         },
       });
   }
 
   // ───────────────────────────────────────────────────────────────
-  // NAVIGATION / SUPPRESSION
+  // ÉDITION / SUPPRESSION
   // ───────────────────────────────────────────────────────────────
 
   openCellGroup(cellGroup: CellGroup): void {
     this.router.navigate(['/dashboard/membres/cellules', cellGroup.id]);
+  }
+
+  editCellGroup(cellGroup: CellGroup, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/dashboard/membres/cellules', cellGroup.id, 'edit']);
   }
 
   requestDelete(cellGroup: CellGroup, event: Event): void {
@@ -465,23 +518,11 @@ export class CellGroupList implements OnInit, OnDestroy {
   // HELPERS D'AFFICHAGE
   // ───────────────────────────────────────────────────────────────
 
-  getInitials(name: string): string {
-    return CellGroupUtils.getInitials(name);
-  }
-
+  getInitials(name: string): string { return CellGroupUtils.getInitials(name); }
   getFullName(member: Member): string {
     return (member as any).fullName ?? `${(member as any).firstName} ${(member as any).lastName}`;
   }
-
-  getStatusBadge(isActive: boolean) {
-    return CellGroupUtils.getStatusBadge(isActive);
-  }
-
-  getMeetingDayLabel(day?: string): string {
-    return CellGroupUtils.getMeetingDayLabel(day);
-  }
-
-  getFormattedMeetingTime(time?: string): string {
-    return CellGroupUtils.getFormattedMeetingTime(time);
-  }
+  getStatusBadge(isActive: boolean) { return CellGroupUtils.getStatusBadge(isActive); }
+  getMeetingDayLabel(day?: string): string { return CellGroupUtils.getMeetingDayLabel(day); }
+  getFormattedMeetingTime(time?: string): string { return CellGroupUtils.getFormattedMeetingTime(time); }
 }

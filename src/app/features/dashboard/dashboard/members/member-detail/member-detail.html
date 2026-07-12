@@ -8,7 +8,10 @@
 
   <!-- ══════════════ ERREUR CRITIQUE ══════════════ -->
   <div class="md-banner md-banner--error" *ngIf="!loading() && error() && !member()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
   </div>
 
@@ -57,17 +60,26 @@
 
     <!-- ══════════════ BANNIÈRES ══════════════ -->
     <div class="md-banner md-banner--success" *ngIf="saveSuccess()">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
       <span>Modifications enregistrées avec succès.</span>
     </div>
 
     <div class="md-banner md-banner--error" *ngIf="saveError()">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
       <span>{{ saveError() }}</span>
     </div>
 
     <div class="md-banner md-banner--error" *ngIf="error() && member()">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
       <span>{{ error() }}</span>
     </div>
 
@@ -79,19 +91,15 @@
       </div>
       <div class="md-panel-body">
         <div class="md-stage-track">
-          <div class="md-stage-step"
-               *ngFor="let stage of visitorStageOrder; let i = index"
-               [class.is-done]="i <= currentStageIndex()"
-               [class.is-current]="i === currentStageIndex()">
+          <div class="md-stage-step" *ngFor="let stage of visitorStageOrder; let i = index"
+            [class.is-done]="i <= currentStageIndex()" [class.is-current]="i === currentStageIndex()">
             <span class="md-stage-dot"></span>
             <span class="md-stage-label">{{ visitorStageLabels[stage] }}</span>
           </div>
         </div>
 
-        <button type="button" class="md-btn md-btn--primary md-stage-btn"
-                *ngIf="!isVisitorPipelineDone()"
-                (click)="advanceVisitorStage()"
-                [disabled]="advancingStage()">
+        <button type="button" class="md-btn md-btn--primary md-stage-btn" *ngIf="!isVisitorPipelineDone()"
+          (click)="advanceVisitorStage()" [disabled]="advancingStage()">
           <span *ngIf="!advancingStage()">Faire avancer vers « {{ nextStageLabel() }} »</span>
           <span class="md-spinner md-spinner--btn" *ngIf="advancingStage()"></span>
         </button>
@@ -112,21 +120,53 @@
         </div>
         <div class="md-panel-body md-panel-body--grid">
 
+          <!-- ─── Photo de profil ─── -->
+          <div class="md-field md-field--span-2">
+            <label>Photo de profil</label>
+
+            <div class="md-photo-upload">
+              <!-- Aperçu en mode lecture / édition -->
+              <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
+                <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
+                <button *ngIf="isEditMode()" type="button" class="md-photo-remove" (click)="removePhoto()">×</button>
+              </div>
+
+              <!-- Zone de dépôt / sélection (mode édition uniquement) -->
+              <div *ngIf="isEditMode() && !photoPreviewUrl() && !member()?.photoUrl" class="md-photo-dropzone">
+                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+                <span>Cliquez pour choisir une photo</span>
+                <small>JPG, PNG, GIF – Max 5 Mo</small>
+              </div>
+
+              <div *ngIf="isEditMode() && photoFile()" class="md-photo-actions">
+                <button type="button" class="md-btn md-btn--primary" (click)="uploadPhoto()"
+                  [disabled]="uploadingPhoto()">
+                  <span *ngIf="!uploadingPhoto()">Enregistrer la photo</span>
+                  <span class="md-spinner md-spinner--btn" *ngIf="uploadingPhoto()"></span>
+                </button>
+                <button type="button" class="md-btn md-btn--ghost" (click)="removePhoto()">Annuler</button>
+              </div>
+
+              <p class="md-error" *ngIf="photoUploadError()">{{ photoUploadError() }}</p>
+            </div>
+          </div>
+
           <ng-container *ngIf="!isEditMode()">
-            <div class="md-info-row"><span>Civilité</span><strong>{{ m.gender === 'F' ? 'Femme' : m.gender === 'M' ? 'Homme' : '—' }}</strong></div>
+            <div class="md-info-row"><span>Civilité</span><strong>{{ m.gender === 'F' ? 'Femme' : m.gender === 'M' ?
+                'Homme' : '—' }}</strong></div>
             <div class="md-info-row"><span>Téléphone</span><strong>{{ m.phone || '—' }}</strong></div>
             <div class="md-info-row"><span>E-mail</span><strong>{{ m.email || '—' }}</strong></div>
-            <div class="md-info-row"><span>Date de naissance</span><strong>{{ formatDate(m.dateOfBirth) }}</strong></div>
+            <div class="md-info-row"><span>Date de naissance</span><strong>{{ formatDate(m.dateOfBirth) }}</strong>
+            </div>
           </ng-container>
 
           <ng-container *ngIf="isEditMode()">
             <div class="md-field md-field--span-2">
               <label>Civilité</label>
               <div class="md-radio-group">
-                <button type="button" *ngFor="let g of genderOptions"
-                        class="md-radio-pill"
-                        [class.is-selected]="identiteGroup.get('gender')?.value === g.value"
-                        (click)="identiteGroup.get('gender')?.setValue(g.value)">
+                <button type="button" *ngFor="let g of genderOptions" class="md-radio-pill"
+                  [class.is-selected]="identiteGroup.get('gender')?.value === g.value"
+                  (click)="identiteGroup.get('gender')?.setValue(g.value)">
                   {{ g.label }}
                 </button>
               </div>
@@ -135,13 +175,15 @@
             <div class="md-field">
               <label for="firstName">Prénom <span class="md-required">*</span></label>
               <input id="firstName" type="text" formControlName="firstName">
-              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères min.)</p>
+              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères
+                min.)</p>
             </div>
 
             <div class="md-field">
               <label for="lastName">Nom <span class="md-required">*</span></label>
               <input id="lastName" type="text" formControlName="lastName">
-              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères min.)</p>
+              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères
+                min.)</p>
             </div>
 
             <div class="md-field">
@@ -174,9 +216,11 @@
 
           <ng-container *ngIf="!isEditMode()">
             <div class="md-info-row"><span>Statut</span><strong>{{ getStatusLabel(m.status) }}</strong></div>
-            <div class="md-info-row"><span>Statut spirituel</span><strong>{{ getSpiritualStatusLabel(m.spiritualStatus) }}</strong></div>
+            <div class="md-info-row"><span>Statut spirituel</span><strong>{{ getSpiritualStatusLabel(m.spiritualStatus)
+                }}</strong></div>
             <div class="md-info-row"><span>Baptisé(e)</span><strong>{{ m.isBaptized ? 'Oui' : 'Non' }}</strong></div>
-            <div class="md-info-row" *ngIf="m.isBaptized"><span>Date de baptême</span><strong>{{ formatDate(m.baptismDate) }}</strong></div>
+            <div class="md-info-row" *ngIf="m.isBaptized"><span>Date de baptême</span><strong>{{
+                formatDate(m.baptismDate) }}</strong></div>
             <div class="md-info-row"><span>Leader</span><strong>{{ m.isLeader ? 'Oui' : 'Non' }}</strong></div>
           </ng-container>
 
@@ -187,7 +231,10 @@
                 <select formControlName="status">
                   <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
                 </select>
-                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
               </div>
             </div>
 
@@ -197,7 +244,10 @@
                 <select formControlName="spiritualStatus">
                   <option *ngFor="let s of spiritualStatusOptions" [value]="s.value">{{ s.label }}</option>
                 </select>
-                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
               </div>
             </div>
 
@@ -238,8 +288,10 @@
         <div class="md-panel-body md-panel-body--grid">
 
           <ng-container *ngIf="!isEditMode()">
-            <div class="md-info-row"><span>Cellule de maison</span><strong>{{ getCellGroupName(m.cellGroupId) }}</strong></div>
-            <div class="md-info-row"><span>Parrain / Marraine</span><strong>{{ godfather() ? getFullName(godfather()) : 'Aucun' }}</strong></div>
+            <div class="md-info-row"><span>Cellule de maison</span><strong>{{ getCellGroupName(m.cellGroupId)
+                }}</strong></div>
+            <div class="md-info-row"><span>Parrain / Marraine</span><strong>{{ godfather() ? getFullName(godfather()) :
+                'Aucun' }}</strong></div>
           </ng-container>
 
           <ng-container *ngIf="isEditMode()">
@@ -250,7 +302,10 @@
                   <option value="">— Aucune cellule —</option>
                   <option *ngFor="let cg of cellGroups()" [value]="cg.id">{{ cg.name }}</option>
                 </select>
-                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
               </div>
             </div>
 
@@ -264,17 +319,21 @@
                   <span>{{ selectedGodfather.phone }}</span>
                 </div>
                 <button type="button" class="md-icon-btn" (click)="clearGodfather()" aria-label="Retirer">
-                  <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  </svg>
                 </button>
               </div>
 
               <input *ngIf="!selectedGodfather" id="godfatherSearch" type="text" placeholder="Rechercher par nom…"
-                     (input)="onGodfatherInput($any($event.target).value)">
+                (input)="onGodfatherInput($any($event.target).value)">
 
               <div class="md-search-dropdown" *ngIf="showGodfatherResults() && !selectedGodfather">
                 <p class="md-search-status" *ngIf="searchingGodfather()">Recherche en cours…</p>
-                <p class="md-search-status" *ngIf="!searchingGodfather() && godfatherResults.length === 0">Aucun membre trouvé</p>
-                <button type="button" class="md-search-result" *ngFor="let gm of godfatherResults" (click)="selectGodfather(gm)">
+                <p class="md-search-status" *ngIf="!searchingGodfather() && godfatherResults.length === 0">Aucun membre
+                  trouvé</p>
+                <button type="button" class="md-search-result" *ngFor="let gm of godfatherResults"
+                  (click)="selectGodfather(gm)">
                   <div class="md-mini-avatar">{{ getInitials(gm) }}</div>
                   <div class="md-mini-info">
                     <strong>{{ getFullName(gm) }}</strong>
@@ -292,7 +351,8 @@
       <section class="md-panel">
         <div class="md-panel-header">
           <h2>Notes pastorales</h2>
-          <a [routerLink]="['/dashboard/membres/suivi-pastoral']" [queryParams]="{ memberId: m.id }" class="md-link-btn">
+          <a [routerLink]="['/dashboard/membres/suivi-pastoral']" [queryParams]="{ memberId: m.id }"
+            class="md-link-btn">
             Voir tout
           </a>
         </div>
@@ -305,7 +365,8 @@
 
           <div class="md-note-card" *ngFor="let note of pastoralNotes()">
             <div class="md-note-head">
-              <span class="md-tag" [ngClass]="'md-tag--' + (note.summary).toLowerCase()">{{ note.summary || 'Général' }}</span>
+              <span class="md-tag" [ngClass]="'md-tag--' + (note.summary).toLowerCase()">{{ note.summary || 'Général'
+                }}</span>
               <span class="md-note-date">{{ formatDate(note.createdAt) }}</span>
             </div>
             <p class="md-note-content">{{ note.memberName }}</p>
@@ -318,15 +379,9 @@
   </ng-container>
 
   <!-- ══════════════ POPUP DE CONFIRMATION DE SUPPRESSION ══════════════ -->
-  <app-confirm-dialog
-    [visible]="deleteDialogVisible()"
-    title="Supprimer ce membre"
+  <app-confirm-dialog [visible]="deleteDialogVisible()" title="Supprimer ce membre"
     [message]="member() ? 'Êtes-vous sûr de vouloir supprimer ' + getFullName(member()) + ' ?' : ''"
-    details="Cette action peut être annulée par un administrateur (suppression douce)."
-    confirmText="Supprimer"
-    cancelText="Annuler"
-    (confirm)="confirmDelete()"
-    (cancel)="cancelDelete()"
-  ></app-confirm-dialog>
+    details="Cette action peut être annulée par un administrateur (suppression douce)." confirmText="Supprimer"
+    cancelText="Annuler" (confirm)="confirmDelete()" (cancel)="cancelDelete()"></app-confirm-dialog>
 
 </div>

@@ -52,12 +52,6 @@ export const MEMBERS_ROUTES: Routes = [
       import('./cell-group-list/cell-group-list').then((m) => m.CellGroupList),
     title: 'Cellules de maison — EKKLESIA',
   },
-  {
-    path: 'cellules/:id',
-    loadComponent: () =>
-      import('./cell-group-detail/cell-group-detail').then((m) => m.CellGroupDetail),
-    title: 'Détail de la cellule — EKKLESIA',
-  },
 
   // ─── Détail / édition d'un membre ───
   // ⚠️ Ces routes dynamiques doivent rester en DERNIER : Angular teste
