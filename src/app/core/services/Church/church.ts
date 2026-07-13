@@ -83,8 +83,6 @@ export class Church {
   }
 
 
-  // src/app/core/services/Church/church.ts
-
 /**
  * Crée une église avec un logo (upload de fichier)
  * POST /api/v1/Church avec multipart/form-data

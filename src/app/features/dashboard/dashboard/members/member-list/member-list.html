@@ -87,14 +87,23 @@
         <!-- Lignes de données -->
         <tr *ngFor="let member of members()" class="ml-row" (click)="viewMember(member)">
           <td class="ml-col-member">
-            <div class="ml-member-cell">
-              <div class="ml-avatar">{{ getInitials(member) }}</div>
-              <div class="ml-member-info">
-                <strong>{{ getFullName(member) }}</strong>
-                <span *ngIf="member.email">{{ member.email }}</span>
-              </div>
-            </div>
-          </td>
+  <div class="ml-member-cell">
+    <div class="ml-avatar">
+      <img
+        *ngIf="member.photoUrl"
+        [src]="getPhotoUrl(member.photoUrl)"
+        [alt]="getFullName(member)"
+        class="ml-avatar-img"
+        (error)="onAvatarError($event)"
+      />
+      <span *ngIf="!member.photoUrl">{{ getInitials(member) }}</span>
+    </div>
+    <div class="ml-member-info">
+      <strong>{{ getFullName(member) }}</strong>
+      <span *ngIf="member.email">{{ member.email }}</span>
+    </div>
+  </div>
+</td>
           <td>{{ member.phone }}</td>
           <td>
             <span class="ml-badge" [ngClass]="getStatusClass(member.status)">

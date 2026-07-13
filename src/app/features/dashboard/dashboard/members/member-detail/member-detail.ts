@@ -179,24 +179,27 @@ removePhoto(): void {
 }
 
 uploadPhoto(): void {
-  if (!this.photoFile()) return;
+  const file = this.photoFile();
+  if (!file) return;
 
   this.uploadingPhoto.set(true);
   this.photoUploadError.set(null);
 
-  const formData = new FormData();
-  formData.append('photoFile', this.photoFile()!);
-
+  // ✅ On passe directement le File, c'est le service qui construit le FormData
   this.memberService
-    .updateMemberPhoto(this.memberId, formData)
+    .updateMemberPhoto(this.memberId, file)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (response: { photoUrl: string }) => {   // ✅ Type correct
+      next: (updatedMember) => {
         this.uploadingPhoto.set(false);
-        const photoUrl = response.photoUrl;
+
+        // ✅ Le backend renvoie le membre complet (MemberResponseDto),
+        // pas juste { photoUrl }, donc on lit updatedMember.photoUrl
+        const photoUrl = updatedMember.photoUrl;
         this.identiteGroup.get('photoUrl')?.setValue(photoUrl);
         this.photoPreviewUrl.set(null);
         this.photoFile.set(null);
+
         const m = this.member();
         if (m) {
           m.photoUrl = photoUrl;

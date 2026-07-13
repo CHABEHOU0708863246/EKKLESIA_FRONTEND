@@ -148,13 +148,14 @@ private loadUserPermissions(): void {
    * cellules, import.
    */
   public canAccessMemberModule(): boolean {
-    return this.hasAnyPermission(
-      'Member_Read', 'Member_Create', 'Member_Update', 'Member_Delete', 'Member_Validate',
-      'Member_Export', 'Member_Import',
-      'Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update', 'Pastoral_Note_Delete',
-      'Cell_Read', 'Cell_Create', 'Cell_Update', 'Cell_Delete', 'Cell_Assign'
-    );
-  }
+  return this.hasAnyPermission(
+    'Member_Read', 'Member_Create', 'Member_Update', 'Member_Delete', 'Member_Validate',
+    'Member_Export', 'Member_Import',
+    'Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update', 'Pastoral_Note_Delete',
+    'PastoralAct_Read', 'PastoralAct_Create', 'PastoralAct_Update', 'PastoralAct_Delete', // ✅ NOUVEAU
+    'Cell_Read', 'Cell_Create', 'Cell_Update', 'Cell_Delete', 'Cell_Assign'
+  );
+}
 
   /**
    * Section "Communauté" : disponibilités et planning des bénévoles.
@@ -340,6 +341,43 @@ private loadUserPermissions(): void {
            this.hasRole('ADMIN') ||
            this.hasRole('Administrateur');
   }
+
+  // ───────────────────────────────────────────────────────────────
+// 📜 MODULE : ACTES PASTORAUX
+// ───────────────────────────────────────────────────────────────
+
+public canManagePastoralActs(): boolean {
+  return this.hasAnyPermission(
+    'PastoralAct_Create',
+    'PastoralAct_Read',
+    'PastoralAct_Update',
+    'PastoralAct_Delete'
+  );
+}
+
+public canViewPastoralActs(): boolean {
+  return this.hasAnyPermission(
+    'PastoralAct_Read',
+    'PastoralAct_Create',
+    'PastoralAct_Update'
+  );
+}
+
+public canCreatePastoralAct(): boolean {
+  return this.hasPermission('PastoralAct_Create');
+}
+
+public canUpdatePastoralAct(): boolean {
+  return this.hasPermission('PastoralAct_Update');
+}
+
+public canDeletePastoralAct(): boolean {
+  return this.hasPermission('PastoralAct_Delete');
+}
+
+public canGeneratePastoralActCertificate(): boolean {
+  return this.hasPermission('PastoralAct_Certificate_Generate');
+}
 
   // ───────────────────────────────────────────────────────────────
   // 👥 MODULE : MEMBRES

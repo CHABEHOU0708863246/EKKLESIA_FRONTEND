@@ -120,36 +120,68 @@
         </div>
         <div class="md-panel-body md-panel-body--grid">
 
-          <!-- ─── Photo de profil ─── -->
-          <div class="md-field md-field--span-2">
-            <label>Photo de profil</label>
+<!-- ─── Photo de profil ─── -->
+<div class="md-field md-field--span-2">
+  <label>Photo de profil</label>
 
-            <div class="md-photo-upload">
-              <!-- Aperçu en mode lecture / édition -->
-              <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
-                <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
-                <button *ngIf="isEditMode()" type="button" class="md-photo-remove" (click)="removePhoto()">×</button>
-              </div>
+  <div class="md-photo-upload">
 
-              <!-- Zone de dépôt / sélection (mode édition uniquement) -->
-              <div *ngIf="isEditMode() && !photoPreviewUrl() && !member()?.photoUrl" class="md-photo-dropzone">
-                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
-                <span>Cliquez pour choisir une photo</span>
-                <small>JPG, PNG, GIF – Max 5 Mo</small>
-              </div>
+    <!-- Input file caché, toujours présent dans le DOM -->
+    <input
+      #fileInput
+      type="file"
+      accept="image/*"
+      class="md-photo-input-hidden"
+      (change)="onPhotoSelected($event)"
+    />
 
-              <div *ngIf="isEditMode() && photoFile()" class="md-photo-actions">
-                <button type="button" class="md-btn md-btn--primary" (click)="uploadPhoto()"
-                  [disabled]="uploadingPhoto()">
-                  <span *ngIf="!uploadingPhoto()">Enregistrer la photo</span>
-                  <span class="md-spinner md-spinner--btn" *ngIf="uploadingPhoto()"></span>
-                </button>
-                <button type="button" class="md-btn md-btn--ghost" (click)="removePhoto()">Annuler</button>
-              </div>
+    <!-- Aperçu (photo existante ou nouvelle sélectionnée) -->
+    <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
+      <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
 
-              <p class="md-error" *ngIf="photoUploadError()">{{ photoUploadError() }}</p>
-            </div>
-          </div>
+      <button
+        *ngIf="isEditMode()"
+        type="button"
+        class="md-photo-change"
+        (click)="fileInput.click()"
+      >
+        Changer la photo
+      </button>
+
+      <button
+        *ngIf="isEditMode() && photoPreviewUrl()"
+        type="button"
+        class="md-photo-remove"
+        (click)="removePhoto()"
+      >×</button>
+    </div>
+
+    <!-- Zone de dépôt visible uniquement quand il n'y a AUCUNE photo -->
+    <div
+      *ngIf="isEditMode() && !photoPreviewUrl() && !member()?.photoUrl"
+      class="md-photo-dropzone"
+      (click)="fileInput.click()"
+    >
+      <span>Cliquez pour choisir une photo</span>
+      <small>JPG, PNG, GIF – Max 5 Mo</small>
+    </div>
+
+    <div *ngIf="isEditMode() && photoFile()" class="md-photo-actions">
+      <button
+        type="button"
+        class="md-btn md-btn--primary"
+        (click)="uploadPhoto()"
+        [disabled]="uploadingPhoto()"
+      >
+        <span *ngIf="!uploadingPhoto()">Enregistrer la photo</span>
+        <span class="md-spinner md-spinner--btn" *ngIf="uploadingPhoto()"></span>
+      </button>
+      <button type="button" class="md-btn md-btn--ghost" (click)="removePhoto()">Annuler</button>
+    </div>
+
+    <p class="md-error" *ngIf="photoUploadError()">{{ photoUploadError() }}</p>
+  </div>
+</div>
 
           <ng-container *ngIf="!isEditMode()">
             <div class="md-info-row"><span>Civilité</span><strong>{{ m.gender === 'F' ? 'Femme' : m.gender === 'M' ?

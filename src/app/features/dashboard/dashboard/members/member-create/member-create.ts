@@ -355,73 +355,100 @@ loadChurches(): void {
   // SOUMISSION
   // ───────────────────────────────────────────────────────────────
 
-  submit(): void {
-    if (this.identiteGroup.invalid || this.statutGroup.invalid) {
-      this.identiteGroup.markAllAsTouched();
-      this.statutGroup.markAllAsTouched();
-      this.currentStepIndex.set(this.identiteGroup.invalid ? 0 : 1);
-      return;
-    }
-
-    this.isSubmitting.set(true);
-    this.submitError.set(null);
-
-    try {
-      const payload = this.buildPayload();
-
-      this.memberService
-        .createMember(payload)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (created) => {
-            console.log('✅ Membre créé avec succès:', created?.fullName ?? created);
-            this.isSubmitting.set(false);
-            this.submitSuccess.set(true);
-            setTimeout(() => this.router.navigate(['/dashboard/membres']), 1400);
-          },
-          error: (error) => {
-            console.error('❌ Erreur lors de la création du membre:', error);
-            this.isSubmitting.set(false);
-            this.submitError.set(
-              error?.error?.message ??
-              "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer."
-            );
-          },
-        });
-    } catch (error) {
-      console.error('❌ Erreur inattendue lors de la préparation du formulaire:', error);
-      this.isSubmitting.set(false);
-      this.submitError.set('Une erreur inattendue est survenue.');
-    }
+submit(): void {
+  if (this.identiteGroup.invalid || this.statutGroup.invalid) {
+    this.identiteGroup.markAllAsTouched();
+    this.statutGroup.markAllAsTouched();
+    this.currentStepIndex.set(this.identiteGroup.invalid ? 0 : 1);
+    return;
   }
+
+  this.isSubmitting.set(true);
+  this.submitError.set(null);
+
+  try {
+    const payload = this.buildPayload();
+
+    this.memberService
+      .createMember(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (created) => {
+          console.log('✅ Membre créé avec succès:', created?.fullName ?? created);
+
+          // ✅ Si une photo a été sélectionnée, on l'upload maintenant
+          // que l'on dispose de l'id du membre nouvellement créé
+          const file = this.photoFile();
+          if (file && created?.id) {
+            this.memberService
+              .updateMemberPhoto(created.id, file)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => {
+                  this.finishSubmit();
+                },
+                error: (photoErr) => {
+                  console.error('⚠️ Membre créé, mais échec de l\'upload de la photo:', photoErr);
+                  // On ne bloque pas le flux : le membre existe déjà.
+                  this.submitError.set(
+                    'Le membre a été créé, mais la photo n\'a pas pu être enregistrée.'
+                  );
+                  this.finishSubmit();
+                },
+              });
+          } else {
+            this.finishSubmit();
+          }
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de la création du membre:', error);
+          this.isSubmitting.set(false);
+          this.submitError.set(
+            error?.error?.message ??
+            "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer."
+          );
+        },
+      });
+  } catch (error) {
+    console.error('❌ Erreur inattendue lors de la préparation du formulaire:', error);
+    this.isSubmitting.set(false);
+    this.submitError.set('Une erreur inattendue est survenue.');
+  }
+}
+
+
+private finishSubmit(): void {
+  this.isSubmitting.set(false);
+  this.submitSuccess.set(true);
+  setTimeout(() => this.router.navigate(['/dashboard/membres']), 1400);
+}
 
   private buildPayload(): MemberCreatePayload {
-    const identite = this.identiteGroup.value;
-    const statut = this.statutGroup.value;
-    const affectation = this.affectationGroup.value;
-    const notes = this.form.get('notes')?.value;
+  const identite = this.identiteGroup.value;
+  const statut = this.statutGroup.value;
+  const affectation = this.affectationGroup.value;
+  const notes = this.form.get('notes')?.value;
 
-    const photoUrl = this.photoFile() ? 'temp-photo-url' : undefined;
-
-    return {
-      firstName: identite.firstName,
-      lastName: identite.lastName,
-      phone: identite.phone,
-      email: identite.email || undefined,
-      gender: identite.gender || undefined,
-      dateOfBirth: identite.birthDate || undefined,
-      photoUrl: photoUrl,
-      status: statut.status,
-      spiritualStatus: statut.spiritualStatus,
-      isBaptized: statut.isBaptized,
-      baptismDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
-      isLeader: statut.isLeader,
-      churchId: affectation.churchId,        // ✅ Obligatoire
-      cellGroupId: affectation.cellGroupId || undefined,
-      ministryIds: affectation.ministryId ? [affectation.ministryId] : undefined,
-      godfatherId: affectation.godfatherId || undefined,
-    };
-  }
+  // ✅ On ne met plus de placeholder photoUrl ici — la photo est uploadée
+  // séparément après création, via updateMemberPhoto()
+  return {
+    firstName: identite.firstName,
+    lastName: identite.lastName,
+    phone: identite.phone,
+    email: identite.email || undefined,
+    gender: identite.gender || undefined,
+    dateOfBirth: identite.birthDate || undefined,
+    status: statut.status,
+    spiritualStatus: statut.spiritualStatus,
+    isBaptized: statut.isBaptized,
+    baptismDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
+    isLeader: statut.isLeader,
+    churchId: affectation.churchId,        // ✅ Obligatoire
+    cellGroupId: affectation.cellGroupId || undefined,
+    ministryIds: affectation.ministryId ? [affectation.ministryId] : undefined,
+    godfatherId: affectation.godfatherId || undefined,
+  };
+}
 
   resetForm(): void {
     this.form.reset({

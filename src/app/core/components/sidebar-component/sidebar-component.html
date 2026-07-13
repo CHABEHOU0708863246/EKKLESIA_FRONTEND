@@ -57,97 +57,127 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-<!-- 👥 MEMBRES                                                  -->
-<!-- Visible si AU MOINS UNE sous-fonction est accessible.       -->
-<!-- Chaque lien reste filtré par SA permission exacte.          -->
-<!-- ──────────────────────────────────────────────────────────── -->
-@if (permission.canAccessMemberModule()) {
-  <div class="nav-section-label">Membres</div>
+      <!-- 👥 MEMBRES                                                  -->
+      <!-- Visible si AU MOINS UNE sous-fonction est accessible.       -->
+      <!-- Chaque lien reste filtré par SA permission exacte.          -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canAccessMemberModule()) {
+      <div class="nav-section-label">Membres</div>
 
-  <li class="nav-item" routerLinkActive="active open">
-    <a class="nav-link" (click)="toggleMenu($event)">
-      <i class="nav-icon bx bx-user"></i>
-      <span class="nav-text">Membres</span>
-      <i class="nav-chevron bx bx-chevron-right"></i>
-    </a>
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-user"></i>
+          <span class="nav-text">Membres</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
 
-    <ul class="nav-sub">
+        <ul class="nav-sub">
 
-      <!-- 1️⃣ Annuaire – Vue principale -->
-      @if (permission.canViewMembers()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-list-ul"></i>
-            <span class="nav-text">Annuaire</span>
-          </a>
-        </li>
+          <!-- 1️⃣ Annuaire – Vue principale -->
+          @if (permission.canViewMembers()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Annuaire</span>
+            </a>
+          </li>
+          }
+
+          <!-- 2️⃣ Nouveau membre – Création -->
+          @if (permission.canCreateMember()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-user-plus"></i>
+              <span class="nav-text">Nouveau membre</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+
+          <!-- 3️⃣ Pipeline visiteurs – Suivi des prospects -->
+          @if (permission.canViewMembers()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/pipeline-visiteurs']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-trending-up"></i>
+              <span class="nav-text">Pipeline visiteurs</span>
+            </a>
+          </li>
+          }
+
+          <!-- 4️⃣ Suivi pastoral – Notes & suivis confidentiels -->
+          @if (permission.canViewPastoralNotes()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/suivi-pastoral']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-heart"></i>
+              <span class="nav-text">Suivi pastoral</span>
+              <span class="nav-badge badge-teal">{{ suiviPastoralCount }}</span>
+            </a>
+          </li>
+          }
+
+          <!-- 5️⃣ Cellules de maison – Groupes -->
+          @if (permission.canViewCells()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-home-heart"></i>
+              <span class="nav-text">Cellules de maison</span>
+            </a>
+          </li>
+          }
+
+          <!-- 6️⃣ Import en masse – Action administrative -->
+          @if (permission.canImportMembers()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/import']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-upload"></i>
+              <span class="nav-text">Import en masse</span>
+            </a>
+          </li>
+          }
+
+        </ul>
+      </li>
       }
 
-      <!-- 2️⃣ Nouveau membre – Création -->
-      @if (permission.canCreateMember()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/new']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-user-plus"></i>
-            <span class="nav-text">Nouveau membre</span>
-            <span class="nav-badge badge-gold">+</span>
-          </a>
-        </li>
-      }
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- 📜 ACTES PASTORAUX                                          -->
+      <!-- Module indépendant : Baptême, Mariage, Funérailles, Dédicace -->
+      <!-- Distinct du "Suivi pastoral" (notes) situé dans Membres.     -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canViewPastoralActs()) {
+      <div class="nav-section-label">Actes pastoraux</div>
 
-      <!-- 3️⃣ Pipeline visiteurs – Suivi des prospects -->
-      @if (permission.canViewMembers()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/pipeline-visiteurs']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-trending-up"></i>
-            <span class="nav-text">Pipeline visiteurs</span>
-          </a>
-        </li>
-      }
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-certification"></i>
+          <span class="nav-text">Actes pastoraux</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
 
-      <!-- 4️⃣ Suivi pastoral – Notes & suivis -->
-      @if (permission.canViewPastoralNotes()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/suivi-pastoral']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-heart"></i>
-            <span class="nav-text">Suivi pastoral</span>
-            <span class="nav-badge badge-teal">{{ suiviPastoralCount }}</span>
-          </a>
-        </li>
-      }
+        <ul class="nav-sub">
 
-      <!-- 5️⃣ Actes pastoraux – Gestion avancée des notes -->
-      @if (permission.canManagePastoralNotes()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/actes-pastoraux']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-file"></i>
-            <span class="nav-text">Actes pastoraux</span>
-          </a>
-        </li>
-      }
+          <!-- 1️⃣ Registre – Vue principale de tous les actes -->
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/actes-pastoraux']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Registre des actes</span>
+            </a>
+          </li>
 
-      <!-- 6️⃣ Cellules de maison – Groupes -->
-      @if (permission.canViewCells()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-home-heart"></i>
-            <span class="nav-text">Cellules de maison</span>
-          </a>
-        </li>
-      }
+          <!-- 2️⃣ Nouvel acte – Création -->
+          @if (permission.canCreatePastoralAct()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/actes-pastoraux/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvel acte</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
 
-      <!-- 7️⃣ Import en masse – Action administrative -->
-      @if (permission.canImportMembers()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/membres/import']" class="nav-link" (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-upload"></i>
-            <span class="nav-text">Import en masse</span>
-          </a>
-        </li>
+        </ul>
+      </li>
       }
-
-    </ul>
-  </li>
-}
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 🏠 COMMUNAUTÉ                                               -->
@@ -599,73 +629,88 @@
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 🔐 ADMINISTRATION                                           -->
-      <!-- Strictement réservé aux fonctions d'administration —        -->
-      <!-- "Mon profil" n'apparaît PLUS ici (voir "Mon compte" ci-dessus) -->
+      <!-- 4 pôles clairs : Accès, Structure, Audit, Paramètres        -->
+      <!-- "Mon profil" n'apparaît PAS ici (voir "Mon compte" en haut) -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessAdministrationModule()) {
       <div class="nav-section-label">Administration</div>
 
+      <!-- ══ 1. GESTION DES ACCÈS (Utilisateurs + Rôles) ══ -->
       @if (permission.canManageUsers() || permission.canManageRoles()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
           <i class="nav-icon bx bx-shield-quarter"></i>
-          <span class="nav-text">Administration</span>
+          <span class="nav-text">Gestion des accès</span>
           <i class="nav-chevron bx bx-chevron-right"></i>
         </a>
         <ul class="nav-sub">
+
           @if (permission.canManageUsers()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-user"></i>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/users']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-user"></i>
               <span class="nav-text">Utilisateurs</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/users']" class="nav-link" (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Liste des utilisateurs</span>
-                </a>
-              </li>
-              @if (permission.canCreateUser()) {
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/users/new']" class="nav-link" (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-user-plus"></i>
-                  <span class="nav-text">Ajouter un utilisateur</span>
-                </a>
-              </li>
-              }
-            </ul>
+          </li>
+          }
+          @if (permission.canCreateUser()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/users/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-user-plus"></i>
+              <span class="nav-text">Ajouter un utilisateur</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
           </li>
           }
 
           @if (permission.canManageRoles()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon bx bx-shield"></i>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/roles']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-shield"></i>
               <span class="nav-text">Rôles</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
             </a>
-            <ul class="nav-sub">
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/roles']" class="nav-link" (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Liste des rôles</span>
-                </a>
-              </li>
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/roles/new']" class="nav-link" (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-plus-circle"></i>
-                  <span class="nav-text">Créer un rôle</span>
-                </a>
-              </li>
-            </ul>
+          </li>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/roles/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Créer un rôle</span>
+            </a>
           </li>
           }
+
         </ul>
       </li>
       }
 
+      <!-- ══ 2. STRUCTURE DE L'ÉGLISE (Églises + Sites) ══ -->
+      @if (permission.canManageChurchSettings() || permission.canManageSites()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bxs-church"></i>
+          <span class="nav-text">Structure de l'église</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/parametres/eglise/list']" class="nav-link"
+              (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Églises & sites</span>
+            </a>
+          </li>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/parametres/eglise/new']" class="nav-link"
+              (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Créer une église</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+      }
+
+      <!-- ══ 3. JOURNAL D'AUDIT ══ -->
       @if (permission.canViewAudit()) {
       <li class="nav-item">
         <a [routerLink]="['/dashboard/admin/audit']" class="nav-link" (click)="closeMobileSidebar()">
@@ -675,16 +720,8 @@
       </li>
       }
 
-      <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- ⚙️ PARAMÈTRES                                               -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (
-      permission.canViewSettings() ||
-      permission.canUpdateSettings() ||
-      permission.canConfigureNotifications() ||
-      permission.canManageChurchSettings() ||
-      permission.canManageSites()
-      ) {
+      <!-- ══ 4. PARAMÈTRES GÉNÉRAUX (config pure, plus d'Églises ici) ══ -->
+      @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
           <i class="nav-icon bx bx-cog"></i>
@@ -693,62 +730,29 @@
         </a>
         <ul class="nav-sub">
 
-          <!-- ──────────────────────────────────────────────────── -->
-          <!-- ⛪ GESTION DES ÉGLISES & SITES                     -->
-          <!-- ──────────────────────────────────────────────────── -->
-          @if (permission.canManageChurchSettings() || permission.canManageSites()) {
-          <li class="nav-item" routerLinkActive="active open">
-            <a class="nav-link" (click)="toggleMenu($event)">
-              <i class="nav-icon-sub bx bx-church"></i>
-              <span class="nav-text">Églises &amp; sites</span>
-              <i class="nav-chevron bx bx-chevron-right"></i>
-            </a>
-            <ul class="nav-sub">
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/parametres/eglise/new']" class="nav-link"
-                  (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-plus-circle"></i>
-                  <span class="nav-text">Créer une église</span>
-                </a>
-              </li>
-              <li class="nav-item" routerLinkActive="active">
-                <a [routerLink]="['/dashboard/admin/parametres/eglise/list']" class="nav-link"
-                  (click)="closeMobileSidebar()">
-                  <i class="nav-icon-sub bx bx-list-ul"></i>
-                  <span class="nav-text">Liste des églises</span>
-                </a>
-              </li>
-            </ul>
-          </li>
-          }
-
-          <!-- ──────────────────────────────────────────────────── -->
-          <!-- 🔔 NOTIFICATIONS                                     -->
-          <!-- ──────────────────────────────────────────────────── -->
+          <!-- Notifications système — masqué, prêt pour activation -->
           <!-- @if (permission.canConfigureNotifications()) {
           <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/admin/parametres/notifications']" class="nav-link"
-              (click)="closeMobileSidebar()">
+            <a [routerLink]="['/dashboard/admin/parametres/notifications']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-bell"></i>
               <span class="nav-text">Notifications</span>
             </a>
           </li>
           } -->
 
-          <!-- ──────────────────────────────────────────────────── -->
-          <!-- ⚙️ PARAMÈTRES GÉNÉRAUX — temporairement masqué      -->
-          <!-- ──────────────────────────────────────────────────── -->
-          <!--
-      @if (permission.canViewSettings()) {
-        <li class="nav-item" routerLinkActive="active">
-          <a [routerLink]="['/dashboard/admin/parametres/generaux']" class="nav-link"
-            (click)="closeMobileSidebar()">
-            <i class="nav-icon-sub bx bx-slider"></i>
-            <span class="nav-text">Paramètres généraux</span>
-          </a>
-        </li>
-      }
-      -->
+          <!-- Paramètres généraux — masqué, prêt pour activation -->
+          <!-- @if (permission.canViewSettings()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/parametres/generaux']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-slider"></i>
+              <span class="nav-text">Paramètres généraux</span>
+            </a>
+          </li>
+          } -->
+
+          <li class="nav-item nav-item--placeholder">
+            <span class="nav-text nav-text--muted">Aucun réglage disponible pour l'instant</span>
+          </li>
 
         </ul>
       </li>

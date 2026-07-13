@@ -34,7 +34,12 @@ export const DASHBOARD_ROUTES: Routes = [
     {
       path: 'admin/parametres/eglise',
       loadChildren: () => import('./dashboard/church/church.routes').then((m) => m.CHURCH_ROUTES),
-    }
+    },
+    {
+      path: 'actes-pastoraux',
+      loadChildren: () =>
+        import('./dashboard/pastoral-acts/pastoral-act.routes').then((m) => m.PASTORAL_ACTS_ROUTES),
+    },
   ],
 },
 ];

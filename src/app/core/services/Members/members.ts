@@ -43,13 +43,16 @@ export class Members {
   // MEMBRES
   // ───────────────────────────────────────────────────────────────
 
-  /**
- * Met à jour la photo d'un membre
- * POST /api/v1/Member/{id}/photo
+ /**
+ * Met à jour la photo d'un membre existant
+ * PUT /api/v1/Member/{id}/photo
+ * Le membre doit déjà exister (récupérer son id après createMember)
  */
-  updateMemberPhoto(id: string, formData: FormData): Observable<{ photoUrl: string }> {
-    return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${id}/photo`, formData);
-  }
+updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
+  const formData = new FormData();
+  formData.append('photoFile', photoFile, photoFile.name);
+  return this.http.put<Member>(`${this.baseUrl}/${id}/photo`, formData);
+}
 
   /**
    * Crée un nouveau membre
@@ -106,6 +109,24 @@ export class Members {
       responseType: 'blob'
     });
   }
+
+  // ───────────────────────────────────────────────────────────────
+// PHOTO DU MEMBRE
+// ───────────────────────────────────────────────────────────────
+
+
+
+/**
+ * Construit l'URL affichable d'une photo de membre stockée dans GridFS.
+ * GET /api/v1/Member/photo/{photoId} (endpoint anonyme, renvoie le flux binaire)
+ * À utiliser directement dans un [src] d'<img>, pas besoin d'appel HttpClient.
+ */
+getMemberPhotoUrl(photoId: string | undefined | null): string {
+  if (!photoId || photoId === 'default-profile-photo') {
+    return 'assets/images/default-avatar.png'; // adaptez le chemin à votre projet
+  }
+  return `${this.baseUrl}/photo/${photoId}`;
+}
 
   // ───────────────────────────────────────────────────────────────
   // SUIVI VISITEURS

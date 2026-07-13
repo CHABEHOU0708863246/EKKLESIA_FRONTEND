@@ -13,6 +13,7 @@ import {
 import { CellGroup } from '../../../../../core/models/Members/cell-group.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { ConfirmDialog } from "../../../../../core/components/confirm-dialog/confirm-dialog";
+import { environment } from '../../../../../../environments/environment';
 
 // ── Libellés français pour les enums backend (clé anglaise -> libellé) ──
 const STATUS_LABELS: Record<string, string> = {
@@ -158,6 +159,20 @@ export class MemberList implements OnInit, OnDestroy {
   refresh(): void {
     this.loadMembers();
   }
+
+  onAvatarError(event: Event): void {
+  // Si le fichier GridFS est introuvable ou l'URL invalide, on retombe sur les initiales
+  const img = event.target as HTMLImageElement;
+  img.style.display = 'none';
+}
+
+getPhotoUrl(photoIdOrUrl: string | undefined): string {
+  if (!photoIdOrUrl || photoIdOrUrl === 'default-profile-photo') return '';
+  if (photoIdOrUrl.startsWith('http://') || photoIdOrUrl.startsWith('https://')) {
+    return photoIdOrUrl;
+  }
+  return `${environment.apiUrl}/api/v1/Member/photo/${photoIdOrUrl}`;
+}
 
   // ───────────────────────────────────────────────────────────────
   // PAGINATION
