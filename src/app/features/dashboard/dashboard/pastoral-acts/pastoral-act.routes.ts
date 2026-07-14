@@ -17,7 +17,7 @@ export const PASTORAL_ACTS_ROUTES: Routes = [
     path: 'new',
     loadComponent: () =>
       import('./pastoral-act-create/pastoral-act-create').then((m) => m.PastoralActCreate),
-    title: 'Nouvel acte pastoral — EKKLESIA',
+    title: 'Nouvel acte pastoral — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['PastoralAct_Create'] },
   },
@@ -29,7 +29,7 @@ export const PASTORAL_ACTS_ROUTES: Routes = [
     path: ':id',
     loadComponent: () =>
       import('./pastoral-act-detail/pastoral-act-detail').then((m) => m.PastoralActDetail),
-    title: 'Détail de l\'acte pastoral — EKKLESIA',
+    title: 'Détail de l\'acte pastoral — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['PastoralAct_Read'] },
   },
@@ -37,7 +37,7 @@ export const PASTORAL_ACTS_ROUTES: Routes = [
     path: ':id/edit',
     loadComponent: () =>
       import('./pastoral-act-detail/pastoral-act-detail').then((m) => m.PastoralActDetail),
-    title: 'Modifier l\'acte pastoral — EKKLESIA',
+    title: 'Modifier l\'acte pastoral — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['PastoralAct_Update'] },
   },

@@ -25,7 +25,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'pipeline-visiteurs',
     loadComponent: () =>
       import('./visitor-pipeline/visitor-pipeline').then((m) => m.VisitorPipeline),
-    title: 'Pipeline des visiteurs — EKKLESIA',
+    title: 'Pipeline des visiteurs — MIAV',
   },
 
   // ─── Suivi pastoral ───
@@ -33,7 +33,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'suivi-pastoral',
     loadComponent: () =>
       import('./pastoral-care/pastoral-care').then((m) => m.PastoralCare),
-    title: 'Suivi pastoral — EKKLESIA',
+    title: 'Suivi pastoral — MIAV',
   },
 
   // ─── Actes pastoraux ───
@@ -41,7 +41,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'actes-pastoraux',
     loadComponent: () =>
       import('./pastoral-acts/pastoral-acts').then((m) => m.PastoralActs),
-    title: 'Actes pastoraux — EKKLESIA',
+    title: 'Actes pastoraux — MIAV',
   },
 
   // ─── Cellules de maison ───
@@ -50,7 +50,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'cellules',
     loadComponent: () =>
       import('./cell-group-list/cell-group-list').then((m) => m.CellGroupList),
-    title: 'Cellules de maison — EKKLESIA',
+    title: 'Cellules de maison — MIAV',
   },
 
   // ─── Détail / édition d'un membre ───
@@ -61,12 +61,12 @@ export const MEMBERS_ROUTES: Routes = [
     path: ':id',
     loadComponent: () =>
       import('./member-detail/member-detail').then((m) => m.MemberDetail),
-    title: 'Fiche membre — EKKLESIA',
+    title: 'Fiche membre — MIAV',
   },
   {
     path: ':id/edit',
     loadComponent: () =>
       import('./member-detail/member-detail').then((m) => m.MemberDetail),
-    title: 'Modifier le membre — EKKLESIA',
+    title: 'Modifier le membre — MIAV',
   },
 ];

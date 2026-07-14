@@ -29,7 +29,7 @@ export const DASHBOARD_ROUTES: Routes = [
     {
       path: 'admin/mon-profil',
       loadComponent: () => import('./dashboard/my-profile/my-profile').then((m) => m.MyProfile),
-      title: 'Mon profil — EKKLESIA',
+      title: 'Mon profil — MIAV',
     },
     {
       path: 'admin/parametres/eglise',
@@ -39,6 +39,11 @@ export const DASHBOARD_ROUTES: Routes = [
       path: 'actes-pastoraux',
       loadChildren: () =>
         import('./dashboard/pastoral-acts/pastoral-act.routes').then((m) => m.PASTORAL_ACTS_ROUTES),
+    },
+    {
+        path: 'evenements', // ✅ Ajout des événements
+        loadChildren: () =>
+          import('./dashboard/events/events.routes').then((m) => m.EVENTS_ROUTES),
     },
   ],
 },

@@ -1,0 +1,260 @@
+<!-- src/app/features/dashboard/dashboard/events/event-form/event-form.html -->
+<div class="ef-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="ef-page-header">
+    <div class="ef-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="ef-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/evenements']">Événements</a>
+      <span class="ef-breadcrumb-sep">/</span>
+      <span class="ef-breadcrumb-current">{{ isEditMode() ? 'Modifier' : 'Nouvel événement' }}</span>
+    </div>
+
+    <div class="ef-page-title-row">
+      <h1>{{ isEditMode() ? "Modifier l'événement" : 'Nouvel événement' }}</h1>
+      <button type="button" class="ef-btn ef-btn--outline" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="ef-loading-state" *ngIf="loading()">
+    <span class="ef-spinner"></span> Chargement de l'événement…
+  </div>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="ef-banner ef-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <form class="ef-form" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading()">
+
+    <!-- ─────────── INFORMATIONS GÉNÉRALES ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header"><h2>Informations générales</h2></div>
+      <div class="ef-panel-body ef-panel-body--grid">
+
+        <div class="ef-field ef-field--span-2">
+          <label for="title">Titre <span class="ef-required">*</span></label>
+          <input id="title" type="text" formControlName="title" placeholder="Ex. Conférence des jeunes 2026">
+          <p class="ef-error" *ngIf="isFieldInvalid('title')">3 caractères minimum</p>
+        </div>
+
+        <div class="ef-field ef-field--span-2">
+          <label for="description">Description</label>
+          <textarea id="description" rows="3" formControlName="description"></textarea>
+        </div>
+
+        <div class="ef-field">
+          <label for="type">Type d'événement <span class="ef-required">*</span></label>
+          <div class="ef-select-wrap">
+            <select id="type" formControlName="type">
+              <option *ngFor="let t of typeOptions" [value]="t.value">{{ t.label }}</option>
+            </select>
+            <svg class="ef-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="ef-field" *ngIf="isEditMode()">
+          <label for="status">Statut</label>
+          <div class="ef-select-wrap">
+            <select id="status" formControlName="status">
+              <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+            </select>
+            <svg class="ef-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── DATES & LIEU ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header"><h2>Dates &amp; lieu</h2></div>
+      <div class="ef-panel-body ef-panel-body--grid">
+
+        <div class="ef-field">
+          <label for="startDate">Date &amp; heure de début <span class="ef-required">*</span></label>
+          <input id="startDate" type="datetime-local" formControlName="startDate">
+          <p class="ef-error" *ngIf="isFieldInvalid('startDate')">La date de début est requise</p>
+        </div>
+
+        <div class="ef-field">
+          <label for="endDate">Date &amp; heure de fin</label>
+          <input id="endDate" type="datetime-local" formControlName="endDate">
+        </div>
+
+        <div class="ef-field ef-field--span-2">
+          <label for="location">Lieu</label>
+          <input id="location" type="text" formControlName="location" placeholder="Ex. Temple principal, Cocody">
+        </div>
+
+        <ng-container formGroupName="address">
+          <div class="ef-field ef-field--span-2">
+            <label>Adresse (optionnel)</label>
+            <input type="text" formControlName="street" placeholder="Rue / quartier">
+          </div>
+          <div class="ef-field">
+            <label>Ville</label>
+            <input type="text" formControlName="city">
+          </div>
+          <div class="ef-field">
+            <label>Pays</label>
+            <input type="text" formControlName="country">
+          </div>
+        </ng-container>
+
+      </div>
+    </section>
+
+    <!-- ─────────── ÉGLISE / SITE / ORGANISATEUR ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header"><h2>Organisation</h2></div>
+      <div class="ef-panel-body ef-panel-body--grid">
+
+        <div class="ef-field">
+          <label for="churchId">Église <span class="ef-required">*</span></label>
+          <div class="ef-select-wrap">
+            <select id="churchId" formControlName="churchId" [disabled]="loadingChurches()">
+              <option value="">— Sélectionner —</option>
+              <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+            </select>
+            <svg class="ef-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="ef-error" *ngIf="isFieldInvalid('churchId')">Une église est requise</p>
+        </div>
+
+        <div class="ef-field">
+          <label for="siteId">Site</label>
+          <div class="ef-select-wrap">
+            <select id="siteId" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+              <option value="">— Aucun site spécifique —</option>
+              <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+            </select>
+            <svg class="ef-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="ef-field ef-field--span-2">
+          <label>Organisateur <span class="ef-required">*</span></label>
+          <div class="ef-search-wrap">
+
+            <div class="ef-selected-row" *ngIf="selectedOrganizer() as organizer">
+              <div class="ef-mini-avatar">{{ getInitialsFromUser(organizer) }}</div>
+              <div class="ef-mini-info"><strong>{{ organizer.fullName }}</strong></div>
+              <button type="button" class="ef-icon-btn" (click)="clearOrganizer()" aria-label="Retirer">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+
+            <input *ngIf="!selectedOrganizer()" type="text" formControlName="organizerSearch"
+                   placeholder="Rechercher un organisateur par nom…"
+                   (focus)="showOrganizerResults.set(true)">
+
+            <p class="ef-error" *ngIf="isFieldInvalid('organizerId')">Un organisateur est requis</p>
+
+            <div class="ef-search-dropdown" *ngIf="showOrganizerResults() && !selectedOrganizer()">
+              <p class="ef-search-status" *ngIf="searchingOrganizer()">Recherche en cours…</p>
+              <p class="ef-search-status" *ngIf="!searchingOrganizer() && organizerResults().length === 0">Aucun utilisateur trouvé</p>
+              <button type="button" class="ef-search-result" *ngFor="let u of organizerResults()" (click)="selectOrganizer(u)">
+                <div class="ef-mini-avatar">{{ getInitialsFromUser(u) }}</div>
+                <div class="ef-mini-info"><strong>{{ u.fullName }}</strong><span>{{ u.phone }}</span></div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── INSCRIPTIONS & TARIFICATION ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header"><h2>Inscriptions &amp; tarification</h2></div>
+      <div class="ef-panel-body">
+
+        <label class="ef-checkbox">
+          <input type="checkbox" formControlName="registrationRequired">
+          <span class="ef-checkbox-box"></span>
+          <span class="ef-checkbox-text">
+            <strong>Inscription requise</strong>
+            <small>Les participants doivent s'inscrire à l'avance</small>
+          </span>
+        </label>
+
+        <div class="ef-panel-body--grid ef-conditional-block" *ngIf="form.get('registrationRequired')?.value">
+
+          <div class="ef-field">
+            <label for="capacity">Capacité maximale</label>
+            <input id="capacity" type="number" min="1" formControlName="capacity" placeholder="Illimitée si vide">
+          </div>
+
+          <div class="ef-field">
+            <label for="registrationDeadline">Date limite d'inscription</label>
+            <input id="registrationDeadline" type="datetime-local" formControlName="registrationDeadline">
+          </div>
+
+          <div class="ef-field">
+            <label for="price">Prix</label>
+            <input id="price" type="number" min="0" step="0.01" formControlName="price">
+          </div>
+
+          <div class="ef-field">
+            <label for="currency">Devise</label>
+            <div class="ef-select-wrap">
+              <select id="currency" formControlName="currency">
+                <option *ngFor="let c of currencyOptions" [value]="c">{{ c }}</option>
+              </select>
+              <svg class="ef-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="ef-field ef-field--span-2">
+            <label class="ef-checkbox">
+              <input type="checkbox" formControlName="registrationOpen">
+              <span class="ef-checkbox-box"></span>
+              <span class="ef-checkbox-text">
+                <strong>Inscriptions ouvertes</strong>
+                <small>Décochez pour fermer temporairement les inscriptions</small>
+              </span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── RÉCURRENCE ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header"><h2>Récurrence</h2></div>
+      <div class="ef-panel-body">
+
+        <label class="ef-checkbox">
+          <input type="checkbox" formControlName="isRecurring">
+          <span class="ef-checkbox-box"></span>
+          <span class="ef-checkbox-text">
+            <strong>Événement récurrent</strong>
+            <small>Cet événement se répète selon un cycle</small>
+          </span>
+        </label>
+
+        <div class="ef-field ef-conditional-block" *ngIf="form.get('isRecurring')?.value">
+          <label for="recurrencePattern">Motif de récurrence</label>
+          <input id="recurrencePattern" type="text" formControlName="recurrencePattern" placeholder="Ex. Chaque dimanche, Tous les premiers samedis du mois">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════ BARRE D'ACTIONS ══════════════ -->
+    <footer class="ef-actions">
+      <button type="button" class="ef-btn ef-btn--ghost" (click)="cancel()">Annuler</button>
+      <span class="ef-actions-spacer"></span>
+      <button type="submit" class="ef-btn ef-btn--primary" [disabled]="saving()">
+        <span *ngIf="!saving()">{{ isEditMode() ? 'Enregistrer' : "Créer l'événement" }}</span>
+        <span class="ef-spinner ef-spinner--btn" *ngIf="saving()"></span>
+      </button>
+    </footer>
+
+  </form>
+</div>

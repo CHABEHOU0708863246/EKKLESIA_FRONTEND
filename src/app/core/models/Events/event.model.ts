@@ -1,4 +1,4 @@
-import { Address } from "cluster";
+
 
 export enum EventType {
   SundayService = 'SundayService',
@@ -13,6 +13,17 @@ export enum EventType {
   BibleStudy = 'BibleStudy',
   Training = 'Training',
   Other = 'Other'
+}
+
+
+export interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export enum EventStatus {

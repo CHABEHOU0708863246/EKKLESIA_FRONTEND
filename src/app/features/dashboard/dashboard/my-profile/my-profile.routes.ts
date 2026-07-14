@@ -6,6 +6,6 @@ export const MYPROFILE_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./my-profile').then((m) => m.MyProfile),
-    title: 'Mon profil — EKKLESIA',
+    title: 'Mon profil — MIAV',
   },
 ];
