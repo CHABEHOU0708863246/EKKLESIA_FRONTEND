@@ -56,6 +56,21 @@ export class PastoralActs {
     return this.http.put<PastoralActResponseDto>(`${this.baseUrl}/${id}`, pastoralAct);
   }
 
+downloadCertificatePdf(id: string): void {
+  this.http.get(`${this.baseUrl}/${id}/certificate/pdf`, { responseType: 'blob' })
+    .subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `certificat_${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Erreur téléchargement certificat:', err),
+    });
+}
+
   /**
    * Supprime un acte pastoral (soft delete)
    * DELETE /api/v1/PastoralAct/{id}

@@ -1,1 +1,380 @@
-<p>pastoral-act-detail works!</p>
+<!-- src/app/features/dashboard/dashboard/pastoral-acts/pastoral-act-detail/pastoral-act-detail.html -->
+<div class="pad-page">
+
+  <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
+  <div class="pad-loading-state" *ngIf="loading()">
+    <span class="pad-spinner"></span> Chargement de l'acte pastoral…
+  </div>
+
+  <div class="pad-banner pad-banner--error" *ngIf="!loading() && error() && !act()">
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <ng-container *ngIf="!loading() && act() as a">
+
+    <!-- ══════════════ EN-TÊTE ══════════════ -->
+    <header class="pad-page-header">
+      <div class="pad-breadcrumb">
+        <a [routerLink]="['/dashboard']">Tableau de bord</a>
+        <span class="pad-breadcrumb-sep">/</span>
+        <a [routerLink]="['/dashboard/actes-pastoraux']">Actes pastoraux</a>
+        <span class="pad-breadcrumb-sep">/</span>
+        <span class="pad-breadcrumb-current">{{ getTypeLabel(a.type) }}</span>
+      </div>
+
+      <div class="pad-page-title-row">
+        <div class="pad-title-identity">
+          <span class="pad-type-icon-lg">{{ getTypeIcon(a.type) }}</span>
+          <div>
+            <h1>{{ getTypeLabel(a.type) }}</h1>
+            <span class="pad-badge" [ngClass]="a.certificateGenerated ? 'is-success' : 'is-neutral'">
+              {{ a.certificateGenerated ? 'Certificat généré' : 'Sans certificat' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="pad-header-actions">
+          <ng-container *ngIf="!isEditMode()">
+            <button type="button" class="pad-btn pad-btn--ghost" (click)="requestDelete()">Supprimer</button>
+            <button type="button" class="pad-btn pad-btn--ghost" *ngIf="canGenerateCertificate()"
+              (click)="generateCertificate()" [disabled]="generatingCertificate()">
+              <span *ngIf="!generatingCertificate()">Générer le certificat</span>
+              <span class="pad-spinner pad-spinner--btn" *ngIf="generatingCertificate()"></span>
+            </button>
+            <button type="button" class="pad-btn pad-btn--primary" (click)="enterEditMode()">Modifier</button>
+          </ng-container>
+          <ng-container *ngIf="isEditMode()">
+            <button type="button" class="pad-btn pad-btn--ghost" (click)="cancelEditMode()">Annuler</button>
+            <button type="button" class="pad-btn pad-btn--primary" (click)="save()" [disabled]="saving()">
+              <span *ngIf="!saving()">Enregistrer</span>
+              <span class="pad-spinner pad-spinner--btn" *ngIf="saving()"></span>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══════════════ BANNIÈRES ══════════════ -->
+    <div class="pad-banner pad-banner--success" *ngIf="saveSuccess()">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span>Acte pastoral mis à jour avec succès.</span>
+    </div>
+    <div class="pad-banner pad-banner--error" *ngIf="saveError()">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span>{{ saveError() }}</span>
+    </div>
+    <div class="pad-banner pad-banner--error" *ngIf="error() && act()">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span>{{ error() }}</span>
+    </div>
+
+    <form class="pad-grid" [formGroup]="form">
+
+      <!-- ─────────── TYPE (lecture seule, non modifiable) ─────────── -->
+      <section class="pad-panel">
+        <div class="pad-panel-header">
+          <h2>Type d'acte</h2>
+        </div>
+        <div class="pad-panel-body">
+          <div class="pad-type-readonly">
+            <span class="pad-type-icon-lg">{{ getTypeIcon(a.type) }}</span>
+            <strong>{{ getTypeLabel(a.type) }}</strong>
+          </div>
+          <p class="pad-hint" *ngIf="isEditMode()">Le type d'un acte pastoral ne peut pas être modifié après création.
+          </p>
+        </div>
+      </section>
+
+      <!-- ─────────── INFORMATIONS GÉNÉRALES ─────────── -->
+      <section class="pad-panel">
+        <div class="pad-panel-header">
+          <h2>Informations générales</h2>
+        </div>
+        <div class="pad-panel-body pad-panel-body--grid">
+
+          <ng-container *ngIf="!isEditMode()">
+            <div class="pad-info-row"><span>Date</span><strong>{{ formatDate(a.date) }}</strong></div>
+            <div class="pad-info-row"><span>Lieu</span><strong>{{ a.location || '—' }}</strong></div>
+            <div class="pad-info-row"><span>Officiant</span><strong>{{ a.officiantName }}</strong></div>
+          </ng-container>
+
+          <ng-container *ngIf="isEditMode()">
+            <div class="pad-field">
+              <label for="date">Date <span class="pad-required">*</span></label>
+              <input id="date" type="date" formControlName="date">
+              <p class="pad-error" *ngIf="isFieldInvalid('date')">La date est requise</p>
+            </div>
+
+            <div class="pad-field">
+              <label for="location">Lieu</label>
+              <input id="location" type="text" formControlName="location">
+            </div>
+
+            <div class="pad-field">
+              <label for="churchId">Église <span class="pad-required">*</span></label>
+              <div class="pad-select-wrap">
+                <select id="churchId" formControlName="churchId" [disabled]="loadingChurches()">
+                  <option value="">— Sélectionner —</option>
+                  <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+                </select>
+                <svg class="pad-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="pad-field">
+              <label for="siteId">Site</label>
+              <div class="pad-select-wrap">
+                <select id="siteId" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+                  <option value="">— Aucun site spécifique —</option>
+                  <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+                </select>
+                <svg class="pad-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="pad-field pad-field--span-2">
+              <label>Officiant (pasteur) <span class="pad-required">*</span></label>
+              <div class="pad-search-wrap">
+
+                <div class="pad-selected-row" *ngIf="selectedOfficiant() as officiant">
+                  <div class="pad-mini-avatar">{{ getInitialsFromUser(officiant) }}</div>
+                  <div class="pad-mini-info"><strong>{{ officiant.fullName }}</strong></div>
+                  <button type="button" class="pad-icon-btn" (click)="clearOfficiant()" aria-label="Retirer">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
+
+                <input *ngIf="!selectedOfficiant()" type="text" formControlName="officiantSearch"
+                  placeholder="Rechercher un pasteur par nom…" (focus)="showOfficiantResults.set(true)">
+
+                <div class="pad-search-dropdown" *ngIf="showOfficiantResults() && !selectedOfficiant()">
+                  <p class="pad-search-status" *ngIf="searchingOfficiant()">Recherche en cours…</p>
+                  <p class="pad-search-status" *ngIf="!searchingOfficiant() && officiantResults().length === 0">Aucun
+                    pasteur trouvé</p>
+                  <button type="button" class="pad-search-result" *ngFor="let u of officiantResults()"
+                    (click)="selectOfficiant(u)">
+                    <div class="pad-mini-avatar">{{ getInitialsFromUser(u) }}</div>
+                    <div class="pad-mini-info"><strong>{{ u.fullName }}</strong><span>{{ u.phone }}</span></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+      </section>
+
+      <!-- ─────────── PARTICIPANTS ─────────── -->
+      <section class="pad-panel">
+        <div class="pad-panel-header">
+          <h2>Participants</h2>
+          <button type="button" class="pad-btn pad-btn--ghost pad-btn--sm" *ngIf="isEditMode()"
+            (click)="addParticipant()">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+            Ajouter
+          </button>
+        </div>
+
+        <div class="pad-panel-body">
+
+          <!-- Lecture seule -->
+          <ng-container *ngIf="!isEditMode()">
+            <div class="pad-participant-readonly" *ngFor="let p of a.participants">
+              <div class="pad-mini-avatar">{{ p.firstName.charAt(0) }}{{ p.lastName.charAt(0) }}</div>
+              <div class="pad-mini-info">
+                <strong>{{ p.firstName }} {{ p.lastName }}</strong>
+                <span>{{ p.role }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Édition -->
+          <ng-container *ngIf="isEditMode()">
+            <div class="pad-participant-card" *ngFor="let p of participantsArray.controls; let i = index"
+              [formGroup]="$any(p)">
+
+              <div class="pad-participant-header">
+                <h3>Participant {{ i + 1 }}</h3>
+                <button type="button" class="pad-icon-btn pad-icon-btn--danger" *ngIf="participantsArray.length > 1"
+                  (click)="removeParticipant(i)" aria-label="Retirer">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="pad-field pad-field--span-2">
+                <label>Membre existant (facultatif)</label>
+                <div class="pad-search-wrap">
+                  <div class="pad-selected-row" *ngIf="selectedParticipantMap.get(i) as member">
+                    <div class="pad-mini-avatar">{{ getMemberInitials(member) }}</div>
+                    <div class="pad-mini-info"><strong>{{ getMemberFullName(member) }}</strong></div>
+                    <button type="button" class="pad-icon-btn" (click)="clearParticipantMember(i)" aria-label="Retirer">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <input *ngIf="!selectedParticipantMap.get(i)" type="text" formControlName="memberSearch"
+                    placeholder="Rechercher un membre pour pré-remplir…" (focus)="showParticipantResults.set(i)">
+
+                  <div class="pad-search-dropdown"
+                    *ngIf="showParticipantResults() === i && !selectedParticipantMap.get(i)">
+                    <p class="pad-search-status" *ngIf="searchingParticipant() === i">Recherche en cours…</p>
+                    <p class="pad-search-status"
+                      *ngIf="searchingParticipant() !== i && participantResults().length === 0">Aucun membre trouvé</p>
+                    <button type="button" class="pad-search-result" *ngFor="let m of participantResults()"
+                      (click)="selectParticipant(i, m)">
+                      <div class="pad-mini-avatar">{{ getMemberInitials(m) }}</div>
+                      <div class="pad-mini-info"><strong>{{ getMemberFullName(m) }}</strong></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pad-panel-body--grid">
+                <div class="pad-field">
+                  <label>Prénom <span class="pad-required">*</span></label>
+                  <input type="text" formControlName="firstName">
+                  <p class="pad-error" *ngIf="isParticipantFieldInvalid(i, 'firstName')">Requis</p>
+                </div>
+                <div class="pad-field">
+                  <label>Nom <span class="pad-required">*</span></label>
+                  <input type="text" formControlName="lastName">
+                  <p class="pad-error" *ngIf="isParticipantFieldInvalid(i, 'lastName')">Requis</p>
+                </div>
+                <div class="pad-field">
+                  <label>Rôle <span class="pad-required">*</span></label>
+                  <div class="pad-select-wrap">
+                    <select formControlName="role">
+                      <option *ngFor="let role of availableRoles()" [value]="role">{{ role }}</option>
+                    </select>
+                    <svg class="pad-select-caret" viewBox="0 0 24 24" fill="none">
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="pad-field">
+                  <label>Date de naissance</label>
+                  <input type="date" formControlName="dateOfBirth">
+                </div>
+              </div>
+
+            </div>
+          </ng-container>
+
+        </div>
+      </section>
+
+      <!-- ─────────── TÉMOINS ─────────── -->
+      <section class="pad-panel">
+        <div class="pad-panel-header">
+          <h2>Témoins</h2>
+        </div>
+        <div class="pad-panel-body">
+          <ng-container *ngIf="!isEditMode()">
+            <p class="pad-witness-list" *ngIf="a.witnesses.length">{{ a.witnesses.join(', ') }}</p>
+            <p class="pad-empty-hint" *ngIf="!a.witnesses.length">Aucun témoin renseigné.</p>
+          </ng-container>
+          <div class="pad-field" *ngIf="isEditMode()">
+            <textarea rows="3" formControlName="witnessesText" placeholder="Un nom par ligne"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────── DÉTAILS SPÉCIFIQUES ─────────── -->
+      <section class="pad-panel" formGroupName="details" *ngIf="a.type !== PastoralActType.Other">
+        <div class="pad-panel-header">
+          <h2>Détails spécifiques</h2>
+        </div>
+        <div class="pad-panel-body pad-panel-body--grid">
+
+          <ng-container *ngIf="!isEditMode()">
+            <div class="pad-info-row" *ngIf="a.type === PastoralActType.Wedding">
+              <span>Régime matrimonial</span><strong>{{ a.details?.marriageRegime || '—' }}</strong>
+            </div>
+            <ng-container *ngIf="a.type === PastoralActType.Funeral">
+              <div class="pad-info-row"><span>Date de décès</span><strong>{{ formatDate(a.details?.dateOfDeath)
+                  }}</strong></div>
+              <div class="pad-info-row"><span>Lieu d'inhumation</span><strong>{{ a.details?.burialLocation || '—'
+                  }}</strong></div>
+            </ng-container>
+            <ng-container *ngIf="a.details as details">
+              <div class="pad-info-row" *ngIf="details.bibleVerse">
+                <span>Verset biblique</span>
+                <strong>{{ details.bibleVerse }}</strong>
+              </div>
+              <div class="pad-info-row" *ngIf="details.godparents?.length">
+                <span>Parrains / Marraines</span>
+                <strong>{{ details.godparents?.join(', ') || '—' }}</strong>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <ng-container *ngIf="isEditMode()">
+            <div class="pad-field pad-field--span-2" *ngIf="a.type === PastoralActType.Wedding">
+              <label>Régime matrimonial</label>
+              <input type="text" formControlName="marriageRegime">
+            </div>
+            <ng-container *ngIf="a.type === PastoralActType.Funeral">
+              <div class="pad-field"><label>Date de décès</label><input type="date" formControlName="dateOfDeath"></div>
+              <div class="pad-field"><label>Lieu d'inhumation</label><input type="text"
+                  formControlName="burialLocation"></div>
+            </ng-container>
+            <ng-container *ngIf="a.type === PastoralActType.Baptism || a.type === PastoralActType.ChildDedication">
+              <div class="pad-field pad-field--span-2"><label>Verset biblique</label><input type="text"
+                  formControlName="bibleVerse"></div>
+              <div class="pad-field pad-field--span-2"><label>Parrains / Marraines (un par ligne)</label><textarea
+                  rows="2" formControlName="godparentsText"></textarea></div>
+            </ng-container>
+          </ng-container>
+
+        </div>
+      </section>
+
+      <!-- ─────────── NOTES ─────────── -->
+      <section class="pad-panel">
+        <div class="pad-panel-header">
+          <h2>Notes</h2>
+        </div>
+        <div class="pad-panel-body">
+          <p class="pad-notes-readonly" *ngIf="!isEditMode()">{{ a.notes || 'Aucune note.' }}</p>
+          <textarea *ngIf="isEditMode()" rows="3" formControlName="notes"></textarea>
+        </div>
+      </section>
+
+    </form>
+  </ng-container>
+
+  <!-- ══════════════ POPUP DE CONFIRMATION ══════════════ -->
+  <app-confirm-dialog [visible]="deleteDialogVisible()" title="Supprimer cet acte pastoral"
+    message="Cette action est irréversible. Voulez-vous vraiment supprimer cet acte ?" confirmText="Supprimer"
+    cancelText="Annuler" (confirm)="confirmDelete()" (cancel)="cancelDelete()"></app-confirm-dialog>
+
+</div>

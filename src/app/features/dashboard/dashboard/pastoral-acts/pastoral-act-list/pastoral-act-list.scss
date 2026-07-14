@@ -229,3 +229,72 @@
 button:focus-visible, input:focus-visible, select:focus-visible {
   outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
 }
+
+
+// Bouton "Générer le PDF"
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(135deg, #1a4b6d, #2a6f94);
+  box-shadow: 0 4px 12px rgba(26, 75, 109, 0.35);
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+
+  i {
+    font-size: 1.2rem;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #1f5a7e, #3284ae);
+    box-shadow: 0 6px 18px rgba(26, 75, 109, 0.45);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(26, 75, 109, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: #a0b8c9;
+  }
+
+  // Variante dorée (pour les certificats)
+  &.gold {
+    background: linear-gradient(135deg, #b8860b, #d4a017);
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.35);
+
+    &:hover {
+      background: linear-gradient(135deg, #c9951a, #e6b422);
+      box-shadow: 0 6px 18px rgba(184, 134, 11, 0.45);
+    }
+  }
+
+  // Taille compacte (pour les tableaux)
+  &.small {
+    padding: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  // Pleine largeur (mobile)
+  &.full-width {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -79,7 +79,7 @@ export class PastoralActList implements OnInit, OnDestroy {
   private filter: PastoralActFilterDto = { ...DEFAULT_PASTORAL_ACT_FILTER };
 
   constructor(
-    private pastoralActService: PastoralActs,
+    public pastoralActService: PastoralActs,
     private churchService: ChurchService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
