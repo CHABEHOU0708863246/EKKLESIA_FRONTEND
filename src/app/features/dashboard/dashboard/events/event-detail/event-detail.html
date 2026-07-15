@@ -1,1 +1,211 @@
-<p>event-detail works!</p>
+<!-- src/app/features/dashboard/dashboard/events/event-detail/event-detail.html -->
+<div class="ev-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="ev-page-header">
+    <div class="ev-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="ev-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/evenements']">Événements</a>
+      <span class="ev-breadcrumb-sep">/</span>
+      <span class="ev-breadcrumb-current">Détail</span>
+    </div>
+
+    <div class="ev-page-title-row">
+      <h1 *ngIf="event()">{{ event()?.title }}</h1>
+      <h1 *ngIf="!event() && !loading()">Événement introuvable</h1>
+      <div class="ev-header-actions">
+        <button class="ev-btn ev-btn--outline" (click)="router.navigate(['/dashboard/evenements'])">Retour</button>
+        <button *ngIf="canCancel()" class="ev-btn ev-btn--warning" (click)="cancelEvent()" [disabled]="cancelling()">
+          <span *ngIf="!cancelling()">Annuler</span>
+          <span class="ev-spinner ev-spinner--btn" *ngIf="cancelling()"></span>
+        </button>
+        <button *ngIf="canDelete()" class="ev-btn ev-btn--danger" (click)="deleteEvent()" [disabled]="deleting()">
+          <span *ngIf="!deleting()">Supprimer</span>
+          <span class="ev-spinner ev-spinner--btn" *ngIf="deleting()"></span>
+        </button>
+        <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success" [routerLink]="['/dashboard/evenements', event()?.id, 'checkin']">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Check-in
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="ev-banner ev-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+    <button class="ev-banner-close" (click)="error.set(null)">✕</button>
+  </div>
+
+  <!-- ══════════════ CHARGEMENT ══════════════ -->
+  <div class="ev-loading-state" *ngIf="loading()">
+    <span class="ev-spinner"></span> Chargement…
+  </div>
+
+  <!-- ══════════════ CONTENU ══════════════ -->
+  <div class="ev-detail-grid" *ngIf="!loading() && event()">
+    <!-- ─── Colonne de gauche : infos ─── -->
+    <section class="ev-detail-info">
+      <div class="ev-panel">
+        <div class="ev-panel-header">
+          <h2>Informations générales</h2>
+        </div>
+        <div class="ev-panel-body ev-panel-body--grid">
+          <div class="ev-info-item ev-info-item--full">
+            <label>Titre</label>
+            <p>{{ event()?.title }}</p>
+          </div>
+          <div class="ev-info-item ev-info-item--full">
+            <label>Description</label>
+            <p>{{ event()?.description || '—' }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Type</label>
+            <span class="ev-type-badge" [class]="getTypeClass(event()!.type)">{{ getTypeLabel(event()!.type) }}</span>
+          </div>
+          <div class="ev-info-item">
+            <label>Statut</label>
+            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+          </div>
+          <div class="ev-info-item">
+            <label>Début</label>
+            <p>{{ formatDateTime(event()!.startDate) }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Fin</label>
+            <p>{{ event()?.endDate ? formatDateTime(event()!.endDate!) : '—' }}</p>
+          </div>
+          <div class="ev-info-item ev-info-item--full">
+            <label>Lieu</label>
+            <p>{{ event()?.location || '—' }}</p>
+          </div>
+          <div class="ev-info-item ev-info-item--full" *ngIf="event()?.address">
+            <label>Adresse</label>
+            <p>
+              {{ event()?.address?.street }},
+              {{ event()?.address?.city }},
+              {{ event()?.address?.state }},
+              {{ event()?.address?.country }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ev-panel">
+        <div class="ev-panel-header">
+          <h2>Organisation</h2>
+        </div>
+        <div class="ev-panel-body ev-panel-body--grid">
+          <div class="ev-info-item">
+            <label>Organisateur</label>
+            <p>{{ event()?.organizerName || '—' }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Église</label>
+            <p>{{ event()?.churchName || event()?.churchId }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Site</label>
+            <p>{{ event()?.siteName || event()?.siteId || '—' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ev-panel">
+        <div class="ev-panel-header">
+          <h2>Inscriptions</h2>
+        </div>
+        <div class="ev-panel-body ev-panel-body--grid">
+          <div class="ev-info-item">
+            <label>Inscription requise</label>
+            <p>{{ event()?.registrationRequired ? 'Oui' : 'Non' }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Inscriptions ouvertes</label>
+            <p>{{ event()?.registrationOpen ? 'Oui' : 'Non' }}</p>
+          </div>
+          <div class="ev-info-item" *ngIf="event()?.capacity">
+            <label>Capacité</label>
+            <p>{{ event()?.capacity }}</p>
+          </div>
+          <div class="ev-info-item" *ngIf="event()?.registrationDeadline">
+            <label>Date limite</label>
+            <p>{{ formatDateTime(event()!.registrationDeadline!) }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Prix</label>
+            <p>{{ getFormattedPrice(event()!.price, event()!.currency) }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Devise</label>
+            <p>{{ event()?.currency }}</p>
+          </div>
+          <div class="ev-info-item">
+            <label>Inscrits</label>
+            <p>{{ event()?.attendeeCount }}</p>
+          </div>
+          <div class="ev-info-item" *ngIf="event()?.capacity">
+            <label>Places disponibles</label>
+            <p>{{ event()?.availableSpots }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ev-panel" *ngIf="event()?.isRecurring">
+        <div class="ev-panel-header">
+          <h2>Récurrence</h2>
+        </div>
+        <div class="ev-panel-body">
+          <div class="ev-info-item ev-info-item--full">
+            <label>Motif</label>
+            <p>{{ event()?.recurrencePattern || '—' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Colonne de droite : participants ─── -->
+    <section class="ev-detail-participants">
+      <div class="ev-panel">
+        <div class="ev-panel-header">
+          <h2>Participants ({{ event()?.attendees?.length || 0 }})</h2>
+        </div>
+        <div class="ev-panel-body ev-panel-body--no-padding">
+          <div *ngIf="event()?.attendees?.length === 0" class="ev-empty-state">
+            Aucun participant inscrit.
+          </div>
+          <table class="ev-table ev-table--compact" *ngIf="event()?.attendees?.length">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Check-in</th>
+                <th>Paiement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of event()!.attendees">
+                <td>{{ getAttendeeFullName(a) }}</td>
+                <td>{{ a.email || '—' }}</td>
+                <td>{{ a.phone || '—' }}</td>
+                <td>
+                  <span class="ev-checkin-status" [class.ev-checkin-status--checked]="a.checkedIn">
+                    {{ a.checkedIn ? '✓' : '—' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="ev-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
+                    {{ getPaymentStatusLabel(a.paymentStatus) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

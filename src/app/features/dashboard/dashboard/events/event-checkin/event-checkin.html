@@ -1,1 +1,145 @@
-<p>event-checkin works!</p>
+<!-- src/app/features/dashboard/dashboard/events/event-checkin/event-checkin.html -->
+<div class="ec-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="ec-page-header">
+    <div class="ec-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="ec-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/evenements']">Événements</a>
+      <span class="ec-breadcrumb-sep">/</span>
+      <span class="ec-breadcrumb-current">Check-in</span>
+    </div>
+
+    <div class="ec-page-title-row">
+      <h1 *ngIf="event()">{{ event()?.title }}</h1>
+      <h1 *ngIf="!event() && !loading()">Événement introuvable</h1>
+      <div class="ec-header-actions">
+        <button class="ec-btn ec-btn--outline" (click)="goBack()">Retour</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="ec-banner ec-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+    <button class="ec-banner-close" (click)="error.set(null)">✕</button>
+  </div>
+
+  <!-- ══════════════ CHARGEMENT ══════════════ -->
+  <div class="ec-loading-state" *ngIf="loading()">
+    <span class="ec-spinner"></span> Chargement…
+  </div>
+
+  <!-- ══════════════ CONTENU ══════════════ -->
+  <ng-container *ngIf="!loading() && event()">
+
+    <!-- ─── Résumé de l'événement ─── -->
+    <section class="ec-event-summary">
+      <div class="ec-summary-item">
+        <span class="ec-summary-label">Type</span>
+        <span class="ec-type-badge" [class]="getTypeClass(event()!.type)">{{ getTypeLabel(event()!.type) }}</span>
+      </div>
+      <div class="ec-summary-item">
+        <span class="ec-summary-label">Statut</span>
+        <span class="ec-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+      </div>
+      <div class="ec-summary-item">
+        <span class="ec-summary-label">Date</span>
+        <span>{{ formatDateTime(event()!.startDate) }}</span>
+      </div>
+      <div class="ec-summary-item" *ngIf="event()?.location">
+        <span class="ec-summary-label">Lieu</span>
+        <span>{{ event()?.location }}</span>
+      </div>
+      <div class="ec-summary-item ec-summary-stats">
+        <span class="ec-summary-label">Check-in</span>
+        <span class="ec-stats">
+          <span class="ec-stat-checked">{{ checkedCount() }}</span>
+          <span class="ec-stat-sep">/</span>
+          <span class="ec-stat-total">{{ totalAttendees() }}</span>
+          <span class="ec-stat-percent" *ngIf="totalAttendees() > 0">
+            ({{ (checkedCount() / totalAttendees() * 100) | number:'1.0-0' }}%)
+          </span>
+        </span>
+      </div>
+    </section>
+
+    <!-- ─── Barre d'outils ─── -->
+    <div class="ec-toolbar">
+      <div class="ec-toolbar-left">
+        <div class="ec-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Rechercher un participant…" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" />
+        </div>
+
+        <div class="ec-filter-wrap">
+          <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+            <option value="all">Tous</option>
+            <option value="checked">Présents</option>
+            <option value="unchecked">Absents</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ec-toolbar-right" *ngIf="totalAttendees() > 0">
+        <button class="ec-btn ec-btn--small ec-btn--success" (click)="checkAll()" [disabled]="uncheckedCount() === 0 || !canCheckIn()">
+          Check-in tous
+        </button>
+        <button class="ec-btn ec-btn--small ec-btn--outline" (click)="uncheckAll()" [disabled]="checkedCount() === 0 || !canCheckIn()">
+          Tout déchecker
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── Tableau des participants ─── -->
+    <section class="ec-panel">
+      <div class="ec-panel-header">
+        <h2>Participants</h2>
+        <span class="ec-panel-badge">{{ filteredAttendees().length }} / {{ totalAttendees() }}</span>
+      </div>
+      <div class="ec-panel-body ec-panel-body--no-padding">
+        <div *ngIf="totalAttendees() === 0" class="ec-empty-state">
+          Aucun participant inscrit.
+        </div>
+        <div *ngIf="totalAttendees() > 0 && filteredAttendees().length === 0" class="ec-empty-state">
+          Aucun participant ne correspond à votre recherche.
+        </div>
+        <table class="ec-table" *ngIf="filteredAttendees().length > 0">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Inscription</th>
+              <th class="ec-table-center">Check-in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of filteredAttendees()">
+              <td>{{ getAttendeeFullName(a) }}</td>
+              <td>{{ a.email || '—' }}</td>
+              <td>{{ a.phone || '—' }}</td>
+              <td>{{ formatDateTime(a.registrationDate) }}</td>
+              <td class="ec-table-center">
+                <button class="ec-checkin-btn"
+                        [class.ec-checkin-btn--checked]="a.checkedIn"
+                        [disabled]="!canCheckIn() || isToggling(a)"
+                        (click)="toggleCheckIn(a)">
+                  <span *ngIf="isToggling(a)" class="ec-spinner ec-spinner--btn"></span>
+                  <span *ngIf="!isToggling(a)">{{ a.checkedIn ? '✅ Présent' : '⬜ À pointer' }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── Message si check-in désactivé ─── -->
+    <div class="ec-disabled-note" *ngIf="!canCheckIn()">
+      <p>⚠️ Le check-in n'est pas disponible pour cet événement (statut : {{ getStatusLabel(event()!.status) }}).</p>
+    </div>
+  </ng-container>
+</div>

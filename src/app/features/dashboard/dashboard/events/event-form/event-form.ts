@@ -157,27 +157,27 @@ export class EventForm implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   private loadEvent(): void {
-    if (!this.eventId) return;
-    this.loading.set(true);
+  if (!this.eventId) return;
+  this.loading.set(true);
 
-    this.eventService
-      .getById(this.eventId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            this.populateForm(response.data);
-          } else {
-            this.error.set(response.message || 'Impossible de charger cet événement.');
-          }
-          this.loading.set(false);
-        },
-        error: () => {
+  this.eventService
+    .getById(this.eventId)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (event) => { // On renomme 'response' en 'event' pour plus de clarté
+        if (event) {
+          this.populateForm(event); // ✅ On passe directement l'événement au formulaire
+        } else {
           this.error.set('Impossible de charger cet événement.');
-          this.loading.set(false);
-        },
-      });
-  }
+        }
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Impossible de charger cet événement.');
+        this.loading.set(false);
+      },
+    });
+}
 
   private populateForm(event: any): void {
     this.form.patchValue({
@@ -385,7 +385,7 @@ export class EventForm implements OnInit, OnDestroy {
           if (response.success && response.data) {
             this.router.navigate(['/dashboard/evenements', response.data.id]);
           } else {
-            this.error.set(response.message || 'Une erreur est survenue lors de la création.');
+            this.error.set(response.message || 'Inscription réussie.');
           }
         },
         error: (err) => {

@@ -1,1 +1,120 @@
-<p>event-list works!</p>
+<!-- src/app/features/dashboard/dashboard/events/event-list/event-list.html -->
+<div class="ev-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="ev-page-header">
+    <div class="ev-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="ev-breadcrumb-sep">/</span>
+      <span class="ev-breadcrumb-current">Événements</span>
+    </div>
+
+    <div class="ev-page-title-row">
+      <h1>Événements</h1>
+      <div class="ev-header-actions">
+        <button type="button" class="ev-btn ev-btn--primary" [routerLink]="['/dashboard/evenements/new']">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Créer un événement
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="ev-banner ev-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+    <button class="ev-banner-close" (click)="error.set(null)">✕</button>
+  </div>
+
+  <!-- ══════════════ FILTRES ══════════════ -->
+  <section class="ev-filters">
+    <div class="ev-filters-row">
+      <div class="ev-filter-field ev-filter-field--search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Rechercher un événement…" (input)="onSearch($any($event.target).value)" />
+      </div>
+
+      <div class="ev-filter-field">
+        <select (change)="onFilterChange()" [(ngModel)]="filter.type">
+          <option [value]="undefined">Tous les types</option>
+          <option *ngFor="let opt of typeOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+
+      <div class="ev-filter-field">
+        <select (change)="onFilterChange()" [(ngModel)]="filter.status">
+          <option [value]="undefined">Tous les statuts</option>
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+
+      <button type="button" class="ev-btn ev-btn--ghost" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+  </section>
+
+  <!-- ══════════════ LISTE ══════════════ -->
+  <section class="ev-table-wrap">
+    <div class="ev-loading-state" *ngIf="loading()">
+      <span class="ev-spinner"></span> Chargement des événements…
+    </div>
+
+    <table class="ev-table" *ngIf="!loading()">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Type</th>
+          <th>Date</th>
+          <th>Lieu</th>
+          <th>Statut</th>
+          <th>Inscrits</th>
+          <th class="ev-table-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let event of events()">
+          <td>
+            <a [routerLink]="['/dashboard/evenements', event.id]" class="ev-event-title">
+              {{ event.title }}
+            </a>
+          </td>
+          <td><span class="ev-type-badge" [class]="getTypeClass(event.type)">{{ getTypeLabel(event.type) }}</span></td>
+          <td>{{ formatDate(event.startDate) }}</td>
+          <td>{{ event.location || '—' }}</td>
+          <td><span class="ev-status-badge" [class]="getStatusClass(event.status)">{{ getStatusLabel(event.status) }}</span></td>
+          <td>{{ event.attendeeCount }}</td>
+          <td>
+            <div class="ev-actions">
+              <a class="ev-action-btn ev-action-btn--view" [routerLink]="['/dashboard/evenements', event.id]" title="Voir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              <button class="ev-action-btn ev-action-btn--cancel" (click)="cancelEvent(event.id, event.title)" *ngIf="isCancellable(event)" title="Annuler">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+              </button>
+              <button class="ev-action-btn ev-action-btn--delete" (click)="deleteEvent(event.id, event.title)" *ngIf="isDeletable(event)" title="Supprimer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m-7 4v8m6-8v8"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="events().length === 0">
+          <td colspan="7" class="ev-empty-state">
+            Aucun événement trouvé. <a [routerLink]="['/dashboard/evenements/new']">Créez le premier !</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════════ PAGINATION ══════════════ -->
+  <footer class="ev-pagination" *ngIf="totalPages > 1">
+    <button class="ev-pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <span class="ev-pagination-info">Page {{ currentPage }} sur {{ totalPages }}</span>
+    <button class="ev-pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <span class="ev-pagination-total">{{ totalCount }} événements au total</span>
+  </footer>
+</div>

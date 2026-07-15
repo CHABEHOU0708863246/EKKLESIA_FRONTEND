@@ -42,6 +42,7 @@ export enum PaymentStatus {
 }
 
 export interface EventAttendee {
+  id?: string;
   memberId?: string;
   firstName: string;
   lastName: string;
@@ -100,6 +101,8 @@ export interface Event {
   formattedEndDate?: string;
   formattedPrice: string;
   duration: string;
+  isSuccess?: boolean;
+  errorMessage?: string;
 }
 
 export interface EventCreate {
@@ -219,10 +222,6 @@ export interface EventAttendeeCheckIn {
   checkedIn: boolean;
 }
 
-// Labels pour les types d'événements
-// src/app/core/models/events/event.model.ts
-
-// ... (suite des labels)
 
 export const EventTypeLabels: Record<EventType, string> = {
   [EventType.SundayService]: 'Culte dominical',

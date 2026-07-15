@@ -1,1 +1,200 @@
-<p>event-registrations works!</p>
+<!-- src/app/features/dashboard/dashboard/events/event-registrations/event-registrations.html -->
+<div class="er-page">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="er-page-header">
+    <div class="er-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="er-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/evenements']">Événements</a>
+      <span class="er-breadcrumb-sep">/</span>
+      <span class="er-breadcrumb-current">Inscriptions</span>
+    </div>
+
+    <div class="er-page-title-row">
+      <h1>{{ event() ? event()!.title : 'Gestion des inscriptions' }}</h1>
+      <div class="er-header-actions">
+        <button class="er-btn er-btn--outline" (click)="goBack()">Retour</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  <div class="er-banner er-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+    <button class="er-banner-close" (click)="error.set(null)">✕</button>
+  </div>
+
+  <!-- ══════════════ CHARGEMENT ══════════════ -->
+  <div class="er-loading-state" *ngIf="loading()">
+    <span class="er-spinner"></span> Chargement…
+  </div>
+
+  <!-- ══════════════ LISTE DES ÉVÉNEMENTS (si aucun sélectionné) ══════════════ -->
+  <div *ngIf="!loading() && !event() && events().length > 0" class="er-event-list">
+    <h3>Sélectionnez un événement</h3>
+    <div class="er-event-grid">
+      <div class="er-event-card" *ngFor="let e of events()" (click)="selectEvent(e)">
+        <h4>{{ e.title }}</h4>
+        <p>{{ e.typeLabel }} – {{ formatDate(e.startDate) }}</p>
+        <p><span class="er-status-badge" [class]="getStatusClass(e.status)">{{ getStatusLabel(e.status) }}</span></p>
+        <button class="er-btn er-btn--primary er-btn--small">Gérer les inscriptions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ DÉTAIL D'UN ÉVÉNEMENT ══════════════ -->
+  <ng-container *ngIf="!loading() && event()">
+    <!-- Résumé de l'événement -->
+    <section class="er-event-summary">
+      <div class="er-summary-item">
+        <span class="er-summary-label">Type</span>
+        <span class="er-type-badge" [class]="getTypeClass(event()!.type)">{{ getTypeLabel(event()!.type) }}</span>
+      </div>
+      <div class="er-summary-item">
+        <span class="er-summary-label">Statut</span>
+        <span class="er-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+      </div>
+      <div class="er-summary-item">
+        <span class="er-summary-label">Inscrits</span>
+        <span>{{ event()?.attendees?.length || 0 }}</span>
+      </div>
+      <div class="er-summary-item" *ngIf="event()?.capacity">
+        <span class="er-summary-label">Places</span>
+        <span>{{ event()?.capacity }}</span>
+      </div>
+      <div class="er-summary-item">
+        <span class="er-summary-label">Disponibles</span>
+        <span>{{ isFull() ? 'Complet' : availableSpots }}</span>
+      </div>
+      <div class="er-summary-item">
+        <span class="er-summary-label">Inscriptions</span>
+        <span>{{ event()?.registrationOpen ? 'Ouvertes' : 'Fermées' }}</span>
+      </div>
+    </section>
+
+    <!-- Formulaire d'ajout -->
+    <section class="er-panel">
+      <div class="er-panel-header">
+        <h2>Nouveau participant</h2>
+      </div>
+      <div class="er-panel-body er-panel-body--form">
+        <form [formGroup]="registerForm" (ngSubmit)="registerAttendee()" class="er-form">
+          <div class="er-form-row">
+            <div class="er-field">
+              <label for="firstName">Prénom <span class="er-required">*</span></label>
+              <input id="firstName" type="text" formControlName="firstName" placeholder="Prénom">
+              <p class="er-error" *ngIf="isFieldInvalid('firstName')">Minimum 2 caractères</p>
+            </div>
+            <div class="er-field">
+              <label for="lastName">Nom <span class="er-required">*</span></label>
+              <input id="lastName" type="text" formControlName="lastName" placeholder="Nom">
+              <p class="er-error" *ngIf="isFieldInvalid('lastName')">Minimum 2 caractères</p>
+            </div>
+          </div>
+          <div class="er-form-row">
+            <div class="er-field">
+              <label for="email">Email</label>
+              <input id="email" type="email" formControlName="email" placeholder="email@exemple.com">
+              <p class="er-error" *ngIf="isFieldInvalid('email')">Email invalide</p>
+            </div>
+            <div class="er-field">
+              <label for="phone">Téléphone</label>
+              <input id="phone" type="text" formControlName="phone" placeholder="Téléphone">
+            </div>
+          </div>
+          <div class="er-form-row">
+            <div class="er-field">
+              <label for="paymentStatus">Statut de paiement</label>
+              <div class="er-select-wrap">
+                <select id="paymentStatus" formControlName="paymentStatus">
+                  <option *ngFor="let opt of paymentStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="er-form-row">
+            <div class="er-field er-field--full">
+              <label for="notes">Notes</label>
+              <textarea id="notes" formControlName="notes" rows="2" placeholder="Remarques…"></textarea>
+            </div>
+          </div>
+          <div class="er-form-actions">
+            <button type="button" class="er-btn er-btn--ghost" (click)="registerForm.reset()">Annuler</button>
+            <button type="submit" class="er-btn er-btn--primary" [disabled]="adding() || !canRegister() || isFull()">
+              <span *ngIf="!adding()">Inscrire</span>
+              <span class="er-spinner er-spinner--btn" *ngIf="adding()"></span>
+            </button>
+          </div>
+          <div class="er-form-status" *ngIf="!canRegister() && !isFull()">
+            <p class="er-text-muted">Les inscriptions sont actuellement fermées pour cet événement.</p>
+          </div>
+          <div class="er-form-status" *ngIf="isFull()">
+            <p class="er-text-warning">Capacité atteinte, plus d’inscriptions possibles.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Liste des participants -->
+    <section class="er-panel">
+      <div class="er-panel-header">
+        <h2>Participants ({{ event()?.attendees?.length || 0 }})</h2>
+      </div>
+      <div class="er-panel-body er-panel-body--no-padding">
+        <div *ngIf="(event()?.attendees?.length || 0) === 0" class="er-empty-state">
+          Aucun participant inscrit.
+        </div>
+        <table class="er-table er-table--compact" *ngIf="(event()?.attendees?.length || 0) > 0">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Inscription</th>
+              <th>Check-in</th>
+              <th>Paiement</th>
+              <th class="er-table-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of event()!.attendees">
+              <td>{{ getAttendeeFullName(a) }}</td>
+              <td>{{ a.email || '—' }}</td>
+              <td>{{ a.phone || '—' }}</td>
+              <td>{{ formatDateTime(a.registrationDate) }}</td>
+              <td>
+                <button class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn"
+                        (click)="toggleCheckIn(a)" [disabled]="togglingCheckIn() === (a.memberId || a.email)">
+                  <span *ngIf="togglingCheckIn() !== (a.memberId || a.email)">
+                    {{ a.checkedIn ? '✅' : '⬜' }}
+                  </span>
+                  <span class="er-spinner er-spinner--btn" *ngIf="togglingCheckIn() === (a.memberId || a.email)"></span>
+                </button>
+              </td>
+              <td>
+                <span class="er-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
+                  {{ getPaymentStatusLabel(a.paymentStatus) }}
+                </span>
+              </td>
+              <td>
+                <button class="er-action-btn er-action-btn--delete" (click)="unregisterAttendee(a)"
+                        [disabled]="deleting() === (a.memberId || a.email)" title="Retirer">
+                  <span *ngIf="deleting() === (a.memberId || a.email)" class="er-spinner er-spinner--btn"></span>
+                  <span *ngIf="deleting() !== (a.memberId || a.email)">🗑️</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+
+  <!-- Message si aucun événement trouvé -->
+  <div *ngIf="!loading() && !event() && events().length === 0" class="er-empty-state">
+    Aucun événement disponible.
+  </div>
+</div>

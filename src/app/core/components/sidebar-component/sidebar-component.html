@@ -278,14 +278,7 @@
             </a>
           </li>
           }
-          @if (permission.canRegisterToEvent()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/evenements/mes-inscriptions']" class="nav-link">
-              <i class="nav-icon-sub bx bx-check-circle"></i>
-              <span class="nav-text">Mes inscriptions</span>
-            </a>
-          </li>
-          }
+
           @if (permission.canCreateEvent()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/evenements/new']" class="nav-link">
