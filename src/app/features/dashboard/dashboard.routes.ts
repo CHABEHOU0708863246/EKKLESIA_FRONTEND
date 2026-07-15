@@ -45,6 +45,11 @@ export const DASHBOARD_ROUTES: Routes = [
         loadChildren: () =>
           import('./dashboard/events/events.routes').then((m) => m.EVENTS_ROUTES),
     },
+    {
+      path: 'cultes',
+      loadChildren: () =>
+        import('./dashboard/workship/services.routes').then((m) => m.SERVICES_ROUTES),
+    }
   ],
 },
 ];

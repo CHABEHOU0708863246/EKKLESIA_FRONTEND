@@ -1,0 +1,98 @@
+<div class="sa-container">
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="sa-loading">Chargement des données…</div>
+  }
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="sa-error">{{ error() }}</div>
+  }
+
+  <!-- Succès -->
+  @if (success()) {
+    <div class="sa-success">✅ Présences enregistrées avec succès !</div>
+  }
+
+  <!-- Formulaire -->
+  @if (!loading() && !error() && service(); as s) {
+
+    <!-- En-tête -->
+    <div class="sa-header">
+      <div class="sa-header-left">
+        <button class="sa-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>Présences – {{ s.title }}</h1>
+        <span class="sa-badge" [class]="'sa-badge-' + getStatusColor(s.status)">
+          {{ getStatusLabel(s.status) }}
+        </span>
+      </div>
+      <div class="sa-header-right">
+        <span class="sa-date">{{ getFormattedDate(s.date) }}</span>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <form [formGroup]="form" (ngSubmit)="save()" class="sa-form">
+
+      <!-- Champs principaux -->
+      <div class="sa-grid-3">
+        <div class="sa-field">
+          <label>Membres</label>
+          <input type="number" formControlName="members" min="0">
+        </div>
+        <div class="sa-field">
+          <label>Visiteurs</label>
+          <input type="number" formControlName="visitors" min="0">
+        </div>
+        <div class="sa-field">
+          <label>Enfants</label>
+          <input type="number" formControlName="children" min="0">
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="sa-total">
+        <span>Total des participants : <strong>{{ total }}</strong></span>
+      </div>
+
+      <!-- Liste des visiteurs -->
+      <div class="sa-visitors-section">
+        <div class="sa-visitors-header">
+          <label>Noms des visiteurs</label>
+          <button type="button" class="sa-btn-small sa-btn-primary" (click)="addVisitorField()">
+            + Ajouter un visiteur
+          </button>
+        </div>
+
+        <div formArrayName="visitorNames" class="sa-visitors-list">
+          @for (control of visitorNamesArray.controls; track $index) {
+            <div class="sa-visitor-row" [formGroup]="$any(control)">
+              <input type="text" formControlName="0" placeholder="Nom du visiteur…">
+              <button type="button" class="sa-btn-small sa-btn-danger" (click)="removeVisitorField($index)"
+                      *ngIf="visitorNamesArray.length > 1">
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="sa-actions">
+        <button type="button" class="sa-btn-secondary" (click)="goBack()">Annuler</button>
+        <button type="submit" class="sa-btn-primary" [disabled]="saving() || form.invalid">
+          @if (saving()) {
+            <span class="sa-spinner"></span> Enregistrement…
+          } @else {
+            <i class="bx bx-save"></i> Enregistrer les présences
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+
+</div>

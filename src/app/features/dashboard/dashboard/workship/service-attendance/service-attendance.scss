@@ -1,0 +1,293 @@
+.sa-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+// ─── ÉTATS ────────────────────────────────────────────────────
+
+.sa-loading, .sa-error, .sa-success {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.sa-error {
+  color: #e74c3c;
+  background: #fde8e8;
+}
+
+.sa-success {
+  color: #155724;
+  background: #d4edda;
+}
+
+// ─── EN-TÊTE ──────────────────────────────────────────────────
+
+.sa-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sa-header-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+}
+
+.sa-btn-back {
+  background: #f1f3f5;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  transition: background 0.2s;
+
+  &:hover { background: #e0e4e8; }
+}
+
+.sa-badge {
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.sa-badge-primary { background: #dbeafe; color: #1e40af; }
+.sa-badge-info    { background: #d1f2eb; color: #0b7b5a; }
+.sa-badge-success { background: #d4edda; color: #155724; }
+.sa-badge-secondary{ background: #e9ecef; color: #495057; }
+.sa-badge-danger  { background: #f8d7da; color: #721c24; }
+
+.sa-date {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+// ─── FORMULAIRE ──────────────────────────────────────────────
+
+.sa-form {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.8rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.sa-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.sa-field {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 0.2rem;
+  }
+
+  input {
+    padding: 0.5rem 0.6rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #2a6f94;
+      box-shadow: 0 0 0 3px rgba(42,111,148,0.2);
+    }
+
+    &[type="number"] {
+      width: 100%;
+    }
+  }
+}
+
+.sa-total {
+  background: #f8f9fa;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  margin-bottom: 1.8rem;
+
+  strong {
+    color: #2a6f94;
+    font-size: 1.3rem;
+  }
+}
+
+// ─── VISITEURS ───────────────────────────────────────────────
+
+.sa-visitors-section {
+  margin-bottom: 2rem;
+}
+
+.sa-visitors-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+}
+
+.sa-visitors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sa-visitor-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #2a6f94;
+      box-shadow: 0 0 0 3px rgba(42,111,148,0.2);
+    }
+  }
+}
+
+.sa-btn-small {
+  padding: 0.2rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sa-btn-primary {
+  background: #2a6f94;
+  color: #fff;
+  &:hover { background: #1f5a7e; }
+}
+
+.sa-btn-danger {
+  background: #e74c3c;
+  color: #fff;
+  &:hover { background: #c0392b; }
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────
+
+.sa-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  border-top: 2px solid #f1f3f5;
+  padding-top: 1.2rem;
+}
+
+.sa-btn-secondary {
+  padding: 0.5rem 1.2rem;
+  background: #e9ecef;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover { background: #d5dbe0; }
+}
+
+.sa-btn-primary {
+  padding: 0.5rem 1.6rem;
+  background: #2a6f94;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) { background: #1f5a7e; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.sa-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 0.3rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────
+
+@media (max-width: 600px) {
+  .sa-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .sa-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sa-header-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sa-actions {
+    flex-direction: column;
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

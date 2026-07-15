@@ -1,0 +1,188 @@
+<!-- service-detail.component.html -->
+
+<div class="sd-container">
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="sd-loading">Chargement du culte…</div>
+  }
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="sd-error">{{ error() }}</div>
+  }
+
+  <!-- Détails -->
+  @if (!loading() && !error() && service(); as s) {
+
+    <!-- En-tête avec actions -->
+    <div class="sd-header">
+      <div class="sd-header-left">
+        <button class="sd-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>{{ s.title }}</h1>
+        <span class="sd-badge" [class]="'sd-badge-' + getStatusColor(s.status)">
+          {{ getStatusLabel(s.status) }}
+        </span>
+      </div>
+      <div class="sd-header-actions">
+        <button class="sd-btn-primary" (click)="editService()">
+          <i class="bx bx-edit"></i> Modifier
+        </button>
+        <button class="sd-btn-success" (click)="goToCheckin()">
+          <i class="bx bx-user-check"></i> Présences
+        </button>
+        <button class="sd-btn-danger" (click)="deleteService()" [disabled]="deleting()">
+          @if (deleting()) { Suppression… } @else { <i class="bx bx-trash"></i> Supprimer }
+        </button>
+      </div>
+    </div>
+
+    <!-- Grille d'informations -->
+    <div class="sd-grid">
+
+      <!-- Colonne gauche : infos générales -->
+      <div class="sd-col-left">
+        <div class="sd-card">
+          <h3>Informations générales</h3>
+          <div class="sd-info-row">
+            <span class="sd-label">Date</span>
+            <span class="sd-value">{{ getFormattedDate(s.date) }}</span>
+          </div>
+          <div class="sd-info-row">
+            <span class="sd-label">Lieu</span>
+            <span class="sd-value">{{ s.location || '—' }}</span>
+          </div>
+          <div class="sd-info-row">
+            <span class="sd-label">Prédicateur</span>
+            <span class="sd-value sd-preacher">
+              @if (s.preacherPhotoUrl) {
+                <img class="sd-avatar"
+                     [src]="userService.getPhotoUrl(s.preacherPhotoUrl)"
+                     alt="{{ s.preacherName }}"
+                     (error)="onImageError($event)">
+              } @else {
+                <div class="sd-avatar sd-avatar-placeholder">
+                  {{ (s.preacherName || '?') | slice:0:1 }}
+                </div>
+              }
+              {{ s.preacherName || '—' }}
+            </span>
+          </div>
+          <div class="sd-info-row">
+            <span class="sd-label">Thème</span>
+            <span class="sd-value">{{ s.theme || '—' }}</span>
+          </div>
+          <div class="sd-info-row">
+            <span class="sd-label">Texte biblique</span>
+            <span class="sd-value">{{ s.bibleText || '—' }}</span>
+          </div>
+          <div class="sd-info-row">
+            <span class="sd-label">Chef de louange</span>
+            <span class="sd-value">{{ s.worshipLeaderName || '—' }}</span>
+          </div>
+          @if (s.notes) {
+            <div class="sd-info-row sd-notes">
+              <span class="sd-label">Notes</span>
+              <span class="sd-value">{{ s.notes }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Présences -->
+        <div class="sd-card">
+          <h3>Présences</h3>
+          <div class="sd-attendance-grid">
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number">{{ s.attendance.members || 0 }}</span>
+              <span class="sd-attendance-label">Membres</span>
+            </div>
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number">{{ s.attendance.visitors || 0 }}</span>
+              <span class="sd-attendance-label">Visiteurs</span>
+            </div>
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number">{{ s.attendance.children || 0 }}</span>
+              <span class="sd-attendance-label">Enfants</span>
+            </div>
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number sd-total">{{ getTotalAttendance(s.attendance) }}</span>
+              <span class="sd-attendance-label">Total</span>
+            </div>
+          </div>
+          @if (s.attendance.visitorNames?.length) {
+            <div class="sd-visitors">
+              <strong>Visiteurs :</strong>
+              <span>{{ s.attendance.visitorNames.join(', ') }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonne droite : Équipes -->
+      <div class="sd-col-right">
+        <div class="sd-card sd-team-card">
+          <h3>Équipes liturgiques</h3>
+          @if (hasAnyTeamMember(s)) {
+            <div class="sd-team-stats">
+              <span>Total : {{ getTotalTeamMembers(s) }}</span>
+              <span>Confirmés : {{ getTotalConfirmed(s) }}</span>
+              <span class="sd-confirmation-rate"
+                    [style.color]="getTotalConfirmed(s) / (getTotalTeamMembers(s) || 1) >= 0.8 ? '#2ecc71' : '#e67e22'">
+                {{ getTotalTeamMembers(s) > 0 ? Math.round((getTotalConfirmed(s) / getTotalTeamMembers(s)) * 100) : 0 }}% confirmés
+              </span>
+            </div>
+            <div class="sd-team-list">
+              @for (key of getTeamKeys(s); track key) {
+                @if (s.team[key]?.length > 0) {
+                  <div class="sd-team-group">
+                    <h4>{{ getTeamLabel(key) }}</h4>
+                    <div class="sd-team-members">
+                      @for (member of s.team[key]; track member.memberId) {
+                        <div class="sd-team-member">
+                          <div class="sd-member-avatar">
+                            @if (member.photoUrl) {
+                              <img [src]="getMemberPhotoUrl(member)"
+                                   alt="{{ member.memberName }}"
+                                   (error)="onImageError($event)">
+                            } @else {
+                              <span>{{ getMemberInitials(member) }}</span>
+                            }
+                          </div>
+                          <span class="sd-member-name">{{ member.memberName }}</span>
+                          <span class="sd-member-role">{{ member.role }}</span>
+                          <span class="sd-member-confirmed" [class.confirmed]="member.confirmed">
+                            {{ member.confirmed ? '✅' : '❌' }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          } @else {
+            <p class="sd-empty-text">Aucune équipe renseignée.</p>
+          }
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="sd-card sd-meta">
+          <div class="sd-meta-row">
+            <span>Créé le</span>
+            <span>{{ getFormattedDate(s.createdAt) }}</span>
+          </div>
+          @if (s.updatedAt) {
+            <div class="sd-meta-row">
+              <span>Dernière modification</span>
+              <span>{{ getFormattedDate(s.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

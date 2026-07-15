@@ -1,0 +1,191 @@
+<div class="sf-container">
+  <div class="sf-header">
+    <h1>{{ isEditMode() ? 'Modifier le culte' : 'Nouveau culte' }}</h1>
+    <button type="button" class="sf-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  @if (error()) {
+  <div class="sf-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="sf-form">
+
+    <!-- ─── CHAMPS PRINCIPAUX ─── -->
+    <div class="sf-grid-2">
+      <div class="sf-field">
+        <label>Titre du culte <span class="sf-required">*</span></label>
+        <input type="text" formControlName="title" placeholder="Ex: Culte dominical…">
+        <p class="sf-error-text" *ngIf="isFieldInvalid('title')">Le titre est requis.</p>
+      </div>
+      <div class="sf-field">
+        <label>Date et heure <span class="sf-required">*</span></label>
+        <input type="datetime-local" formControlName="date">
+        <p class="sf-error-text" *ngIf="isFieldInvalid('date')">La date est requise.</p>
+      </div>
+    </div>
+
+    <div class="sf-grid-2">
+      <div class="sf-field">
+        <label>Église <span class="sf-required">*</span></label>
+        <select formControlName="churchId">
+          <option value="">-- Choisir une église --</option>
+          @for (church of churches(); track church.id) {
+          <option [value]="church.id">{{ church.name }}</option>
+          }
+        </select>
+        <p class="sf-error-text" *ngIf="isFieldInvalid('churchId')">L'église est requise.</p>
+      </div>
+      <div class="sf-field">
+        <label>Site</label>
+        <select formControlName="siteId">
+          <option value="">-- Choisir un site --</option>
+          @for (site of sites(); track site.id) {
+          <option [value]="site.id">{{ site.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- ─── PRÉDICATEUR ─── -->
+    <div class="sf-field">
+      <label>Prédicateur</label>
+      <div class="sf-search-wrap">
+        <input type="text" formControlName="preacherSearch" placeholder="Rechercher un pasteur…"
+          (focus)="preachers().length > 0 && preachers.set(preachers())" autocomplete="off">
+        <button type="button" class="sf-clear-btn" *ngIf="form.get('preacherSearch')?.value"
+          (click)="clearPreacher()">✕</button>
+
+        <!-- ✅ DROPDOWN DES RÉSULTATS -->
+        <div class="sf-search-dropdown" *ngIf="preachers().length > 0">
+          @for (user of preachers(); track user.id) {
+          <button type="button" class="sf-search-result" (click)="selectPreacher(user)">
+            <div class="sf-mini-avatar">{{ getUserFullName(user).charAt(0) }}</div>
+            <div class="sf-mini-info">
+              <strong>{{ getUserFullName(user) }}</strong>
+              <span class="sf-mini-role">{{ user.roles?.[0] || 'Pasteur' }}</span>
+            </div>
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── THÈME & VERSET ─── -->
+    <div class="sf-grid-2">
+      <div class="sf-field">
+        <label>Thème</label>
+        <input type="text" formControlName="theme" placeholder="Thème de la prédication">
+      </div>
+      <div class="sf-field">
+        <label>Texte biblique</label>
+        <input type="text" formControlName="bibleText" placeholder="Ex: Jean 3:16">
+      </div>
+    </div>
+
+    <!-- ─── CHEF DE LOUANGE ─── -->
+    <div class="sf-field">
+      <label>Chef de louange</label>
+      <div class="sf-search-wrap">
+        <input type="text" formControlName="worshipLeaderSearch" placeholder="Rechercher un membre…" autocomplete="off">
+        <button type="button" class="sf-clear-btn" *ngIf="form.get('worshipLeaderSearch')?.value"
+          (click)="clearWorshipLeader()">✕</button>
+
+        <!-- ✅ DROPDOWN DES RÉSULTATS -->
+        <!-- Dans le template, après le champ de recherche -->
+        <div class="sf-search-dropdown" *ngIf="worshipLeaders().length > 0">
+          @for (member of worshipLeaders(); track member.id) {
+          <button type="button" class="sf-search-result" (click)="selectWorshipLeader(member)">
+            <div class="sf-mini-avatar">{{ getMemberInitials(member) }}</div>
+            <div class="sf-mini-info"><strong>{{ getMemberFullName(member) }}</strong></div>
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── STATUT ─── -->
+    <div class="sf-field">
+      <label>Statut</label>
+      <select formControlName="status">
+        @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- ─── NOTES ─── -->
+    <div class="sf-field">
+      <label>Notes</label>
+      <textarea formControlName="notes" rows="3" placeholder="Remarques, annonces, etc."></textarea>
+    </div>
+
+    <!-- ─── ÉQUIPES ─── -->
+    <div class="sf-section-divider">Équipes liturgiques</div>
+
+    @for (teamKey of getTeamKeys(); track teamKey) {
+    <div class="sf-team-section">
+      <div class="sf-team-header">
+        <h3>{{ TEAM_ROLE_LABELS[teamKey] }}</h3>
+        <button type="button" class="sf-btn-small sf-btn-primary" (click)="addTeamMember(teamKey)">Ajouter</button>
+      </div>
+      <div class="sf-team-members">
+        @for (control of getTeamFormArray(teamKey).controls; track $index) {
+        <div class="sf-team-member" [formGroup]="$any(control)">
+          <div class="sf-grid-3">
+            <div class="sf-field">
+              <label>Nom</label>
+              <input type="text" formControlName="memberName" placeholder="Nom du membre">
+            </div>
+            <div class="sf-field">
+              <label>Rôle</label>
+              <select formControlName="role">
+                @for (roleOpt of TEAM_ROLE_OPTIONS; track roleOpt.value) {
+                <option [value]="roleOpt.value">{{ roleOpt.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="sf-field sf-check">
+              <label>
+                <input type="checkbox" formControlName="confirmed"> Confirmé
+              </label>
+              <button type="button" class="sf-btn-small sf-btn-danger"
+                (click)="removeTeamMember(teamKey, $index)">✕</button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- ─── PRÉSENCES ─── -->
+    <div class="sf-section-divider">Présences</div>
+    <div class="sf-grid-3" formGroupName="attendance">
+      <div class="sf-field">
+        <label>Membres</label>
+        <input type="number" formControlName="members" min="0">
+      </div>
+      <div class="sf-field">
+        <label>Visiteurs</label>
+        <input type="number" formControlName="visitors" min="0">
+      </div>
+      <div class="sf-field">
+        <label>Enfants</label>
+        <input type="number" formControlName="children" min="0">
+      </div>
+    </div>
+
+    <!-- ─── BOUTONS D'ACTION ─── -->
+    <div class="sf-actions">
+      <button type="button" class="sf-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="sf-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+        <span class="sf-spinner"></span> Enregistrement…
+        } @else {
+        {{ isEditMode() ? 'Mettre à jour' : 'Créer le culte' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</div>
