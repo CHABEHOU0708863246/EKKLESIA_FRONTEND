@@ -15,7 +15,7 @@
     <div class="sl-stats">
       <div class="sl-stat-card">
         <span class="sl-stat-value">{{ stats.total }}</span>
-        <span class="sl-stat-label">Total</span>
+        <span class="sl-stat-label">Total cultes</span>
       </div>
       <div class="sl-stat-card">
         <span class="sl-stat-value">{{ stats.scheduled }}</span>
@@ -27,7 +27,27 @@
       </div>
       <div class="sl-stat-card">
         <span class="sl-stat-value">{{ stats.totalAttendees }}</span>
-        <span class="sl-stat-label">Participants</span>
+        <span class="sl-stat-label">Participants total</span>
+      </div>
+      <div class="sl-stat-card">
+        <span class="sl-stat-value">{{ stats.totalMen }}</span>
+        <span class="sl-stat-label">👨 Hommes</span>
+      </div>
+      <div class="sl-stat-card">
+        <span class="sl-stat-value">{{ stats.totalWomen }}</span>
+        <span class="sl-stat-label">👩 Femmes</span>
+      </div>
+      <div class="sl-stat-card">
+        <span class="sl-stat-value">{{ stats.totalChildren }}</span>
+        <span class="sl-stat-label">🧒 Enfants</span>
+      </div>
+      <div class="sl-stat-card">
+        <span class="sl-stat-value">{{ stats.totalVisitors }}</span>
+        <span class="sl-stat-label">👥 Visiteurs</span>
+      </div>
+      <div class="sl-stat-card">
+        <span class="sl-stat-value">{{ stats.totalPastoralStaff }}</span>
+        <span class="sl-stat-label">⛪ Pasteur & staff</span>
       </div>
     </div>
   }
@@ -121,7 +141,11 @@
                 <span class="sl-attendance">
                   {{ getTotalAttendance(service.attendance) }}
                   <span class="sl-attendance-detail">
-                    (M: {{ service.attendance.members }} | V: {{ service.attendance.visitors }} | E: {{ service.attendance.children }})
+                    (H: {{ service.attendance.men || 0 }} |
+                     F: {{ service.attendance.women || 0 }} |
+                     E: {{ service.attendance.children || 0 }} |
+                     V: {{ service.attendance.visitors || 0 }} |
+                     Staff: {{ service.attendance.pastoralStaff || 0 }})
                   </span>
                 </span>
               </td>
@@ -132,9 +156,6 @@
                   </button>
                   <button class="sl-icon-btn" (click)="editService(service, $event)" title="Modifier">
                     <i class="bx bx-edit"></i>
-                  </button>
-                  <button class="sl-icon-btn" (click)="manageAttendance(service, $event)" title="Présences">
-                    <i class="bx bx-user-check"></i>
                   </button>
                   <button class="sl-icon-btn sl-icon-btn-danger" (click)="requestDelete(service, $event)" title="Supprimer">
                     <i class="bx bx-trash"></i>
@@ -175,7 +196,7 @@
     </div>
   }
 
-  <!-- MODAL DE CONFIRMATION (simplifié) -->
+  <!-- MODAL DE CONFIRMATION -->
   @if (deleteDialogVisible()) {
     <div class="sl-modal-overlay" (click.self)="cancelDelete()">
       <div class="sl-modal">

@@ -1,0 +1,212 @@
+<div class="sc-container">
+  <div class="sc-header">
+    <h1>Nouveau sermon</h1>
+    <button type="button" class="sc-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  @if (!createdSermon()) {
+
+    <!-- ═══ ÉTAPE 1 : INFORMATIONS DU SERMON ═══ -->
+    @if (error()) {
+      <div class="sc-error">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="sc-form">
+
+      <div class="sc-field">
+        <label>Titre <span class="sc-required">*</span></label>
+        <input type="text" formControlName="title" placeholder="Titre du sermon">
+        <p class="sc-error-text" *ngIf="isFieldInvalid('title')">Le titre est requis (3 caractères min.)</p>
+      </div>
+
+      <div class="sc-grid-2">
+        <div class="sc-field">
+          <label>Prédicateur <span class="sc-required">*</span></label>
+          <div class="sc-search-wrap">
+            <input type="text" formControlName="preacherSearch" placeholder="Rechercher un prédicateur…" autocomplete="off">
+            <div class="sc-search-dropdown" *ngIf="preachers().length > 0">
+              @for (user of preachers(); track user.id) {
+                <button type="button" class="sc-search-result" (click)="selectPreacher(user)">
+                  {{ user.fullName || (user.firstName + ' ' + user.lastName) }}
+                </button>
+              }
+            </div>
+          </div>
+          <p class="sc-error-text" *ngIf="isFieldInvalid('preacherSearch')">Le prédicateur est requis.</p>
+        </div>
+        <div class="sc-field">
+          <label>Date <span class="sc-required">*</span></label>
+          <input type="date" formControlName="date">
+          <p class="sc-error-text" *ngIf="isFieldInvalid('date')">La date est requise.</p>
+        </div>
+      </div>
+
+      <div class="sc-grid-2">
+        <div class="sc-field">
+          <label>Église <span class="sc-required">*</span></label>
+          <select formControlName="churchId">
+            <option value="">-- Choisir une église --</option>
+            @for (church of churches(); track church.id) {
+              <option [value]="church.id">{{ church.name }}</option>
+            }
+          </select>
+          <p class="sc-error-text" *ngIf="isFieldInvalid('churchId')">L'église est requise.</p>
+        </div>
+        <div class="sc-field">
+          <label>Site</label>
+          <select formControlName="siteId">
+            <option value="">-- Choisir un site --</option>
+            @for (site of sites(); track site.id) {
+              <option [value]="site.id">{{ site.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-grid-2">
+        <div class="sc-field">
+          <label>Thème</label>
+          <input type="text" formControlName="theme" placeholder="Thème de la prédication">
+        </div>
+        <div class="sc-field">
+          <label>Texte biblique</label>
+          <input type="text" formControlName="bibleText" placeholder="Ex: Jean 3:16">
+        </div>
+      </div>
+
+      <div class="sc-field">
+        <label>Résumé</label>
+        <textarea formControlName="summary" rows="3" placeholder="Résumé du message"></textarea>
+      </div>
+
+      <div class="sc-grid-2">
+        <div class="sc-field">
+          <label>Série</label>
+          <input type="text" formControlName="series" placeholder="Ex: La foi qui déplace les montagnes">
+        </div>
+        <div class="sc-field">
+          <label>N° dans la série</label>
+          <input type="number" formControlName="seriesOrder" min="1">
+        </div>
+      </div>
+
+      <div class="sc-field">
+        <label>Tags</label>
+        <div class="sc-tags-input">
+          <div class="sc-tags-list">
+            @for (tag of tags(); track tag) {
+              <span class="sc-tag">
+                {{ tag }}
+                <button type="button" (click)="removeTag(tag)">✕</button>
+              </span>
+            }
+          </div>
+          <input
+            type="text"
+            [ngModel]="tagInput()"
+            (ngModelChange)="tagInput.set($event)"
+            [ngModelOptions]="{standalone: true}"
+            (keydown)="onTagKeydown($event)"
+            (blur)="addTag()"
+            placeholder="Ajouter un tag et Entrée">
+        </div>
+      </div>
+
+      <div class="sc-actions">
+        <button type="button" class="sc-btn-secondary" (click)="cancel()">Annuler</button>
+        <button type="submit" class="sc-btn-primary" [disabled]="saving() || form.invalid">
+          @if (saving()) {
+            <span class="sc-spinner"></span> Enregistrement…
+          } @else {
+            Continuer vers les médias
+          }
+        </button>
+      </div>
+
+    </form>
+
+  } @else {
+
+    <!-- ═══ ÉTAPE 2 : AJOUT DE MÉDIAS ═══ -->
+    <div class="sc-step2">
+      <div class="sc-sermon-summary">
+        <h2>{{ createdSermon()!.title }}</h2>
+        <p>{{ createdSermon()!.preacherName }} — {{ createdSermon()!.formattedDate }}</p>
+        <span class="sc-status-badge" [class]="'sc-status--' + createdSermon()!.statusColor">
+          {{ createdSermon()!.statusLabel }}
+        </span>
+      </div>
+
+      @if (mediaError()) {
+        <div class="sc-error">{{ mediaError() }}</div>
+      }
+
+      <!-- Médias déjà ajoutés -->
+      @if (createdSermon()!.media.length > 0) {
+        <div class="sc-media-list">
+          @for (media of createdSermon()!.media; track media.id) {
+            <div class="sc-media-item">
+              <i class="bx" [class]="'bx-' + media.type.toLowerCase()"></i>
+              <span>{{ media.label || media.type }}</span>
+              <button type="button" class="sc-media-remove" (click)="removeMedia(media.id)">✕</button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Formulaire d'ajout de média -->
+      <form [formGroup]="mediaForm" (ngSubmit)="addMedia()" class="sc-media-form">
+        <div class="sc-grid-2">
+          <div class="sc-field">
+            <label>Type de média</label>
+            <select formControlName="type">
+              @for (opt of mediaTypeOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="sc-field">
+            <label>Libellé</label>
+            <input type="text" formControlName="label" placeholder="Ex: Enregistrement audio">
+          </div>
+        </div>
+
+        @if (requiresFile) {
+          <div class="sc-field">
+            <label>Fichier <span class="sc-required">*</span></label>
+            <input type="file" (change)="onFileSelected($event)"
+              [accept]="selectedMediaType === 'Audio' ? 'audio/*' : '.pdf,.doc,.docx'">
+          </div>
+        }
+
+        @if (requiresUrl) {
+          <div class="sc-field">
+            <label>URL <span class="sc-required">*</span></label>
+            <input type="url" formControlName="externalUrl" placeholder="https://...">
+          </div>
+        }
+
+        <button type="submit" class="sc-btn-secondary" [disabled]="addingMedia()">
+          @if (addingMedia()) {
+            <span class="sc-spinner"></span> Ajout…
+          } @else {
+            + Ajouter ce média
+          }
+        </button>
+      </form>
+
+      <div class="sc-actions">
+        <button type="button" class="sc-btn-secondary" (click)="finishAsDraft()">
+          Enregistrer en brouillon
+        </button>
+        <button type="button" class="sc-btn-primary" [disabled]="!canPublish" (click)="publishAndFinish()">
+          Publier le sermon
+        </button>
+      </div>
+      @if (!canPublish) {
+        <p class="sc-hint">Ajoutez au moins un média pour pouvoir publier ce sermon.</p>
+      }
+    </div>
+
+  }
+</div>

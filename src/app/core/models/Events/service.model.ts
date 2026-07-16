@@ -26,9 +26,11 @@ export interface ServiceTeam {
 }
 
 export interface ServiceAttendance {
-  members: number;
+  men: number;
+  women: number;
   visitors: number;
   children: number;
+  pastoralStaff: number;
   total: number;
   visitorNames: string[];
 }
@@ -241,8 +243,9 @@ export class ServiceUtils {
   }
 
   static getTotalAttendance(attendance: ServiceAttendance): number {
-    return attendance.members + attendance.visitors + attendance.children;
-  }
+  return attendance.men + attendance.women + attendance.visitors
+    + attendance.children + attendance.pastoralStaff;
+}
 
   static getEmptyTeam(): ServiceTeam {
     return {
@@ -258,14 +261,16 @@ export class ServiceUtils {
   }
 
   static getEmptyAttendance(): ServiceAttendance {
-    return {
-      members: 0,
-      visitors: 0,
-      children: 0,
-      total: 0,
-      visitorNames: []
-    };
-  }
+  return {
+    men: 0,
+    women: 0,
+    visitors: 0,
+    children: 0,
+    pastoralStaff: 0,
+    total: 0,
+    visitorNames: []
+  };
+}
 
   static searchServices(services: Service[], searchTerm: string): Service[] {
     const term = searchTerm.toLowerCase().trim();
@@ -297,14 +302,6 @@ export class ServiceUtils {
     });
   }
 
-  static sortByAttendance(services: Service[], ascending: boolean = false): Service[] {
-    return [...services].sort((a, b) =>
-      ascending ?
-        (a.attendance.members - b.attendance.members) :
-        (b.attendance.members - a.attendance.members)
-    );
-  }
-
   static getUpcomingServices(services: Service[]): Service[] {
     const now = new Date();
     return services.filter(service =>
@@ -314,54 +311,66 @@ export class ServiceUtils {
   }
 
   static getServiceStats(services: Service[]): {
-    total: number;
-    scheduled: number;
-    prepared: number;
-    ongoing: number;
-    completed: number;
-    cancelled: number;
-    totalMembers: number;
-    totalVisitors: number;
-    totalChildren: number;
-    totalAttendees: number;
-    averageMembers: number;
-    averageVisitors: number;
-    averageChildren: number;
-    averageAttendees: number;
-  } {
-    const scheduled = services.filter(s => s.status === ServiceStatus.Scheduled);
-    const prepared = services.filter(s => s.status === ServiceStatus.Prepared);
-    const ongoing = services.filter(s => s.status === ServiceStatus.Ongoing);
-    const completed = services.filter(s => s.status === ServiceStatus.Completed);
-    const cancelled = services.filter(s => s.status === ServiceStatus.Cancelled);
+  total: number;
+  scheduled: number;
+  prepared: number;
+  ongoing: number;
+  completed: number;
+  cancelled: number;
+  totalMen: number;
+  totalWomen: number;
+  totalVisitors: number;
+  totalChildren: number;
+  totalPastoralStaff: number;
+  totalAttendees: number;
+  averageMen: number;
+  averageWomen: number;
+  averageVisitors: number;
+  averageChildren: number;
+  averagePastoralStaff: number;
+  averageAttendees: number;
+} {
+  const scheduled = services.filter(s => s.status === ServiceStatus.Scheduled);
+  const prepared = services.filter(s => s.status === ServiceStatus.Prepared);
+  const ongoing = services.filter(s => s.status === ServiceStatus.Ongoing);
+  const completed = services.filter(s => s.status === ServiceStatus.Completed);
+  const cancelled = services.filter(s => s.status === ServiceStatus.Cancelled);
 
-    const totalMembers = services.reduce((sum, s) => sum + s.attendance.members, 0);
-    const totalVisitors = services.reduce((sum, s) => sum + s.attendance.visitors, 0);
-    const totalChildren = services.reduce((sum, s) => sum + s.attendance.children, 0);
-    const totalAttendees = totalMembers + totalVisitors + totalChildren;
+  const totalMen = services.reduce((sum, s) => sum + (s.attendance.men || 0), 0);
+  const totalWomen = services.reduce((sum, s) => sum + (s.attendance.women || 0), 0);
+  const totalVisitors = services.reduce((sum, s) => sum + (s.attendance.visitors || 0), 0);
+  const totalChildren = services.reduce((sum, s) => sum + (s.attendance.children || 0), 0);
+  const totalPastoralStaff = services.reduce((sum, s) => sum + (s.attendance.pastoralStaff || 0), 0);
+  const totalAttendees = totalMen + totalWomen + totalVisitors + totalChildren + totalPastoralStaff;
 
-    return {
-      total: services.length,
-      scheduled: scheduled.length,
-      prepared: prepared.length,
-      ongoing: ongoing.length,
-      completed: completed.length,
-      cancelled: cancelled.length,
-      totalMembers: totalMembers,
-      totalVisitors: totalVisitors,
-      totalChildren: totalChildren,
-      totalAttendees: totalAttendees,
-      averageMembers: services.length > 0 ? Math.round(totalMembers / services.length) : 0,
-      averageVisitors: services.length > 0 ? Math.round(totalVisitors / services.length) : 0,
-      averageChildren: services.length > 0 ? Math.round(totalChildren / services.length) : 0,
-      averageAttendees: services.length > 0 ? Math.round(totalAttendees / services.length) : 0
-    };
-  }
+  const count = services.length;
+
+  return {
+    total: count,
+    scheduled: scheduled.length,
+    prepared: prepared.length,
+    ongoing: ongoing.length,
+    completed: completed.length,
+    cancelled: cancelled.length,
+    totalMen,
+    totalWomen,
+    totalVisitors,
+    totalChildren,
+    totalPastoralStaff,
+    totalAttendees,
+    averageMen: count > 0 ? Math.round(totalMen / count) : 0,
+    averageWomen: count > 0 ? Math.round(totalWomen / count) : 0,
+    averageVisitors: count > 0 ? Math.round(totalVisitors / count) : 0,
+    averageChildren: count > 0 ? Math.round(totalChildren / count) : 0,
+    averagePastoralStaff: count > 0 ? Math.round(totalPastoralStaff / count) : 0,
+    averageAttendees: count > 0 ? Math.round(totalAttendees / count) : 0
+  };
+}
 }
 
 export const DEFAULT_SERVICE_FILTER: ServiceFilter = {
   page: 1,
   pageSize: 20,
-  sortBy: 'date',
+  sortBy: 'createdAt',
   sortOrder: 'desc'
 };

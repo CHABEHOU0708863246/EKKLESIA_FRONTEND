@@ -23,6 +23,7 @@ const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
 
 // Rôles d'équipe disponibles pour les membres
 const TEAM_ROLE_OPTIONS = [
+  { value: 'Chef de louange', label: 'Chef de louange' },
   { value: 'Chantre', label: 'Chantre' },
   { value: 'Guitariste', label: 'Guitariste' },
   { value: 'Bassiste', label: 'Bassiste' },
@@ -125,9 +126,11 @@ export class ServiceForm implements OnInit, OnDestroy {
       }),
       // Présences – on initialise à zéro
       attendance: this.fb.group({
-        members: [0, Validators.min(0)],
+        men: [0, Validators.min(0)],
+        women: [0, Validators.min(0)],
         visitors: [0, Validators.min(0)],
         children: [0, Validators.min(0)],
+        pastoralStaff: [0, Validators.min(0)],
         visitorNames: [[]],
       }),
     });
@@ -243,10 +246,10 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   private loadServiceData(id: string): void {
     this.serviceService.getById(id).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          const service = response.data;
-          this.populateForm(service);
+      next: (response: any) => {
+        // ✅ GetServiceByIdAsync renvoie l'objet à plat, ou null si absent
+        if (response) {
+          this.populateForm(response);
         } else {
           this.error.set('Impossible de charger le culte.');
         }
@@ -271,9 +274,11 @@ export class ServiceForm implements OnInit, OnDestroy {
       status: service.status || ServiceStatus.Scheduled,
       notes: service.notes || '',
       attendance: {
-        members: service.attendance?.members || 0,
+        men: service.attendance?.men || 0,
+        women: service.attendance?.women || 0,
         visitors: service.attendance?.visitors || 0,
         children: service.attendance?.children || 0,
+        pastoralStaff: service.attendance?.pastoralStaff || 0,
         visitorNames: service.attendance?.visitorNames || [],
       },
     });
@@ -372,51 +377,51 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   private loadWorshipLeaders(): void {
-  this.memberService
-    .getMembers({ page: 1, pageSize: 100 } as any)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response: any) => {
-        // ✅ La réponse est directement un objet avec `items`
-        const items = response?.items ?? [];
-        console.log('👥 Membres chargés :', items);
-        this.worshipLeaders.set(items);
-      },
-      error: (err) => {
-        console.error('❌ Erreur loadWorshipLeaders', err);
-        this.worshipLeaders.set([]);
-      },
-    });
-}
+    this.memberService
+      .getMembers({ page: 1, pageSize: 100 } as any)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // ✅ La réponse est directement un objet avec `items`
+          const items = response?.items ?? [];
+          console.log('👥 Membres chargés :', items);
+          this.worshipLeaders.set(items);
+        },
+        error: (err) => {
+          console.error('❌ Erreur loadWorshipLeaders', err);
+          this.worshipLeaders.set([]);
+        },
+      });
+  }
 
-getMemberPhotoUrl(member: Member): string {
-  return this.userService.getPhotoUrl(member.photoUrl);
-}
+  getMemberPhotoUrl(member: Member): string {
+    return this.userService.getPhotoUrl(member.photoUrl);
+  }
 
-onImageError(event: Event): void {
-  const img = event.target as HTMLImageElement;
-  // Remplacer par une image par défaut ou initiales
-  img.style.display = 'none';
-  // ou mettre une image par défaut
-  img.src = 'assets/default-avatar.png';
-}
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    // Remplacer par une image par défaut ou initiales
+    img.style.display = 'none';
+    // ou mettre une image par défaut
+    img.src = 'assets/default-avatar.png';
+  }
 
   private searchWorshipLeaders(term: string): void {
-  this.memberService
-    .getMembers({ page: 1, pageSize: 20, fullName: term } as any)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response: any) => {
-        // ✅ Même structure
-        const items = response?.items ?? [];
-        this.worshipLeaders.set(items);
-      },
-      error: (err) => {
-        console.error('❌ Erreur searchWorshipLeaders', err);
-        this.worshipLeaders.set([]);
-      },
-    });
-}
+    this.memberService
+      .getMembers({ page: 1, pageSize: 20, fullName: term } as any)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // ✅ Même structure
+          const items = response?.items ?? [];
+          this.worshipLeaders.set(items);
+        },
+        error: (err) => {
+          console.error('❌ Erreur searchWorshipLeaders', err);
+          this.worshipLeaders.set([]);
+        },
+      });
+  }
   // ──────────────────────────────────────────────────────────────
   // GESTION DES ÉQUIPES (FormArray)
   // ──────────────────────────────────────────────────────────────
@@ -532,10 +537,17 @@ onImageError(event: Event): void {
       notes: rawValue.notes || undefined,
       team: this.buildTeamPayload(rawValue.team),
       attendance: {
-        members: rawValue.attendance?.members || 0,
+        men: rawValue.attendance?.men || 0,
+        women: rawValue.attendance?.women || 0,
         visitors: rawValue.attendance?.visitors || 0,
         children: rawValue.attendance?.children || 0,
-        total: (rawValue.attendance?.members || 0) + (rawValue.attendance?.visitors || 0) + (rawValue.attendance?.children || 0),
+        pastoralStaff: rawValue.attendance?.pastoralStaff || 0,
+        total:
+          (rawValue.attendance?.men || 0) +
+          (rawValue.attendance?.women || 0) +
+          (rawValue.attendance?.visitors || 0) +
+          (rawValue.attendance?.children || 0) +
+          (rawValue.attendance?.pastoralStaff || 0),
         visitorNames: rawValue.attendance?.visitorNames || [],
       },
     };
@@ -545,20 +557,22 @@ onImageError(event: Event): void {
       : this.serviceService.create(payload);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.saving.set(false);
-        // ✅ Vérifier la structure de la réponse
-        if (response.success && response.data && 'id' in response.data) {
-          const id = (response.data as any).id;
-          this.router.navigate(['/dashboard/cultes', id]);
+
+        // ✅ Le backend renvoie ServiceResponseDto à plat : isSuccess + id
+        // directement sur l'objet, pas de wrapper { success, data }.
+        if (response && response.isSuccess !== false && response.id) {
+          // ✅ Redirection vers la LISTE des cultes, pas vers le détail
+          this.router.navigate(['/dashboard/cultes']);
         } else {
-          this.error.set(response.message || 'Enregistrement reussie.');
+          this.error.set(response?.errorMessage || "Une erreur est survenue lors de l'enregistrement.");
         }
       },
       error: (err) => {
         console.error('❌ Erreur:', err);
         this.saving.set(false);
-        this.error.set('Une erreur est survenue.');
+        this.error.set(err?.error?.errorMessage || 'Une erreur est survenue.');
       },
     });
   }
@@ -632,6 +646,47 @@ onImageError(event: Event): void {
       worshipLeaderSearch: this.getMemberFullName(member),
     });
     this.worshipLeaders.set([]);
+
+    // ✅ Synchronise automatiquement le chef de louange dans l'équipe "Louange"
+    this.syncWorshipLeaderIntoTeam(member);
+  }
+
+
+  /**
+   * Ajoute (ou met à jour) le chef de louange désigné dans le FormArray "worship",
+   * avec le rôle explicite "Chef de louange" et confirmé par défaut. Évite d'avoir
+   * un chef de louange qui n'apparaît pas dans l'équipe, ou une incohérence entre
+   * les deux champs.
+   */
+  private syncWorshipLeaderIntoTeam(member: Member): void {
+    const worshipArray = this.getTeamFormArray('worship');
+    const fullName = this.getMemberFullName(member);
+
+    // Retire toute entrée existante marquée "Chef de louange" (évite les doublons
+    // si l'utilisateur change de chef en cours de saisie)
+    for (let i = worshipArray.length - 1; i >= 0; i--) {
+      const group = worshipArray.at(i) as FormGroup;
+      if (group.get('role')?.value === 'Chef de louange') {
+        worshipArray.removeAt(i);
+      }
+    }
+
+    // Si ce membre existe déjà dans l'équipe sous un autre rôle, on met à jour son rôle
+    const existingIndex = worshipArray.controls.findIndex(
+      (c) => (c as FormGroup).get('memberId')?.value === member.id
+    );
+
+    if (existingIndex >= 0) {
+      const group = worshipArray.at(existingIndex) as FormGroup;
+      group.patchValue({ role: 'Chef de louange', confirmed: true });
+    } else {
+      worshipArray.insert(0, this.createTeamMemberGroup({
+        memberId: member.id,
+        memberName: fullName,
+        role: 'Chef de louange',
+        confirmed: true,
+      }));
+    }
   }
 
   clearPreacher(): void {
@@ -639,6 +694,16 @@ onImageError(event: Event): void {
   }
 
   clearWorshipLeader(): void {
+    const member = this.form.get('worshipLeaderId')?.value;
     this.form.patchValue({ worshipLeaderId: '', worshipLeaderSearch: '' });
+
+    // ✅ Retire aussi l'entrée "Chef de louange" de l'équipe si on efface le champ
+    const worshipArray = this.getTeamFormArray('worship');
+    for (let i = worshipArray.length - 1; i >= 0; i--) {
+      const group = worshipArray.at(i) as FormGroup;
+      if (group.get('role')?.value === 'Chef de louange') {
+        worshipArray.removeAt(i);
+      }
+    }
   }
 }

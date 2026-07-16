@@ -1,0 +1,219 @@
+<div class="sl-container">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <div class="sl-header">
+    <div>
+      <h1>🎧 Bibliothèque de sermons</h1>
+      <p class="sl-subtitle">{{ totalCount() }} sermon(s) au total</p>
+    </div>
+    <button type="button" class="sl-btn-primary" (click)="createSermon()">
+      <i class="bx bx-plus-circle"></i> Nouveau sermon
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="sl-error-banner">
+      {{ error() }}
+      <button type="button" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- ══════════════ FILTRES ══════════════ -->
+  <div class="sl-filters">
+    <div class="sl-filter-group">
+      <div class="sl-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Titre, verset, thème…">
+      </div>
+      <div class="sl-field">
+        <label>Statut</label>
+        <select [formControl]="statusControl">
+          @for (opt of statusFilterOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>Prédicateur</label>
+        <input type="text" [formControl]="preacherControl" placeholder="Nom du prédicateur">
+      </div>
+      <div class="sl-field">
+        <label>Série</label>
+        <select [formControl]="seriesControl">
+          <option value="">Toutes les séries</option>
+          @for (s of series(); track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+      <div class="sl-field sl-field-actions">
+        <button type="button" class="sl-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ÉTATS ══════════════ -->
+  @if (loading()) {
+    <div class="sl-state sl-state--loading">
+      <span class="sl-spinner"></span> Chargement des sermons…
+    </div>
+  } @else if (isEmpty()) {
+    <div class="sl-state sl-state--empty">
+      <i class="bx bx-book-open"></i>
+      <p>Aucun sermon ne correspond à ces critères.</p>
+    </div>
+  } @else {
+
+    <!-- ══════════════ GRILLE DE SERMONS ══════════════ -->
+    <div class="sl-grid">
+      @for (sermon of sermons(); track sermon.id) {
+        <div class="sl-card" [class.sl-card--expanded]="isExpanded(sermon)" (click)="toggleExpand(sermon)">
+
+          <div class="sl-card-header">
+            <div class="sl-avatar">{{ getInitials(sermon.preacherName) }}</div>
+            <div class="sl-card-meta">
+              <span class="sl-preacher">{{ sermon.preacherName }}</span>
+              <span class="sl-date">{{ formatDate(sermon.date) }}</span>
+            </div>
+            <span class="sl-status-badge" [ngClass]="getStatusClass(sermon.status)">
+              {{ getStatusLabel(sermon.status) }}
+            </span>
+          </div>
+
+          <div class="sl-card-body">
+            <h3>{{ sermon.title }}</h3>
+            @if (sermon.series) {
+              <span class="sl-series-tag">
+                {{ sermon.series }}@if (sermon.seriesOrder) { · #{{ sermon.seriesOrder }} }
+              </span>
+            }
+            @if (sermon.bibleText) {
+              <p class="sl-bible">{{ sermon.bibleText }}</p>
+            }
+            @if (sermon.summary) {
+              <p class="sl-summary">{{ sermon.summary }}</p>
+            }
+            @if (sermon.tags.length > 0) {
+              <div class="sl-tags">
+                @for (tag of sermon.tags; track tag) {
+                  <span class="sl-tag">{{ tag }}</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- ── Panneau détaillé, déployé au clic ── -->
+          @if (isExpanded(sermon)) {
+            <div class="sl-expanded" (click)="$event.stopPropagation()">
+              <div class="sl-stats-row">
+                <span><i class="bx bx-show"></i> {{ sermon.viewCount }} vues</span>
+                <span><i class="bx bx-download"></i> {{ sermon.downloadCount }} téléchargements</span>
+              </div>
+
+              @if (sermon.media.length === 0) {
+                <p class="sl-no-media">Aucun média associé à ce sermon.</p>
+              } @else {
+                <div class="sl-media-list">
+                  @if (getAudio(sermon); as audio) {
+                    <button type="button" class="sl-media-btn" (click)="playAudio(sermon, $event)">
+                      <i class="bx bx-headphone"></i> {{ audio.label || 'Écouter l\'audio' }}
+                    </button>
+                  }
+                  @if (getVideo(sermon); as video) {
+                    <button type="button" class="sl-media-btn" (click)="openVideo(sermon, $event)">
+                      <i class="bx bx-video"></i> {{ video.label || 'Voir la vidéo' }}
+                    </button>
+                  }
+                  @for (doc of getDocuments(sermon); track doc.id) {
+                    <button type="button" class="sl-media-btn"
+                      (click)="downloadDocument(sermon, doc.id, doc.fileId!, $event)">
+                      <i class="bx bx-file"></i> {{ doc.label || 'Document' }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ══════════════ ACTIONS ══════════════ -->
+          <div class="sl-card-footer" (click)="$event.stopPropagation()">
+            @if (canPublish(sermon)) {
+              <button type="button" class="sl-icon-btn sl-icon-btn--publish"
+                (click)="publishSermon(sermon, $event)"
+                [disabled]="publishing() === sermon.id"
+                title="Publier">
+                @if (publishing() === sermon.id) {
+                  <span class="sl-spinner sl-spinner--sm"></span>
+                } @else {
+                  <i class="bx bx-check-circle"></i>
+                }
+              </button>
+            }
+            @if (sermon.status === 'Published') {
+              <button type="button" class="sl-icon-btn sl-icon-btn--archive"
+                (click)="archiveSermon(sermon, $event)"
+                [disabled]="archiving() === sermon.id"
+                title="Archiver">
+                @if (archiving() === sermon.id) {
+                  <span class="sl-spinner sl-spinner--sm"></span>
+                } @else {
+                  <i class="bx bx-archive"></i>
+                }
+              </button>
+            }
+            <button type="button" class="sl-icon-btn" (click)="editSermon(sermon, $event)" title="Modifier">
+              <i class="bx bx-edit"></i>
+            </button>
+            <button type="button" class="sl-icon-btn sl-icon-btn--danger"
+              (click)="deleteSermon(sermon, $event)"
+              [disabled]="deleting() === sermon.id"
+              title="Supprimer">
+              @if (deleting() === sermon.id) {
+                <span class="sl-spinner sl-spinner--sm"></span>
+              } @else {
+                <i class="bx bx-trash"></i>
+              }
+            </button>
+            <button type="button" class="sl-btn-link" (click)="toggleExpand(sermon)">
+              {{ isExpanded(sermon) ? 'Réduire' : 'Voir détails' }}
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ══════════════ PAGINATION ══════════════ -->
+  @if (totalCount() > 0) {
+    <div class="sl-pagination">
+      <div class="sl-pagination-info">{{ pageRangeLabel }}</div>
+      <div class="sl-pagination-controls">
+        <button type="button" class="sl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          @if ($index + 1 === currentPage()
+            || $index === 0
+            || $index === totalPages() - 1
+            || ($index >= currentPage() - 2 && $index <= currentPage())) {
+            <button type="button" class="sl-page-btn" [class.active]="$index + 1 === currentPage()"
+              (click)="goToPage($index + 1)">
+              {{ $index + 1 }}
+            </button>
+          }
+        }
+        <button type="button" class="sl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }} / page</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+</div>

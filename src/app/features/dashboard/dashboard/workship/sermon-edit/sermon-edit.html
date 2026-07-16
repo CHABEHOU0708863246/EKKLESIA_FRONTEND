@@ -1,0 +1,294 @@
+<div class="se-container">
+
+  @if (loading()) {
+    <div class="se-state se-state--loading">
+      <span class="se-spinner"></span> Chargement du sermon…
+    </div>
+  } @else if (error() && !sermon()) {
+    <div class="se-state se-state--error">
+      <p>{{ error() }}</p>
+      <button type="button" class="se-btn-secondary" (click)="goBack()">Retour à la bibliothèque</button>
+    </div>
+  } @else if (sermon(); as s) {
+
+    <!-- ══════════════ HEADER ══════════════ -->
+    <div class="se-header">
+      <div>
+        <button type="button" class="se-back-btn" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Bibliothèque
+        </button>
+        <h1>{{ s.title }}</h1>
+        <div class="se-header-meta">
+          <span class="se-status-badge" [ngClass]="'se-status--' + getStatusColor(s.status)">
+            {{ getStatusLabel(s.status) }}
+          </span>
+          <span class="se-stat"><i class="bx bx-show"></i> {{ s.viewCount }} vues</span>
+          <span class="se-stat"><i class="bx bx-download"></i> {{ s.downloadCount }} téléchargements</span>
+        </div>
+      </div>
+
+      <!-- ── Actions de cycle de vie ── -->
+      <div class="se-lifecycle-actions">
+        @if (canPublish()) {
+          <button type="button" class="se-btn-success" [disabled]="publishing()" (click)="publish()">
+            @if (publishing()) {
+              <span class="se-spinner se-spinner--sm"></span>
+            } @else {
+              <i class="bx bx-check-circle"></i>
+            }
+            Publier
+          </button>
+        }
+        @if (canArchive()) {
+          <button type="button" class="se-btn-warning" [disabled]="archiving()" (click)="archive()">
+            @if (archiving()) {
+              <span class="se-spinner se-spinner--sm"></span>
+            } @else {
+              <i class="bx bx-archive"></i>
+            }
+            Archiver
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (isArchived()) {
+      <div class="se-locked-banner">
+        <i class="bx bx-lock-alt"></i>
+        Ce sermon est archivé. Il n'est plus modifiable ni visible dans la bibliothèque publique.
+      </div>
+    }
+
+    @if (s.status === SermonStatus.Draft) {
+      <div class="se-info-banner">
+        <i class="bx bx-info-circle"></i>
+        Ce sermon est en brouillon.
+        @if (s.media.length === 0) {
+          Ajoutez au moins un média ci-dessous pour pouvoir le publier.
+        } @else {
+          Il est prêt à être publié.
+        }
+      </div>
+    }
+
+    @if (error()) {
+      <div class="se-error-banner">
+        {{ error() }}
+        <button type="button" (click)="error.set(null)">✕</button>
+      </div>
+    }
+
+    @if (saveSuccess()) {
+      <div class="se-success-banner">
+        <i class="bx bx-check"></i> Modifications enregistrées avec succès.
+      </div>
+    }
+
+    <!-- ══════════════ FORMULAIRE D'INFORMATIONS ══════════════ -->
+    <form [formGroup]="form" (ngSubmit)="save()" class="se-form">
+
+      <div class="se-section-title">Informations générales</div>
+
+      <div class="se-field">
+        <label>Titre <span class="se-required">*</span></label>
+        <input type="text" formControlName="title" placeholder="Titre du sermon">
+        <p class="se-error-text" *ngIf="isFieldInvalid('title')">Le titre est requis (3 caractères min.)</p>
+      </div>
+
+      <div class="se-grid-2">
+        <div class="se-field">
+          <label>Prédicateur <span class="se-required">*</span></label>
+          <div class="se-search-wrap">
+            <input type="text" formControlName="preacherSearch" placeholder="Rechercher un prédicateur…" autocomplete="off">
+            <div class="se-search-dropdown" *ngIf="preachers().length > 0">
+              @for (user of preachers(); track user.id) {
+                <button type="button" class="se-search-result" (click)="selectPreacher(user)">
+                  {{ user.fullName || (user.firstName + ' ' + user.lastName) }}
+                </button>
+              }
+            </div>
+          </div>
+          <p class="se-error-text" *ngIf="isFieldInvalid('preacherSearch')">Le prédicateur est requis.</p>
+        </div>
+        <div class="se-field">
+          <label>Date <span class="se-required">*</span></label>
+          <input type="date" formControlName="date">
+          <p class="se-error-text" *ngIf="isFieldInvalid('date')">La date est requise.</p>
+        </div>
+      </div>
+
+      <div class="se-field">
+        <label>Site</label>
+        <select formControlName="siteId">
+          <option value="">-- Aucun site spécifique --</option>
+          @for (site of sites(); track site.id) {
+            <option [value]="site.id">{{ site.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="se-grid-2">
+        <div class="se-field">
+          <label>Thème</label>
+          <input type="text" formControlName="theme" placeholder="Thème de la prédication">
+        </div>
+        <div class="se-field">
+          <label>Texte biblique</label>
+          <input type="text" formControlName="bibleText" placeholder="Ex: Jean 3:16">
+        </div>
+      </div>
+
+      <div class="se-field">
+        <label>Résumé</label>
+        <textarea formControlName="summary" rows="3" placeholder="Résumé du message"></textarea>
+      </div>
+
+      <div class="se-grid-2">
+        <div class="se-field">
+          <label>Série</label>
+          <input type="text" formControlName="series" placeholder="Ex: La foi qui déplace les montagnes">
+        </div>
+        <div class="se-field">
+          <label>N° dans la série</label>
+          <input type="number" formControlName="seriesOrder" min="1">
+        </div>
+      </div>
+
+      <div class="se-field">
+        <label>Tags</label>
+        <div class="se-tags-input" [class.se-tags-input--disabled]="!canEdit()">
+          <div class="se-tags-list">
+            @for (tag of tags(); track tag) {
+              <span class="se-tag">
+                {{ tag }}
+                @if (canEdit()) {
+                  <button type="button" (click)="removeTag(tag)">✕</button>
+                }
+              </span>
+            }
+          </div>
+          @if (canEdit()) {
+            <input
+              type="text"
+              [ngModel]="tagInput()"
+              (ngModelChange)="tagInput.set($event)"
+              [ngModelOptions]="{standalone: true}"
+              (keydown)="onTagKeydown($event)"
+              (blur)="addTag()"
+              placeholder="Ajouter un tag et Entrée">
+          }
+        </div>
+      </div>
+
+      @if (canEdit()) {
+        <div class="se-actions">
+          <button type="submit" class="se-btn-primary" [disabled]="saving() || form.invalid">
+            @if (saving()) {
+              <span class="se-spinner se-spinner--sm"></span> Enregistrement…
+            } @else {
+              Enregistrer les modifications
+            }
+          </button>
+        </div>
+      }
+
+    </form>
+
+    <!-- ══════════════ MÉDIAS ══════════════ -->
+    <div class="se-section-title">Médias associés</div>
+
+    @if (mediaError()) {
+      <div class="se-error-banner">
+        {{ mediaError() }}
+        <button type="button" (click)="mediaError.set(null)">✕</button>
+      </div>
+    }
+
+    @if (s.media.length === 0) {
+      <p class="se-no-media">Aucun média associé pour l'instant.</p>
+    } @else {
+      <div class="se-media-list">
+        @for (media of s.media; track media.id) {
+          <div class="se-media-item">
+            <i class="bx" [ngClass]="{
+              'bx-headphone': media.type === 'Audio',
+              'bx-video': media.type === 'Video',
+              'bx-file': media.type === 'Document',
+              'bx-link': media.type === 'Link'
+            }"></i>
+            <div class="se-media-info">
+              <strong>{{ media.label || media.type }}</strong>
+              @if (media.durationSeconds) {
+                <span class="se-media-duration">{{ formatDuration(media.durationSeconds) }}</span>
+              }
+            </div>
+            @if (media.fileId) {
+              <button type="button" class="se-media-play" (click)="playMedia(media.fileId)" title="Ouvrir">
+                <i class="bx bx-play-circle"></i>
+              </button>
+            }
+            @if (media.externalUrl) {
+              <a class="se-media-play" [href]="media.externalUrl" target="_blank" title="Ouvrir le lien">
+                <i class="bx bx-link-external"></i>
+              </a>
+            }
+            @if (canEdit()) {
+              <button type="button" class="se-media-remove"
+                [disabled]="removingMediaId() === media.id"
+                (click)="removeMedia(media.id)" title="Retirer">
+                @if (removingMediaId() === media.id) {
+                  <span class="se-spinner se-spinner--sm"></span>
+                } @else {
+                  <i class="bx bx-trash"></i>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (canEdit()) {
+      <form [formGroup]="mediaForm" (ngSubmit)="addMedia()" class="se-media-form">
+        <div class="se-grid-2">
+          <div class="se-field">
+            <label>Type de média</label>
+            <select formControlName="type">
+              @for (opt of mediaTypeOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="se-field">
+            <label>Libellé</label>
+            <input type="text" formControlName="label" placeholder="Ex: Enregistrement audio">
+          </div>
+        </div>
+
+        @if (requiresFile) {
+          <div class="se-field">
+            <label>Fichier <span class="se-required">*</span></label>
+            <input type="file" (change)="onFileSelected($event)"
+              [accept]="selectedMediaType === 'Audio' ? 'audio/*' : '.pdf,.doc,.docx'">
+          </div>
+        }
+
+        @if (requiresUrl) {
+          <div class="se-field">
+            <label>URL <span class="se-required">*</span></label>
+            <input type="url" formControlName="externalUrl" placeholder="https://...">
+          </div>
+        }
+
+        <button type="submit" class="se-btn-secondary" [disabled]="addingMedia()">
+          @if (addingMedia()) {
+            <span class="se-spinner se-spinner--sm"></span> Ajout…
+          } @else {
+            + Ajouter ce média
+          }
+        </button>
+      </form>
+    }
+
+  }
+</div>

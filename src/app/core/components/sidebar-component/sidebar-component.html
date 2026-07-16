@@ -242,14 +242,14 @@
             </a>
           </li>
           }
-          @if (permission.canViewServiceAttendance()) {
+          <!-- @if (permission.canViewServiceAttendance()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/cultes/presence']" class="nav-link">
               <i class="nav-icon-sub bx bx-show"></i>
               <span class="nav-text">Présence & statistiques</span>
             </a>
           </li>
-          }
+          } -->
           @if (permission.canViewContent()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/cultes/sermons']" class="nav-link">

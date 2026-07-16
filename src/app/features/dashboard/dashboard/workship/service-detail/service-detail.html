@@ -30,9 +30,9 @@
         <button class="sd-btn-primary" (click)="editService()">
           <i class="bx bx-edit"></i> Modifier
         </button>
-        <button class="sd-btn-success" (click)="goToCheckin()">
+        <!-- <button class="sd-btn-success" (click)="goToCheckin()">
           <i class="bx bx-user-check"></i> Présences
-        </button>
+        </button> -->
         <button class="sd-btn-danger" (click)="deleteService()" [disabled]="deleting()">
           @if (deleting()) { Suppression… } @else { <i class="bx bx-trash"></i> Supprimer }
         </button>
@@ -90,21 +90,29 @@
           }
         </div>
 
-        <!-- Présences -->
+        <!-- Présences – Version enrichie -->
         <div class="sd-card">
           <h3>Présences</h3>
           <div class="sd-attendance-grid">
             <div class="sd-attendance-item">
-              <span class="sd-attendance-number">{{ s.attendance.members || 0 }}</span>
-              <span class="sd-attendance-label">Membres</span>
+              <span class="sd-attendance-number">{{ s.attendance.men || 0 }}</span>
+              <span class="sd-attendance-label">👨 Hommes</span>
             </div>
             <div class="sd-attendance-item">
-              <span class="sd-attendance-number">{{ s.attendance.visitors || 0 }}</span>
-              <span class="sd-attendance-label">Visiteurs</span>
+              <span class="sd-attendance-number">{{ s.attendance.women || 0 }}</span>
+              <span class="sd-attendance-label">👩 Femmes</span>
             </div>
             <div class="sd-attendance-item">
               <span class="sd-attendance-number">{{ s.attendance.children || 0 }}</span>
-              <span class="sd-attendance-label">Enfants</span>
+              <span class="sd-attendance-label">🧒 Enfants</span>
+            </div>
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number">{{ s.attendance.visitors || 0 }}</span>
+              <span class="sd-attendance-label">👥 Visiteurs</span>
+            </div>
+            <div class="sd-attendance-item">
+              <span class="sd-attendance-number">{{ s.attendance.pastoralStaff || 0 }}</span>
+              <span class="sd-attendance-label">⛪ Pasteur & staff</span>
             </div>
             <div class="sd-attendance-item">
               <span class="sd-attendance-number sd-total">{{ getTotalAttendance(s.attendance) }}</span>

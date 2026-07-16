@@ -1,1 +1,108 @@
-<p>service-sermon-library works!</p>
+<div class="ssl-container">
+
+  <!-- HEADER -->
+  <div class="ssl-header">
+    <h1>🎧 Bibliothèque de sermons</h1>
+    <div class="ssl-actions">
+      <!-- Bouton pour ajouter un sermon (si implémenté) -->
+      <!-- <button class="ssl-btn-primary" [routerLink]="['/dashboard/sermons/new']">+ Ajouter</button> -->
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="ssl-filters">
+    <div class="ssl-filter-group">
+      <div class="ssl-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Titre, verset, prédicateur…">
+      </div>
+      <div class="ssl-field">
+        <label>Prédicateur</label>
+        <select [formControl]="preacherControl">
+          <option value="">Tous</option>
+          @for (p of preachers(); track p) {
+            <option [value]="p">{{ p }}</option>
+          }
+        </select>
+      </div>
+      <div class="ssl-field ssl-field-actions">
+        <button class="ssl-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉTATS -->
+  @if (loading()) {
+    <div class="ssl-loading">Chargement des sermons…</div>
+  } @else if (error()) {
+    <div class="ssl-error">{{ error() }}</div>
+  } @else if (sermons().length === 0) {
+    <div class="ssl-empty">
+      <i class="bx bx-book-open"></i>
+      <p>Aucun sermon trouvé.</p>
+    </div>
+  } @else {
+    <!-- GRILLE DE SERMONS -->
+    <div class="ssl-grid">
+      @for (sermon of sermons(); track sermon.id) {
+        <div class="ssl-card">
+          <div class="ssl-card-header">
+            <div class="ssl-avatar">{{ getInitials(sermon.preacher) }}</div>
+            <div class="ssl-card-meta">
+              <span class="ssl-preacher">{{ sermon.preacher }}</span>
+              <span class="ssl-date">{{ formatDate(sermon.date) }}</span>
+            </div>
+          </div>
+          <div class="ssl-card-body">
+            <h3>{{ sermon.title }}</h3>
+            @if (sermon.bibleText) {
+              <p class="ssl-bible">{{ sermon.bibleText }}</p>
+            }
+            @if (sermon.summary) {
+              <p class="ssl-summary">{{ sermon.summary }}</p>
+            }
+          </div>
+          <div class="ssl-card-footer">
+            @if (sermon.audioUrl) {
+              <button class="ssl-btn-icon" (click)="playAudio(sermon.audioUrl)" title="Écouter">
+                <i class="bx bx-headphone"></i>
+              </button>
+            }
+            @if (sermon.videoUrl) {
+              <button class="ssl-btn-icon" (click)="openVideo(sermon.videoUrl)" title="Voir la vidéo">
+                <i class="bx bx-video"></i>
+              </button>
+            }
+            <a class="ssl-btn-link" [routerLink]="['/dashboard/sermons', sermon.id]">Voir détails</a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- PAGINATION -->
+  @if (totalCount() > 0) {
+    <div class="ssl-pagination">
+      <div class="ssl-pagination-info">{{ pageRangeLabel() }}</div>
+      <div class="ssl-pagination-controls">
+        <button class="ssl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="ssl-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="ssl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+</div>

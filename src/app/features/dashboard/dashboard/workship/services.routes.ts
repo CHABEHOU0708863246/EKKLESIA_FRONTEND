@@ -1,5 +1,4 @@
 // src/app/features/dashboard/services/services.routes.ts
-
 import { Routes } from '@angular/router';
 import { authGuard } from '../../../../core/guards/auth.guard';
 
@@ -36,14 +35,37 @@ export const SERVICES_ROUTES: Routes = [
   },
 
   // ─── Bibliothèque de sermons ───
-  // ⚠️ Placé AVANT ':id' pour éviter qu'il soit interprété comme un ID
+  // ⚠️ Sous-arborescence dédiée (liste, création, édition), même principe
+  // que 'membres/actes-pastoraux'. Placée AVANT ':id' pour éviter toute
+  // collision avec l'ID d'un culte.
   {
     path: 'sermons',
-    loadComponent: () =>
-      import('./service-sermon-library/service-sermon-library').then((m) => m.ServiceSermonLibrary),
-    title: 'Bibliothèque de sermons — MIAV',
-    canActivate: [authGuard],
-    data: { permissions: ['Content_Read'] },
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./sermon-list/sermon-list').then((m) => m.SermonList),
+        title: 'Bibliothèque de sermons — MIAV',
+        canActivate: [authGuard],
+        data: { permissions: ['Content_Read'] },
+      },
+      {
+        path: 'new',
+        loadComponent: () =>
+          import('./sermon-form/sermon-form').then((m) => m.SermonForm),
+        title: 'Nouveau sermon — MIAV',
+        canActivate: [authGuard],
+        data: { permissions: ['Content_Create'] },
+      },
+      {
+      path: ':id/edit',
+      loadComponent: () =>
+        import('./sermon-edit/sermon-edit').then((m) => m.SermonEdit),
+      title: 'Modifier le sermon — MIAV',
+      canActivate: [authGuard],
+      data: { permissions: ['Content_Update'] },
+      },
+    ],
   },
 
   // ─── Détail d'un culte ───

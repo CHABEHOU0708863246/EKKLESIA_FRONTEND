@@ -85,13 +85,14 @@
     <!-- ─── CHEF DE LOUANGE ─── -->
     <div class="sf-field">
       <label>Chef de louange</label>
+      <p class="sf-field-hint">
+        Le responsable désigné ici sera automatiquement ajouté à l'équipe « Louange » ci-dessous.
+      </p>
       <div class="sf-search-wrap">
         <input type="text" formControlName="worshipLeaderSearch" placeholder="Rechercher un membre…" autocomplete="off">
         <button type="button" class="sf-clear-btn" *ngIf="form.get('worshipLeaderSearch')?.value"
           (click)="clearWorshipLeader()">✕</button>
 
-        <!-- ✅ DROPDOWN DES RÉSULTATS -->
-        <!-- Dans le template, après le champ de recherche -->
         <div class="sf-search-dropdown" *ngIf="worshipLeaders().length > 0">
           @for (member of worshipLeaders(); track member.id) {
           <button type="button" class="sf-search-result" (click)="selectWorshipLeader(member)">
@@ -160,18 +161,30 @@
 
     <!-- ─── PRÉSENCES ─── -->
     <div class="sf-section-divider">Présences</div>
+    <!-- ─── PRÉSENCES ─── -->
+    <div class="sf-section-divider">Présences</div>
     <div class="sf-grid-3" formGroupName="attendance">
       <div class="sf-field">
-        <label>Membres</label>
-        <input type="number" formControlName="members" min="0">
+        <label>Hommes</label>
+        <input type="number" formControlName="men" min="0">
       </div>
+      <div class="sf-field">
+        <label>Femmes</label>
+        <input type="number" formControlName="women" min="0">
+      </div>
+      <div class="sf-field">
+        <label>Enfants</label>
+        <input type="number" formControlName="children" min="0">
+      </div>
+    </div>
+    <div class="sf-grid-2" formGroupName="attendance">
       <div class="sf-field">
         <label>Visiteurs</label>
         <input type="number" formControlName="visitors" min="0">
       </div>
       <div class="sf-field">
-        <label>Enfants</label>
-        <input type="number" formControlName="children" min="0">
+        <label>Pasteur & Staff</label>
+        <input type="number" formControlName="pastoralStaff" min="0">
       </div>
     </div>
 

@@ -1,0 +1,266 @@
+.ssl-container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+// ─── HEADER ───────────────────────────────────────────────────
+
+.ssl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+// ─── FILTRES ──────────────────────────────────────────────────
+
+.ssl-filters {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ssl-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.2rem;
+}
+
+.ssl-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 180px;
+  min-width: 140px;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.2rem;
+  }
+
+  input, select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: #fff;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #2a6f94;
+      box-shadow: 0 0 0 3px rgba(42,111,148,0.2);
+    }
+  }
+
+  &.ssl-field-actions {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+  }
+}
+
+// ─── BOUTONS ──────────────────────────────────────────────────
+
+.ssl-btn-secondary {
+  padding: 0.4rem 1rem;
+  background: #e9ecef;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #d5dbe0; }
+}
+
+// ─── ÉTATS ────────────────────────────────────────────────────
+
+.ssl-loading, .ssl-error, .ssl-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #6c757d;
+}
+.ssl-error { color: #e74c3c; }
+.ssl-empty i { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+
+// ─── GRILLE ──────────────────────────────────────────────────
+
+.ssl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ssl-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+}
+
+.ssl-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.ssl-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2a6f94;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.ssl-card-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.ssl-preacher {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.ssl-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.ssl-card-body {
+  flex: 1;
+
+  h3 {
+    margin: 0 0 0.3rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .ssl-bible {
+    font-style: italic;
+    color: #495057;
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+  }
+
+  .ssl-summary {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0.4rem 0 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.ssl-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #f1f3f5;
+
+  .ssl-btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: #495057;
+    transition: color 0.2s;
+    &:hover { color: #2a6f94; }
+  }
+
+  .ssl-btn-link {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: #2a6f94;
+    text-decoration: none;
+    font-weight: 500;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// ─── PAGINATION ──────────────────────────────────────────────
+
+.ssl-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+}
+
+.ssl-pagination-info {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.ssl-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  .ssl-page-btn {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) { background: #e9ecef; }
+    &.active { background: #2a6f94; color: #fff; border-color: #2a6f94; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  select {
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+  }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────
+
+@media (max-width: 600px) {
+  .ssl-filter-group { flex-direction: column; align-items: stretch; }
+  .ssl-field { flex: none; min-width: auto; }
+  .ssl-grid { grid-template-columns: 1fr; }
+}

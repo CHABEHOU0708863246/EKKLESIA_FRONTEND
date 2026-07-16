@@ -41,6 +41,9 @@ export class ServiceAttendance implements OnInit, OnDestroy {
       members: [0, [Validators.min(0)]],
       visitors: [0, [Validators.min(0)]],
       children: [0, [Validators.min(0)]],
+      men: [0, [Validators.min(0)]],
+      women: [0, [Validators.min(0)]],
+      pastoralStaff: [0, [Validators.min(0)]],
       visitorNames: this.fb.array([]),
     });
   }
@@ -96,20 +99,25 @@ export class ServiceAttendance implements OnInit, OnDestroy {
   }
 
   private populateForm(service: any): void {
-    const attendance = service.attendance || { members: 0, visitors: 0, children: 0, visitorNames: [] };
+    const attendance = service.attendance || {
+      members: 0, visitors: 0, children: 0,
+      men: 0, women: 0, pastoralStaff: 0,
+      visitorNames: []
+    };
     this.form.patchValue({
       members: attendance.members || 0,
       visitors: attendance.visitors || 0,
       children: attendance.children || 0,
+      men: attendance.men || 0,
+      women: attendance.women || 0,
+      pastoralStaff: attendance.pastoralStaff || 0,
     });
 
-    // Remplir le FormArray des visiteurs
     const visitorNamesArray = this.form.get('visitorNames') as FormArray;
     visitorNamesArray.clear();
     (attendance.visitorNames || []).forEach((name: string) => {
       visitorNamesArray.push(this.fb.control(name, Validators.required));
     });
-    // Ajouter un champ vide si la liste est vide pour permettre la saisie
     if (visitorNamesArray.length === 0) {
       this.addVisitorField();
     }
@@ -137,7 +145,10 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     const members = this.form.get('members')?.value || 0;
     const visitors = this.form.get('visitors')?.value || 0;
     const children = this.form.get('children')?.value || 0;
-    return members + visitors + children;
+    const men = this.form.get('men')?.value || 0;
+    const women = this.form.get('women')?.value || 0;
+    const pastoralStaff = this.form.get('pastoralStaff')?.value || 0;
+    return members + visitors + children + men + women + pastoralStaff;
   }
 
   // ── Sauvegarde ──
@@ -157,17 +168,28 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     this.success.set(false);
 
     const raw = this.form.value;
-    const visitorNames = raw.visitorNames.filter((name: string) => name && name.trim().length > 0);
+
+    // Récupération des valeurs avec fallback à 0
     const members = raw.members || 0;
     const visitors = raw.visitors || 0;
     const children = raw.children || 0;
-    const total = members + visitors + children;
+    const men = raw.men || 0;
+    const women = raw.women || 0;
+    const pastoralStaff = raw.pastoralStaff || 0;
+    const total = members + visitors + children + men + women + pastoralStaff;
+
+    // Filtrage des noms de visiteurs non vides
+    const visitorNames = (raw.visitorNames || [])
+      .filter((name: string) => name && name.trim().length > 0);
 
     const payload = {
       members,
       visitors,
       children,
-      total, // ✅ Ajout de total
+      men,
+      women,
+      pastoralStaff,
+      total,
       visitorNames,
     };
 
