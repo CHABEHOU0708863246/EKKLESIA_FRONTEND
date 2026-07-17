@@ -1,29 +1,41 @@
-// dashboard-home.component.ts
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterModule, RouterLink } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
-import { Subscription } from 'rxjs';
+// src/app/features/dashboard/dashboard-home/dashboard-home.component.ts
 
-import { MemberStatus, OfferingType, OfferingStatus } from '../dashboard';
-import { User } from '../../../../core/models/Users/user.model';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+
 import { Auth } from '../../../../core/services/Auth/auth';
 import { Token } from '../../../../core/services/Token/token';
+import { User } from '../../../../core/models/Users/user.model';
+import { DashboardDto, DashboardUtils } from '../../../../core/models/Dashboard/dashboard.model';
+import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
+import { MemberStatus } from '../../../../core/models/Members/member.model';
+import { RecentMemberDto, RecentOfferingDto } from '../../../../core/models/Dashboard/dashboard.model';
+import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })
 export class DashboardHome implements OnInit, OnDestroy {
-  userName: string = 'Utilisateur';
-  currentUser: User | null = null;
-  private subscriptions: Subscription = new Subscription();
+  private destroy$ = new Subject<void>();
   private isBrowser: boolean;
 
+  // ── Utilisateur ──
+  userName: string = 'Utilisateur';
+  currentUser: User | null = null;
+
+  // ── Données du Dashboard ──
+  dashboardData: DashboardDto | null = null;
+  loading = false;
+  error: string | null = null;
+
+  // ── Propriétés pour le template (mappées depuis dashboardData) ──
   dashboardStats = {
     totalMembers: 0,
     newMembersThisMonth: 0,
@@ -36,9 +48,10 @@ export class DashboardHome implements OnInit, OnDestroy {
     visitorsThisMonth: 0,
   };
 
-  recentMembers: any[] = [];
-  recentOfferings: any[] = [];
+  recentMembers: RecentMemberDto[] = [];
+  recentOfferings: RecentOfferingDto[] = [];
 
+  // ── Données pour les graphiques (à utiliser avec Chart.js ou autre) ──
   chartData = {
     membersByStatus: {
       labels: ['Visiteurs', 'Adhérents', 'Actifs', 'Inactifs'],
@@ -123,61 +136,48 @@ export class DashboardHome implements OnInit, OnDestroy {
   constructor(
     private authService: Auth,
     private tokenService: Token,
+    private dashboardService: Dashboards,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngOnInit(): void {
-    // ✅ Côté serveur : on ne fait rien
     if (!this.isBrowser) return;
 
-    // Charger l'utilisateur connecté
     this.loadCurrentUser();
-
-    // Charger les données du dashboard
     this.loadDashboardData();
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  /**
-   * Charger l'utilisateur connecté
-   */
+  // ──────────────────────────────────────────────
+  // CHARGEMENT DE L'UTILISATEUR
+  // ──────────────────────────────────────────────
+
   loadCurrentUser(): void {
-    // Vérifier si un token existe
     const token = this.tokenService.getToken();
     if (!token) {
-      console.warn('⚠️ Aucun token trouvé, utilisateur non connecté');
       this.userName = 'Invité';
       return;
     }
 
-    this.subscriptions.add(
-      this.authService.getCurrentUser().subscribe({
+    this.authService.getCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         next: (user: User) => {
           this.currentUser = user;
           this.userName = this.formatUserName(user);
-          console.log('✅ Utilisateur chargé:', this.userName);
         },
-        error: (error: any) => {
-          console.error('❌ Erreur chargement utilisateur:', error);
-          if (error.status === 401 || error.message?.includes('401')) {
-            console.warn('🔐 Token invalide ou expiré');
-            this.userName = 'Invité';
-          } else {
-            this.userName = 'Utilisateur';
-          }
+        error: () => {
+          this.userName = 'Utilisateur';
         }
-      })
-    );
+      });
   }
 
-  /**
-   * Formater le nom de l'utilisateur
-   */
   formatUserName(user: User): string {
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
@@ -191,62 +191,105 @@ export class DashboardHome implements OnInit, OnDestroy {
     return 'Utilisateur';
   }
 
-  /**
-   * Charger les données du dashboard (données statiques pour l'instant)
-   */
+  // ──────────────────────────────────────────────
+  // CHARGEMENT DES DONNÉES DU DASHBOARD
+  // ──────────────────────────────────────────────
+
   loadDashboardData(): void {
-    // Données statiques
-    this.dashboardStats = {
-      totalMembers: 247,
-      newMembersThisMonth: 12,
-      upcomingEvents: 4,
-      totalEvents: 18,
-      totalOfferings: 1850000,
-      activeCells: 14,
-      attendanceRate: 85,
-      averageAttendance: 210,
-      visitorsThisMonth: 28
-    };
+    this.loading = true;
+    this.error = null;
 
-    // Membres récents
-    this.recentMembers = [
-      { fullName: 'Kouamé Marie-Claire', status: MemberStatus.Active, cellGroupName: 'Cocody' },
-      { fullName: 'Konan Jean', status: MemberStatus.Active, cellGroupName: 'Plateau' },
-      { fullName: 'Diallo Aïssatou', status: MemberStatus.Visitor, cellGroupName: '-' },
-      { fullName: 'Brou Frédéric', status: MemberStatus.Active, cellGroupName: 'Cocody' },
-      { fullName: 'N\'Guessan Thomas', status: MemberStatus.Active, cellGroupName: 'Marcory' }
-    ];
-
-    // Offrandes récentes
-    this.recentOfferings = [
-      { type: OfferingType.Tithe, amount: 250000, status: OfferingStatus.Validated },
-      { type: OfferingType.SundayOffering, amount: 185000, status: OfferingStatus.Validated },
-      { type: OfferingType.SpecialOffering, amount: 95000, status: OfferingStatus.Verified },
-      { type: OfferingType.BuildingFund, amount: 50000, status: OfferingStatus.Pending },
-      { type: OfferingType.Mission, amount: 35000, status: OfferingStatus.Validated }
-    ];
-
-    // Mettre à jour les graphiques
-    this.updateCharts();
-  }
-
-  /**
-   * Mettre à jour les données des graphiques
-   */
-  updateCharts(): void {
-    // Graphique des statuts des membres
-    this.chartData.membersByStatus.datasets[0].data = [28, 45, 160, 14];
-
-    // Graphique des offrandes par type
-    this.chartData.offeringsByType.datasets[0].data = [850000, 620000, 250000, 80000, 35000, 15000, 0];
+    this.dashboardService.getDashboardData()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: { success: any; data: DashboardDto | null; message: string; }) => {
+          this.loading = false;
+          if (response.success && response.data) {
+            this.dashboardData = response.data;
+            this.mapDashboardData(response.data);
+            this.updateChartsFromData(response.data);
+          } else {
+            this.error = response.message || 'Impossible de charger le tableau de bord.';
+          }
+        },
+        error: (err: any) => {
+          console.error('❌ Erreur chargement dashboard:', err);
+          this.loading = false;
+          this.error = 'Erreur lors du chargement du tableau de bord.';
+        }
+      });
   }
 
   // ──────────────────────────────────────────────
-  // TRENDS (méthodes statiques)
+  // MAPPAGE DES DONNÉES VERS LE TEMPLATE
+  // ──────────────────────────────────────────────
+
+  private mapDashboardData(data: DashboardDto): void {
+    // Indicateurs principaux
+    this.dashboardStats.totalMembers = data.totalMembers ?? 0;
+    this.dashboardStats.activeCells = data.totalCells ?? 0;
+    this.dashboardStats.upcomingEvents = data.upcomingEvents ?? 0;
+    this.dashboardStats.totalEvents = data.upcomingEvents ?? 0; // On réutilise
+    this.dashboardStats.totalOfferings = data.monthlyCollection ?? 0;
+    this.dashboardStats.attendanceRate = Math.round(data.averageAttendanceRate ?? 0);
+    this.dashboardStats.averageAttendance = Math.round(data.averageAttendanceRate ?? 0);
+
+    // Nouveaux membres du mois (on peut les calculer à partir des membres récents)
+    const now = new Date();
+    const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newMembers = data.recentMembers?.filter(m =>
+      new Date(m.createdAt) >= firstDayMonth
+    ) || [];
+    this.dashboardStats.newMembersThisMonth = newMembers.length;
+
+    // Visiteurs du mois (approximation basée sur les visiteurs récents)
+    this.dashboardStats.visitorsThisMonth = 0; // À compléter si backend fournit les données
+
+    // Listes récentes
+    this.recentMembers = data.recentMembers?.slice(0, 5) || [];
+    this.recentOfferings = data.recentOfferings?.slice(0, 5) || [];
+  }
+
+  // ──────────────────────────────────────────────
+  // MISE À JOUR DES GRAPHIQUES
+  // ──────────────────────────────────────────────
+
+  private updateChartsFromData(data: DashboardDto): void {
+    // Répartition par statut (on simule avec des données)
+    // Idéalement, on aurait un endpoint pour les statuts, on garde les données statiques pour l'instant.
+    // On peut les remplacer par des données réelles si disponibles.
+    if (data.genderDistribution?.items) {
+      // On pourrait mapper les genres, mais on garde les statuts pour l'exemple.
+    }
+
+    // Offrandes par type
+    if (data.offeringsByType?.items) {
+      const labels: string[] = [];
+      const values: number[] = [];
+      data.offeringsByType.items.forEach(item => {
+        labels.push(item.label);
+        values.push(item.amount);
+      });
+      this.chartData.offeringsByType.labels = labels;
+      this.chartData.offeringsByType.datasets[0].data = values;
+    }
+
+    // Tendance des présences
+    if (data.attendanceTrend?.points) {
+      const labels = data.attendanceTrend.points.map(p => p.date);
+      const values = data.attendanceTrend.points.map(p => p.attendance);
+      this.chartData.attendanceTrend.labels = labels;
+      this.chartData.attendanceTrend.datasets[0].data = values;
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  // TRENDS (valeurs calculées ou statiques)
   // ──────────────────────────────────────────────
 
   getMembersTrend(): number {
-    return 8;
+    // On pourrait calculer la tendance à partir des données si disponibles
+    return 8; // valeur statique pour l'exemple
   }
 
   getOfferingsTrend(): number {
@@ -262,66 +305,67 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────
-  // MÉTHODES MEMBRES (reprises du Dashboard)
+  // MÉTHODES MEMBRES
   // ──────────────────────────────────────────────
 
-  getMemberStatusText(status: MemberStatus): string {
-    switch (status) {
-      case MemberStatus.Visitor: return 'Visiteur';
-      case MemberStatus.Adherent: return 'Adhérent';
-      case MemberStatus.Active: return 'Actif';
-      case MemberStatus.Inactive: return 'Inactif';
-      case MemberStatus.ExMember: return 'Ancien';
-      default: return 'Inconnu';
-    }
+  getMemberStatusText(status: string): string {
+    const map: Record<string, string> = {
+      'Visitor': 'Visiteur',
+      'Adherent': 'Adhérent',
+      'Active': 'Actif',
+      'Inactive': 'Inactif',
+      'ExMember': 'Ancien'
+    };
+    return map[status] || status;
   }
 
-  getMemberStatusClass(status: MemberStatus): string {
-    switch (status) {
-      case MemberStatus.Visitor: return 'status-visitor';
-      case MemberStatus.Adherent: return 'status-adherent';
-      case MemberStatus.Active: return 'status-active';
-      case MemberStatus.Inactive: return 'status-inactive';
-      case MemberStatus.ExMember: return 'status-exmember';
-      default: return 'status-unknown';
-    }
+  getMemberStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      'Visitor': 'status-visitor',
+      'Adherent': 'status-adherent',
+      'Active': 'status-active',
+      'Inactive': 'status-inactive',
+      'ExMember': 'status-exmember'
+    };
+    return map[status] || 'status-unknown';
   }
 
   // ──────────────────────────────────────────────
-  // MÉTHODES OFFRANDES (reprises du Dashboard)
+  // MÉTHODES OFFRANDES
   // ──────────────────────────────────────────────
 
   getOfferingTypeText(type: OfferingType): string {
-    switch (type) {
-      case OfferingType.Tithe: return 'Dîme';
-      case OfferingType.SundayOffering: return 'Offrande dominicale';
-      case OfferingType.SpecialOffering: return 'Offrande spéciale';
-      case OfferingType.BuildingFund: return 'Construction';
-      case OfferingType.Mission: return 'Mission';
-      case OfferingType.Seed: return 'Semence';
-      case OfferingType.Thanksgiving: return 'Action de grâce';
-      default: return 'Autre';
-    }
+    const map: Record<OfferingType, string> = {
+      [OfferingType.Tithe]: 'Dîme',
+      [OfferingType.SundayOffering]: 'Offrande dominicale',
+      [OfferingType.SpecialOffering]: 'Offrande spéciale',
+      [OfferingType.BuildingFund]: 'Construction',
+      [OfferingType.Mission]: 'Mission',
+      [OfferingType.Seed]: 'Semence',
+      [OfferingType.Thanksgiving]: 'Action de grâce',
+      [OfferingType.Other]: 'Autre'
+    };
+    return map[type] || type;
   }
 
   getOfferingStatusText(status: OfferingStatus): string {
-    switch (status) {
-      case OfferingStatus.Pending: return 'En attente';
-      case OfferingStatus.Verified: return 'Vérifié';
-      case OfferingStatus.Validated: return 'Validé';
-      case OfferingStatus.Cancelled: return 'Annulé';
-      default: return 'Inconnu';
-    }
+    const map: Record<OfferingStatus, string> = {
+      [OfferingStatus.Pending]: 'En attente',
+      [OfferingStatus.Verified]: 'Vérifié',
+      [OfferingStatus.Validated]: 'Validé',
+      [OfferingStatus.Cancelled]: 'Annulé'
+    };
+    return map[status] || status;
   }
 
   getOfferingStatusClass(status: OfferingStatus): string {
-    switch (status) {
-      case OfferingStatus.Pending: return 'status-pending';
-      case OfferingStatus.Verified: return 'status-verified';
-      case OfferingStatus.Validated: return 'status-validated';
-      case OfferingStatus.Cancelled: return 'status-cancelled';
-      default: return 'status-unknown';
-    }
+    const map: Record<OfferingStatus, string> = {
+      [OfferingStatus.Pending]: 'status-pending',
+      [OfferingStatus.Verified]: 'status-verified',
+      [OfferingStatus.Validated]: 'status-validated',
+      [OfferingStatus.Cancelled]: 'status-cancelled'
+    };
+    return map[status] || 'status-unknown';
   }
 
   // ──────────────────────────────────────────────
