@@ -1,0 +1,192 @@
+<div class="ef-container">
+
+  <!-- En-tête -->
+  <div class="ef-header">
+    <h1>{{ isEditMode() ? 'Modifier la dépense' : 'Nouvelle dépense' }}</h1>
+    <button type="button" class="ef-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  <!-- Bannières -->
+  @if (error()) {
+  <div class="ef-banner ef-banner--error">{{ error() }}</div>
+  }
+  @if (success()) {
+  <div class="ef-banner ef-banner--success">✅ Dépense enregistrée avec succès !</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="ef-form">
+
+    <!-- ─── INFORMATIONS PRINCIPALES ─── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Informations générales</h2>
+      </div>
+      <div class="ef-panel-body ef-grid-2">
+
+        <div class="ef-field ef-field--span-2">
+          <label>Titre <span class="ef-required">*</span></label>
+          <input type="text" formControlName="title" placeholder="Ex: Achat de fournitures…">
+          <p class="ef-error" *ngIf="isFieldInvalid('title')">Le titre est requis.</p>
+        </div>
+
+        <div class="ef-field ef-field--span-2">
+          <label>Description</label>
+          <textarea rows="2" formControlName="description" placeholder="Détail de la dépense…"></textarea>
+        </div>
+
+        <div class="ef-field">
+          <label>Montant <span class="ef-required">*</span></label>
+          <div class="ef-amount-wrap">
+            <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
+            <span class="ef-currency">{{ form.get('currency')?.value || 'FCFA' }}</span>
+          </div>
+          <p class="ef-error" *ngIf="isFieldInvalid('amount')">Montant supérieur à 0 requis</p>
+        </div>
+
+        <div class="ef-field">
+          <label>Date <span class="ef-required">*</span></label>
+          <input type="date" formControlName="date">
+          <p class="ef-error" *ngIf="isFieldInvalid('date')">La date est requise</p>
+        </div>
+
+        <div class="ef-field">
+          <label>Église <span class="ef-required">*</span></label>
+          <select formControlName="churchId">
+            <option value="">— Sélectionner —</option>
+            @for (church of churches(); track church.id) {
+            <option [value]="church.id">{{ church.name }}</option>
+            }
+          </select>
+          <p class="ef-error" *ngIf="isFieldInvalid('churchId')">L'église est requise</p>
+        </div>
+
+        <div class="ef-field">
+          <label>Site</label>
+          <select formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Aucun site —</option>
+            @for (site of sites(); track site.id) {
+            <option [value]="site.id">{{ site.name }}</option>
+            }
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── CATÉGORIE & MODE DE PAIEMENT ─── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Catégorie & paiement</h2>
+      </div>
+      <div class="ef-panel-body ef-grid-2">
+
+        <div class="ef-field">
+          <label>Catégorie <span class="ef-required">*</span></label>
+          <select formControlName="category">
+            @for (opt of categoryOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="ef-field">
+          <label>Mode de paiement <span class="ef-required">*</span></label>
+          <select formControlName="paymentMethod">
+            @for (method of paymentMethods; track method.value) {
+            <option [value]="method.value">{{ method.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="ef-field">
+          <label>Référence</label>
+          <input type="text" formControlName="reference" placeholder="N° de virement, chèque…">
+        </div>
+
+        <div class="ef-field">
+          <label>Code budgétaire</label>
+          <input type="text" formControlName="budgetCode" placeholder="Ex: BUD-2026-001">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── DEMANDEUR ─── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Demandeur</h2>
+      </div>
+      <div class="ef-panel-body">
+        <div class="ef-field">
+          <label>Personne ayant demandé la dépense <span class="ef-required">*</span></label>
+          <div class="ef-search-wrap">
+            <ng-container *ngIf="selectedRequester() as person">
+              <div class="ef-selected-row">
+                <div class="ef-mini-avatar">{{ getRequesterInitials(person) }}</div>
+                <div class="ef-mini-info">{{ getRequesterFullName(person) }}</div>
+                <button type="button" class="ef-icon-btn" (click)="clearRequester()">✕</button>
+              </div>
+            </ng-container>
+            <input *ngIf="!selectedRequester()" type="text" formControlName="requesterSearch"
+              placeholder="Rechercher un membre ou un utilisateur…" (focus)="showRequesterResults.set(true)">
+            <div class="ef-search-dropdown" *ngIf="showRequesterResults() && !selectedRequester()">
+              <p class="ef-search-status" *ngIf="searchingRequester()">Recherche en cours…</p>
+              <p class="ef-search-status" *ngIf="!searchingRequester() && requesterResults().length === 0">Aucun
+                résultat</p>
+              @for (p of requesterResults(); track getRequesterId(p)) {
+              <button type="button" class="ef-search-result" (click)="selectRequester(p)">
+                <div class="ef-mini-avatar">{{ getRequesterInitials(p) }}</div>
+                <div class="ef-mini-info">{{ getRequesterFullName(p) }}</div>
+              </button>
+              }
+            </div>
+          </div>
+          <p class="ef-error" *ngIf="isFieldInvalid('requestedBy')">Le demandeur est requis</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── STATUT ─── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Statut</h2>
+      </div>
+      <div class="ef-panel-body">
+        <div class="ef-field">
+          <label>Statut</label>
+          <select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PIÈCE JOINTE (optionnel) ─── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Pièce jointe</h2>
+      </div>
+      <div class="ef-panel-body">
+        <div class="ef-field">
+          <label>URL du justificatif</label>
+          <input type="url" formControlName="receiptUrl" placeholder="https://…">
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ACTIONS ─── -->
+    <footer class="ef-actions">
+      <button type="button" class="ef-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="ef-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+        <span class="ef-spinner"></span> Enregistrement…
+        } @else {
+        {{ isEditMode() ? 'Mettre à jour' : 'Créer la dépense' }}
+        }
+      </button>
+    </footer>
+
+  </form>
+</div>

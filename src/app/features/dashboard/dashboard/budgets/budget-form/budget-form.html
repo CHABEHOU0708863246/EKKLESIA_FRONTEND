@@ -1,0 +1,132 @@
+<div class="bf-container">
+
+  <!-- En-tête -->
+  <div class="bf-header">
+    <h1>{{ isEditMode() ? 'Modifier le budget' : 'Nouveau budget' }}</h1>
+    <button type="button" class="bf-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  <!-- Bannières -->
+  @if (error()) {
+    <div class="bf-banner bf-banner--error">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="bf-banner bf-banner--success">✅ Budget enregistré avec succès !</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="bf-form">
+
+    <!-- ─── INFORMATIONS GÉNÉRALES ─── -->
+    <section class="bf-panel">
+      <div class="bf-panel-header"><h2>Informations générales</h2></div>
+      <div class="bf-panel-body bf-grid-2">
+
+        <div class="bf-field bf-field--span-2">
+          <label>Nom du budget <span class="bf-required">*</span></label>
+          <input type="text" formControlName="name" placeholder="Ex: Budget 2026 - MIAV">
+          <p class="bf-error" *ngIf="isFieldInvalid('name')">Le nom est requis.</p>
+        </div>
+
+        <div class="bf-field">
+          <label>Année <span class="bf-required">*</span></label>
+          <input type="number" formControlName="year" min="2000" max="2100">
+          <p class="bf-error" *ngIf="isFieldInvalid('year')">Année invalide.</p>
+        </div>
+
+        <div class="bf-field">
+          <label>Statut</label>
+          <select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="bf-field">
+          <label>Église <span class="bf-required">*</span></label>
+          <select formControlName="churchId">
+            <option value="">— Sélectionner —</option>
+            @for (church of churches(); track church.id) {
+              <option [value]="church.id">{{ church.name }}</option>
+            }
+          </select>
+          <p class="bf-error" *ngIf="isFieldInvalid('churchId')">L'église est requise.</p>
+        </div>
+
+        <div class="bf-field">
+          <label>Site</label>
+          <select formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Aucun site —</option>
+            @for (site of sites(); track site.id) {
+              <option [value]="site.id">{{ site.name }}</option>
+            }
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── CATÉGORIES ─── -->
+    <section class="bf-panel">
+      <div class="bf-panel-header">
+        <h2>Catégories</h2>
+        <button type="button" class="bf-btn-primary bf-btn-sm" (click)="addCategory()">
+          + Ajouter
+        </button>
+      </div>
+      <div class="bf-panel-body">
+        <div formArrayName="categories">
+          @for (catGroup of categoriesArray.controls; track $index) {
+            <div class="bf-category-row" [formGroup]="$any(catGroup)">
+              <div class="bf-grid-4">
+                <div class="bf-field">
+                  <label>Nom <span class="bf-required">*</span></label>
+                  <input type="text" formControlName="name" placeholder="Salaires">
+                  <p class="bf-error" *ngIf="isCategoryFieldInvalid($index, 'name')">Requis</p>
+                </div>
+                <div class="bf-field">
+                  <label>Code</label>
+                  <input type="text" formControlName="code" placeholder="SALARIES">
+                </div>
+                <div class="bf-field">
+                  <label>Alloué <span class="bf-required">*</span></label>
+                  <input type="number" formControlName="allocated" min="0" step="1" placeholder="0">
+                  <p class="bf-error" *ngIf="isCategoryFieldInvalid($index, 'allocated')">Requis</p>
+                </div>
+                <div class="bf-field bf-field-actions">
+                  <label>Dépensé</label>
+                  <input type="number" formControlName="spent" min="0" step="1" placeholder="0">
+                </div>
+              </div>
+              <div class="bf-field bf-field--span-2">
+                <label>Notes</label>
+                <input type="text" formControlName="notes" placeholder="Remarques sur cette catégorie">
+              </div>
+              <button
+                type="button"
+                class="bf-remove-btn"
+                *ngIf="categoriesArray.length > 1"
+                (click)="removeCategory($index)"
+              >
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ACTIONS ─── -->
+    <footer class="bf-actions">
+      <button type="button" class="bf-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="bf-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+          <span class="bf-spinner"></span> Enregistrement…
+        } @else {
+          {{ isEditMode() ? 'Mettre à jour' : 'Créer le budget' }}
+        }
+      </button>
+    </footer>
+
+  </form>
+</div>

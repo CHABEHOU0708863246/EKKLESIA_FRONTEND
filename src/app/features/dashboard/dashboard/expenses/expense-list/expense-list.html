@@ -1,0 +1,248 @@
+<div class="el-container">
+
+  <!-- En-tête -->
+  <div class="el-header">
+    <div class="el-header-left">
+      <h1>💰 Dépenses</h1>
+      <span class="el-badge" *ngIf="totalCount() > 0">{{ totalCount() }} dépenses</span>
+    </div>
+    <div class="el-actions">
+      <button class="el-btn-secondary" (click)="refresh()">
+        <i class="bx bx-refresh"></i> Rafraîchir
+      </button>
+      <button class="el-btn-primary" [routerLink]="['/dashboard/finances/depenses/new']">
+        <i class="bx bx-plus"></i> Nouvelle dépense
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  @if (statsLoading()) {
+    <div class="el-stats el-stats-loading">Chargement des statistiques…</div>
+  } @else if (stats(); as stats) {
+    <div class="el-stats">
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.totalCount }}</span>
+        <span class="el-stat-label">Total dépenses</span>
+      </div>
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.totalAmount | number:'1.0-0' }} FCFA</span>
+        <span class="el-stat-label">Montant total</span>
+      </div>
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.countByStatus?.['Pending'] || 0 }}</span>
+        <span class="el-stat-label">⏳ En attente</span>
+      </div>
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.countByStatus?.['Approved'] || 0 }}</span>
+        <span class="el-stat-label">✅ Approuvées</span>
+      </div>
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.countByStatus?.['Paid'] || 0 }}</span>
+        <span class="el-stat-label">💳 Payées</span>
+      </div>
+      <div class="el-stat-card">
+        <span class="el-stat-value">{{ stats.countByStatus?.['Rejected'] || 0 }}</span>
+        <span class="el-stat-label">❌ Rejetées</span>
+      </div>
+    </div>
+  }
+
+  <!-- Filtres -->
+  <div class="el-filters">
+    <div class="el-filter-group">
+      <div class="el-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Titre, description, référence…">
+      </div>
+      <div class="el-field">
+        <label>Catégorie</label>
+        <select [formControl]="categoryControl">
+          <option value="">Toutes</option>
+          @for (opt of categoryOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="el-field">
+        <label>Statut</label>
+        <select [formControl]="statusControl">
+          <option value="">Tous</option>
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="el-field">
+        <label>Date de</label>
+        <input type="date" [formControl]="dateFromControl">
+      </div>
+      <div class="el-field">
+        <label>Date à</label>
+        <input type="date" [formControl]="dateToControl">
+      </div>
+      <div class="el-field el-field-actions">
+        <button class="el-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  @if (loading()) {
+    <div class="el-loading">Chargement des dépenses…</div>
+  } @else if (error()) {
+    <div class="el-error">{{ error() }}</div>
+  } @else if (expenses().length === 0) {
+    <div class="el-empty">
+      <i class="bx bx-wallet"></i>
+      <p>Aucune dépense trouvée.</p>
+    </div>
+  } @else {
+    <div class="el-table-wrap">
+      <table class="el-table">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Date</th>
+            <th>Catégorie</th>
+            <th>Montant</th>
+            <th>Demandeur</th>
+            <th>Statut</th>
+            <th class="el-actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (expense of expenses(); track expense.id) {
+            <tr (click)="viewExpense(expense)">
+              <td>
+                <div class="el-title">
+                  <span class="el-title-text">{{ expense.title }}</span>
+                  @if (expense.budgetCode) {
+                    <span class="el-budget-code">{{ expense.budgetCode }}</span>
+                  }
+                </div>
+              </td>
+              <td>{{ getFormattedDate(expense.date) }}</td>
+              <td>
+                <span class="el-category-badge" [class]="getCategoryClass(expense.category)">
+                  <i class="bx {{ getCategoryIcon(expense.category) }}"></i>
+                  {{ getCategoryLabel(expense.category) }}
+                </span>
+              </td>
+              <td class="el-amount">{{ expense.amount | number:'1.0-0' }} {{ expense.currency }}</td>
+              <td>{{ expense.requestedByName || expense.requestedBy }}</td>
+              <td>
+                <span class="el-badge" [class]="getStatusClass(expense.status)">
+                  {{ getStatusLabel(expense.status) }}
+                </span>
+              </td>
+              <td>
+                <div class="el-actions-btn">
+                  <!-- Voir -->
+                  <button class="el-icon-btn" (click)="viewExpense(expense)" title="Voir">
+                    <i class="bx bx-show"></i>
+                  </button>
+                  <!-- Modifier (uniquement si brouillon ou en attente) -->
+                  @if (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending) {
+                    <button class="el-icon-btn" (click)="editExpense(expense, $event)" title="Modifier">
+                      <i class="bx bx-edit"></i>
+                    </button>
+                  }
+                  <!-- Approuver (uniquement en attente) -->
+                  @if (expense.status === ExpenseStatus.Pending) {
+                    <button class="el-icon-btn el-icon-success" (click)="openActionModal(expense, 'approve', $event)" title="Approuver">
+                      <i class="bx bx-check-circle"></i>
+                    </button>
+                  }
+                  <!-- Payer (uniquement approuvée) -->
+                  @if (expense.status === ExpenseStatus.Approved) {
+                    <button class="el-icon-btn el-icon-gold" (click)="openActionModal(expense, 'pay', $event)" title="Marquer comme payée">
+                      <i class="bx bx-credit-card"></i>
+                    </button>
+                  }
+                  <!-- Annuler (sauf si payée ou rejetée) -->
+                  @if (expense.status !== ExpenseStatus.Paid && expense.status !== ExpenseStatus.Rejected) {
+                    <button class="el-icon-btn el-icon-warning" (click)="openActionModal(expense, 'cancel', $event)" title="Annuler">
+                      <i class="bx bx-x-circle"></i>
+                    </button>
+                  }
+                  <!-- Supprimer (uniquement brouillon ou en attente) -->
+                  @if (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending) {
+                    <button class="el-icon-btn el-icon-danger" (click)="openActionModal(expense, 'delete', $event)" title="Supprimer">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (totalCount() > 0) {
+    <div class="el-pagination">
+      <div class="el-pagination-info">
+        {{ pageRangeLabel() }}
+      </div>
+      <div class="el-pagination-controls">
+        <button class="el-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="el-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="el-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de confirmation -->
+  @if (actionModal().visible) {
+    <div class="el-modal-overlay" (click.self)="closeModal()">
+      <div class="el-modal">
+        <h3>
+          @if (actionModal().type === 'approve') { Approuver la dépense }
+          @else if (actionModal().type === 'pay') { Marquer comme payée }
+          @else if (actionModal().type === 'cancel') { Annuler la dépense }
+          @else if (actionModal().type === 'delete') { Supprimer la dépense }
+        </h3>
+        <p>
+          @if (actionModal().type === 'approve') {
+            Voulez‑vous approuver la dépense <strong>{{ actionModal().expense?.title }}</strong> ?
+          } @else if (actionModal().type === 'pay') {
+            Voulez‑vous marquer comme payée la dépense <strong>{{ actionModal().expense?.title }}</strong> ?
+          } @else if (actionModal().type === 'cancel') {
+            Voulez‑vous annuler la dépense <strong>{{ actionModal().expense?.title }}</strong> ?
+          } @else if (actionModal().type === 'delete') {
+            Voulez‑vous supprimer définitivement la dépense <strong>{{ actionModal().expense?.title }}</strong> ?
+          }
+        </p>
+        <div class="el-modal-actions">
+          <button class="el-btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="el-btn-primary" (click)="confirmAction()" [disabled]="processing()">
+            @if (processing()) {
+              <span class="el-spinner"></span> Traitement…
+            } @else {
+              @if (actionModal().type === 'approve') { Approuver }
+              @else if (actionModal().type === 'pay') { Payer }
+              @else if (actionModal().type === 'cancel') { Annuler }
+              @else if (actionModal().type === 'delete') { Supprimer }
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

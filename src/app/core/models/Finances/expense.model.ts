@@ -353,3 +353,95 @@ export const DEFAULT_EXPENSE_FILTER: ExpenseFilter = {
   sortBy: 'date',
   sortOrder: 'desc'
 };
+
+
+export interface ExpenseStatisticsDto {
+  /** Montant total des dépenses */
+  totalAmount: number;
+  /** Nombre total de dépenses */
+  totalCount: number;
+  /** Montant par catégorie de dépense */
+  amountByCategory: Record<ExpenseCategory, number>;
+  /** Nombre par catégorie de dépense */
+  countByCategory: Record<ExpenseCategory, number>;
+  /** Nombre par statut de dépense */
+  countByStatus: Record<ExpenseStatus, number>;
+  /** Nombre par mode de paiement */
+  countByPaymentMethod: Record<PaymentMethod, number>;
+  /** Dépenses récentes (10 dernières) */
+  recentExpenses: ExpenseListResponse[];
+  /** Total du mois en cours */
+  thisMonthTotal: number;
+  /** Total de la semaine en cours */
+  thisWeekTotal: number;
+  /** Montant moyen d'une dépense */
+  averageExpense: number;
+}
+
+
+/**
+ * Utilitaires pour les statistiques des dépenses
+ */
+export class ExpenseStatisticsUtils {
+  /**
+   * Calcule le pourcentage d'une valeur par rapport au total
+   */
+  static getPercentage(value: number, total: number): number {
+    if (total === 0) return 0;
+    return Math.round((value / total) * 100);
+  }
+
+  /**
+   * Formate un montant en devise
+   */
+  static formatAmount(amount: number, currency: string = 'FCFA'): string {
+    return `${amount.toLocaleString('fr-FR')} ${currency}`;
+  }
+
+  /**
+   * Obtient les catégories les plus importantes (par montant)
+   */
+  static getTopCategories(
+    stats: ExpenseStatisticsDto,
+    limit: number = 5
+  ): { category: ExpenseCategory; amount: number }[] {
+    return Object.entries(stats.amountByCategory)
+      .map(([key, value]) => ({
+        category: key as ExpenseCategory,
+        amount: value
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, limit);
+  }
+
+  /**
+   * Filtre les statistiques par catégorie
+   */
+  static filterByCategory(
+    stats: ExpenseStatisticsDto,
+    categories: ExpenseCategory[]
+  ): ExpenseStatisticsDto {
+    return {
+      ...stats,
+      amountByCategory: Object.fromEntries(
+        Object.entries(stats.amountByCategory).filter(([key]) =>
+          categories.includes(key as ExpenseCategory)
+        )
+      ) as Record<ExpenseCategory, number>,
+      countByCategory: Object.fromEntries(
+        Object.entries(stats.countByCategory).filter(([key]) =>
+          categories.includes(key as ExpenseCategory)
+        )
+      ) as Record<ExpenseCategory, number>
+    };
+  }
+
+  /**
+   * Calcule le taux de variation mensuel
+   */
+  static getMonthlyChange(stats: ExpenseStatisticsDto): number {
+    // Note : Cette méthode suppose que vous avez un historique mensuel.
+    // Vous pouvez l'adapter selon vos besoins.
+    return 0;
+  }
+}

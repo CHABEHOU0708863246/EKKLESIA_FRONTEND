@@ -1,0 +1,254 @@
+<div class="bl-container">
+
+  <!-- En-tête -->
+  <div class="bl-header">
+    <div class="bl-header-left">
+      <h1>📊 Budget</h1>
+      <span class="bl-badge" *ngIf="totalCount() > 0">{{ totalCount() }} budgets</span>
+    </div>
+    <div class="bl-actions">
+      <button class="bl-btn-secondary" (click)="refresh()">
+        <i class="bx bx-refresh"></i> Rafraîchir
+      </button>
+      <button class="bl-btn-primary" [routerLink]="['/dashboard/finances/budget/new']">
+        <i class="bx bx-plus"></i> Nouveau budget
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  @if (statsLoading()) {
+    <div class="bl-stats bl-stats-loading">Chargement des statistiques…</div>
+  } @else if (stats(); as stats) {
+    <div class="bl-stats">
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.totalBudgets }}</span>
+        <span class="bl-stat-label">Total budgets</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.totalAllocated | number:'1.0-0' }} FCFA</span>
+        <span class="bl-stat-label">Total alloué</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.totalSpent | number:'1.0-0' }} FCFA</span>
+        <span class="bl-stat-label">Total dépensé</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.utilizationRate }}%</span>
+        <span class="bl-stat-label">Taux d'utilisation</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.draftCount }}</span>
+        <span class="bl-stat-label">📄 Brouillons</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.pendingCount }}</span>
+        <span class="bl-stat-label">⏳ En attente</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.approvedCount }}</span>
+        <span class="bl-stat-label">✅ Approuvés</span>
+      </div>
+      <div class="bl-stat-card">
+        <span class="bl-stat-value">{{ stats.closedCount }}</span>
+        <span class="bl-stat-label">🔒 Clôturés</span>
+      </div>
+    </div>
+  }
+
+  <!-- Filtres -->
+  <div class="bl-filters">
+    <div class="bl-filter-group">
+      <div class="bl-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Nom du budget…">
+      </div>
+      <div class="bl-field">
+        <label>Année</label>
+        <select [formControl]="yearControl">
+          <option [value]="null">Toutes</option>
+          @for (y of availableYears(); track y) {
+            <option [value]="y">{{ y }}</option>
+          }
+        </select>
+      </div>
+      <div class="bl-field">
+        <label>Statut</label>
+        <select [formControl]="statusControl">
+          <option value="">Tous</option>
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="bl-field bl-field-actions">
+        <button class="bl-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  @if (loading()) {
+    <div class="bl-loading">Chargement des budgets…</div>
+  } @else if (error()) {
+    <div class="bl-error">{{ error() }}</div>
+  } @else if (budgets().length === 0) {
+    <div class="bl-empty">
+      <i class="bx bx-line-chart"></i>
+      <p>Aucun budget trouvé.</p>
+    </div>
+  } @else {
+    <div class="bl-table-wrap">
+      <table class="bl-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Année</th>
+            <th>Statut</th>
+            <th>Alloué</th>
+            <th>Dépensé</th>
+            <th>Utilisation</th>
+            <th class="bl-actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (budget of budgets(); track budget.id) {
+            <tr (click)="viewBudget(budget)">
+              <td class="bl-name">{{ budget.name }}</td>
+              <td>{{ budget.year }}</td>
+              <td>
+                <span class="bl-badge" [class]="getStatusClass(budget.status)">
+                  {{ getStatusLabel(budget.status) }}
+                </span>
+              </td>
+              <td class="bl-amount">{{ budget.totalBudget | number:'1.0-0' }} FCFA</td>
+              <td class="bl-amount">{{ budget.totalSpent | number:'1.0-0' }} FCFA</td>
+              <td>
+                <div class="bl-progress-wrap">
+                  <span class="bl-progress-value">{{ budget.utilizationRate }}%</span>
+                  <div class="bl-progress-bar">
+                    <div
+                      class="bl-progress-fill"
+                      [style.width]="budget.utilizationRate + '%'"
+                      [class.bl-progress-danger]="budget.utilizationRate >= 90"
+                      [class.bl-progress-warning]="budget.utilizationRate >= 70 && budget.utilizationRate < 90"
+                      [class.bl-progress-success]="budget.utilizationRate < 70"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="bl-actions-btn">
+                  <button class="bl-icon-btn" (click)="viewBudget(budget)" title="Voir">
+                    <i class="bx bx-show"></i>
+                  </button>
+                  @if (canEdit(budget)) {
+                    <button class="bl-icon-btn" (click)="editBudget(budget, $event)" title="Modifier">
+                      <i class="bx bx-edit"></i>
+                    </button>
+                  }
+                  @if (canApprove(budget)) {
+                    <button class="bl-icon-btn bl-icon-success" (click)="openActionModal(budget, 'approve', $event)" title="Approuver">
+                      <i class="bx bx-check-circle"></i>
+                    </button>
+                  }
+                  @if (canReject(budget)) {
+                    <button class="bl-icon-btn bl-icon-danger" (click)="openActionModal(budget, 'reject', $event)" title="Rejeter">
+                      <i class="bx bx-x-circle"></i>
+                    </button>
+                  }
+                  @if (canClose(budget)) {
+                    <button class="bl-icon-btn bl-icon-info" (click)="openActionModal(budget, 'close', $event)" title="Clôturer">
+                      <i class="bx bx-lock"></i>
+                    </button>
+                  }
+                  @if (canDelete(budget)) {
+                    <button class="bl-icon-btn bl-icon-danger" (click)="openActionModal(budget, 'delete', $event)" title="Supprimer">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (totalCount() > 0) {
+    <div class="bl-pagination">
+      <div class="bl-pagination-info">
+        {{ pageRangeLabel() }}
+      </div>
+      <div class="bl-pagination-controls">
+        <button class="bl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="bl-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="bl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de confirmation -->
+  @if (actionModal().visible) {
+    <div class="bl-modal-overlay" (click.self)="closeModal()">
+      <div class="bl-modal">
+        <h3>
+          @if (actionModal().type === 'approve') { Approuver le budget }
+          @else if (actionModal().type === 'reject') { Rejeter le budget }
+          @else if (actionModal().type === 'close') { Clôturer le budget }
+          @else if (actionModal().type === 'delete') { Supprimer le budget }
+        </h3>
+        <p>
+          @if (actionModal().type === 'approve') {
+            Voulez‑vous approuver le budget <strong>{{ actionModal().budget?.name }}</strong> ?
+          } @else if (actionModal().type === 'reject') {
+            Voulez‑vous rejeter le budget <strong>{{ actionModal().budget?.name }}</strong> ?
+          } @else if (actionModal().type === 'close') {
+            Voulez‑vous clôturer le budget <strong>{{ actionModal().budget?.name }}</strong> ?
+          } @else if (actionModal().type === 'delete') {
+            Voulez‑vous supprimer définitivement le budget <strong>{{ actionModal().budget?.name }}</strong> ?
+          }
+        </p>
+        <!-- Champ de raison pour le rejet -->
+        @if (actionModal().type === 'reject') {
+          <textarea
+            [value]="actionModal().rejectReason"
+            (input)="actionModal().rejectReason = $any($event.target).value"
+            rows="3"
+            placeholder="Raison du rejet (facultatif)…"
+            class="bl-textarea"
+          ></textarea>
+        }
+        <div class="bl-modal-actions">
+          <button class="bl-btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="bl-btn-primary" (click)="confirmAction()" [disabled]="processing()">
+            @if (processing()) {
+              <span class="bl-spinner"></span> Traitement…
+            } @else {
+              @if (actionModal().type === 'approve') { Approuver }
+              @else if (actionModal().type === 'reject') { Rejeter }
+              @else if (actionModal().type === 'close') { Clôturer }
+              @else if (actionModal().type === 'delete') { Supprimer }
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

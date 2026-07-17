@@ -24,7 +24,7 @@
     <ul>
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 👤 MON COMPTE — TOUJOURS visible, aucune permission requise -->
+      <!-- 1️⃣ MON COMPTE — TOUJOURS visible, aucune permission requise -->
       <!-- ──────────────────────────────────────────────────────────── -->
       <div class="nav-section-label">Mon compte</div>
 
@@ -45,7 +45,7 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 📊 TABLEAU DE BORD                                         -->
+      <!-- 2️⃣ TABLEAU DE BORD — vue d'ensemble avant d'aller dans le détail -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canViewDashboard()) {
       <li class="nav-item">
@@ -57,9 +57,7 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 👥 MEMBRES                                                  -->
-      <!-- Visible si AU MOINS UNE sous-fonction est accessible.       -->
-      <!-- Chaque lien reste filtré par SA permission exacte.          -->
+      <!-- 3️⃣ MEMBRES — le cœur du système, base de tout le reste     -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessMemberModule()) {
       <div class="nav-section-label">Membres</div>
@@ -73,7 +71,6 @@
 
         <ul class="nav-sub">
 
-          <!-- 1️⃣ Annuaire – Vue principale -->
           @if (permission.canViewMembers()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/membres']" class="nav-link" (click)="closeMobileSidebar()">
@@ -83,7 +80,6 @@
           </li>
           }
 
-          <!-- 2️⃣ Nouveau membre – Création -->
           @if (permission.canCreateMember()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/membres/new']" class="nav-link" (click)="closeMobileSidebar()">
@@ -94,7 +90,6 @@
           </li>
           }
 
-          <!-- 3️⃣ Pipeline visiteurs – Suivi des prospects -->
           @if (permission.canViewMembers()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/membres/pipeline-visiteurs']" class="nav-link" (click)="closeMobileSidebar()">
@@ -104,7 +99,6 @@
           </li>
           }
 
-          <!-- 4️⃣ Suivi pastoral – Notes & suivis confidentiels -->
           @if (permission.canViewPastoralNotes()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/membres/suivi-pastoral']" class="nav-link" (click)="closeMobileSidebar()">
@@ -115,7 +109,6 @@
           </li>
           }
 
-          <!-- 5️⃣ Cellules de maison – Groupes -->
           @if (permission.canViewCells()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link" (click)="closeMobileSidebar()">
@@ -125,89 +118,12 @@
           </li>
           }
 
-          <!-- 6️⃣ Import en masse – Action administrative -->
-          <!-- 0 -->
-
         </ul>
       </li>
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 📜 ACTES PASTORAUX                                          -->
-      <!-- Module indépendant : Baptême, Mariage, Funérailles, Dédicace -->
-      <!-- Distinct du "Suivi pastoral" (notes) situé dans Membres.     -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canViewPastoralActs()) {
-      <div class="nav-section-label">Actes pastoraux</div>
-
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
-          <i class="nav-icon bx bx-certification"></i>
-          <span class="nav-text">Actes pastoraux</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
-        </a>
-
-        <ul class="nav-sub">
-
-          <!-- 1️⃣ Registre – Vue principale de tous les actes -->
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/actes-pastoraux']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-list-ul"></i>
-              <span class="nav-text">Registre des actes</span>
-            </a>
-          </li>
-
-          <!-- 2️⃣ Nouvel acte – Création -->
-          @if (permission.canCreatePastoralAct()) {
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/actes-pastoraux/new']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouvel acte</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-
-        </ul>
-      </li>
-      }
-
-      <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 🏠 COMMUNAUTÉ                                               -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessCommunityModule()) {
-      <div class="nav-section-label">Communauté</div>
-
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
-          <i class="nav-icon bx bx-calendar-check"></i>
-          <span class="nav-text">Disponibilité</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
-        </a>
-        <ul class="nav-sub">
-          @if (permission.canViewVolunteerSchedule()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/disponibilite']" class="nav-link">
-              <i class="nav-icon-sub bx bx-time"></i>
-              <span class="nav-text">Disponibilités bénévoles</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageVolunteerSchedule()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/disponibilite/planning']" class="nav-link">
-              <i class="nav-icon-sub bx bx-calendar-event"></i>
-              <span class="nav-text">Planning des services</span>
-              <span class="nav-badge badge-red">{{ planningAlertsCount }}</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
-
-      <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 📅 VIE D'ÉGLISE                                            -->
+      <!-- 4️⃣ VIE D'ÉGLISE — l'activité courante : cultes, événements, RDV -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessChurchLifeModule()) {
       <div class="nav-section-label">Vie d'église</div>
@@ -235,14 +151,6 @@
             </a>
           </li>
           }
-          <!-- @if (permission.canViewServiceAttendance()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/cultes/presence']" class="nav-link">
-              <i class="nav-icon-sub bx bx-show"></i>
-              <span class="nav-text">Présence & statistiques</span>
-            </a>
-          </li>
-          } -->
           @if (permission.canViewContent()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/cultes/sermons']" class="nav-link">
@@ -271,7 +179,6 @@
             </a>
           </li>
           }
-
           @if (permission.canCreateEvent()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/evenements/new']" class="nav-link">
@@ -320,7 +227,162 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 💰 FINANCES – Offrandes                                     -->
+      <!-- 5️⃣ ACTES PASTORAUX — suite logique de la vie d'église       -->
+      <!-- Baptême, Mariage, Funérailles, Dédicace                     -->
+      <!-- Distinct du "Suivi pastoral" (notes) situé dans Membres.     -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canViewPastoralActs()) {
+      <div class="nav-section-label">Actes pastoraux</div>
+
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-certification"></i>
+          <span class="nav-text">Actes pastoraux</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+
+        <ul class="nav-sub">
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/actes-pastoraux']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Registre des actes</span>
+            </a>
+          </li>
+
+          @if (permission.canCreatePastoralAct()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/actes-pastoraux/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvel acte</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- 6️⃣ COMMUNAUTÉ — planification des disponibilités bénévoles -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canAccessCommunityModule()) {
+      <div class="nav-section-label">Communauté</div>
+
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-calendar-check"></i>
+          <span class="nav-text">Disponibilité</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          @if (permission.canViewVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/disponibilite']" class="nav-link">
+              <i class="nav-icon-sub bx bx-time"></i>
+              <span class="nav-text">Disponibilités bénévoles</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/disponibilite/planning']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-event"></i>
+              <span class="nav-text">Planning des services</span>
+              <span class="nav-badge badge-red">{{ planningAlertsCount }}</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- 7️⃣ RESSOURCES HUMAINES — équipe qui fait tourner l'église   -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canAccessHRModule()) {
+      <div class="nav-section-label">Ressources Humaines</div>
+
+      @if (permission.canViewEmployees()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-id-card"></i>
+          <span class="nav-text">Employés</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/employes']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Tous les employés</span>
+            </a>
+          </li>
+          @if (permission.canCreateEmployee()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/employes/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvel employé</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManagePayroll()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/paie']" class="nav-link">
+              <i class="nav-icon-sub bx bx-money"></i>
+              <span class="nav-text">Paie & salaires</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageLeave()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/conges']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-check"></i>
+              <span class="nav-text">Congés</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+
+      @if (permission.canViewVolunteers()) {
+      <li class="nav-item" routerLinkActive="active open">
+        <a class="nav-link" (click)="toggleMenu($event)">
+          <i class="nav-icon bx bx-group"></i>
+          <span class="nav-text">Bénévoles</span>
+          <i class="nav-chevron bx bx-chevron-right"></i>
+        </a>
+        <ul class="nav-sub">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles']" class="nav-link">
+              <i class="nav-icon-sub bx bx-list-ul"></i>
+              <span class="nav-text">Tous les bénévoles</span>
+            </a>
+          </li>
+          @if (permission.canCreateVolunteer()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles/new']" class="nav-link">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouveau bénévole</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
+          @if (permission.canManageVolunteerSchedule()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/rh/benevoles/planning']" class="nav-link">
+              <i class="nav-icon-sub bx bx-calendar-event"></i>
+              <span class="nav-text">Planning</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </li>
+      }
+      }
+
+      <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- 8️⃣ FINANCES — Offrandes, Dépenses, Budget                  -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canViewOfferings()) {
       <div class="nav-section-label">Finances</div>
@@ -432,7 +494,7 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 🏢 PATRIMOINE & COMMUNICATION                               -->
+      <!-- 9️⃣ PATRIMOINE & COMMUNICATION                              -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessPropertyModule() || permission.canAccessCommunicationModule()) {
       <div class="nav-section-label">Patrimoine & Communication</div>
@@ -529,99 +591,12 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 👤 RESSOURCES HUMAINES                                      -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessHRModule()) {
-      <div class="nav-section-label">Ressources Humaines</div>
-
-      @if (permission.canViewEmployees()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
-          <i class="nav-icon bx bx-id-card"></i>
-          <span class="nav-text">Employés</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
-        </a>
-        <ul class="nav-sub">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/employes']" class="nav-link">
-              <i class="nav-icon-sub bx bx-list-ul"></i>
-              <span class="nav-text">Tous les employés</span>
-            </a>
-          </li>
-          @if (permission.canCreateEmployee()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/employes/new']" class="nav-link">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouvel employé</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManagePayroll()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/paie']" class="nav-link">
-              <i class="nav-icon-sub bx bx-money"></i>
-              <span class="nav-text">Paie & salaires</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageLeave()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/conges']" class="nav-link">
-              <i class="nav-icon-sub bx bx-calendar-check"></i>
-              <span class="nav-text">Congés</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
-
-      @if (permission.canViewVolunteers()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
-          <i class="nav-icon bx bx-group"></i>
-          <span class="nav-text">Bénévoles</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
-        </a>
-        <ul class="nav-sub">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles']" class="nav-link">
-              <i class="nav-icon-sub bx bx-list-ul"></i>
-              <span class="nav-text">Tous les bénévoles</span>
-            </a>
-          </li>
-          @if (permission.canCreateVolunteer()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles/new']" class="nav-link">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouveau bénévole</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageVolunteerSchedule()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles/planning']" class="nav-link">
-              <i class="nav-icon-sub bx bx-calendar-event"></i>
-              <span class="nav-text">Planning</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
-      }
-
-      <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 🔐 ADMINISTRATION                                           -->
+      <!-- 🔟 ADMINISTRATION — tout en bas : technique, rarement touché -->
       <!-- 4 pôles clairs : Accès, Structure, Audit, Paramètres        -->
-      <!-- "Mon profil" n'apparaît PAS ici (voir "Mon compte" en haut) -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessAdministrationModule()) {
       <div class="nav-section-label">Administration</div>
 
-      <!-- ══ 1. GESTION DES ACCÈS (Utilisateurs + Rôles) ══ -->
       @if (permission.canManageUsers() || permission.canManageRoles()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
@@ -668,7 +643,6 @@
       </li>
       }
 
-      <!-- ══ 2. STRUCTURE DE L'ÉGLISE (Églises + Sites) ══ -->
       @if (permission.canManageChurchSettings() || permission.canManageSites()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
@@ -696,7 +670,6 @@
       </li>
       }
 
-      <!-- ══ 3. JOURNAL D'AUDIT ══ -->
       @if (permission.canViewAudit()) {
       <li class="nav-item">
         <a [routerLink]="['/dashboard/admin/audit']" class="nav-link" (click)="closeMobileSidebar()">
@@ -706,7 +679,6 @@
       </li>
       }
 
-      <!-- ══ 4. PARAMÈTRES GÉNÉRAUX (config pure, plus d'Églises ici) ══ -->
       @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">

@@ -1,0 +1,266 @@
+<div class="bd-container">
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="bd-loading">Chargement du budget…</div>
+  }
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="bd-error">{{ error() }}</div>
+  }
+
+  <!-- Détail -->
+  @if (!loading() && !error() && budget(); as b) {
+
+    <!-- En-tête -->
+    <div class="bd-header">
+      <div class="bd-header-left">
+        <button class="bd-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>Budget</h1>
+        <span class="bd-badge" [class]="getStatusClass(b.status)">
+          {{ getStatusLabel(b.status) }}
+        </span>
+      </div>
+      <div class="bd-header-actions">
+        <button class="bd-btn-icon" (click)="print()" title="Imprimer">
+          <i class="bx bx-printer"></i>
+        </button>
+        @if (canEdit()) {
+          <button class="bd-btn-primary" (click)="editBudget()">
+            <i class="bx bx-edit"></i> Modifier
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Grille -->
+    <div class="bd-grid">
+
+      <!-- Colonne gauche -->
+      <div class="bd-col-left">
+
+        <!-- Informations générales -->
+        <div class="bd-card">
+          <h3>Informations générales</h3>
+          <div class="bd-info-row">
+            <span class="bd-label">Nom</span>
+            <span class="bd-value bd-name">{{ b.name }}</span>
+          </div>
+          <div class="bd-info-row">
+            <span class="bd-label">Année</span>
+            <span class="bd-value">{{ b.year }}</span>
+          </div>
+          <div class="bd-info-row">
+            <span class="bd-label">Église</span>
+            <span class="bd-value">{{ b.churchName || b.churchId }}</span>
+          </div>
+          @if (b.siteName || b.siteId) {
+            <div class="bd-info-row">
+              <span class="bd-label">Site</span>
+              <span class="bd-value">{{ b.siteName || b.siteId }}</span>
+            </div>
+          }
+          <div class="bd-info-row">
+            <span class="bd-label">Statut</span>
+            <span class="bd-value">
+              <span class="bd-badge" [class]="getStatusClass(b.status)">
+                {{ getStatusLabel(b.status) }}
+              </span>
+            </span>
+          </div>
+          @if (b.approvedAt) {
+            <div class="bd-info-row">
+              <span class="bd-label">Approuvé le</span>
+              <span class="bd-value">{{ getFormattedDateTime(b.approvedAt) }}</span>
+            </div>
+          }
+          @if (b.approvedByNames?.length) {
+            <div class="bd-info-row">
+              <span class="bd-label">Approuvé par</span>
+              <span class="bd-value">{{ b.approvedByNames.join(', ') }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Résumé financier -->
+        <div class="bd-card">
+          <h3>Résumé financier</h3>
+          <div class="bd-summary-grid">
+            <div class="bd-summary-item">
+              <span class="bd-summary-label">Total alloué</span>
+              <span class="bd-summary-value">{{ totalAllocated() | number:'1.0-0' }} FCFA</span>
+            </div>
+            <div class="bd-summary-item">
+              <span class="bd-summary-label">Total dépensé</span>
+              <span class="bd-summary-value">{{ totalSpent() | number:'1.0-0' }} FCFA</span>
+            </div>
+            <div class="bd-summary-item">
+              <span class="bd-summary-label">Restant</span>
+              <span class="bd-summary-value">{{ totalRemaining() | number:'1.0-0' }} FCFA</span>
+            </div>
+            <div class="bd-summary-item">
+              <span class="bd-summary-label">Utilisation</span>
+              <span class="bd-summary-value">{{ utilizationRate() }}%</span>
+            </div>
+          </div>
+          <div class="bd-progress-wrap">
+            <div class="bd-progress-bar">
+              <div
+                class="bd-progress-fill"
+                [style.width]="utilizationRate() + '%'"
+                [class.bd-progress-danger]="utilizationRate() >= 90"
+                [class.bd-progress-warning]="utilizationRate() >= 70 && utilizationRate() < 90"
+                [class.bd-progress-success]="utilizationRate() < 70"
+              ></div>
+            </div>
+            <span class="bd-progress-label">{{ utilizationRate() }}% utilisé</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne droite -->
+      <div class="bd-col-right">
+
+        <!-- Actions -->
+        <div class="bd-card">
+          <h3>Actions</h3>
+          <div class="bd-actions-container">
+            @if (canApprove()) {
+              <button class="bd-btn-success" (click)="openModal('approve')" [disabled]="processing()">
+                <i class="bx bx-check-circle"></i> Approuver
+              </button>
+            }
+            @if (canReject()) {
+              <button class="bd-btn-danger" (click)="openModal('reject')" [disabled]="processing()">
+                <i class="bx bx-x-circle"></i> Rejeter
+              </button>
+            }
+            @if (canClose()) {
+              <button class="bd-btn-info" (click)="openModal('close')" [disabled]="processing()">
+                <i class="bx bx-lock"></i> Clôturer
+              </button>
+            }
+            @if (canDelete()) {
+              <button class="bd-btn-danger" (click)="openModal('delete')" [disabled]="processing()">
+                <i class="bx bx-trash"></i> Supprimer
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Audit -->
+        <div class="bd-card bd-meta">
+          <h3>Informations système</h3>
+          <div class="bd-meta-row">
+            <span>Créé le</span>
+            <span>{{ getFormattedDateTime(b.createdAt) }}</span>
+          </div>
+          @if (b.updatedAt) {
+            <div class="bd-meta-row">
+              <span>Modifié le</span>
+              <span>{{ getFormattedDateTime(b.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Catégories -->
+    <div class="bd-categories-section">
+      <h2>Catégories</h2>
+      <div class="bd-table-wrap">
+        <table class="bd-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Code</th>
+              <th>Alloué</th>
+              <th>Dépensé</th>
+              <th>Restant</th>
+              <th>Utilisation</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of b.categories; track cat.code) {
+              <tr>
+                <td class="bd-cat-name">{{ cat.name }}</td>
+                <td><span class="bd-cat-code">{{ cat.code }}</span></td>
+                <td class="bd-amount">{{ cat.allocated | number:'1.0-0' }} FCFA</td>
+                <td class="bd-amount">{{ cat.spent | number:'1.0-0' }} FCFA</td>
+                <td class="bd-amount">{{ cat.remaining | number:'1.0-0' }} FCFA</td>
+                <td>
+                  <div class="bd-progress-wrap bd-progress-wrap-sm">
+                    <span class="bd-progress-value">{{ cat.utilizationRate }}%</span>
+                    <div class="bd-progress-bar">
+                      <div
+                        class="bd-progress-fill"
+                        [style.width]="cat.utilizationRate + '%'"
+                        [class.bd-progress-danger]="cat.utilizationRate >= 90"
+                        [class.bd-progress-warning]="cat.utilizationRate >= 70 && cat.utilizationRate < 90"
+                        [class.bd-progress-success]="cat.utilizationRate < 70"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    @if (showModal()) {
+      <div class="bd-modal-overlay" (click.self)="closeModal()">
+        <div class="bd-modal">
+          <h3>
+            @if (modalType() === 'approve') { Approuver le budget }
+            @else if (modalType() === 'reject') { Rejeter le budget }
+            @else if (modalType() === 'close') { Clôturer le budget }
+            @else if (modalType() === 'delete') { Supprimer le budget }
+          </h3>
+          <p>
+            @if (modalType() === 'approve') {
+              Voulez‑vous approuver le budget <strong>{{ b.name }}</strong> ?
+            } @else if (modalType() === 'reject') {
+              Voulez‑vous rejeter le budget <strong>{{ b.name }}</strong> ?
+            } @else if (modalType() === 'close') {
+              Voulez‑vous clôturer le budget <strong>{{ b.name }}</strong> ?
+            } @else if (modalType() === 'delete') {
+              Voulez‑vous supprimer définitivement le budget <strong>{{ b.name }}</strong> ?
+            }
+          </p>
+          @if (modalType() === 'reject') {
+            <textarea
+              [value]="rejectReason()"
+              (input)="rejectReason.set($any($event.target).value)"
+              rows="3"
+              placeholder="Raison du rejet (facultatif)…"
+              class="bd-textarea"
+            ></textarea>
+          }
+          <div class="bd-modal-actions">
+            <button class="bd-btn-secondary" (click)="closeModal()">Annuler</button>
+            <button class="bd-btn-primary" (click)="confirmAction()" [disabled]="processing()">
+              @if (processing()) {
+                <span class="bd-spinner"></span> Traitement…
+              } @else {
+                @if (modalType() === 'approve') { Approuver }
+                @else if (modalType() === 'reject') { Rejeter }
+                @else if (modalType() === 'close') { Clôturer }
+                @else if (modalType() === 'delete') { Supprimer }
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+  }
+</div>

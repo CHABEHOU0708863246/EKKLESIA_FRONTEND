@@ -1,0 +1,225 @@
+<div class="ed-container">
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="ed-loading">Chargement de la dépense…</div>
+  }
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="ed-error">{{ error() }}</div>
+  }
+
+  <!-- Détail -->
+  @if (!loading() && !error() && expense(); as e) {
+
+    <!-- En-tête -->
+    <div class="ed-header">
+      <div class="ed-header-left">
+        <button class="ed-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>Dépense</h1>
+        <span class="ed-badge" [class]="getStatusClass(e.status)">
+          {{ getStatusLabel(e.status) }}
+        </span>
+      </div>
+      <div class="ed-header-actions">
+        <button class="ed-btn-icon" (click)="print()" title="Imprimer">
+          <i class="bx bx-printer"></i>
+        </button>
+        @if (canEdit()) {
+          <button class="ed-btn-primary" (click)="editExpense()">
+            <i class="bx bx-edit"></i> Modifier
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Grille -->
+    <div class="ed-grid">
+
+      <!-- Colonne gauche -->
+      <div class="ed-col-left">
+
+        <!-- Informations générales -->
+        <div class="ed-card">
+          <h3>Informations générales</h3>
+          <div class="ed-info-row">
+            <span class="ed-label">Titre</span>
+            <span class="ed-value ed-title">{{ e.title }}</span>
+          </div>
+          @if (e.description) {
+            <div class="ed-info-row ed-description">
+              <span class="ed-label">Description</span>
+              <span class="ed-value">{{ e.description }}</span>
+            </div>
+          }
+          <div class="ed-info-row">
+            <span class="ed-label">Catégorie</span>
+            <span class="ed-value">
+              <span class="ed-category-badge" [class]="getCategoryClass(e.category)">
+                <i class="bx {{ getCategoryIcon(e.category) }}"></i>
+                {{ getCategoryLabel(e.category) }}
+              </span>
+            </span>
+          </div>
+          <div class="ed-info-row">
+            <span class="ed-label">Montant</span>
+            <span class="ed-value ed-amount">{{ e.amount | number:'1.0-0' }} {{ e.currency }}</span>
+          </div>
+          <div class="ed-info-row">
+            <span class="ed-label">Date</span>
+            <span class="ed-value">{{ getFormattedDate(e.date) }}</span>
+          </div>
+          <div class="ed-info-row">
+            <span class="ed-label">Demandeur</span>
+            <span class="ed-value">{{ e.requestedByName || e.requestedBy }}</span>
+          </div>
+          @if (e.reference) {
+            <div class="ed-info-row">
+              <span class="ed-label">Référence</span>
+              <span class="ed-value">{{ e.reference }}</span>
+            </div>
+          }
+          @if (e.budgetCode) {
+            <div class="ed-info-row">
+              <span class="ed-label">Code budgétaire</span>
+              <span class="ed-value ed-budget">{{ e.budgetCode }}</span>
+            </div>
+          }
+          <div class="ed-info-row">
+            <span class="ed-label">Église</span>
+            <span class="ed-value">{{ e.churchName || e.churchId }}</span>
+          </div>
+          @if (e.siteName || e.siteId) {
+            <div class="ed-info-row">
+              <span class="ed-label">Site</span>
+              <span class="ed-value">{{ e.siteName || e.siteId }}</span>
+            </div>
+          }
+          <div class="ed-info-row">
+            <span class="ed-label">Mode de paiement</span>
+            <span class="ed-value">{{ getPaymentMethodLabel(e.paymentMethod) }}</span>
+          </div>
+          @if (e.receiptUrl) {
+            <div class="ed-info-row">
+              <span class="ed-label">Justificatif</span>
+              <span class="ed-value">
+                <a [href]="e.receiptUrl" target="_blank" class="ed-link">Voir le justificatif</a>
+              </span>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- Colonne droite -->
+      <div class="ed-col-right">
+
+        <!-- Statut et validation -->
+        <div class="ed-card">
+          <h3>Statut & validation</h3>
+
+          <div class="ed-info-row">
+            <span class="ed-label">Statut actuel</span>
+            <span class="ed-value">
+              <span class="ed-badge" [class]="getStatusClass(e.status)">
+                {{ getStatusLabel(e.status) }}
+              </span>
+            </span>
+          </div>
+
+          @if (e.validatedByNames?.length) {
+            <div class="ed-info-row">
+              <span class="ed-label">Validé par</span>
+              <span class="ed-value">{{ e.validatedByNames.join(', ') }}</span>
+            </div>
+          }
+
+          @if (e.approvedAt) {
+            <div class="ed-info-row">
+              <span class="ed-label">Approuvé le</span>
+              <span class="ed-value">{{ getFormattedDateTime(e.approvedAt) }}</span>
+            </div>
+          }
+
+          @if (e.approvedByName) {
+            <div class="ed-info-row">
+              <span class="ed-label">Approuvé par</span>
+              <span class="ed-value">{{ e.approvedByName }}</span>
+            </div>
+          }
+
+          <!-- Boutons d'action -->
+          <div class="ed-actions-container">
+            @if (canApprove()) {
+              <button class="ed-btn-success" (click)="approveExpense()" [disabled]="processing()">
+                <i class="bx bx-check-circle"></i> Approuver
+              </button>
+              <button class="ed-btn-danger" (click)="openRejectModal()" [disabled]="processing()">
+                <i class="bx bx-x-circle"></i> Rejeter
+              </button>
+            }
+            @if (canMarkPaid()) {
+              <button class="ed-btn-gold" (click)="markAsPaid()" [disabled]="processing()">
+                <i class="bx bx-credit-card"></i> Marquer comme payée
+              </button>
+            }
+            @if (canCancel()) {
+              <button class="ed-btn-warning" (click)="cancelExpense()" [disabled]="processing()">
+                <i class="bx bx-x-circle"></i> Annuler
+              </button>
+            }
+            @if (canDelete()) {
+              <button class="ed-btn-danger" (click)="deleteExpense()" [disabled]="processing()">
+                <i class="bx bx-trash"></i> Supprimer
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Audit -->
+        <div class="ed-card ed-meta">
+          <h3>Informations système</h3>
+
+          <div class="ed-meta-row">
+            <span>Créé le</span>
+            <span>{{ getFormattedDateTime(e.createdAt) }}</span>
+          </div>
+
+          @if (e.updatedAt) {
+            <div class="ed-meta-row">
+              <span>Modifié le</span>
+              <span>{{ getFormattedDateTime(e.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal de rejet -->
+    @if (showRejectModal()) {
+      <div class="ed-modal-overlay" (click.self)="showRejectModal.set(false)">
+        <div class="ed-modal">
+          <h3>Rejeter la dépense</h3>
+          <p>Veuillez indiquer la raison du rejet :</p>
+          <textarea [(ngModel)]="rejectReason" rows="3" placeholder="Raison du rejet…" class="ed-textarea"></textarea>
+          <div class="ed-modal-actions">
+            <button class="ed-btn-secondary" (click)="showRejectModal.set(false)">Annuler</button>
+            <button class="ed-btn-danger" (click)="rejectExpense()" [disabled]="processing()">
+              @if (processing()) {
+                <span class="ed-spinner"></span> Traitement…
+              } @else {
+                Confirmer le rejet
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+  }
+</div>

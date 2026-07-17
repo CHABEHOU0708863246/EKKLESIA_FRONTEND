@@ -7,7 +7,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./offering-list/offering-list').then((m) => m.OfferingList),
-    title: 'Offrandes — EKKLESIA',
+    title: 'Offrandes — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Offering_Read'] },
   },
@@ -17,7 +17,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: 'new',
     loadComponent: () =>
       import('./offering-form/offering-form').then((m) => m.OfferingForm),
-    title: 'Nouvelle offrande — EKKLESIA',
+    title: 'Nouvelle offrande — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Offering_Create'] },
   },
@@ -28,7 +28,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: 'par-membre',
     loadComponent: () =>
       import('./offering-by-member/offering-by-member').then((m) => m.OfferingByMember),
-    title: 'Dons par membre — EKKLESIA',
+    title: 'Dons par membre — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Offering_Read'] },
   },
@@ -38,7 +38,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: 'recus',
     loadComponent: () =>
       import('./offering-receipts/offering-receipts').then((m) => m.OfferingReceipts),
-    title: 'Reçus fiscaux — EKKLESIA',
+    title: 'Reçus fiscaux — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Receipt_Generate'] },
   },
@@ -49,7 +49,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: ':id',
     loadComponent: () =>
       import('./offering-detail/offering-detail').then((m) => m.OfferingDetail),
-    title: 'Détail de l\'offrande — EKKLESIA',
+    title: 'Détail de l\'offrande — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Offering_Read'] },
   },
@@ -59,7 +59,7 @@ export const OFFERINGS_ROUTES: Routes = [
     path: ':id/edit',
     loadComponent: () =>
       import('./offering-form/offering-form').then((m) => m.OfferingForm),
-    title: 'Modifier l\'offrande — EKKLESIA',
+    title: 'Modifier l\'offrande — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Finance_Offering_Update'] },
   },
