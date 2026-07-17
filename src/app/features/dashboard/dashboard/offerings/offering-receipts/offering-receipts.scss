@@ -1,0 +1,310 @@
+// ──────────────────────────────────────────────────────────────
+//   VARIABLES
+// ──────────────────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #17a2b8;
+$purple: #6f42c1;
+$teal: #20c997;
+$orange: #fd7e14;
+$gold: #b8860b;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+$transition: 0.2s ease-in-out;
+
+// ──────────────────────────────────────────────────────────────
+//   CONTENEUR PRINCIPAL
+// ──────────────────────────────────────────────────────────────
+
+.or-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── HEADER ───────────────────────────────────────────────────
+
+.or-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  .or-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+    }
+  }
+
+  .or-badge {
+    background: $success;
+    color: #fff;
+    padding: 0.1rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+.or-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+// ─── FILTRES ──────────────────────────────────────────────────
+
+.or-filters {
+  background: $gray-100;
+  border-radius: $border-radius;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.or-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.or-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 150px;
+  min-width: 120px;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $gray-700;
+    margin-bottom: 0.2rem;
+  }
+
+  input, select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: #fff;
+    transition: border-color $transition;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+  }
+
+  &.or-field-actions {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+  }
+}
+
+.or-btn-secondary {
+  padding: 0.4rem 1rem;
+  background: $gray-200;
+  color: $gray-800;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: $gray-300; }
+}
+
+// ─── TABLEAU ──────────────────────────────────────────────────
+
+.or-table-wrap {
+  overflow-x: auto;
+  border-radius: $border-radius;
+  border: 1px solid $gray-200;
+}
+
+.or-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: $gray-100;
+    th {
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      font-weight: 600;
+      color: $gray-700;
+      border-bottom: 2px solid $gray-200;
+    }
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: $gray-100; }
+    td {
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid $gray-200;
+      vertical-align: middle;
+    }
+  }
+}
+
+// ─── BADGES ET TAGS ──────────────────────────────────────────
+
+.or-receipt-number {
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: $primary;
+}
+
+.or-member {
+  display: flex;
+  flex-direction: column;
+  .or-member-name { font-weight: 500; }
+  .or-member-id { font-size: 0.65rem; color: $gray-500; }
+}
+
+.or-amount {
+  font-weight: 600;
+  color: $gray-900;
+}
+
+.or-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.or-type-primary { background: #dbeafe; color: #1e40af; }
+.or-type-success { background: #d4edda; color: #155724; }
+.or-type-warning { background: #fff3cd; color: #856404; }
+.or-type-info    { background: #d1ecf1; color: #0c5460; }
+.or-type-purple  { background: #e8d5f5; color: #6c2b8a; }
+.or-type-teal    { background: #d1f2eb; color: #0b7b5a; }
+.or-type-orange  { background: #ffe5cc; color: #b85a00; }
+.or-type-secondary{ background: $gray-200; color: $gray-700; }
+
+.or-badge {
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.or-badge-warning { background: #fff3cd; color: #856404; }
+.or-badge-info    { background: #d1ecf1; color: #0c5460; }
+.or-badge-success { background: #d4edda; color: #155724; }
+.or-badge-danger  { background: #f8d7da; color: #721c24; }
+.or-badge-secondary{ background: $gray-200; color: $gray-700; }
+
+// ─── ACTIONS ──────────────────────────────────────────────────
+
+.or-actions-btn {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.or-icon-btn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+  color: $gray-600;
+  transition: background 0.2s, color 0.2s;
+  &:hover {
+    background: $gray-200;
+    color: $primary;
+  }
+}
+
+// ─── ÉTATS ────────────────────────────────────────────────────
+
+.or-loading, .or-error, .or-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: $gray-600;
+}
+.or-error { color: $danger; }
+
+.or-empty {
+  i { font-size: 4rem; color: $gray-400; display: block; margin-bottom: 1rem; }
+  .or-empty-hint { font-size: 0.9rem; color: $gray-500; margin-top: 0.5rem; }
+}
+
+// ─── PAGINATION ──────────────────────────────────────────────
+
+.or-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.or-pagination-info {
+  font-size: 0.9rem;
+  color: $gray-700;
+}
+
+.or-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  select {
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+  }
+}
+
+.or-page-btn {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid $gray-300;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover:not(:disabled) { background: $gray-200; }
+  &.active { background: $primary; color: #fff; border-color: $primary; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .or-container { padding: 1rem 0.8rem; }
+  .or-header { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+  .or-filter-group { flex-direction: column; align-items: stretch; }
+  .or-field { flex: none; min-width: auto; }
+  .or-table { font-size: 0.8rem; }
+  .or-actions-btn { flex-wrap: wrap; justify-content: center; }
+  .or-pagination { flex-direction: column; align-items: center; }
+}

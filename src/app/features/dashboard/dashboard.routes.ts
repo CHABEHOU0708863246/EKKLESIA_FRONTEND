@@ -41,7 +41,7 @@ export const DASHBOARD_ROUTES: Routes = [
         import('./dashboard/pastoral-acts/pastoral-act.routes').then((m) => m.PASTORAL_ACTS_ROUTES),
     },
     {
-        path: 'evenements', // ✅ Ajout des événements
+        path: 'evenements',
         loadChildren: () =>
           import('./dashboard/events/events.routes').then((m) => m.EVENTS_ROUTES),
     },
@@ -49,7 +49,12 @@ export const DASHBOARD_ROUTES: Routes = [
       path: 'cultes',
       loadChildren: () =>
         import('./dashboard/workship/services.routes').then((m) => m.SERVICES_ROUTES),
-    }
+    },
+    {
+        path: 'offrandes',
+        loadChildren: () =>
+          import('./dashboard/offerings/offerings.routes').then((m) => m.OFFERINGS_ROUTES),
+    },
   ],
 },
 ];

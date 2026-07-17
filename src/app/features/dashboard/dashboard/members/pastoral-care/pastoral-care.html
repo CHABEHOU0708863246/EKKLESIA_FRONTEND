@@ -1,1 +1,250 @@
-<p>pastoral-care works!</p>
+<div class="pc-container">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <div class="pc-header">
+    <h1>🙏 Suivi pastoral</h1>
+  </div>
+
+  @if (error()) {
+    <div class="pc-error-banner">
+      {{ error() }}
+      <button type="button" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- ══════════════ SÉLECTION DU MEMBRE ══════════════ -->
+  @if (!selectedMember()) {
+    <div class="pc-member-select">
+      <label>Rechercher un membre</label>
+      <div class="pc-search-wrap">
+        <input type="text" [formControl]="memberSearchControl" placeholder="Nom du membre…" autocomplete="off">
+        @if (searchingMember()) {
+          <span class="pc-spinner pc-spinner--sm pc-search-spinner"></span>
+        }
+        @if (memberResults().length > 0) {
+          <div class="pc-search-dropdown">
+            @for (member of memberResults(); track member.id) {
+              <button type="button" class="pc-search-result" (click)="selectMember(member)">
+                <div class="pc-mini-avatar">{{ getMemberInitials(member) }}</div>
+                <div class="pc-mini-info">
+                  <strong>{{ getMemberFullName(member) }}</strong>
+                  <span>{{ member.phone }}</span>
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <p class="pc-hint">Recherchez un membre pour consulter ou créer ses notes de suivi pastoral.</p>
+    </div>
+  } @else {
+
+    <!-- ══════════════ FICHE MEMBRE SÉLECTIONNÉ ══════════════ -->
+    <div class="pc-member-bar">
+      <div class="pc-member-info">
+        <div class="pc-avatar">{{ getMemberInitials(selectedMember()!) }}</div>
+        <div>
+          <strong>{{ getMemberFullName(selectedMember()!) }}</strong>
+          <span class="pc-member-phone">{{ selectedMember()!.phone }}</span>
+        </div>
+      </div>
+      <button type="button" class="pc-btn-secondary" (click)="changeMember()">Changer de membre</button>
+    </div>
+
+    <!-- ══════════════ ONGLETS DE VUE ══════════════ -->
+    <div class="pc-tabs">
+      <button type="button" class="pc-tab" [class.active]="viewMode() === 'timeline'"
+        (click)="setViewMode('timeline')">
+        <i class="bx bx-time-five"></i> Historique des interactions
+      </button>
+      <button type="button" class="pc-tab" [class.active]="viewMode() === 'planning'"
+        (click)="setViewMode('planning')">
+        <i class="bx bx-calendar"></i> Planning de suivi
+        @if (overdueCount() > 0) {
+          <span class="pc-tab-badge">{{ overdueCount() }}</span>
+        }
+      </button>
+      <div class="pc-tabs-actions">
+        <label class="pc-checkbox-inline">
+          <input type="checkbox" [checked]="includeConfidential()" (change)="toggleConfidential()">
+          Inclure les notes confidentielles
+        </label>
+        <button type="button" class="pc-btn-primary" (click)="openCreateForm()" [disabled]="loadingCurrentUser()">
+          <i class="bx bx-plus-circle"></i> Nouvelle note
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════ FORMULAIRE CRÉATION/ÉDITION ══════════════ -->
+    @if (showForm()) {
+      <div class="pc-form-panel">
+        <div class="pc-form-header">
+          <h3>{{ editingNoteId() ? 'Modifier la note' : 'Nouvelle note pastorale' }}</h3>
+          <button type="button" class="pc-close-btn" (click)="closeForm()">✕</button>
+        </div>
+
+        @if (formError()) {
+          <div class="pc-error-banner">{{ formError() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submitForm()" class="pc-form">
+          <div class="pc-grid-2">
+            <div class="pc-field">
+              <label>Type d'interaction <span class="pc-required">*</span></label>
+              <select formControlName="interactionType">
+                @for (type of interactionTypes; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="pc-field">
+              <label>Date <span class="pc-required">*</span></label>
+              <input type="datetime-local" formControlName="date">
+              <p class="pc-error-text" *ngIf="isFieldInvalid('date')">La date est requise.</p>
+            </div>
+          </div>
+
+          <div class="pc-field">
+            <label>Résumé <span class="pc-required">*</span></label>
+            <textarea formControlName="summary" rows="4" placeholder="Détails de l'interaction…"></textarea>
+            <p class="pc-error-text" *ngIf="isFieldInvalid('summary')">Le résumé est requis (5 caractères min.)</p>
+          </div>
+
+          <div class="pc-field">
+            <label>Sujets de prière</label>
+            <textarea formControlName="prayerRequests" rows="3"
+              placeholder="Un sujet par ligne…"></textarea>
+          </div>
+
+          <div class="pc-grid-2">
+            <div class="pc-field">
+              <label>Date de suivi prévue</label>
+              <input type="date" formControlName="followUpDate">
+            </div>
+            <div class="pc-field pc-field--checkbox">
+              <label>
+                <input type="checkbox" formControlName="isConfidential">
+                Note confidentielle
+              </label>
+            </div>
+          </div>
+
+          <div class="pc-form-actions">
+            <button type="button" class="pc-btn-secondary" (click)="closeForm()">Annuler</button>
+            <button type="submit" class="pc-btn-primary" [disabled]="saving() || form.invalid">
+              @if (saving()) {
+                <span class="pc-spinner pc-spinner--sm"></span> Enregistrement…
+              } @else {
+                {{ editingNoteId() ? 'Mettre à jour' : 'Enregistrer' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ══════════════ CONTENU ══════════════ -->
+    @if (loadingNotes()) {
+      <div class="pc-state pc-state--loading">
+        <span class="pc-spinner"></span> Chargement des notes…
+      </div>
+    } @else {
+
+      <!-- ── VUE TIMELINE ── -->
+      @if (viewMode() === 'timeline') {
+        @if (sortedNotes().length === 0) {
+          <div class="pc-state pc-state--empty">
+            <i class="bx bx-notepad"></i>
+            <p>Aucune note pastorale enregistrée pour ce membre.</p>
+          </div>
+        } @else {
+          <div class="pc-timeline">
+            @for (note of sortedNotes(); track note.id) {
+              <div class="pc-timeline-item">
+                <div class="pc-timeline-marker" [ngClass]="getInteractionTypeClass(note.interactionType)"></div>
+                <div class="pc-timeline-card">
+                  <div class="pc-timeline-header">
+                    <span class="pc-type-badge" [ngClass]="getInteractionTypeClass(note.interactionType)">
+                      {{ getInteractionTypeLabel(note.interactionType) }}
+                    </span>
+                    <span class="pc-timeline-date">{{ formatDate(note.date) }}</span>
+                    @if (note.isConfidential) {
+                      <span class="pc-confidential-tag"><i class="bx bx-lock-alt"></i> Confidentiel</span>
+                    }
+                  </div>
+                  <p class="pc-timeline-summary">{{ note.summary }}</p>
+                  @if (note.prayerRequests.length > 0) {
+                    <div class="pc-prayer-requests">
+                      <strong>Sujets de prière :</strong>
+                      <ul>
+                        @for (prayer of note.prayerRequests; track prayer) {
+                          <li>{{ prayer }}</li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                  @if (note.followUpDate) {
+                    <div class="pc-timeline-followup" [ngClass]="getFollowUpStatusClass(note)">
+                      <i class="bx bx-calendar-check"></i>
+                      Suivi prévu le {{ formatDateOnly(note.followUpDate) }}
+                      — {{ getFollowUpStatus(note).label }}
+                    </div>
+                  }
+                  <div class="pc-timeline-footer">
+                    <span class="pc-pastor-name">Par {{ note.pastorName || '—' }}</span>
+                    <div class="pc-timeline-actions">
+                      <button type="button" class="pc-icon-btn" (click)="openEditForm(note)" title="Modifier">
+                        <i class="bx bx-edit"></i>
+                      </button>
+                      <button type="button" class="pc-icon-btn pc-icon-btn--danger"
+                        [disabled]="deletingId() === note.id"
+                        (click)="deleteNote(note)" title="Supprimer">
+                        @if (deletingId() === note.id) {
+                          <span class="pc-spinner pc-spinner--sm"></span>
+                        } @else {
+                          <i class="bx bx-trash"></i>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- ── VUE PLANNING ── -->
+      @if (viewMode() === 'planning') {
+        @if (upcomingFollowUps().length === 0) {
+          <div class="pc-state pc-state--empty">
+            <i class="bx bx-calendar-check"></i>
+            <p>Aucun suivi planifié pour ce membre.</p>
+          </div>
+        } @else {
+          <div class="pc-planning-list">
+            @for (note of upcomingFollowUps(); track note.id) {
+              <div class="pc-planning-item" [ngClass]="getFollowUpStatusClass(note)">
+                <div class="pc-planning-date">
+                  <span class="pc-planning-day">{{ formatDateOnly(note.followUpDate) }}</span>
+                  <span class="pc-planning-status">{{ getFollowUpStatus(note).label }}</span>
+                </div>
+                <div class="pc-planning-content">
+                  <span class="pc-type-badge" [ngClass]="getInteractionTypeClass(note.interactionType)">
+                    {{ getInteractionTypeLabel(note.interactionType) }}
+                  </span>
+                  <p>{{ note.summary }}</p>
+                </div>
+                <button type="button" class="pc-btn-secondary pc-btn-small" (click)="openEditForm(note)">
+                  Voir / Modifier
+                </button>
+              </div>
+            }
+          </div>
+        }
+      }
+
+    }
+  }
+
+</div>

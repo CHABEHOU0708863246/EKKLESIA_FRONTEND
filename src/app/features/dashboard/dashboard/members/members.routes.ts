@@ -36,14 +36,6 @@ export const MEMBERS_ROUTES: Routes = [
     title: 'Suivi pastoral — MIAV',
   },
 
-  // ─── Actes pastoraux ───
-  {
-    path: 'actes-pastoraux',
-    loadComponent: () =>
-      import('./pastoral-acts/pastoral-acts').then((m) => m.PastoralActs),
-    title: 'Actes pastoraux — MIAV',
-  },
-
   // ─── Cellules de maison ───
   // ⚠️ Placé AVANT ':id' pour la même raison que 'pipeline-visiteurs'.
   {
@@ -51,6 +43,13 @@ export const MEMBERS_ROUTES: Routes = [
     loadComponent: () =>
       import('./cell-group-list/cell-group-list').then((m) => m.CellGroupList),
     title: 'Cellules de maison — MIAV',
+  },
+
+  {
+    path: 'cellules/:id/edit',
+    loadComponent: () =>
+      import('./cell-group-edit/cell-group-edit').then((m) => m.CellGroupEdit),
+    title: 'Modifier la cellule — EKKLESIA',
   },
 
   // ─── Détail / édition d'un membre ───

@@ -260,14 +260,13 @@ getMemberPhotoUrl(photoId: string | undefined | null): string {
   }
 
   /**
-   * Récupère les notes pastorales d'un membre
-   */
-  getPastoralNotesByMember(memberId: string, includeConfidential: boolean = false): Observable<PastoralNote[]> {
-    const params = new HttpParams()
-      .set('memberId', memberId)
-      .set('includeConfidential', includeConfidential.toString());
-    return this.http.get<PastoralNote[]>(`${this.baseUrl}/pastoral-notes`, { params });
-  }
+ * Récupère les notes pastorales d'un membre
+ * GET /api/v1/Member/{memberId}/pastoral-notes
+ */
+getPastoralNotesByMember(memberId: string, includeConfidential: boolean = false): Observable<PastoralNote[]> {
+  const params = new HttpParams().set('includeConfidential', includeConfidential.toString());
+  return this.http.get<PastoralNote[]>(`${this.baseUrl}/${memberId}/pastoral-notes`, { params });
+}
 
   /**
    * Met à jour une note pastorale

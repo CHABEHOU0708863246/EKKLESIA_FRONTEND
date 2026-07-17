@@ -1,0 +1,216 @@
+<div class="ol-container">
+
+  <!-- HEADER -->
+  <div class="ol-header">
+    <h1>💰 Offrandes</h1>
+    <div class="ol-actions">
+      <button class="ol-btn-primary" [routerLink]="['/dashboard/offrandes/new']">
+        <i class="bx bx-plus"></i> Nouvelle offrande
+      </button>
+    </div>
+  </div>
+
+  <!-- STATISTIQUES RAPIDES -->
+  @if (statsLoading()) {
+    <div class="ol-stats ol-stats-loading">Chargement des statistiques…</div>
+  } @else if (stats(); as stats) {
+    <div class="ol-stats">
+      <div class="ol-stat-card">
+        <span class="ol-stat-value">{{ stats.totalCount }}</span>
+        <span class="ol-stat-label">Total offrandes</span>
+      </div>
+      <div class="ol-stat-card">
+        <span class="ol-stat-value">{{ stats.totalAmount | number:'1.0-0' }} FCFA</span>
+        <span class="ol-stat-label">Montant total</span>
+      </div>
+      <div class="ol-stat-card">
+        <span class="ol-stat-value">{{ stats.averageOffering | number:'1.0-0' }} FCFA</span>
+        <span class="ol-stat-label">Moyenne</span>
+      </div>
+      <div class="ol-stat-card">
+        <span class="ol-stat-value">{{ stats.thisMonthTotal | number:'1.0-0' }} FCFA</span>
+        <span class="ol-stat-label">Ce mois</span>
+      </div>
+      <div class="ol-stat-card">
+        <span class="ol-stat-value">{{ stats.thisWeekTotal | number:'1.0-0' }} FCFA</span>
+        <span class="ol-stat-label">Cette semaine</span>
+      </div>
+    </div>
+  }
+
+  <!-- FILTRES -->
+  <div class="ol-filters">
+    <div class="ol-filter-group">
+      <div class="ol-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Membre, référence…">
+      </div>
+      <div class="ol-field">
+        <label>Type</label>
+        <select [formControl]="typeControl">
+          <option value="">Tous</option>
+          @for (opt of typeOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="ol-field">
+        <label>Statut</label>
+        <select [formControl]="statusControl">
+          <option value="">Tous</option>
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="ol-field">
+        <label>Date de</label>
+        <input type="date" [formControl]="dateFromControl">
+      </div>
+      <div class="ol-field">
+        <label>Date à</label>
+        <input type="date" [formControl]="dateToControl">
+      </div>
+      <div class="ol-field ol-field-actions">
+        <button class="ol-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLEAU -->
+  @if (loading()) {
+    <div class="ol-loading">Chargement des offrandes…</div>
+  } @else if (error()) {
+    <div class="ol-error">{{ error() }}</div>
+  } @else if (offerings().length === 0) {
+    <div class="ol-empty">
+      <i class="bx bx-coins"></i>
+      <p>Aucune offrande trouvée.</p>
+    </div>
+  } @else {
+    <div class="ol-table-wrap">
+      <table class="ol-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Membre</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Reçu</th>
+            <th class="ol-actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (offering of offerings(); track offering.id) {
+            <tr (click)="viewOffering(offering)">
+              <td>
+                <span class="ol-type-badge" [class]="getTypeClass(offering.type)">
+                  <i class="bx {{ getTypeIcon(offering.type) }}"></i>
+                  {{ getTypeLabel(offering.type) }}
+                </span>
+              </td>
+              <td>{{ getFormattedDate(offering.date) }}</td>
+              <td>
+                <span class="ol-member">
+                  <span class="ol-member-name">{{ offering.memberName || 'Anonyme' }}</span>
+                  <span class="ol-member-id" *ngIf="offering.memberId">#{{ offering.memberId | slice:0:6 }}</span>
+                </span>
+              </td>
+              <td>
+                <span class="ol-amount">{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</span>
+              </td>
+              <td>
+                <span class="ol-badge" [class]="getStatusClass(offering.status)">
+                  {{ getStatusLabel(offering.status) }}
+                </span>
+              </td>
+              <td>
+                @if (offering.receiptGenerated && offering.receiptNumber) {
+                  <span class="ol-receipt-badge ol-receipt-ok">
+                    <i class="bx bx-check-circle"></i> {{ offering.receiptNumber }}
+                  </span>
+                } @else if (offering.status === OfferingStatus.Validated) {
+                  <span class="ol-receipt-badge ol-receipt-pending">Non généré</span>
+                } @else {
+                  <span class="ol-receipt-badge ol-receipt-none">—</span>
+                }
+              </td>
+              <td>
+                <div class="ol-actions-btn">
+                  <button class="ol-icon-btn" (click)="viewOffering(offering)" title="Voir">
+                    <i class="bx bx-show"></i>
+                  </button>
+                  <button class="ol-icon-btn" (click)="editOffering(offering, $event)" title="Modifier">
+                    <i class="bx bx-edit"></i>
+                  </button>
+                  @if (offering.status !== OfferingStatus.Validated && offering.status !== OfferingStatus.Cancelled) {
+                    <button class="ol-icon-btn ol-icon-btn-success" (click)="validateOffering(offering, $event)" title="Valider">
+                      <i class="bx bx-check"></i>
+                    </button>
+                  }
+                  @if (offering.status === OfferingStatus.Validated && !offering.receiptGenerated) {
+                    <button class="ol-icon-btn ol-icon-btn-gold" (click)="generateReceipt(offering, $event)" title="Générer reçu">
+                      <i class="bx bx-receipt"></i>
+                  </button>
+                  }
+                  @if (offering.receiptGenerated && offering.receiptNumber) {
+                    <button class="ol-icon-btn ol-icon-btn-info" (click)="downloadReceipt(offering, $event)" title="Télécharger reçu PDF">
+                      <i class="bx bx-download"></i>
+                    </button>
+                  }
+                  <button class="ol-icon-btn ol-icon-btn-danger" (click)="requestDelete(offering, $event)" title="Supprimer">
+                    <i class="bx bx-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- PAGINATION -->
+  @if (totalCount() > 0) {
+    <div class="ol-pagination">
+      <div class="ol-pagination-info">
+        {{ pageRangeLabel() }}
+      </div>
+      <div class="ol-pagination-controls">
+        <button class="ol-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="ol-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="ol-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE CONFIRMATION -->
+  @if (deleteDialogVisible()) {
+    <div class="ol-modal-overlay" (click.self)="cancelDelete()">
+      <div class="ol-modal">
+        <h3>Confirmer la suppression</h3>
+        <p>Voulez‑vous vraiment supprimer l'offrande <strong>{{ offeringToDelete()?.memberName || 'anonyme' }}</strong> ?</p>
+        <div class="ol-modal-actions">
+          <button class="ol-btn-secondary" (click)="cancelDelete()">Annuler</button>
+          <button class="ol-btn-danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) { Suppression… } @else { Supprimer }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

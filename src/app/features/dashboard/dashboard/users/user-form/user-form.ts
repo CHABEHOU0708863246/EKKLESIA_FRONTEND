@@ -516,9 +516,9 @@ private performMemberSearch(term: string): void {
       firstName: value.firstName,
       lastName: value.lastName,
       roles: value.roles,
-      churchId: value.churchId,        // ✅ Ajout
-      siteId: value.siteId,            // ✅ Ajout
-      memberId: value.memberId,        // ✅ Ajout
+      churchId: value.churchId,
+      siteId: value.siteId,
+      memberId: value.memberId,
       profile: this.cleanProfile(value.profile),
     };
 

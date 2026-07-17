@@ -1,0 +1,254 @@
+<div class="pac-page">
+
+  <header class="pac-page-header">
+    <div class="pac-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="pac-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/actes-pastoraux']">Actes pastoraux</a>
+      <span class="pac-breadcrumb-sep">/</span>
+      <span class="pac-breadcrumb-current">Modifier</span>
+    </div>
+
+    <div class="pac-page-title-row">
+      <h1>
+        <span class="pac-type-icon-inline">{{ typeIcon() }}</span>
+        Modifier l'acte — {{ typeLabel() }}
+      </h1>
+      <button type="button" class="pac-btn pac-btn--outline" (click)="cancel()">Annuler</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="pac-state pac-state--loading">
+      <span class="pac-spinner"></span> Chargement de l'acte pastoral…
+    </div>
+  } @else if (error() && !act()) {
+    <div class="pac-banner pac-banner--error">
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+
+    <div class="pac-banner pac-banner--error" *ngIf="error()">
+      <span>{{ error() }}</span>
+    </div>
+
+    <div class="pac-banner pac-banner--success" *ngIf="saveSuccess()">
+      <span>✓ Acte pastoral mis à jour avec succès.</span>
+    </div>
+
+    <form class="pac-form" [formGroup]="form" (ngSubmit)="save()">
+
+      <!-- Type figé, affiché mais non modifiable -->
+      <section class="pac-panel">
+        <div class="pac-panel-header"><h2>Type d'acte</h2></div>
+        <div class="pac-panel-body">
+          <div class="pac-type-locked">
+            <span class="pac-type-icon">{{ typeIcon() }}</span>
+            <span>{{ typeLabel() }}</span>
+            <small class="pac-hint">Le type d'acte ne peut pas être modifié après création.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Informations générales -->
+      <section class="pac-panel">
+        <div class="pac-panel-header"><h2>Informations générales</h2></div>
+        <div class="pac-panel-body pac-panel-body--grid">
+
+          <div class="pac-field">
+            <label>Date <span class="pac-required">*</span></label>
+            <input type="date" formControlName="date">
+            <p class="pac-error" *ngIf="isFieldInvalid('date')">La date est requise</p>
+          </div>
+
+          <div class="pac-field">
+            <label>Lieu</label>
+            <input type="text" formControlName="location">
+          </div>
+
+          <div class="pac-field">
+            <label>Site</label>
+            <div class="pac-select-wrap">
+              <select formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+                <option value="">— Aucun site spécifique —</option>
+                <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Officiant -->
+          <div class="pac-field pac-field--span-2">
+            <label>Officiant (pasteur) <span class="pac-required">*</span></label>
+            <div class="pac-search-wrap">
+
+              @if (loadingOfficiant()) {
+                <p class="pac-search-status">Récupération de l'officiant…</p>
+              } @else {
+                <div class="pac-selected-row" *ngIf="selectedOfficiant() as officiant">
+                  <div class="pac-mini-avatar">{{ getInitialsFromUser(officiant) }}</div>
+                  <div class="pac-mini-info">
+                    <strong>{{ officiant.fullName || officiant.firstName + ' ' + officiant.lastName }}</strong>
+                  </div>
+                  <button type="button" class="pac-icon-btn" (click)="clearOfficiant()">✕</button>
+                </div>
+
+                <input *ngIf="!selectedOfficiant()" type="text" formControlName="officiantSearch"
+                       placeholder="Rechercher un pasteur par nom…"
+                       (focus)="showOfficiantResults.set(true)">
+
+                <div class="pac-search-dropdown" *ngIf="showOfficiantResults() && !selectedOfficiant()">
+                  <p class="pac-search-status" *ngIf="searchingOfficiant()">Recherche en cours…</p>
+                  <p class="pac-search-status" *ngIf="!searchingOfficiant() && officiantResults().length === 0">Aucun pasteur trouvé</p>
+                  <button type="button" class="pac-search-result" *ngFor="let u of officiantResults()" (click)="selectOfficiant(u)">
+                    <div class="pac-mini-avatar">{{ getInitialsFromUser(u) }}</div>
+                    <div class="pac-mini-info">
+                      <strong>{{ u.fullName || u.firstName + ' ' + u.lastName }}</strong>
+                    </div>
+                  </button>
+                </div>
+              }
+
+              <p class="pac-error" *ngIf="isFieldInvalid('officiantId')">Un officiant est requis</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Participants -->
+      <section class="pac-panel">
+        <div class="pac-panel-header">
+          <h2>Participants</h2>
+          <button type="button" class="pac-btn pac-btn--ghost pac-btn--sm" (click)="addParticipant()">+ Ajouter</button>
+        </div>
+
+        <div class="pac-panel-body">
+          <div class="pac-participant-card" *ngFor="let p of participantsArray.controls; let i = index" [formGroup]="$any(p)">
+
+            <div class="pac-participant-header">
+              <h3>Participant {{ i + 1 }}</h3>
+              <button type="button" class="pac-icon-btn pac-icon-btn--danger" *ngIf="participantsArray.length > 1"
+                (click)="removeParticipant(i)">✕</button>
+            </div>
+
+            <div class="pac-field pac-field--span-2">
+              <label>Membre existant (facultatif)</label>
+              <div class="pac-search-wrap">
+                <div class="pac-selected-row" *ngIf="selectedParticipantMap.get(i) as member">
+                  <div class="pac-mini-avatar">{{ getMemberInitials(member) }}</div>
+                  <div class="pac-mini-info"><strong>{{ getMemberFullName(member) }}</strong></div>
+                  <button type="button" class="pac-icon-btn" (click)="clearParticipantMember(i)">✕</button>
+                </div>
+
+                <input *ngIf="!selectedParticipantMap.get(i)" type="text" formControlName="memberSearch"
+                       placeholder="Rechercher un membre…" (focus)="showParticipantResults.set(i)">
+
+                <div class="pac-search-dropdown" *ngIf="showParticipantResults() === i && !selectedParticipantMap.get(i)">
+                  <p class="pac-search-status" *ngIf="searchingParticipant() === i">Recherche en cours…</p>
+                  <button type="button" class="pac-search-result" *ngFor="let m of participantResults()" (click)="selectParticipant(i, m)">
+                    <div class="pac-mini-avatar">{{ getMemberInitials(m) }}</div>
+                    <div class="pac-mini-info"><strong>{{ getMemberFullName(m) }}</strong></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pac-panel-body--grid">
+              <div class="pac-field">
+                <label>Prénom <span class="pac-required">*</span></label>
+                <input type="text" formControlName="firstName">
+                <p class="pac-error" *ngIf="isParticipantFieldInvalid(i, 'firstName')">Requis</p>
+              </div>
+              <div class="pac-field">
+                <label>Nom <span class="pac-required">*</span></label>
+                <input type="text" formControlName="lastName">
+                <p class="pac-error" *ngIf="isParticipantFieldInvalid(i, 'lastName')">Requis</p>
+              </div>
+              <div class="pac-field">
+                <!-- ✅ Rôles adaptés dynamiquement au type FIGÉ de l'acte -->
+                <label>Rôle <span class="pac-required">*</span></label>
+                <div class="pac-select-wrap">
+                  <select formControlName="role">
+                    <option *ngFor="let role of availableRoles()" [value]="role">{{ role }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="pac-field">
+                <label>Date de naissance</label>
+                <input type="date" formControlName="dateOfBirth">
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- Témoins -->
+      <section class="pac-panel">
+        <div class="pac-panel-header"><h2>Témoins</h2></div>
+        <div class="pac-panel-body">
+          <div class="pac-field">
+            <label>Un nom par ligne</label>
+            <textarea rows="3" formControlName="witnessesText"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Détails spécifiques -->
+      <section class="pac-panel" formGroupName="details" *ngIf="fixedType() !== PastoralActType.Other">
+        <div class="pac-panel-header"><h2>Détails spécifiques</h2></div>
+        <div class="pac-panel-body pac-panel-body--grid">
+
+          <ng-container *ngIf="fixedType() === PastoralActType.Wedding">
+            <div class="pac-field pac-field--span-2">
+              <label>Régime matrimonial</label>
+              <input type="text" formControlName="marriageRegime">
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="fixedType() === PastoralActType.Funeral">
+            <div class="pac-field">
+              <label>Date de décès</label>
+              <input type="date" formControlName="dateOfDeath">
+            </div>
+            <div class="pac-field">
+              <label>Lieu d'inhumation</label>
+              <input type="text" formControlName="burialLocation">
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="fixedType() === PastoralActType.Baptism || fixedType() === PastoralActType.ChildDedication">
+            <div class="pac-field pac-field--span-2">
+              <label>Verset biblique</label>
+              <input type="text" formControlName="bibleVerse">
+            </div>
+            <div class="pac-field pac-field--span-2">
+              <label>Parrains / Marraines (un par ligne)</label>
+              <textarea rows="2" formControlName="godparentsText"></textarea>
+            </div>
+          </ng-container>
+
+        </div>
+      </section>
+
+      <!-- Notes -->
+      <section class="pac-panel">
+        <div class="pac-panel-header"><h2>Notes</h2></div>
+        <div class="pac-panel-body">
+          <textarea rows="3" formControlName="notes"></textarea>
+        </div>
+      </section>
+
+      <!-- ══════ ACTIONS — PAS DE BOUTON SUPPRIMER ICI ══════ -->
+      <footer class="pac-actions">
+        <button type="button" class="pac-btn pac-btn--ghost" (click)="cancel()">Annuler</button>
+        <span class="pac-actions-spacer"></span>
+        <button type="submit" class="pac-btn pac-btn--primary" [disabled]="saving()">
+          <span *ngIf="!saving()">Enregistrer les modifications</span>
+          <span class="pac-spinner pac-spinner--btn" *ngIf="saving()"></span>
+        </button>
+      </footer>
+
+    </form>
+  }
+</div>

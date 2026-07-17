@@ -1,0 +1,142 @@
+<div class="or-container">
+
+  <!-- En-tête -->
+  <div class="or-header">
+    <div class="or-header-left">
+      <h1>🧾 Reçus fiscaux</h1>
+      <span class="or-badge" *ngIf="totalCount() > 0">{{ totalCount() }} reçus</span>
+    </div>
+    <div class="or-actions">
+      <button class="or-btn-secondary" (click)="refresh()">
+        <i class="bx bx-refresh"></i> Rafraîchir
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="or-filters">
+    <div class="or-filter-group">
+      <div class="or-field">
+        <label>Rechercher</label>
+        <input type="text" [formControl]="searchControl" placeholder="Membre, n° de reçu…">
+      </div>
+      <div class="or-field">
+        <label>Type</label>
+        <select [formControl]="typeControl">
+          <option value="">Tous</option>
+          @for (opt of typeOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="or-field">
+        <label>Date de</label>
+        <input type="date" [formControl]="dateFromControl">
+      </div>
+      <div class="or-field">
+        <label>Date à</label>
+        <input type="date" [formControl]="dateToControl">
+      </div>
+      <div class="or-field or-field-actions">
+        <button class="or-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  @if (loading()) {
+    <div class="or-loading">Chargement des reçus…</div>
+  } @else if (error()) {
+    <div class="or-error">{{ error() }}</div>
+  } @else if (offerings().length === 0) {
+    <div class="or-empty">
+      <i class="bx bx-receipt"></i>
+      <p>Aucun reçu généré pour le moment.</p>
+      <p class="or-empty-hint">Les reçus sont générés après validation des offrandes.</p>
+    </div>
+  } @else {
+    <div class="or-table-wrap">
+      <table class="or-table">
+        <thead>
+          <tr>
+            <th>N° reçu</th>
+            <th>Date</th>
+            <th>Membre</th>
+            <th>Type</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (offering of offerings(); track offering.id) {
+            <tr (click)="viewOffering(offering)">
+              <td>
+                <span class="or-receipt-number">{{ offering.receiptNumber }}</span>
+              </td>
+              <td>{{ getFormattedDate(offering.date) }}</td>
+              <td>
+                <span class="or-member">
+                  <span class="or-member-name">{{ offering.memberName || 'Anonyme' }}</span>
+                  @if (offering.memberId) {
+                    <span class="or-member-id">#{{ offering.memberId | slice:0:6 }}</span>
+                  }
+                </span>
+              </td>
+              <td>
+                <span class="or-type-badge" [class]="getTypeColorClass(offering.type)">
+                  <i class="bx {{ getTypeIcon(offering.type) }}"></i>
+                  {{ getTypeLabel(offering.type) }}
+                </span>
+              </td>
+              <td class="or-amount">{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</td>
+              <td>
+                <span class="or-badge" [class]="getStatusClass(offering.status)">
+                  {{ getStatusLabel(offering.status) }}
+                </span>
+              </td>
+              <td>
+                <div class="or-actions-btn">
+                  <button class="or-icon-btn" (click)="downloadReceipt(offering, $event)" title="Télécharger le reçu PDF">
+                    <i class="bx bx-download"></i>
+                  </button>
+                  <button class="or-icon-btn" (click)="viewOffering(offering)" title="Voir l'offrande">
+                    <i class="bx bx-show"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (totalCount() > 0) {
+    <div class="or-pagination">
+      <div class="or-pagination-info">
+        {{ pageRangeLabel() }}
+      </div>
+      <div class="or-pagination-controls">
+        <button class="or-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <i class="bx bx-chevron-left"></i>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="or-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="or-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <i class="bx bx-chevron-right"></i>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+</div>

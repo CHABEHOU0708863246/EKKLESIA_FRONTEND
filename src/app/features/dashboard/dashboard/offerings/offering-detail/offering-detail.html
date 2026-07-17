@@ -1,0 +1,235 @@
+<div class="od-container">
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="od-loading">Chargement de l'offrande…</div>
+  }
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="od-error">{{ error() }}</div>
+  }
+
+  <!-- Détail -->
+  @if (!loading() && !error() && offering(); as o) {
+
+    <!-- En-tête -->
+    <div class="od-header">
+      <div class="od-header-left">
+        <button class="od-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>Offrande</h1>
+        <span class="od-badge" [class]="getStatusClass(o.status)">
+          {{ getStatusLabel(o.status) }}
+        </span>
+      </div>
+      <div class="od-header-actions">
+        <button class="od-btn-icon" (click)="print()" title="Imprimer">
+          <i class="bx bx-printer"></i>
+        </button>
+        @if (canDownloadReceipt()) {
+          <button class="od-btn-icon" (click)="downloadReceipt()" title="Télécharger le reçu">
+            <i class="bx bx-download"></i>
+          </button>
+        }
+        @if (canEdit()) {
+          <button class="od-btn-primary" (click)="editOffering()">
+            <i class="bx bx-edit"></i> Modifier
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="od-grid">
+
+      <!-- Colonne gauche -->
+      <div class="od-col-left">
+
+        <!-- Carte : Informations générales -->
+        <div class="od-card">
+          <h3>Informations générales</h3>
+
+          <div class="od-info-row">
+            <span class="od-label">Type</span>
+            <span class="od-value">
+              <span class="od-type-badge" [class]="getTypeClass(o.type)">
+                <i class="bx {{ getTypeIcon(o.type) }}"></i>
+                {{ getTypeLabel(o.type) }}
+              </span>
+            </span>
+          </div>
+
+          <div class="od-info-row">
+            <span class="od-label">Montant</span>
+            <span class="od-value od-amount">{{ o.amount | number:'1.0-0' }} {{ o.currency }}</span>
+          </div>
+
+          <div class="od-info-row">
+            <span class="od-label">Date</span>
+            <span class="od-value">{{ getFormattedDate(o.date) }}</span>
+          </div>
+
+          <div class="od-info-row">
+            <span class="od-label">Membre</span>
+            <span class="od-value">{{ o.memberName || 'Anonyme' }}</span>
+          </div>
+
+          <div class="od-info-row">
+            <span class="od-label">Église</span>
+            <span class="od-value">{{ o.churchName || o.churchId }}</span>
+          </div>
+
+          @if (o.siteName || o.siteId) {
+            <div class="od-info-row">
+              <span class="od-label">Site</span>
+              <span class="od-value">{{ o.siteName || o.siteId }}</span>
+            </div>
+          }
+
+          <div class="od-info-row">
+            <span class="od-label">Mode de paiement</span>
+            <span class="od-value">{{ getPaymentMethodLabel(o.paymentMethod) }}</span>
+          </div>
+
+          @if (o.reference) {
+            <div class="od-info-row">
+              <span class="od-label">Référence</span>
+              <span class="od-value">{{ o.reference }}</span>
+            </div>
+          }
+
+          @if (o.notes) {
+            <div class="od-info-row od-notes">
+              <span class="od-label">Notes</span>
+              <span class="od-value">{{ o.notes }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Carte : Reçu -->
+        <div class="od-card">
+          <h3>Reçu</h3>
+
+          <div class="od-info-row">
+            <span class="od-label">Statut</span>
+            <span class="od-value">
+              @if (o.receiptGenerated && o.receiptNumber) {
+                <span class="od-receipt-ok">
+                  <i class="bx bx-check-circle"></i> Généré
+                </span>
+              } @else if (o.status === OfferingStatus.Validated) {
+                <span class="od-receipt-pending">En attente de génération</span>
+              } @else {
+                <span class="od-receipt-none">Non disponible</span>
+              }
+            </span>
+          </div>
+
+          @if (o.receiptNumber) {
+            <div class="od-info-row">
+              <span class="od-label">Numéro</span>
+              <span class="od-value od-receipt-number">{{ o.receiptNumber }}</span>
+            </div>
+          }
+
+          @if (canGenerateReceipt()) {
+            <div class="od-action-row">
+              <button class="od-btn-success" (click)="generateReceipt()" [disabled]="generatingReceipt()">
+                @if (generatingReceipt()) {
+                  <span class="od-spinner"></span> Génération…
+                } @else {
+                  <i class="bx bx-receipt"></i> Générer le reçu
+                }
+              </button>
+            </div>
+          }
+
+          @if (canDownloadReceipt()) {
+            <div class="od-action-row">
+              <button class="od-btn-primary" (click)="downloadReceipt()">
+                <i class="bx bx-download"></i> Télécharger le reçu (PDF)
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonne droite -->
+      <div class="od-col-right">
+
+        <!-- Carte : Statut & Validation -->
+        <div class="od-card">
+          <h3>Statut & validation</h3>
+
+          <div class="od-info-row">
+            <span class="od-label">Statut actuel</span>
+            <span class="od-value">
+              <span class="od-badge" [class]="getStatusClass(o.status)">
+                {{ getStatusLabel(o.status) }}
+              </span>
+            </span>
+          </div>
+
+          @if (o.validatedByNames?.length) {
+            <div class="od-info-row">
+              <span class="od-label">Validé par</span>
+              <span class="od-value">{{ o.validatedByNames.join(', ') }}</span>
+            </div>
+          }
+
+          @if (canValidate()) {
+            <div class="od-action-row">
+              <button class="od-btn-success" (click)="validateOffering()" [disabled]="validating()">
+                @if (validating()) {
+                  <span class="od-spinner"></span> Validation…
+                } @else {
+                  <i class="bx bx-check-circle"></i> Valider l'offrande
+                }
+              </button>
+            </div>
+          }
+
+          @if (canCancel()) {
+            <div class="od-action-row">
+              <button class="od-btn-warning" (click)="cancelOffering()" [disabled]="validating()">
+                <i class="bx bx-x-circle"></i> Annuler l'offrande
+              </button>
+            </div>
+          }
+
+          @if (canDelete()) {
+            <div class="od-action-row od-action-danger">
+              <button class="od-btn-danger" (click)="deleteOffering()" [disabled]="deleting()">
+                @if (deleting()) {
+                  <span class="od-spinner"></span> Suppression…
+                } @else {
+                  <i class="bx bx-trash"></i> Supprimer l'offrande
+                }
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Carte : Audit -->
+        <div class="od-card od-meta">
+          <h3>Informations système</h3>
+
+          <div class="od-meta-row">
+            <span>Créé le</span>
+            <span>{{ getFormattedDateTime(o.createdAt) }}</span>
+          </div>
+
+          @if (o.updatedAt) {
+            <div class="od-meta-row">
+              <span>Modifié le</span>
+              <span>{{ getFormattedDateTime(o.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

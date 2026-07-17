@@ -1,0 +1,179 @@
+.cge-container {
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.cge-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+
+  &--error p { color: #e74c3c; margin-bottom: 1rem; }
+}
+
+.cge-spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(42,111,148,0.2);
+  border-top-color: #2a6f94;
+  border-radius: 50%;
+  animation: cge-spin 0.6s linear infinite;
+  &--sm { width: 14px; height: 14px; border-width: 2px; }
+}
+
+@keyframes cge-spin { to { transform: rotate(360deg); } }
+
+.cge-header { margin-bottom: 1.2rem; }
+
+.cge-back-btn {
+  background: none; border: none; color: #6c757d;
+  font-size: 0.85rem; cursor: pointer; padding: 0;
+  margin-bottom: 0.5rem;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  &:hover { color: #2a6f94; }
+}
+
+.cge-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.2rem; }
+.cge-subtitle { font-size: 0.85rem; color: #6c757d; margin: 0; }
+
+.cge-error-banner, .cge-success-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.cge-error-banner {
+  background: #fdecea;
+  color: #e74c3c;
+  button { background: none; border: none; color: inherit; cursor: pointer; }
+}
+
+.cge-success-banner {
+  background: #eafaf1;
+  color: #218a4d;
+  gap: 0.5rem;
+}
+
+.cge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.cge-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.cge-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label { font-size: 0.85rem; font-weight: 600; color: #495057; }
+  .cge-required { color: #e74c3c; }
+
+  input, select {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.95rem;
+
+    &:focus { outline: none; border-color: #2a6f94; box-shadow: 0 0 0 3px rgba(42,111,148,0.15); }
+  }
+
+  &--checkbox {
+    label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; }
+  }
+}
+
+.cge-error-text { color: #e74c3c; font-size: 0.78rem; margin: 0; }
+
+.cge-search-wrap { position: relative; }
+
+.cge-clear-btn {
+  position: absolute;
+  right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: #adb5bd; cursor: pointer;
+}
+
+.cge-search-dropdown {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.cge-search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover { background: #f1f3f5; }
+}
+
+.cge-search-loading {
+  display: block;
+  padding: 0.8rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.cge-mini-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #2a6f94;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.cge-mini-info strong { font-size: 0.88rem; }
+
+.cge-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #f1f3f5;
+}
+
+.cge-btn-primary, .cge-btn-secondary {
+  padding: 0.55rem 1.3rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.cge-btn-primary { background: #2a6f94; color: #fff; &:hover:not(:disabled) { background: #235d7d; } }
+.cge-btn-secondary { background: #e9ecef; color: #333; &:hover:not(:disabled) { background: #d5dbe0; } }

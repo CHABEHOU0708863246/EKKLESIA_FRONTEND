@@ -1,0 +1,482 @@
+// ──────────────────────────────────────────────────────────────
+//   VARIABLES
+// ──────────────────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$info: #17a2b8;
+$purple: #6f42c1;
+$teal: #20c997;
+$orange: #fd7e14;
+$gold: #b8860b;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+$transition: 0.2s ease-in-out;
+
+// ──────────────────────────────────────────────────────────────
+//   CONTENEUR PRINCIPAL
+// ──────────────────────────────────────────────────────────────
+
+.obm-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── HEADER ───────────────────────────────────────────────────
+
+.obm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.obm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.obm-btn-back {
+  background: $gray-100;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  transition: background 0.2s;
+  &:hover { background: $gray-200; }
+}
+
+// ─── RECHERCHE ─────────────────────────────────────────────────
+
+.obm-search-section {
+  margin-bottom: 2rem;
+}
+
+.obm-search-wrap {
+  position: relative;
+  max-width: 600px;
+}
+
+.obm-search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 2px solid $gray-300;
+  border-radius: $border-radius;
+  padding: 0.3rem 0.8rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.15);
+  }
+
+  i {
+    color: $gray-500;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    outline: none;
+    background: transparent;
+  }
+
+  .obm-clear-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: $gray-500;
+    cursor: pointer;
+    padding: 0 0.2rem;
+    &:hover { color: $danger; }
+  }
+}
+
+// ─── DROPDOWN DE RECHERCHE ────────────────────────────────────
+
+.obm-search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid $gray-300;
+  border-radius: $border-radius;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  z-index: 10;
+  padding: 0.3rem 0;
+}
+
+.obm-search-status {
+  padding: 0.5rem 1rem;
+  margin: 0;
+  color: $gray-600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.obm-search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1rem;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $gray-100;
+  }
+
+  .obm-mini-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: $primary;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .obm-mini-info {
+    flex: 1;
+    strong { font-weight: 600; }
+    span { font-size: 0.8rem; color: $gray-600; }
+  }
+}
+
+// ─── MEMBRE SÉLECTIONNÉ ──────────────────────────────────────
+
+.obm-selected-member {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.5rem;
+  background: $gray-100;
+  border-radius: $border-radius;
+  margin-bottom: 2rem;
+  border-left: 4px solid $primary;
+}
+
+.obm-member-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.obm-member-info {
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  p {
+    margin: 0.1rem 0 0 0;
+    color: $gray-600;
+    font-size: 0.9rem;
+  }
+}
+
+// ─── STATISTIQUES ─────────────────────────────────────────────
+
+.obm-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.obm-stat-card {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 0.8rem 1rem;
+  text-align: center;
+  box-shadow: $box-shadow;
+}
+
+.obm-stat-value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $primary;
+  line-height: 1.2;
+}
+
+.obm-stat-label {
+  font-size: 0.8rem;
+  color: $gray-600;
+}
+
+// ─── SECTIONS ──────────────────────────────────────────────────
+
+.obm-section {
+  margin-bottom: 2rem;
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: $gray-800;
+    border-bottom: 2px solid $gray-200;
+    padding-bottom: 0.4rem;
+  }
+}
+
+// ─── TYPES ─────────────────────────────────────────────────────
+
+.obm-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+
+.obm-type-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 1rem;
+  border-radius: $border-radius;
+  background: #fff;
+  border: 1px solid $gray-200;
+  box-shadow: $box-shadow;
+
+  .obm-type-icon {
+    font-size: 1.4rem;
+  }
+  .obm-type-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    .obm-type-label { font-weight: 500; font-size: 0.9rem; }
+    .obm-type-amount { font-weight: 600; font-size: 0.9rem; color: $primary; }
+  }
+}
+
+// ─── COULEURS DES TYPES ──────────────────────────────────────
+
+.obm-type-primary .obm-type-icon { color: #1e40af; }
+.obm-type-success .obm-type-icon { color: #155724; }
+.obm-type-warning .obm-type-icon { color: #856404; }
+.obm-type-info .obm-type-icon { color: #0c5460; }
+.obm-type-purple .obm-type-icon { color: #6c2b8a; }
+.obm-type-teal .obm-type-icon { color: #0b7b5a; }
+.obm-type-orange .obm-type-icon { color: #b85a00; }
+.obm-type-secondary .obm-type-icon { color: $gray-700; }
+
+// ─── MOIS ─────────────────────────────────────────────────────
+
+.obm-month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+}
+
+.obm-month-card {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 0.4rem 0.8rem;
+  text-align: center;
+
+  .obm-month-label {
+    display: block;
+    font-size: 0.75rem;
+    color: $gray-600;
+  }
+  .obm-month-amount {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: $primary;
+  }
+}
+
+// ─── TABLEAU ──────────────────────────────────────────────────
+
+.obm-table-wrap {
+  overflow-x: auto;
+  border-radius: $border-radius;
+  border: 1px solid $gray-200;
+}
+
+.obm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: $gray-100;
+    th {
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      font-weight: 600;
+      color: $gray-700;
+      border-bottom: 2px solid $gray-200;
+    }
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: $gray-100; }
+    td {
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid $gray-200;
+      vertical-align: middle;
+    }
+  }
+}
+
+// ─── BADGES ───────────────────────────────────────────────────
+
+.obm-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.obm-badge {
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.obm-badge-warning { background: #fff3cd; color: #856404; }
+.obm-badge-info    { background: #d1ecf1; color: #0c5460; }
+.obm-badge-success { background: #d4edda; color: #155724; }
+.obm-badge-danger  { background: #f8d7da; color: #721c24; }
+.obm-badge-secondary{ background: $gray-200; color: $gray-700; }
+
+.obm-receipt-ok { color: $success; font-weight: 500; }
+.obm-receipt-none { color: $gray-500; }
+
+// ─── ÉTATS ────────────────────────────────────────────────────
+
+.obm-loading, .obm-error, .obm-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: $gray-600;
+}
+.obm-error { color: $danger; }
+.obm-empty i { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+
+.obm-empty-search {
+  padding: 4rem 1rem;
+  i { font-size: 4rem; color: $gray-400; }
+  p { margin-top: 1rem; }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .obm-container { padding: 1rem 0.8rem; }
+  .obm-stats { grid-template-columns: 1fr 1fr; }
+  .obm-type-grid { grid-template-columns: 1fr 1fr; }
+  .obm-month-grid { grid-template-columns: 1fr 1fr; }
+}
+
+
+.obm-mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.obm-member-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}

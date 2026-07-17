@@ -1,0 +1,199 @@
+<div class="obm-container">
+
+  <!-- En-tête -->
+  <div class="obm-header">
+    <div class="obm-header-left">
+      <button class="obm-btn-back" (click)="goBack()">
+        <i class="bx bx-arrow-back"></i> Retour
+      </button>
+      <h1>Dons par membre</h1>
+    </div>
+  </div>
+
+  <!-- Recherche de membre -->
+  <div class="obm-search-section">
+    <div class="obm-search-wrap">
+      <div class="obm-search-input-wrap">
+        <i class="bx bx-search"></i>
+        <input type="text" [formControl]="searchControl" placeholder="Rechercher un membre…"
+          (focus)="showSearchResults.set(true)" autocomplete="off" />
+        @if (selectedMember()) {
+        <button class="obm-clear-btn" (click)="clearMember()">✕</button>
+        }
+      </div>
+
+      <!-- Résultats de recherche -->
+      @if (showSearchResults() && !selectedMember()) {
+      <div class="obm-search-dropdown">
+        @if (isSearching()) {
+        <p class="obm-search-status">Recherche en cours…</p>
+        } @else if (searchResults().length === 0) {
+        <p class="obm-search-status">Aucun membre trouvé</p>
+        } @else {
+        @for (member of searchResults(); track member.id) {
+        <button class="obm-search-result" (click)="selectMember(member)">
+          <div class="obm-mini-avatar">
+            @if (member.photoUrl) {
+            <img [src]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}"
+              (error)="onImageError($event)" />
+            } @else {
+            {{ getMemberInitials(member) }}
+            }
+          </div>
+          <div class="obm-mini-info">
+            <strong>{{ getMemberFullName(member) }}</strong>
+            <span>{{ member.phone || '' }}</span>
+          </div>
+        </button>
+        }
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Membre sélectionné -->
+  @if (selectedMember(); as member) {
+  <div class="obm-selected-member">
+    <div class="obm-member-avatar">
+      @if (member.photoUrl) {
+      <img [src]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}" (error)="onImageError($event)" />
+      } @else {
+      <span>{{ getMemberInitials(member) }}</span>
+      }
+    </div>
+    <div class="obm-member-info">
+      <h2>{{ getMemberFullName(member) }}</h2>
+      <p>{{ member.email || '' }} {{ member.phone ? '| ' + member.phone : '' }}</p>
+    </div>
+  </div>
+  }
+
+  <!-- Contenu du résumé -->
+  @if (isLoading()) {
+  <div class="obm-loading">Chargement du résumé…</div>
+  } @else if (error()) {
+  <div class="obm-error">{{ error() }}</div>
+  } @else if (summary(); as summary) {
+
+  <!-- Cartes de statistiques -->
+  <div class="obm-stats">
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ totalGiven() | number:'1.0-0' }} FCFA</span>
+      <span class="obm-stat-label">Total donné</span>
+    </div>
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ totalOfferings() }}</span>
+      <span class="obm-stat-label">Nombre d'offrandes</span>
+    </div>
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ titheTotal() | number:'1.0-0' }} FCFA</span>
+      <span class="obm-stat-label">Dîmes</span>
+    </div>
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ offeringTotal() | number:'1.0-0' }} FCFA</span>
+      <span class="obm-stat-label">Offrandes (hors dîmes)</span>
+    </div>
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ averageMonthly() | number:'1.0-0' }} FCFA</span>
+      <span class="obm-stat-label">Moyenne mensuelle</span>
+    </div>
+    <div class="obm-stat-card">
+      <span class="obm-stat-value">{{ summary.lastYearTotal | number:'1.0-0' }} FCFA</span>
+      <span class="obm-stat-label">Total 12 derniers mois</span>
+    </div>
+  </div>
+
+  <!-- Répartition par type -->
+  <div class="obm-section">
+    <h3>Répartition par type d'offrande</h3>
+    <div class="obm-type-grid">
+      @for (key of typeKeys; track key) {
+      @if (summary.byType[key] > 0) {
+      <div class="obm-type-card" [class]="getOfferingTypeColor(key)">
+        <div class="obm-type-icon"><i class="bx {{ getTypeIcon(key) }}"></i></div>
+        <div class="obm-type-info">
+          <span class="obm-type-label">{{ getTypeLabel(key) }}</span>
+          <span class="obm-type-amount">{{ summary.byType[key] | number:'1.0-0' }} FCFA</span>
+        </div>
+      </div>
+      }
+      }
+    </div>
+  </div>
+
+  <!-- Répartition par mois -->
+  @if (Object.keys(summary.byMonth).length > 0) {
+  <div class="obm-section">
+    <h3>Évolution mensuelle</h3>
+    <div class="obm-month-grid">
+      @for (month of sortedMonths(); track month.key) {
+      <div class="obm-month-card">
+        <span class="obm-month-label">{{ month.key }}</span>
+        <span class="obm-month-amount">{{ month.value | number:'1.0-0' }} FCFA</span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Offrandes récentes -->
+  @if (summary.recentOfferings && summary.recentOfferings.length > 0) {
+  <div class="obm-section">
+    <h3>Offrandes récentes</h3>
+    <div class="obm-table-wrap">
+      <table class="obm-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Paiement</th>
+            <th>Reçu</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (offering of summary.recentOfferings; track offering.id) {
+          <tr (click)="viewOffering(offering)">
+            <td>{{ getFormattedDate(offering.date) }}</td>
+            <td>
+              <span class="obm-type-badge" [class]="getOfferingTypeColor(offering.type)">
+                <i class="bx {{ getTypeIcon(offering.type) }}"></i>
+                {{ getTypeLabel(offering.type) }}
+              </span>
+            </td>
+            <td>{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</td>
+            <td>
+              <span class="obm-badge" [class]="'obm-badge-' + getStatusColor(offering.status)">
+                {{ getStatusLabel(offering.status) }}
+              </span>
+            </td>
+            <td>{{ getPaymentMethodLabel(offering.paymentMethod) }}</td>
+            <td>
+              @if (offering.receiptNumber) {
+              <span class="obm-receipt-ok">{{ offering.receiptNumber }}</span>
+              } @else {
+              <span class="obm-receipt-none">—</span>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  @if (summary.recentOfferings && summary.recentOfferings.length === 0) {
+  <div class="obm-empty">Aucune offrande récente pour ce membre.</div>
+  }
+
+  } @else if (!selectedMember()) {
+  <div class="obm-empty obm-empty-search">
+    <i class="bx bx-search-alt"></i>
+    <p>Recherchez un membre pour voir son résumé des offrandes.</p>
+  </div>
+  }
+
+</div>

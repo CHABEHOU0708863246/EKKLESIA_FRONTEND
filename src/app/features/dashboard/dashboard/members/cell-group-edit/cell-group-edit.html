@@ -1,0 +1,116 @@
+<div class="cge-container">
+
+  @if (loading()) {
+    <div class="cge-state cge-state--loading">
+      <span class="cge-spinner"></span> Chargement de la cellule…
+    </div>
+  } @else if (error() && !cellGroup()) {
+    <div class="cge-state cge-state--error">
+      <p>{{ error() }}</p>
+      <button type="button" class="cge-btn-secondary" (click)="cancel()">Retour à la liste</button>
+    </div>
+  } @else if (cellGroup(); as cg) {
+
+    <!-- ══════════════ HEADER ══════════════ -->
+    <div class="cge-header">
+      <div>
+        <button type="button" class="cge-back-btn" (click)="cancel()">
+          <i class="bx bx-arrow-back"></i> Cellules de maison
+        </button>
+        <h1>Modifier « {{ cg.name }} »</h1>
+        <p class="cge-subtitle">{{ getChurchName(cg.churchId) }}</p>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="cge-error-banner">
+        {{ error() }}
+        <button type="button" (click)="error.set(null)">✕</button>
+      </div>
+    }
+
+    @if (saveSuccess()) {
+      <div class="cge-success-banner">
+        <i class="bx bx-check"></i> Cellule mise à jour avec succès.
+      </div>
+    }
+
+    <!-- ══════════════ FORMULAIRE ══════════════ -->
+    <form [formGroup]="form" (ngSubmit)="save()" class="cge-form">
+
+      <div class="cge-field">
+        <label>Nom de la cellule <span class="cge-required">*</span></label>
+        <input type="text" formControlName="name" placeholder="Ex: Cellule Cocody - Arbre de Vie">
+        <p class="cge-error-text" *ngIf="isFieldInvalid('name')">Le nom est requis (3 caractères min.)</p>
+      </div>
+
+      <div class="cge-field">
+        <label>Responsable <span class="cge-required">*</span></label>
+        <div class="cge-search-wrap">
+          <input type="text" formControlName="leaderSearch"
+            (input)="onLeaderInput($any($event.target).value)"
+            placeholder="Rechercher un membre…" autocomplete="off">
+          @if (selectedLeader) {
+            <button type="button" class="cge-clear-btn" (click)="clearLeader()">✕</button>
+          }
+          @if (showLeaderResults() && leaderResults.length > 0) {
+            <div class="cge-search-dropdown">
+              @for (member of leaderResults; track member.id) {
+                <button type="button" class="cge-search-result" (click)="selectLeader(member)">
+                  <div class="cge-mini-avatar">{{ getInitials(getFullName(member)) }}</div>
+                  <div class="cge-mini-info"><strong>{{ getFullName(member) }}</strong></div>
+                </button>
+              }
+            </div>
+          }
+          @if (showLeaderResults() && searchingLeader()) {
+            <div class="cge-search-dropdown">
+              <span class="cge-search-loading">Recherche…</span>
+            </div>
+          }
+        </div>
+        <p class="cge-error-text" *ngIf="isFieldInvalid('leaderId')">Le responsable est requis.</p>
+      </div>
+
+      <div class="cge-field">
+        <label>Lieu de rencontre</label>
+        <input type="text" formControlName="location" placeholder="Ex: Cocody, Ambassades">
+      </div>
+
+      <div class="cge-grid-2">
+        <div class="cge-field">
+          <label>Jour de rencontre</label>
+          <select formControlName="meetingDay">
+            @for (day of weekDays; track day) {
+              <option [value]="day">{{ day }}</option>
+            }
+          </select>
+        </div>
+        <div class="cge-field">
+          <label>Heure de rencontre</label>
+          <input type="time" formControlName="meetingTime">
+        </div>
+      </div>
+
+      <div class="cge-field cge-field--checkbox">
+        <label>
+          <input type="checkbox" formControlName="isActive">
+          Cellule active
+        </label>
+      </div>
+
+      <div class="cge-actions">
+        <button type="button" class="cge-btn-secondary" (click)="cancel()">Annuler</button>
+        <button type="submit" class="cge-btn-primary" [disabled]="saving() || form.invalid">
+          @if (saving()) {
+            <span class="cge-spinner cge-spinner--sm"></span> Enregistrement…
+          } @else {
+            Enregistrer les modifications
+          }
+        </button>
+      </div>
+
+    </form>
+
+  }
+</div>

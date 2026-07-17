@@ -1,0 +1,629 @@
+// ──────────────────────────────────────────────────────────────
+//   VARIABLES (harmonisées avec le design system)
+// ──────────────────────────────────────────────────────────────
+
+$font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$primary-light: #4a90d9;
+$gold: #b8860b;
+$gold-light: #f5d37c;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$transition: 0.2s ease-in-out;
+
+// ──────────────────────────────────────────────────────────────
+//   CONTENEUR PRINCIPAL
+// ──────────────────────────────────────────────────────────────
+
+.pac-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: $font-family;
+  color: $gray-900;
+}
+
+// ──────────────────────────────────────────────────────────────
+//   EN-TÊTE
+// ──────────────────────────────────────────────────────────────
+
+.pac-page-header {
+  margin-bottom: 2rem;
+}
+
+.pac-breadcrumb {
+  font-size: 0.85rem;
+  color: $gray-600;
+  margin-bottom: 0.5rem;
+
+  a {
+    color: $primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .pac-breadcrumb-sep {
+    margin: 0 0.3rem;
+    color: $gray-400;
+  }
+
+  .pac-breadcrumb-current {
+    color: $gray-800;
+    font-weight: 500;
+  }
+}
+
+.pac-page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .pac-type-icon-inline {
+      font-size: 1.5rem;
+    }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+//   ÉTATS (loading, error, success)
+// ──────────────────────────────────────────────────────────────
+
+.pac-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  font-size: 1.1rem;
+  color: $gray-600;
+
+  &.pac-state--loading {
+    .pac-spinner {
+      margin-right: 0.75rem;
+      border: 2px solid $gray-300;
+      border-top-color: $primary;
+      border-radius: 50%;
+      width: 1.2rem;
+      height: 1.2rem;
+      animation: spin 0.7s linear infinite;
+    }
+  }
+}
+
+.pac-banner {
+  padding: 0.75rem 1.2rem;
+  border-radius: $border-radius;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &--error {
+    background: #fce4e4;
+    color: #9e2b2b;
+    border-left: 4px solid $danger;
+  }
+
+  &--success {
+    background: #e6f7e6;
+    color: #1e6f1e;
+    border-left: 4px solid $success;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+//   FORMULAIRE
+// ──────────────────────────────────────────────────────────────
+
+.pac-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── PANELS ──
+
+.pac-panel {
+  background: #ffffff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+  transition: box-shadow $transition;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.pac-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem;
+  background: $gray-100;
+  border-bottom: 1px solid $gray-200;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: $gray-800;
+  }
+}
+
+.pac-panel-body {
+  padding: 1.5rem;
+
+  &--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+
+    .pac-field--span-2 {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// ── CHAMPS ──
+
+.pac-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: $gray-700;
+
+    .pac-required {
+      color: $danger;
+      margin-left: 2px;
+    }
+  }
+
+  .pac-hint {
+    font-size: 0.8rem;
+    color: $gray-500;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: $font-family;
+    transition: border-color $transition, box-shadow $transition;
+    background: #fff;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+
+    &:disabled {
+      background: $gray-100;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .pac-error {
+    color: $danger;
+    font-size: 0.8rem;
+    margin: 0.2rem 0 0 0;
+  }
+}
+
+// ── TYPE LOCKED ──
+
+.pac-type-locked {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: $gray-800;
+  padding: 0.3rem 0;
+
+  .pac-type-icon {
+    font-size: 1.6rem;
+  }
+
+  .pac-hint {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: $gray-600;
+    margin-left: 0.5rem;
+  }
+}
+
+// ── SELECT WRAP ──
+
+.pac-select-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+
+  select {
+    appearance: none;
+    padding-right: 2.2rem;
+    cursor: pointer;
+  }
+
+  .pac-select-caret {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: $gray-500;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ── RECHERCHE (search-wrap) ──
+
+.pac-search-wrap {
+  position: relative;
+
+  .pac-selected-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: $gray-100;
+    border-radius: 6px;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid $gray-300;
+
+    .pac-mini-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: $primary;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .pac-mini-info {
+      flex: 1;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .pac-icon-btn {
+      background: none;
+      border: none;
+      color: $gray-600;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0 0.2rem;
+
+      &:hover {
+        color: $danger;
+      }
+    }
+  }
+
+  input {
+    width: 100%;
+  }
+
+  .pac-search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    padding: 0.3rem 0;
+
+    .pac-search-status {
+      padding: 0.5rem 1rem;
+      margin: 0;
+      color: $gray-600;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .pac-search-result {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 1rem;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      transition: background $transition;
+
+      &:hover {
+        background: $gray-100;
+      }
+
+      .pac-mini-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: $primary;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+      }
+
+      .pac-mini-info {
+        flex: 1;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// ── PARTICIPANTS ──
+
+.pac-participant-card {
+  border: 1px solid $gray-200;
+  border-radius: 6px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.2rem;
+  background: $gray-100;
+  transition: background $transition;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .pac-participant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: $gray-800;
+      margin: 0;
+    }
+  }
+}
+
+// ── BOUTONS ──
+
+.pac-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: background $transition, transform 0.1s, box-shadow $transition;
+  text-decoration: none;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: $primary-dark;
+      box-shadow: 0 4px 12px rgba($primary, 0.3);
+    }
+  }
+
+  &--outline {
+    background: transparent;
+    color: $primary;
+    border: 1px solid $primary;
+
+    &:hover:not(:disabled) {
+      background: $primary;
+      color: #fff;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $gray-700;
+    border: 1px solid $gray-300;
+
+    &:hover:not(:disabled) {
+      background: $gray-100;
+    }
+  }
+
+  &--sm {
+    padding: 0.2rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .pac-spinner--btn {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 0.3rem;
+  }
+}
+
+.pac-icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: $gray-600;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: background $transition, color $transition;
+
+  &:hover {
+    background: rgba($gray-600, 0.1);
+    color: $gray-800;
+  }
+
+  &--danger {
+    color: $danger;
+
+    &:hover {
+      background: rgba($danger, 0.1);
+      color: darken($danger, 10%);
+    }
+  }
+}
+
+// ── ACTIONS (footer) ──
+
+.pac-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid $gray-200;
+
+  .pac-actions-spacer {
+    flex: 1;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+//   KEYFRAMES
+// ──────────────────────────────────────────────────────────────
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+//   RESPONSIVE
+// ──────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .pac-page {
+    padding: 1rem 0.8rem;
+  }
+
+  .pac-page-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+
+    h1 {
+      font-size: 1.4rem;
+    }
+  }
+
+  .pac-panel-body--grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+
+    .pac-field--span-2 {
+      grid-column: 1;
+    }
+  }
+
+  .pac-participant-card {
+    padding: 0.8rem 1rem;
+
+    .pac-panel-body--grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .pac-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    .pac-actions-spacer {
+      display: none;
+    }
+
+    button {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+
+  .pac-breadcrumb {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pac-participant-card .pac-panel-body--grid {
+    grid-template-columns: 1fr;
+  }
+}

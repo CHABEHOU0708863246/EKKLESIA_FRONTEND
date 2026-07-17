@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PastoralActs } from './pastoral-acts';
+import { CellGroupEdit } from './cell-group-edit';
 
-describe('PastoralActs', () => {
-  let component: PastoralActs;
-  let fixture: ComponentFixture<PastoralActs>;
+describe('CellGroupEdit', () => {
+  let component: CellGroupEdit;
+  let fixture: ComponentFixture<CellGroupEdit>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PastoralActs]
+      imports: [CellGroupEdit]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PastoralActs);
+    fixture = TestBed.createComponent(CellGroupEdit);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

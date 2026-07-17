@@ -1,0 +1,422 @@
+// ──────────────────────────────────────────────────────────────
+//   ICÔNES — Boxicons
+//   Les classes "bx bx-xxx" utilisées dans le template (ex: <i class="bx bx-heart">)
+//   viennent de la police/feuille de styles Boxicons. Sans cet import, le
+//   navigateur ne connaît pas ces classes et n'affiche RIEN à la place de
+//   l'icône (ni glyphe, ni carré vide) : c'était la cause du bug.
+// ──────────────────────────────────────────────────────────────
+
+@import url('https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css');
+
+// ──────────────────────────────────────────────────────────────
+//   VARIABLES
+// ──────────────────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+$transition: 0.2s ease-in-out;
+
+// ──────────────────────────────────────────────────────────────
+//   CONTENEUR
+// ──────────────────────────────────────────────────────────────
+
+.of-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── HEADER ───────────────────────────────────────────────────
+
+.of-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+// ─── BANNIÈRES ──────────────────────────────────────────────
+
+.of-banner {
+  padding: 0.75rem 1.2rem;
+  border-radius: $border-radius;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+
+  &--error {
+    background: #fce4e4;
+    color: #9e2b2b;
+    border-left: 4px solid $danger;
+  }
+  &--success {
+    background: #e6f7e6;
+    color: #1e6f1e;
+    border-left: 4px solid $success;
+  }
+}
+
+// ─── FORMULAIRE ──────────────────────────────────────────────
+
+.of-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.of-panel {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+}
+
+.of-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  background: $gray-100;
+  border-bottom: 1px solid $gray-200;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: $gray-800;
+  }
+}
+
+.of-panel-body {
+  padding: 1.5rem;
+}
+
+// ─── GRILLE ──────────────────────────────────────────────────
+
+.of-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+
+  .of-field--span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+// ─── CHAMPS ──────────────────────────────────────────────────
+
+.of-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: $gray-700;
+  }
+
+  .of-required { color: $danger; margin-left: 2px; }
+
+  input, select, textarea {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color $transition, box-shadow $transition;
+    background: #fff;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+    &.ng-invalid.ng-touched {
+      border-color: $danger;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .of-error {
+    color: $danger;
+    font-size: 0.8rem;
+    margin: 0.1rem 0 0 0;
+  }
+}
+
+.of-amount-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid $gray-300;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color $transition;
+
+  input {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    &:focus { box-shadow: none; }
+  }
+
+  .of-currency {
+    padding: 0.5rem 0.75rem;
+    background: $gray-100;
+    color: $gray-700;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-left: 1px solid $gray-300;
+  }
+}
+
+// ─── TYPE CARD ───────────────────────────────────────────────
+
+.of-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.of-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.3rem;
+  border: 2px solid $gray-200;
+  border-radius: $border-radius;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color $transition, background $transition;
+  font-family: inherit;
+
+  &:hover {
+    border-color: $primary;
+    background: $gray-100;
+  }
+  &.is-selected {
+    border-color: $primary;
+    background: #dbeafe;
+
+    .of-type-icon { color: $primary; }
+  }
+
+  // L'icône est un <i class="bx bx-xxx"> : on force la police et un rendu
+  // net (taille, couleur, alignement) indépendamment du texte du bouton.
+  .of-type-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'boxicons' !important;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: $gray-600;
+    transition: color $transition;
+  }
+
+  .of-type-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.35rem;
+    text-align: center;
+  }
+}
+
+// ─── RECHERCHE ───────────────────────────────────────────────
+
+.of-search-wrap {
+  position: relative;
+
+  .of-selected-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $gray-100;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid $gray-300;
+
+    .of-mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: $primary;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+    .of-mini-info { flex: 1; font-weight: 500; }
+  }
+
+  input {
+    width: 100%;
+  }
+
+  .of-search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    z-index: 10;
+    padding: 0.3rem 0;
+  }
+
+  .of-search-status {
+    padding: 0.5rem 1rem;
+    margin: 0;
+    color: $gray-600;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .of-search-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background $transition;
+
+    &:hover { background: $gray-100; }
+    .of-mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: $primary;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+    .of-mini-info { flex: 1; font-weight: 500; }
+  }
+}
+
+// ─── BOUTONS ─────────────────────────────────────────────────
+
+.of-btn-primary, .of-btn-secondary, .of-btn-danger {
+  padding: 0.5rem 1.4rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background $transition, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
+
+.of-btn-primary {
+  background: $primary;
+  color: #fff;
+  &:hover:not(:disabled) { background: $primary-dark; }
+}
+
+.of-btn-secondary {
+  background: $gray-200;
+  color: $gray-800;
+  &:hover:not(:disabled) { background: $gray-300; }
+}
+
+.of-icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: $gray-600;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  line-height: 1;
+  &:hover { color: $danger; }
+
+  // Au cas où ce bouton reçoive aussi une icône "bx" plutôt qu'un caractère ✕
+  i[class^="bx"], i[class*=" bx"] {
+    font-family: 'boxicons' !important;
+  }
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────
+
+.of-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid $gray-200;
+}
+
+.of-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .of-container { padding: 1rem 0.8rem; }
+  .of-grid-2 { grid-template-columns: 1fr; .of-field--span-2 { grid-column: 1; } }
+  .of-header { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+  .of-type-grid { grid-template-columns: repeat(3, 1fr); }
+}

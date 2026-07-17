@@ -1,0 +1,150 @@
+<div class="of-container">
+
+  <!-- En-tête -->
+  <div class="of-header">
+    <h1>{{ isEditMode() ? 'Modifier l\'offrande' : 'Nouvelle offrande' }}</h1>
+    <button type="button" class="of-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  <!-- Bannières -->
+  @if (error()) {
+  <div class="of-banner of-banner--error">{{ error() }}</div>
+  }
+  @if (success()) {
+  <div class="of-banner of-banner--success">✅ Offrande enregistrée avec succès !</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="of-form">
+
+    <!-- ─── TYPE D'OFFRANDE ─── -->
+    <section class="of-panel">
+      <div class="of-panel-header">
+        <h2>Type d'offrande</h2>
+      </div>
+      <div class="of-panel-body">
+        <div class="of-type-grid">
+          @for (opt of typeOptions; track opt.value) {
+          <button type="button" class="of-type-card" [class.is-selected]="form.get('type')?.value === opt.value"
+            (click)="form.get('type')?.setValue(opt.value)">
+            <span class="of-type-icon"><i class="bx {{ opt.icon }}"></i></span>
+            <span class="of-type-label">{{ opt.label }}</span>
+          </button>
+          }
+        </div>
+        <p class="of-error" *ngIf="isFieldInvalid('type')">Le type est requis</p>
+      </div>
+    </section>
+
+    <!-- ─── INFORMATIONS GÉNÉRALES ─── -->
+    <section class="of-panel">
+      <div class="of-panel-header">
+        <h2>Informations générales</h2>
+      </div>
+      <div class="of-panel-body of-grid-2">
+
+        <div class="of-field">
+          <label>Montant <span class="of-required">*</span></label>
+          <div class="of-amount-wrap">
+            <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
+            <span class="of-currency">{{ form.get('currency')?.value || 'FCFA' }}</span>
+          </div>
+          <p class="of-error" *ngIf="isFieldInvalid('amount')">Montant supérieur à 0 requis</p>
+        </div>
+
+        <div class="of-field">
+          <label>Date <span class="of-required">*</span></label>
+          <input type="date" formControlName="date">
+          <p class="of-error" *ngIf="isFieldInvalid('date')">La date est requise</p>
+        </div>
+
+        <div class="of-field">
+          <label>Église <span class="of-required">*</span></label>
+          <select formControlName="churchId">
+            <option value="">— Sélectionner —</option>
+            @for (church of churches(); track church.id) {
+            <option [value]="church.id">{{ church.name }}</option>
+            }
+          </select>
+          <p class="of-error" *ngIf="isFieldInvalid('churchId')">L'église est requise</p>
+        </div>
+
+        <div class="of-field">
+          <label>Site</label>
+          <select formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Aucun site —</option>
+            @for (site of sites(); track site.id) {
+            <option [value]="site.id">{{ site.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="of-field of-field--span-2">
+          <label>Membre (facultatif)</label>
+          <div class="of-search-wrap">
+            <!-- ✅ Utiliser *ngIf avec as -->
+            <ng-container *ngIf="selectedMember() as member">
+              <div class="of-selected-row">
+                <div class="of-mini-avatar">{{ getMemberInitials(member) }}</div>
+                <div class="of-mini-info">{{ getMemberFullName(member) }}</div>
+                <button type="button" class="of-icon-btn" (click)="clearMember()">✕</button>
+              </div>
+            </ng-container>
+
+            <input *ngIf="!selectedMember()" type="text" formControlName="memberSearch"
+              placeholder="Rechercher un membre…" (focus)="showMemberResults.set(true)">
+
+            <div class="of-search-dropdown" *ngIf="showMemberResults() && !selectedMember()">
+              <p class="of-search-status" *ngIf="searchingMember()">Recherche en cours…</p>
+              <p class="of-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé
+              </p>
+              @for (m of memberResults(); track m.id) {
+              <button type="button" class="of-search-result" (click)="selectMember(m)">
+                <div class="of-mini-avatar">{{ getMemberInitials(m) }}</div>
+                <div class="of-mini-info">{{ getMemberFullName(m) }}</div>
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="of-field">
+          <label>Mode de paiement <span class="of-required">*</span></label>
+          <select formControlName="paymentMethod">
+            @for (method of paymentMethods; track method) {
+            <option [value]="method">{{ getPaymentMethodLabel(method) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="of-field">
+          <label>Référence</label>
+          <input type="text" formControlName="reference" placeholder="N° de virement, Mobile Money…">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── NOTES ─── -->
+    <section class="of-panel">
+      <div class="of-panel-header">
+        <h2>Notes</h2>
+      </div>
+      <div class="of-panel-body">
+        <textarea rows="3" formControlName="notes" placeholder="Observations…"></textarea>
+      </div>
+    </section>
+
+    <!-- ─── ACTIONS ─── -->
+    <footer class="of-actions">
+      <button type="button" class="of-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="of-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+        <span class="of-spinner"></span> Enregistrement…
+        } @else {
+        {{ isEditMode() ? 'Mettre à jour' : 'Créer l\'offrande' }}
+        }
+      </button>
+    </footer>
+
+  </form>
+</div>

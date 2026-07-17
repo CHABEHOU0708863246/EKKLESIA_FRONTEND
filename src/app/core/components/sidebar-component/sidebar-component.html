@@ -126,14 +126,7 @@
           }
 
           <!-- 6️⃣ Import en masse – Action administrative -->
-          @if (permission.canImportMembers()) {
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/membres/import']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-upload"></i>
-              <span class="nav-text">Import en masse</span>
-            </a>
-          </li>
-          }
+          <!-- 0 -->
 
         </ul>
       </li>
@@ -327,12 +320,11 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 💰 FINANCES                                                 -->
+      <!-- 💰 FINANCES – Offrandes                                     -->
       <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessFinanceModule()) {
+      @if (permission.canViewOfferings()) {
       <div class="nav-section-label">Finances</div>
 
-      @if (permission.canViewOfferings()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
           <i class="nav-icon bx bx-donate-heart"></i>
@@ -340,30 +332,32 @@
           <i class="nav-chevron bx bx-chevron-right"></i>
         </a>
         <ul class="nav-sub">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/finances/offrandes']" class="nav-link">
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/offrandes']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-collection"></i>
-              <span class="nav-text">Collecte du dimanche</span>
+              <span class="nav-text">Toutes les offrandes</span>
             </a>
           </li>
           @if (permission.canCreateOffering()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/finances/offrandes/new']" class="nav-link">
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/offrandes/new']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouvelle collecte</span>
+              <span class="nav-text">Nouvelle offrande</span>
               <span class="nav-badge badge-gold">+</span>
             </a>
           </li>
           }
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/finances/offrandes/par-membre']" class="nav-link">
+          @if (permission.canViewOfferings()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/offrandes/par-membre']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-user-circle"></i>
               <span class="nav-text">Dons par membre</span>
             </a>
           </li>
+          }
           @if (permission.canGenerateReceipt()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/finances/offrandes/recus']" class="nav-link">
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/offrandes/recus']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-receipt"></i>
               <span class="nav-text">Reçus fiscaux</span>
             </a>
@@ -435,7 +429,6 @@
           <span class="nav-text">Consolidation multi-sites</span>
         </a>
       </li>
-      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->

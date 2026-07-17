@@ -12,6 +12,15 @@ export const PASTORAL_ACTS_ROUTES: Routes = [
     data: { permissions: ['PastoralAct_Read', 'PastoralAct_Create', 'PastoralAct_Update'] },
   },
 
+  {
+  path: ':id/edit',
+  loadComponent: () =>
+    import('./pastoral-act-edit/pastoral-act-edit').then((m) => m.PastoralActEdit),
+  title: "Modifier l'acte pastoral — EKKLESIA",
+  canActivate: [authGuard],
+  data: { permissions: ['PastoralAct_Update'] },
+},
+
   // ─── Création d'un nouvel acte pastoral ───
   {
     path: 'new',
