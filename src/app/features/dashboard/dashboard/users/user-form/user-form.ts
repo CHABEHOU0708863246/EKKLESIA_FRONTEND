@@ -449,62 +449,64 @@ private performMemberSearch(term: string): void {
   }
 
   private createNewUser(): void {
-    const value = this.form.value;
-    const payload: UserCreate = {
-      username: value.username,
-      email: value.email,
-      phone: value.phone,
-      firstName: value.firstName,
-      lastName: value.lastName,
-      password: value.password,
-      confirmPassword: value.confirmPassword,
-      roles: value.roles,
-      churchId: value.churchId,
-      siteId: value.siteId,
-      memberId: value.memberId,
-      profile: this.cleanProfile(value.profile),
-    };
+  const value = this.form.value;
+  const payload: UserCreate = {
+    username: value.username,
+    email: value.email,
+    phone: value.phone,
+    firstName: value.firstName,
+    lastName: value.lastName,
+    password: value.password,
+    confirmPassword: value.confirmPassword,
+    roles: value.roles,
+    churchId: value.churchId,
+    siteId: value.siteId,
+    memberId: value.memberId,
+    profile: this.cleanProfile(value.profile),
+  };
 
-    this.userService
-      .register(payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          // ✅ adapté au format réel du backend (plat, isSuccess)
-          if (response.isSuccess && response.id) {
-            const newUserId = response.id;
+  this.userService
+    .register(payload)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response: any) => {
+        if (response.isSuccess && response.id) {
+          const newUserId = response.id;
 
-            if (this.photoFile) {
-              this.userService
-                .updateUserPhotoById(newUserId, this.photoFile)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                  next: () => {
-                    this.saving.set(false);
-                    this.router.navigate(['/dashboard/admin/users', newUserId]);
-                  },
-                  error: (err: any) => {
-                    console.error('⚠️ Utilisateur créé mais échec upload photo:', err);
-                    this.saving.set(false);
-                    this.router.navigate(['/dashboard/admin/users', newUserId]);
-                  },
-                });
-            } else {
-              this.saving.set(false);
-              this.router.navigate(['/dashboard/admin/users', newUserId]);
-            }
+          if (this.photoFile) {
+            this.userService
+              .updateUserPhotoById(newUserId, this.photoFile)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => {
+                  this.saving.set(false);
+                  // ✅ Rediriger vers la liste des utilisateurs
+                  this.router.navigate(['/dashboard/admin/users']);
+                },
+                error: (err: any) => {
+                  console.error('⚠️ Utilisateur créé mais échec upload photo:', err);
+                  this.saving.set(false);
+                  // ✅ Rediriger vers la liste des utilisateurs
+                  this.router.navigate(['/dashboard/admin/users']);
+                },
+              });
           } else {
             this.saving.set(false);
-            this.applyErrorResponse(response);
+            // ✅ Rediriger vers la liste des utilisateurs
+            this.router.navigate(['/dashboard/admin/users']);
           }
-        },
-        error: (err: any) => {
-          console.error('❌ Erreur lors de la création:', err);
+        } else {
           this.saving.set(false);
-          this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
-        },
-      });
-  }
+          this.applyErrorResponse(response);
+        }
+      },
+      error: (err: any) => {
+        console.error('❌ Erreur lors de la création:', err);
+        this.saving.set(false);
+        this.error.set("Une erreur est survenue lors de la création de l'utilisateur.");
+      },
+    });
+}
 
   private updateExistingUser(): void {
     if (!this.userId) return;

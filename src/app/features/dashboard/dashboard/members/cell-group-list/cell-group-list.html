@@ -200,7 +200,7 @@
           </td>
         </tr>
 
-        <tr *ngFor="let cg of cellGroups()" class="cgl-row" (click)="openCellGroup(cg)">
+        <tr *ngFor="let cg of cellGroups()" class="cgl-row" >
           <td class="cgl-col-name">
             <div class="cgl-name-cell">
               <div class="cgl-avatar">{{ getInitials(cg.name) }}</div>
