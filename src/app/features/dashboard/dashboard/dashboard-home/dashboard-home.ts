@@ -1,19 +1,22 @@
 // src/app/features/dashboard/dashboard-home/dashboard-home.component.ts
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { Chart, registerables } from 'chart.js';
 
 import { Auth } from '../../../../core/services/Auth/auth';
 import { Token } from '../../../../core/services/Token/token';
 import { User } from '../../../../core/models/Users/user.model';
-import { DashboardDto, DashboardUtils } from '../../../../core/models/Dashboard/dashboard.model';
+import { DashboardDto } from '../../../../core/models/Dashboard/dashboard.model';
 import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
-import { MemberStatus } from '../../../../core/models/Members/member.model';
 import { RecentMemberDto, RecentOfferingDto } from '../../../../core/models/Dashboard/dashboard.model';
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
+
+// Enregistrer tous les composants Chart.js
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard-home',
@@ -22,9 +25,14 @@ import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })
-export class DashboardHome implements OnInit, OnDestroy {
+export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   private isBrowser: boolean;
+
+  // Références aux canvas
+  private genderChart: Chart | null = null;
+  private offeringsChart: Chart | null = null;
+  private attendanceChart: Chart | null = null;
 
   // ── Utilisateur ──
   userName: string = 'Utilisateur';
@@ -35,7 +43,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
 
-  // ── Propriétés pour le template (mappées depuis dashboardData) ──
+  // ── Propriétés pour le template ──
   dashboardStats = {
     totalMembers: 0,
     newMembersThisMonth: 0,
@@ -51,86 +59,14 @@ export class DashboardHome implements OnInit, OnDestroy {
   recentMembers: RecentMemberDto[] = [];
   recentOfferings: RecentOfferingDto[] = [];
 
-  // ── Données pour les graphiques (à utiliser avec Chart.js ou autre) ──
+  // ── Données de chart (pour fallback si nécessaire) ──
   chartData = {
-    membersByStatus: {
-      labels: ['Visiteurs', 'Adhérents', 'Actifs', 'Inactifs'],
-      datasets: [{
-        data: [0, 0, 0, 0],
-        backgroundColor: ['#FFD166', '#74B9FF', '#00B894', '#E17055'],
-        hoverBackgroundColor: ['#FFE08A', '#9DC6FF', '#55EFC4', '#F8A4A4']
-      }]
-    },
-    offeringsByType: {
-      labels: ['Dîmes', 'Offrandes', 'Spéciales', 'Construction', 'Mission', 'Semence', 'Action de grâce'],
-      datasets: [{
-        data: [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF', '#00CEC9', '#FF7675'],
-        hoverBackgroundColor: ['#8B7EE8', '#55EFC4', '#FDE68A', '#F8A4A4', '#A8D8FF', '#81ECEC', '#FFA4A4']
-      }]
-    },
-    attendanceTrend: {
-      labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-      datasets: [
-        {
-          label: 'Membres',
-          data: [120, 135, 142, 158, 165, 180],
-          borderColor: '#6C5CE7',
-          backgroundColor: 'rgba(108, 92, 231, 0.1)',
-          fill: true,
-          tension: 0.4
-        },
-        {
-          label: 'Visiteurs',
-          data: [15, 18, 12, 20, 25, 22],
-          borderColor: '#FDCB6E',
-          backgroundColor: 'rgba(253, 203, 110, 0.1)',
-          fill: true,
-          tension: 0.4
-        }
-      ]
-    }
-  };
-
-  chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        }
-      }
-    }
-  };
-
-  lineChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0,0,0,0.05)'
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        }
-      }
-    }
+    genderLabels: [] as string[],
+    genderData: [] as number[],
+    offeringLabels: [] as string[],
+    offeringData: [] as number[],
+    attendanceLabels: [] as string[],
+    attendanceData: [] as number[],
   };
 
   constructor(
@@ -144,14 +80,18 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.isBrowser) return;
-
     this.loadCurrentUser();
     this.loadDashboardData();
+  }
+
+  ngAfterViewInit(): void {
+    // Les graphiques seront créés après le chargement des données
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.destroyCharts();
   }
 
   // ──────────────────────────────────────────────
@@ -202,17 +142,18 @@ export class DashboardHome implements OnInit, OnDestroy {
     this.dashboardService.getDashboardData()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: { success: any; data: DashboardDto | null; message: string; }) => {
+        next: (response) => {
           this.loading = false;
           if (response.success && response.data) {
             this.dashboardData = response.data;
             this.mapDashboardData(response.data);
-            this.updateChartsFromData(response.data);
+            // Créer les graphiques après que le DOM soit prêt
+            setTimeout(() => this.createCharts(), 100);
           } else {
             this.error = response.message || 'Impossible de charger le tableau de bord.';
           }
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('❌ Erreur chargement dashboard:', err);
           this.loading = false;
           this.error = 'Erreur lors du chargement du tableau de bord.';
@@ -221,65 +162,213 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────
-  // MAPPAGE DES DONNÉES VERS LE TEMPLATE
+  // MAPPAGE DES DONNÉES
   // ──────────────────────────────────────────────
 
   private mapDashboardData(data: DashboardDto): void {
-    // Indicateurs principaux
     this.dashboardStats.totalMembers = data.totalMembers ?? 0;
     this.dashboardStats.activeCells = data.totalCells ?? 0;
     this.dashboardStats.upcomingEvents = data.upcomingEvents ?? 0;
-    this.dashboardStats.totalEvents = data.upcomingEvents ?? 0; // On réutilise
+    this.dashboardStats.totalEvents = data.upcomingEvents ?? 0;
     this.dashboardStats.totalOfferings = data.monthlyCollection ?? 0;
     this.dashboardStats.attendanceRate = Math.round(data.averageAttendanceRate ?? 0);
     this.dashboardStats.averageAttendance = Math.round(data.averageAttendanceRate ?? 0);
 
-    // Nouveaux membres du mois (on peut les calculer à partir des membres récents)
     const now = new Date();
     const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const newMembers = data.recentMembers?.filter(m =>
       new Date(m.createdAt) >= firstDayMonth
     ) || [];
     this.dashboardStats.newMembersThisMonth = newMembers.length;
+    this.dashboardStats.visitorsThisMonth = 0;
 
-    // Visiteurs du mois (approximation basée sur les visiteurs récents)
-    this.dashboardStats.visitorsThisMonth = 0; // À compléter si backend fournit les données
-
-    // Listes récentes
     this.recentMembers = data.recentMembers?.slice(0, 5) || [];
     this.recentOfferings = data.recentOfferings?.slice(0, 5) || [];
-  }
 
-  // ──────────────────────────────────────────────
-  // MISE À JOUR DES GRAPHIQUES
-  // ──────────────────────────────────────────────
-
-  private updateChartsFromData(data: DashboardDto): void {
-    // Répartition par statut (on simule avec des données)
-    // Idéalement, on aurait un endpoint pour les statuts, on garde les données statiques pour l'instant.
-    // On peut les remplacer par des données réelles si disponibles.
+    // Préparer les données pour les graphiques
+    // Répartition par sexe (si disponible)
     if (data.genderDistribution?.items) {
-      // On pourrait mapper les genres, mais on garde les statuts pour l'exemple.
+      this.chartData.genderLabels = data.genderDistribution.items.map(item => item.label);
+      this.chartData.genderData = data.genderDistribution.items.map(item => item.count);
+    } else {
+      // Fallback
+      this.chartData.genderLabels = ['Hommes', 'Femmes', 'Autre', 'Non renseigné'];
+      this.chartData.genderData = [0, 0, 0, 0];
     }
 
     // Offrandes par type
     if (data.offeringsByType?.items) {
-      const labels: string[] = [];
-      const values: number[] = [];
-      data.offeringsByType.items.forEach(item => {
-        labels.push(item.label);
-        values.push(item.amount);
-      });
-      this.chartData.offeringsByType.labels = labels;
-      this.chartData.offeringsByType.datasets[0].data = values;
+      this.chartData.offeringLabels = data.offeringsByType.items.map(item => item.label);
+      this.chartData.offeringData = data.offeringsByType.items.map(item => item.amount);
+    } else {
+      this.chartData.offeringLabels = ['Aucune donnée'];
+      this.chartData.offeringData = [1];
     }
 
     // Tendance des présences
     if (data.attendanceTrend?.points) {
-      const labels = data.attendanceTrend.points.map(p => p.date);
-      const values = data.attendanceTrend.points.map(p => p.attendance);
-      this.chartData.attendanceTrend.labels = labels;
-      this.chartData.attendanceTrend.datasets[0].data = values;
+      this.chartData.attendanceLabels = data.attendanceTrend.points.map(p => p.date);
+      this.chartData.attendanceData = data.attendanceTrend.points.map(p => p.attendance);
+    } else {
+      this.chartData.attendanceLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+      this.chartData.attendanceData = [0, 0, 0, 0, 0, 0];
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  // CRÉATION DES GRAPHIQUES
+  // ──────────────────────────────────────────────
+
+  private createCharts(): void {
+    if (!this.isBrowser) return;
+    this.destroyCharts();
+
+    // 1. Graphique circulaire : Répartition des membres
+    this.createGenderChart();
+
+    // 2. Graphique circulaire : Offrandes par type
+    this.createOfferingsChart();
+
+    // 3. Graphique en courbe : Évolution des présences
+    this.createAttendanceChart();
+  }
+
+  private createGenderChart(): void {
+    const canvas = document.getElementById('genderChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    this.genderChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: this.chartData.genderLabels,
+        datasets: [{
+          data: this.chartData.genderData,
+          backgroundColor: ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF'],
+          hoverBackgroundColor: ['#8B7EE8', '#55EFC4', '#FDE68A', '#F8A4A4', '#A8D8FF'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              font: { size: 12 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private createOfferingsChart(): void {
+    const canvas = document.getElementById('offeringsChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Couleurs pour les offrandes
+    const colors = ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF', '#00CEC9', '#FF7675'];
+
+    this.offeringsChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: this.chartData.offeringLabels,
+        datasets: [{
+          data: this.chartData.offeringData,
+          backgroundColor: colors.slice(0, this.chartData.offeringData.length),
+          hoverBackgroundColor: colors.map(c => c + 'CC'),
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              font: { size: 12 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private createAttendanceChart(): void {
+    const canvas = document.getElementById('attendanceChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    this.attendanceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: this.chartData.attendanceLabels,
+        datasets: [{
+          label: 'Participants',
+          data: this.chartData.attendanceData,
+          borderColor: '#6C5CE7',
+          backgroundColor: 'rgba(108, 92, 231, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6C5CE7',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private destroyCharts(): void {
+    if (this.genderChart) {
+      this.genderChart.destroy();
+      this.genderChart = null;
+    }
+    if (this.offeringsChart) {
+      this.offeringsChart.destroy();
+      this.offeringsChart = null;
+    }
+    if (this.attendanceChart) {
+      this.attendanceChart.destroy();
+      this.attendanceChart = null;
     }
   }
 
@@ -288,8 +377,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────
 
   getMembersTrend(): number {
-    // On pourrait calculer la tendance à partir des données si disponibles
-    return 8; // valeur statique pour l'exemple
+    return 8;
   }
 
   getOfferingsTrend(): number {
