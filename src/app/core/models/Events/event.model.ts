@@ -135,7 +135,9 @@ export interface EventUpdate {
   endDate?: string;
   location?: string;
   address?: Address;
+  churchId?: string;      // ⬅️ AJOUT — à garder seulement si l'église doit être modifiable en édition
   siteId?: string;
+  organizerId?: string;   // ⬅️ AJOUT — c'est la cause racine du bug
   capacity?: number;
   registrationRequired?: boolean;
   registrationOpen?: boolean;

@@ -77,7 +77,7 @@
               <span class="bd-value">{{ getFormattedDateTime(b.approvedAt) }}</span>
             </div>
           }
-          @if (b.approvedByNames?.length) {
+          @if (b.approvedByNames) {
             <div class="bd-info-row">
               <span class="bd-label">Approuvé par</span>
               <span class="bd-value">{{ b.approvedByNames.join(', ') }}</span>

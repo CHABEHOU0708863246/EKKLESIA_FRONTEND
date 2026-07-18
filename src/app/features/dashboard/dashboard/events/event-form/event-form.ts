@@ -383,7 +383,7 @@ export class EventForm implements OnInit, OnDestroy {
         next: (response) => {
           this.saving.set(false);
           if (response.success && response.data) {
-            this.router.navigate(['/dashboard/evenements', response.data.id]);
+            this.router.navigate(['/dashboard/evenements']);
           } else {
             this.error.set(response.message || 'Inscription réussie.');
           }
@@ -397,51 +397,53 @@ export class EventForm implements OnInit, OnDestroy {
   }
 
   private updateExistingEvent(): void {
-    if (!this.eventId) return;
-    const value = this.form.value;
-    const payload: EventUpdate = {
-      title: value.title,
-      description: value.description || undefined,
-      type: value.type,
-      startDate: value.startDate,
-      endDate: value.endDate || undefined,
-      location: value.location || undefined,
-      address: this.buildAddressPayload(value),
-      siteId: value.siteId || undefined,
-      capacity: value.capacity || undefined,
-      registrationRequired: value.registrationRequired,
-      registrationOpen: value.registrationOpen,
-      registrationDeadline: value.registrationDeadline || undefined,
-      price: value.price || 0,
-      currency: value.currency || 'FCFA',
-      status: value.status,
-      isRecurring: value.isRecurring,
-      recurrencePattern: value.recurrencePattern || undefined,
-    };
+  if (!this.eventId) return;
+  const value = this.form.value;
+  const payload: EventUpdate = {
+    title: value.title,
+    description: value.description || undefined,
+    type: value.type,
+    startDate: value.startDate,
+    endDate: value.endDate || undefined,
+    location: value.location || undefined,
+    address: this.buildAddressPayload(value),
+    churchId: value.churchId,          // ✅ AJOUT
+    siteId: value.siteId || undefined,
+    organizerId: value.organizerId,    // ✅ AJOUT
+    capacity: value.capacity || undefined,
+    registrationRequired: value.registrationRequired,
+    registrationOpen: value.registrationOpen,
+    registrationDeadline: value.registrationDeadline || undefined,
+    price: value.price || 0,
+    currency: value.currency || 'FCFA',
+    status: value.status,
+    isRecurring: value.isRecurring,
+    recurrencePattern: value.recurrencePattern || undefined,
+  };
 
-    this.eventService
-      .update(this.eventId, payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.saving.set(false);
-          if (response.success) {
-            this.router.navigate(['/dashboard/evenements', this.eventId]);
-          } else {
-            this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
-          }
-        },
-        error: (err) => {
-          console.error('❌ Erreur lors de la mise à jour de l’événement:', err);
-          this.saving.set(false);
-          this.error.set('Une erreur est survenue lors de la mise à jour.');
-        },
-      });
-  }
+  this.eventService
+    .update(this.eventId, payload)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        this.saving.set(false);
+        if (response.success) {
+          this.router.navigate(['/dashboard/evenements', this.eventId]);
+        } else {
+          this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de la mise à jour de l\u2019événement:', err);
+        this.saving.set(false);
+        this.error.set('Une erreur est survenue lors de la mise à jour.');
+      },
+    });
+}
 
   cancel(): void {
     if (this.isEditMode() && this.eventId) {
-      this.router.navigate(['/dashboard/evenements', this.eventId]);
+      this.router.navigate(['/dashboard/evenements']);
     } else {
       this.router.navigate(['/dashboard/evenements']);
     }
