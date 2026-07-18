@@ -130,7 +130,7 @@
             </span>
           </div>
 
-          @if (e.validatedByNames?.length) {
+          @if (e.validatedByNames) {
             <div class="ed-info-row">
               <span class="ed-label">Validé par</span>
               <span class="ed-value">{{ e.validatedByNames.join(', ') }}</span>

@@ -13,6 +13,7 @@ import {
 } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
+import { Auth } from '../../../../../core/services/Auth/auth';
 
 interface WizardStep {
   id: 'identite' | 'statut' | 'affectation' | 'recap';
@@ -85,6 +86,7 @@ export class MemberCreate implements OnInit, OnDestroy {
   searchingGodfather = signal(false);
   selectedGodfather: Member | null = null;
   showGodfatherResults = signal(false);
+  canSelectChurch = signal(false);
 
   form: FormGroup;
 
@@ -102,35 +104,38 @@ export class MemberCreate implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private memberService: Members,
     private churchService: ChurchService,
+    private authService: Auth,
     private router: Router
   ) {
     this.form = this.fb.group({
-      identite: this.fb.group({
-        gender: [''],
-        firstName: ['', [Validators.required, Validators.minLength(2)]],
-        lastName: ['', [Validators.required, Validators.minLength(2)]],
-        phone: ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
-        email: ['', [Validators.email]],
-        birthDate: [''],
-      }),
-      statut: this.fb.group({
-        status: ['Visiteur', Validators.required],
-        spiritualStatus: ['NonConverti', Validators.required],
-        isBaptized: [false],
-        baptizedDate: [''],
-        isLeader: [false],
-      }),
-      affectation: this.fb.group({
-        churchId: ['', Validators.required],
-        cellGroupId: [''],
-        ministryId: [''],
-        godfatherId: [''],
-      }),
-      notes: [''],
-    });
+    identite: this.fb.group({
+      gender: [''],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
+      email: ['', [Validators.email]],
+      birthDate: [''],
+    }),
+    statut: this.fb.group({
+      status: ['Visiteur', Validators.required],
+      spiritualStatus: ['NonConverti', Validators.required],
+      isBaptized: [false],
+      baptizedDate: [''],
+      isLeader: [false],
+    }),
+    affectation: this.fb.group({
+      // ✅ Plus de Validators.required ici — sera injecté par le backend pour les non-admins
+      churchId: [''],
+      cellGroupId: [''],
+      ministryId: [''],
+      godfatherId: [''],
+    }),
+    notes: [''],
+  });
   }
 
   ngOnInit(): void {
+
     this.loadCellGroups();
     this.loadChurches();
 
@@ -305,8 +310,11 @@ loadChurches(): void {
     const step = this.steps[index];
     if (step.id === 'identite') return this.identiteGroup.valid;
     if (step.id === 'statut') return this.statutGroup.valid;
+    if (step.id === 'affectation' && this.canSelectChurch()) {
+        return this.affectationGroup.get('churchId')?.valid ?? true;
+    }
     return true;
-  }
+}
 
   goToStep(index: number): void {
     if (index < 0 || index >= this.steps.length) return;
@@ -356,10 +364,12 @@ loadChurches(): void {
   // ───────────────────────────────────────────────────────────────
 
 submit(): void {
-  if (this.identiteGroup.invalid || this.statutGroup.invalid) {
+  const affectationValid = this.canSelectChurch() ? this.affectationGroup.valid : true;
+
+  if (this.identiteGroup.invalid || this.statutGroup.invalid || !affectationValid) {
     this.identiteGroup.markAllAsTouched();
     this.statutGroup.markAllAsTouched();
-    this.currentStepIndex.set(this.identiteGroup.invalid ? 0 : 1);
+    this.currentStepIndex.set(this.identiteGroup.invalid ? 0 : this.statutGroup.invalid ? 1 : 2);
     return;
   }
 
@@ -427,10 +437,7 @@ private finishSubmit(): void {
   const identite = this.identiteGroup.value;
   const statut = this.statutGroup.value;
   const affectation = this.affectationGroup.value;
-  const notes = this.form.get('notes')?.value;
 
-  // ✅ On ne met plus de placeholder photoUrl ici — la photo est uploadée
-  // séparément après création, via updateMemberPhoto()
   return {
     firstName: identite.firstName,
     lastName: identite.lastName,
@@ -443,7 +450,7 @@ private finishSubmit(): void {
     isBaptized: statut.isBaptized,
     baptismDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
     isLeader: statut.isLeader,
-    churchId: affectation.churchId,        // ✅ Obligatoire
+    churchId: affectation.churchId || undefined,
     cellGroupId: affectation.cellGroupId || undefined,
     ministryIds: affectation.ministryId ? [affectation.ministryId] : undefined,
     godfatherId: affectation.godfatherId || undefined,

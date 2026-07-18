@@ -126,8 +126,7 @@ export class ChurchForm implements OnInit, OnDestroy {
     if (this.isEditMode()) {
       this.loadChurch();
     } else {
-      // Un premier site par défaut pour guider la saisie
-      this.addSite();
+
     }
 
     this.pastorSearchControl.valueChanges
@@ -596,7 +595,7 @@ export class ChurchForm implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
-            this.router.navigate(['/dashboard/admin/parametres/eglise/list', response.data.id]);
+            this.router.navigate(['/dashboard/admin/parametres/eglise/list']);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la création.');
           }
@@ -658,7 +657,7 @@ export class ChurchForm implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.router.navigate(['/dashboard/admin/parametres/eglise/list', this.churchId]);
+            this.router.navigate(['/dashboard/admin/parametres/eglise/list']);
           } else {
             this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
           }
@@ -672,7 +671,7 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   cancel(): void {
     if (this.isEditMode() && this.churchId) {
-      this.router.navigate(['/dashboard/admin/parametres/eglise/list', this.churchId]);
+      this.router.navigate(['/dashboard/admin/parametres/eglise/list']);
     } else {
       this.router.navigate(['/dashboard/admin/parametres/eglise/list']);
     }
