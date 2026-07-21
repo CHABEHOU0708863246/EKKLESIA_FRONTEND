@@ -419,3 +419,34 @@ select:focus-visible {
     object-fit: cover;
   }
 }
+
+
+.ml-date-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-white, #fff);
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #ddd);
+
+  .ml-date-label {
+    font-size: 0.8rem;
+    color: var(--text-muted, #777);
+    font-weight: 500;
+  }
+
+  .ml-date-input {
+    border: none;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    background: transparent;
+    color: var(--text-color, #222);
+    outline: none;
+
+    &::-webkit-calendar-picker-indicator {
+      opacity: 0.5;
+      cursor: pointer;
+    }
+  }
+}

@@ -9,6 +9,7 @@ import {
   MemberFilter,
   MemberListResponse,
   MemberSummary,
+  MemberExportFilter, // ✅ NOUVEAU
   DEFAULT_MEMBER_FILTER
 } from '../../models/Members/member.model';
 import {
@@ -43,16 +44,15 @@ export class Members {
   // MEMBRES
   // ───────────────────────────────────────────────────────────────
 
- /**
- * Met à jour la photo d'un membre existant
- * PUT /api/v1/Member/{id}/photo
- * Le membre doit déjà exister (récupérer son id après createMember)
- */
-updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
-  const formData = new FormData();
-  formData.append('photoFile', photoFile, photoFile.name);
-  return this.http.put<Member>(`${this.baseUrl}/${id}/photo`, formData);
-}
+  /**
+   * Met à jour la photo d'un membre existant
+   * PUT /api/v1/Member/{id}/photo
+   */
+  updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
+    const formData = new FormData();
+    formData.append('photoFile', photoFile, photoFile.name);
+    return this.http.put<Member>(`${this.baseUrl}/${id}/photo`, formData);
+  }
 
   /**
    * Crée un nouveau membre
@@ -94,13 +94,13 @@ updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
    * Récupère le résumé des membres
    */
   getMemberSummary(churchId?: string): Observable<MemberSummary> {
-    const params = new HttpParams();
-    if (churchId) params.set('churchId', churchId);
+    let params = new HttpParams();
+    if (churchId) params = params.set('churchId', churchId);
     return this.http.get<MemberSummary>(`${this.baseUrl}/summary`, { params });
   }
 
   /**
-   * Exporte les membres
+   * Exporte les membres au format JSON (existant)
    */
   exportMembers(filter: MemberFilter, format: string = 'json'): Observable<Blob> {
     const params = this.buildFilterParams(filter).set('format', format);
@@ -111,22 +111,44 @@ updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
   }
 
   // ───────────────────────────────────────────────────────────────
-// PHOTO DU MEMBRE
-// ───────────────────────────────────────────────────────────────
+  // 📄 NOUVEAU - EXPORT PDF & EXCEL
+  // ───────────────────────────────────────────────────────────────
 
-
-
-/**
- * Construit l'URL affichable d'une photo de membre stockée dans GridFS.
- * GET /api/v1/Member/photo/{photoId} (endpoint anonyme, renvoie le flux binaire)
- * À utiliser directement dans un [src] d'<img>, pas besoin d'appel HttpClient.
- */
-getMemberPhotoUrl(photoId: string | undefined | null): string {
-  if (!photoId || photoId === 'default-profile-photo') {
-    return 'assets/images/default-avatar.png'; // adaptez le chemin à votre projet
+  /**
+   * Télécharge la fiche membre au format PDF
+   * GET /api/v1/Member/{id}/card-pdf
+   */
+  exportMemberCard(id: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${id}/card-pdf`, {
+      responseType: 'blob'
+    });
   }
-  return `${this.baseUrl}/photo/${photoId}`;
-}
+
+  /**
+   * Exporte la liste des membres en Excel avec filtres (période, église, site, statut)
+   * POST /api/v1/Member/export-excel
+   */
+  exportMembersToExcel(filter: MemberExportFilter): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/export-excel`, filter, {
+      responseType: 'blob'
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // 📸 PHOTO DU MEMBRE
+  // ───────────────────────────────────────────────────────────────
+
+  /**
+   * Construit l'URL affichable d'une photo de membre stockée dans GridFS.
+   * GET /api/v1/Member/photo/{photoId}
+   * À utiliser directement dans un [src] d'<img>
+   */
+  getMemberPhotoUrl(photoId: string | undefined | null): string {
+    if (!photoId || photoId === 'default-profile-photo') {
+      return 'assets/images/default-avatar.png';
+    }
+    return `${this.baseUrl}/photo/${photoId}`;
+  }
 
   // ───────────────────────────────────────────────────────────────
   // SUIVI VISITEURS
@@ -136,13 +158,13 @@ getMemberPhotoUrl(photoId: string | undefined | null): string {
    * Met à jour l'étape du parcours d'un visiteur
    */
   updateVisitorStage(id: string, stage: string): Observable<Member> {
-  const headers = new HttpHeaders().set('Content-Type', 'application/json');
-  return this.http.put<Member>(
-    `${this.baseUrl}/${id}/visitor-stage`,
-    JSON.stringify(stage), // Force la sérialisation JSON
-    { headers }
-  );
-}
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.put<Member>(
+      `${this.baseUrl}/${id}/visitor-stage`,
+      JSON.stringify(stage),
+      { headers }
+    );
+  }
 
   /**
    * Récupère la liste des visiteurs par étape
@@ -260,13 +282,12 @@ getMemberPhotoUrl(photoId: string | undefined | null): string {
   }
 
   /**
- * Récupère les notes pastorales d'un membre
- * GET /api/v1/Member/{memberId}/pastoral-notes
- */
-getPastoralNotesByMember(memberId: string, includeConfidential: boolean = false): Observable<PastoralNote[]> {
-  const params = new HttpParams().set('includeConfidential', includeConfidential.toString());
-  return this.http.get<PastoralNote[]>(`${this.baseUrl}/${memberId}/pastoral-notes`, { params });
-}
+   * Récupère les notes pastorales d'un membre
+   */
+  getPastoralNotesByMember(memberId: string, includeConfidential: boolean = false): Observable<PastoralNote[]> {
+    const params = new HttpParams().set('includeConfidential', includeConfidential.toString());
+    return this.http.get<PastoralNote[]>(`${this.baseUrl}/${memberId}/pastoral-notes`, { params });
+  }
 
   /**
    * Met à jour une note pastorale

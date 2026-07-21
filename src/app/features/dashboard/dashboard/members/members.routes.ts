@@ -7,7 +7,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./member-list/member-list').then((m) => m.MemberList),
-    title: 'Annuaire des membres — EKKLESIA',
+    title: 'Annuaire des membres — MIAV',
   },
 
   // ─── Création ───
@@ -15,7 +15,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'new',
     loadComponent: () =>
       import('./member-create/member-create').then((m) => m.MemberCreate),
-    title: 'Nouveau membre — EKKLESIA',
+    title: 'Nouveau membre — MIAV',
   },
 
   // ─── Pipeline visiteurs (Kanban FirstContact → Adhered) ───
@@ -49,7 +49,7 @@ export const MEMBERS_ROUTES: Routes = [
     path: 'cellules/:id/edit',
     loadComponent: () =>
       import('./cell-group-edit/cell-group-edit').then((m) => m.CellGroupEdit),
-    title: 'Modifier la cellule — EKKLESIA',
+    title: 'Modifier la cellule — MIAV',
   },
 
   // ─── Détail / édition d'un membre ───

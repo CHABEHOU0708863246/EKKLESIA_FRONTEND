@@ -51,7 +51,7 @@ const VISITOR_STAGE_LABELS: Record<VisitorStageKey, string> = {
   FirstContact: '1er contact',
   Invited: 'Invitation',
   InClass: 'Cours',
-  Adhered: 'Adhésion',
+  Adhered: 'Béréhin',
 };
 
 @Component({

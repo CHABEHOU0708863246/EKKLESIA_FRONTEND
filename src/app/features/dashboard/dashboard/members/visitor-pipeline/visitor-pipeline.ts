@@ -23,7 +23,7 @@ const STAGE_COLUMNS: StageColumn[] = [
   { key: 'FirstContact', label: '1er contact', hint: 'Visiteur repéré, pas encore recontacté', colorClass: 'vp-col--sapphire' },
   { key: 'Invited', label: 'Invitation', hint: 'Invité à un culte, une cellule ou un événement', colorClass: 'vp-col--gold' },
   { key: 'InClass', label: 'Cours', hint: 'Suit le parcours de nouveaux ou la catéchèse', colorClass: 'vp-col--violet' },
-  { key: 'Adhered', label: 'Adhésion', hint: 'A rejoint officiellement la communauté', colorClass: 'vp-col--emerald' },
+  { key: 'Adhered', label: 'Béréhin', hint: 'A rejoint officiellement la communauté', colorClass: 'vp-col--emerald' },
 ];
 
 @Component({

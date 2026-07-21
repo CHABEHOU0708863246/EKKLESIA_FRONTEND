@@ -12,7 +12,7 @@ export enum VisitorStage {
   FirstContact = 'FirstContact',
   Invited = 'Invited',
   InClass = 'InClass',
-  Adhered = 'Adhered'
+  Adhered = 'Adhered' // ⚠️ Le nom reste Adhered pour compatibilité backend
 }
 
 export enum SpiritualStatus {
@@ -117,7 +117,11 @@ export interface Member {
   createdBy: string;
   notes: MemberNote[];
   age: number;
-  // ✅ Propriétés de réponse
+
+  // ✅ NOUVEAU - Date d'enregistrement (distinct de createdAt)
+  registrationDate: string;
+
+  // Propriétés de réponse
   isSuccess?: boolean;
   errorMessage?: string;
 }
@@ -151,6 +155,9 @@ export interface MemberCreate {
   isActive?: boolean;
   isBaptized?: boolean;
   isLeader?: boolean;
+
+  // ✅ NOUVEAU - Date d'enregistrement
+  registrationDate?: string;
 }
 
 export interface MemberUpdate {
@@ -181,6 +188,9 @@ export interface MemberUpdate {
   isBaptized?: boolean;
   isLeader?: boolean;
   notes?: MemberNote[];
+
+  // ✅ NOUVEAU - Date d'enregistrement
+  registrationDate?: string;
 }
 
 export interface MemberFilter {
@@ -249,6 +259,15 @@ export interface MemberSummary {
   baptismRate: number;
 }
 
+// ✅ NOUVEAU - Filtre pour l'export des membres
+export interface MemberExportFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  churchId?: string;
+  siteId?: string;
+  status?: MemberStatus;
+}
+
 // ✅ Labels
 export const MemberStatusLabels: Record<MemberStatus, string> = {
   [MemberStatus.Visitor]: 'Visiteur',
@@ -258,11 +277,12 @@ export const MemberStatusLabels: Record<MemberStatus, string> = {
   [MemberStatus.ExMember]: 'Ancien membre'
 };
 
+// ✅ MIS À JOUR - "Adhésion" → "Béréhin"
 export const VisitorStageLabels: Record<VisitorStage, string> = {
   [VisitorStage.FirstContact]: '1er contact',
   [VisitorStage.Invited]: 'Invité',
   [VisitorStage.InClass]: 'En cours',
-  [VisitorStage.Adhered]: 'Adhésion'
+  [VisitorStage.Adhered]: 'Béréhin' // ✅ Changé de "Adhésion" à "Béréhin"
 };
 
 export const VisitorStageColors: Record<VisitorStage, string> = {
@@ -489,6 +509,28 @@ export class MemberUtils {
 
   static getErrorMessage(response: any): string {
     return response?.errorMessage || 'Une erreur est survenue';
+  }
+
+  // ✅ NOUVEAU - Formater la date d'enregistrement
+  static getFormattedRegistrationDate(member: Member): string {
+    if (!member.registrationDate) return 'Non renseigné';
+    return this.getFormattedDate(member.registrationDate);
+  }
+
+  // ✅ NOUVEAU - Vérifier si le membre est Béréhin
+  static isBerehin(member: Member): boolean {
+    return member.status === MemberStatus.Adherent &&
+           member.visitorStage === VisitorStage.Adhered;
+  }
+
+  // ✅ NOUVEAU - Obtenir le libellé complet du statut visiteur
+  static getFullVisitorStatus(member: Member): string {
+    if (member.status !== MemberStatus.Visitor) {
+      return this.getStatusLabel(member.status);
+    }
+    const stage = member.visitorStage;
+    if (!stage) return 'Visiteur';
+    return `Visiteur - ${this.getVisitorStageLabel(stage)}`;
   }
 }
 

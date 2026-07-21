@@ -9,6 +9,8 @@ import {
   Member,
   MemberFilter,
   DEFAULT_MEMBER_FILTER,
+  MemberExportFilter,
+  MemberStatus,
 } from '../../../../../core/models/Members/member.model';
 import { CellGroup } from '../../../../../core/models/Members/cell-group.model';
 import { Members } from '../../../../../core/services/Members/members';
@@ -56,6 +58,9 @@ export class MemberList implements OnInit, OnDestroy {
 
   readonly statusFilterOptions = STATUS_FILTER_OPTIONS;
   readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
+
+  dateFromControl = new FormControl('');
+  dateToControl = new FormControl('');
 
   searchControl = new FormControl('');
   statusControl = new FormControl('');
@@ -155,6 +160,68 @@ export class MemberList implements OnInit, OnDestroy {
         },
       });
   }
+
+/**
+ * Exporte la liste des membres en Excel selon les filtres et la période sélectionnée
+ */
+exportExcel(): void {
+  const dateFrom = this.dateFromControl.value || undefined;
+  const dateTo = this.dateToControl.value || undefined;
+
+  // ✅ Convertir la valeur en MemberStatus avec un cast explicite
+  const statusValue = this.statusControl.value;
+  const status = statusValue ? (statusValue as MemberStatus) : undefined;
+
+  const filter: MemberExportFilter = {
+    dateFrom: dateFrom ? new Date(dateFrom).toISOString() : undefined,
+    dateTo: dateTo ? new Date(dateTo).toISOString() : undefined,
+    churchId: this.filter.churchId,
+    siteId: this.filter.siteId,
+    status: status,
+  };
+
+  this.loading.set(true);
+  this.memberService.exportMembersToExcel(filter).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapport-membres-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      this.loading.set(false);
+    },
+    error: (err) => {
+      console.error('❌ Erreur lors de l\'export Excel:', err);
+      this.error.set('Impossible de générer le rapport Excel.');
+      this.loading.set(false);
+    }
+  });
+}
+
+
+
+/**
+ * Télécharge la fiche PDF d'un membre
+ */
+exportPdf(member: Member, event: Event): void {
+  event.stopPropagation();
+  const id = (member as any).id;
+  this.memberService.exportMemberCard(id).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `fiche-membre-${member.firstName}_${member.lastName}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('❌ Erreur lors du téléchargement de la fiche PDF:', err);
+      this.error.set('Impossible de générer la fiche PDF.');
+    }
+  });
+}
 
   refresh(): void {
     this.loadMembers();
