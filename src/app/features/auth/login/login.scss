@@ -78,7 +78,6 @@ $touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
   min-height: 100vh;
   min-height: 100dvh;
   background: $church-bg-dark;
-  overscroll-behavior: none; // Supprime le pull-to-refresh
   -webkit-overflow-scrolling: touch;
 }
 
@@ -107,15 +106,13 @@ $touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
            env(safe-area-inset-bottom) env(safe-area-inset-left);
   position: relative;
   overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: none;
   font-family: $font;
   background: linear-gradient(135deg, $church-bg-deep 0%, $church-bg-mid 45%, $church-bg-dark 100%);
 
   // Ligne déco dorée en haut
   &::before {
     content: '';
-    position: fixed;
+    position: absolute;   // était: fixed
     top: 0;
     left: 0;
     right: 0;
@@ -142,7 +139,7 @@ $touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
 
 // ── Grille de fond ────────────────────────────────────────────────────
 .background-grid {
-  position: fixed;
+  position: absolute;   // était: fixed
   inset: 0;
   background-image: radial-gradient(circle at 1px 1px, rgba(201, 162, 39, 0.07) 1px, transparent 0);
   background-size: 40px 40px;
@@ -153,7 +150,7 @@ $touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
 
 // ── Glows d'arrière-plan (vitrail) ────────────────────────────────────
 .bg-glow {
-  position: fixed;
+  position: absolute;   // était: fixed
   border-radius: 50%;
   filter: blur(100px);
   pointer-events: none;
@@ -605,7 +602,6 @@ $touch-size:     44px; // Apple HIG taille minimale pour les cibles tactiles
   justify-content: center;
   background: rgba(16, 8, 25, 0.72);
   position: relative;
-  overscroll-behavior: contain;
 
   @media (min-width: 577px) {
     padding: 20px 24px;
