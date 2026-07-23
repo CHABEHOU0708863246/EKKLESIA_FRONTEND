@@ -1,17 +1,17 @@
 // src/app/features/dashboard/dashboard/events/event-form/event-form.ts
+
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-
 
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Site } from '../../../../../core/models/Church/site.model';
-import { EventTypeLabels, EventStatus, EventCreate, EventUpdate } from '../../../../../core/models/Events/event.model';
+import { EventTypeLabels, EventStatus, EventCreate, EventUpdate, EventFormula } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { EventType } from '../../../../../core/models/Events/event.model';
 
@@ -19,6 +19,11 @@ const TYPE_OPTIONS = (Object.keys(EventType) as Array<keyof typeof EventType>).m
   value: EventType[key],
   label: EventTypeLabels[EventType[key]],
 }));
+
+export interface EventResponse extends Event {
+  isSuccess: boolean;
+  errorMessage?: string;
+}
 
 const STATUS_OPTIONS = [
   { value: EventStatus.Scheduled, label: 'Planifié' },
@@ -33,7 +38,7 @@ const CURRENCY_OPTIONS = ['FCFA', 'EUR', 'USD', 'GBP', 'CAD'];
 @Component({
   selector: 'app-event-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
 })
@@ -61,6 +66,10 @@ export class EventForm implements OnInit, OnDestroy {
   showOrganizerResults = signal(false);
   organizerResults = signal<User[]>([]);
   selectedOrganizer = signal<User | null>(null);
+
+  // ── Formules ──
+  formulas = signal<EventFormula[]>([]);
+  editingFormulaIndex = signal<number | null>(null);
 
   form: FormGroup;
 
@@ -137,7 +146,6 @@ export class EventForm implements OnInit, OnDestroy {
         }
       });
 
-    // Le prix à 0 n'a de sens que si l'inscription est requise, sinon on masque le champ
     this.form.get('registrationRequired')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((required: boolean) => {
@@ -157,27 +165,31 @@ export class EventForm implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   private loadEvent(): void {
-  if (!this.eventId) return;
-  this.loading.set(true);
+    if (!this.eventId) return;
+    this.loading.set(true);
 
-  this.eventService
-    .getById(this.eventId)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (event) => { // On renomme 'response' en 'event' pour plus de clarté
-        if (event) {
-          this.populateForm(event); // ✅ On passe directement l'événement au formulaire
-        } else {
+    this.eventService
+      .getById(this.eventId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (event) => {
+          if (event) {
+            this.populateForm(event);
+            // Charger les formules si présentes
+            if (event.formulas && event.formulas.length) {
+              this.formulas.set(event.formulas);
+            }
+          } else {
+            this.error.set('Impossible de charger cet événement.');
+          }
+          this.loading.set(false);
+        },
+        error: () => {
           this.error.set('Impossible de charger cet événement.');
-        }
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Impossible de charger cet événement.');
-        this.loading.set(false);
-      },
-    });
-}
+          this.loading.set(false);
+        },
+      });
+  }
 
   private populateForm(event: any): void {
     this.form.patchValue({
@@ -223,7 +235,6 @@ export class EventForm implements OnInit, OnDestroy {
     if (!date) return '';
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
-    // format datetime-local : YYYY-MM-DDTHH:mm
     const pad = (n: number) => n.toString().padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
@@ -313,6 +324,69 @@ export class EventForm implements OnInit, OnDestroy {
   }
 
   // ───────────────────────────────────────────────────────────────
+  // GESTION DES FORMULES
+  // ───────────────────────────────────────────────────────────────
+
+  addFormula(): void {
+    const newFormula: EventFormula = {
+      id: '', // sera généré par le backend
+      name: '',
+      description: '',
+      price: 0,
+      currency: 'FCFA',
+      capacity: 0,
+      registeredCount: 0,
+      isActive: true,
+      sortOrder: this.formulas().length,
+      createdAt: new Date().toISOString(),
+      availablePlaces: 0,
+      isAvailable: true,
+    };
+    this.formulas.update(current => [...current, newFormula]);
+    this.editingFormulaIndex.set(this.formulas().length - 1);
+  }
+
+  removeFormula(index: number): void {
+    const formula = this.formulas()[index];
+    if (formula.id && formula.registeredCount > 0) {
+      this.error.set(`Impossible de supprimer la formule "${formula.name}" car ${formula.registeredCount} personne(s) y sont inscrites.`);
+      return;
+    }
+    this.formulas.update(current => current.filter((_, i) => i !== index));
+    if (this.editingFormulaIndex() === index) this.editingFormulaIndex.set(null);
+  }
+
+  startEditFormula(index: number): void {
+    this.editingFormulaIndex.set(index);
+  }
+
+  cancelEditFormula(): void {
+    this.editingFormulaIndex.set(null);
+  }
+
+  saveFormula(index: number): void {
+    const formula = this.formulas()[index];
+    if (!formula.name.trim()) {
+      this.error.set('Le nom de la formule est obligatoire.');
+      return;
+    }
+    if (formula.capacity < 1) {
+      this.error.set('La capacité doit être au moins 1.');
+      return;
+    }
+    if (formula.price < 0) {
+      this.error.set('Le prix ne peut pas être négatif.');
+      return;
+    }
+    this.editingFormulaIndex.set(null);
+  }
+
+  // Helper pour obtenir le prix formaté d'une formule
+  getFormulaPrice(formula: EventFormula): string {
+    return formula.price === 0 ? 'Gratuit' : `${formula.price} ${formula.currency}`;
+  }
+
+  // ───────────────────────────────────────────────────────────────
   // VALIDATION / SOUMISSION
   // ───────────────────────────────────────────────────────────────
 
@@ -325,6 +399,14 @@ export class EventForm implements OnInit, OnDestroy {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.error.set('Veuillez corriger les champs invalides avant de continuer.');
+      return;
+    }
+
+    // Vérifier qu'il y a au moins une formule si l'événement est payant
+    const registrationRequired = this.form.get('registrationRequired')?.value;
+    const price = this.form.get('price')?.value || 0;
+    if (registrationRequired && price > 0 && this.formulas().length === 0) {
+      this.error.set('Vous devez ajouter au moins une formule pour un événement payant.');
       return;
     }
 
@@ -343,12 +425,12 @@ export class EventForm implements OnInit, OnDestroy {
     const hasAny = a.street || a.city || a.state || a.postalCode;
     return hasAny
       ? {
-          street: a.street || undefined,
-          city: a.city || undefined,
-          state: a.state || undefined,
-          country: a.country || undefined,
-          postalCode: a.postalCode || undefined,
-        }
+        street: a.street || undefined,
+        city: a.city || undefined,
+        state: a.state || undefined,
+        country: a.country || undefined,
+        postalCode: a.postalCode || undefined,
+      }
       : undefined;
   }
 
@@ -374,6 +456,7 @@ export class EventForm implements OnInit, OnDestroy {
       status: value.status,
       isRecurring: value.isRecurring,
       recurrencePattern: value.recurrencePattern || undefined,
+      formulas: this.formulas().length ? this.formulas() : undefined
     };
 
     this.eventService
@@ -382,71 +465,86 @@ export class EventForm implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.saving.set(false);
-          if (response.success && response.data) {
+          if (response && response.success) {
             this.router.navigate(['/dashboard/evenements']);
           } else {
-            this.error.set(response.message || 'Inscription réussie.');
+            this.error.set(response?.message || 'Erreur lors de la création.');
           }
         },
         error: (err) => {
-          console.error('❌ Erreur lors de la création de l’événement:', err);
           this.saving.set(false);
-          this.error.set('Une erreur est survenue lors de la création.');
+
+          // Si le statut HTTP est un succès (2xx), l'enregistrement a bien eu lieu :
+          // l'erreur vient d'un problème de parsing/format de la réponse, pas d'un vrai échec.
+          const status = err?.status;
+          if (status >= 200 && status < 300) {
+            console.warn('⚠️ La création a réussi côté serveur mais la réponse n’a pas pu être interprétée correctement.', err);
+            this.router.navigate(['/dashboard/evenements']);
+            return;
+          }
+
+          console.error('❌ Erreur lors de la création de l’événement:', err);
+          this.error.set(err?.error?.message || 'Une erreur est survenue lors de la création.');
         },
       });
   }
 
   private updateExistingEvent(): void {
-  if (!this.eventId) return;
-  const value = this.form.value;
-  const payload: EventUpdate = {
-    title: value.title,
-    description: value.description || undefined,
-    type: value.type,
-    startDate: value.startDate,
-    endDate: value.endDate || undefined,
-    location: value.location || undefined,
-    address: this.buildAddressPayload(value),
-    churchId: value.churchId,          // ✅ AJOUT
-    siteId: value.siteId || undefined,
-    organizerId: value.organizerId,    // ✅ AJOUT
-    capacity: value.capacity || undefined,
-    registrationRequired: value.registrationRequired,
-    registrationOpen: value.registrationOpen,
-    registrationDeadline: value.registrationDeadline || undefined,
-    price: value.price || 0,
-    currency: value.currency || 'FCFA',
-    status: value.status,
-    isRecurring: value.isRecurring,
-    recurrencePattern: value.recurrencePattern || undefined,
-  };
+    if (!this.eventId) return;
+    const value = this.form.value;
+    const payload: EventUpdate = {
+      title: value.title,
+      description: value.description || undefined,
+      type: value.type,
+      startDate: value.startDate,
+      endDate: value.endDate || undefined,
+      location: value.location || undefined,
+      address: this.buildAddressPayload(value),
+      churchId: value.churchId,
+      siteId: value.siteId || undefined,
+      organizerId: value.organizerId,
+      capacity: value.capacity || undefined,
+      registrationRequired: value.registrationRequired,
+      registrationOpen: value.registrationOpen,
+      registrationDeadline: value.registrationDeadline || undefined,
+      price: value.price || 0,
+      currency: value.currency || 'FCFA',
+      status: value.status,
+      isRecurring: value.isRecurring,
+      recurrencePattern: value.recurrencePattern || undefined,
+      formulas: this.formulas().length ? this.formulas() : undefined,
+    };
 
-  this.eventService
-    .update(this.eventId, payload)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        this.saving.set(false);
-        if (response.success) {
-          this.router.navigate(['/dashboard/evenements', this.eventId]);
-        } else {
-          this.error.set(response.message || 'Une erreur est survenue lors de la mise à jour.');
-        }
-      },
-      error: (err) => {
-        console.error('❌ Erreur lors de la mise à jour de l\u2019événement:', err);
-        this.saving.set(false);
-        this.error.set('Une erreur est survenue lors de la mise à jour.');
-      },
-    });
-}
+    this.eventService
+      .update(this.eventId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.saving.set(false);
+          if (response && response.success) {
+            this.router.navigate(['/dashboard/evenements', this.eventId]);
+          } else {
+            this.error.set(response?.message || 'Erreur lors de la mise à jour.');
+          }
+        },
+        error: (err) => {
+          this.saving.set(false);
+
+          const status = err?.status;
+          if (status >= 200 && status < 300) {
+            console.warn('⚠️ La mise à jour a réussi côté serveur mais la réponse n’a pas pu être interprétée correctement.', err);
+            this.router.navigate(['/dashboard/evenements', this.eventId]);
+            return;
+          }
+
+          console.error('❌ Erreur lors de la mise à jour de l’événement:', err);
+          this.error.set(err?.error?.message || 'Une erreur est survenue lors de la mise à jour.');
+        },
+      });
+  }
 
   cancel(): void {
-    if (this.isEditMode() && this.eventId) {
-      this.router.navigate(['/dashboard/evenements']);
-    } else {
-      this.router.navigate(['/dashboard/evenements']);
-    }
+    this.router.navigate(['/dashboard/evenements']);
   }
 
   getInitials(): string {

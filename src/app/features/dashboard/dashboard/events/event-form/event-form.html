@@ -1,4 +1,5 @@
 <!-- src/app/features/dashboard/dashboard/events/event-form/event-form.html -->
+
 <div class="ef-page">
 
   <!-- ══════════════ EN-TÊTE ══════════════ -->
@@ -220,6 +221,70 @@
             </label>
           </div>
 
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────── FORMULES (NOUVEAU) ─────────── -->
+    <section class="ef-panel">
+      <div class="ef-panel-header">
+        <h2>Formules d'inscription</h2>
+        <button type="button" class="ef-btn ef-btn--small" (click)="addFormula()">+ Ajouter une formule</button>
+      </div>
+      <div class="ef-panel-body">
+        <p class="ef-hint" *ngIf="formulas().length === 0">Aucune formule définie. Ajoutez-en une pour proposer différents tarifs (ex: Chambre simple, Dortoir...).</p>
+
+        <div class="ef-formula-list">
+          <div class="ef-formula-item" *ngFor="let formula of formulas(); let i = index">
+            <div class="ef-formula-header">
+              <span class="ef-formula-name">{{ formula.name || 'Nouvelle formule' }}</span>
+              <span class="ef-formula-price">{{ getFormulaPrice(formula) }}</span>
+              <div class="ef-formula-actions">
+                <button type="button" class="ef-icon-btn" (click)="startEditFormula(i)" *ngIf="editingFormulaIndex() !== i">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5L20 7 8 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button type="button" class="ef-icon-btn ef-icon-btn--danger" (click)="removeFormula(i)">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Formulaire d'édition -->
+            <div class="ef-formula-edit" *ngIf="editingFormulaIndex() === i">
+              <div class="ef-formula-fields">
+                <div class="ef-field">
+                  <label>Nom *</label>
+                  <input type="text" [(ngModel)]="formula.name" placeholder="Ex. Chambre double" [ngModelOptions]="{standalone: true}">
+                </div>
+                <div class="ef-field">
+                  <label>Description</label>
+                  <input type="text" [(ngModel)]="formula.description" placeholder="Optionnel" [ngModelOptions]="{standalone: true}">
+                </div>
+                <div class="ef-field">
+                  <label>Prix</label>
+                  <input type="number" min="0" step="0.01" [(ngModel)]="formula.price" [ngModelOptions]="{standalone: true}">
+                </div>
+                <div class="ef-field">
+                  <label>Devise</label>
+                  <select [(ngModel)]="formula.currency" [ngModelOptions]="{standalone: true}">
+                    <option *ngFor="let c of currencyOptions" [value]="c">{{ c }}</option>
+                  </select>
+                </div>
+                <div class="ef-field">
+                  <label>Capacité *</label>
+                  <input type="number" min="1" [(ngModel)]="formula.capacity" [ngModelOptions]="{standalone: true}">
+                </div>
+                <div class="ef-field">
+                  <label>Actif</label>
+                  <input type="checkbox" [(ngModel)]="formula.isActive" [ngModelOptions]="{standalone: true}">
+                </div>
+              </div>
+              <div class="ef-formula-edit-actions">
+                <button type="button" class="ef-btn ef-btn--small ef-btn--ghost" (click)="cancelEditFormula()">Annuler</button>
+                <button type="button" class="ef-btn ef-btn--small ef-btn--primary" (click)="saveFormula(i)">Enregistrer</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,9 +1,6 @@
 <!-- src/app/features/dashboard/dashboard/events/event-registrations/event-registrations.html -->
+
 <div class="er-page">
-
-
-
-  
 
   <!-- ══════════════ EN-TÊTE ══════════════ -->
   <header class="er-page-header">
@@ -35,7 +32,7 @@
     <span class="er-spinner"></span> Chargement…
   </div>
 
-  <!-- ══════════════ LISTE DES ÉVÉNEMENTS (si aucun sélectionné) ══════════════ -->
+  <!-- ══════════════ LISTE DES ÉVÉNEMENTS ══════════════ -->
   <div *ngIf="!loading() && !event() && events().length > 0" class="er-event-list">
     <h3>Sélectionnez un événement</h3>
     <div class="er-event-grid">
@@ -64,12 +61,8 @@
         <span class="er-summary-label">Inscrits</span>
         <span>{{ event()?.attendees?.length || 0 }}</span>
       </div>
-      <div class="er-summary-item" *ngIf="event()?.capacity">
-        <span class="er-summary-label">Places</span>
-        <span>{{ event()?.capacity }}</span>
-      </div>
       <div class="er-summary-item">
-        <span class="er-summary-label">Disponibles</span>
+        <span class="er-summary-label">Places disponibles</span>
         <span>{{ isFull() ? 'Complet' : availableSpots }}</span>
       </div>
       <div class="er-summary-item">
@@ -82,8 +75,11 @@
     <section class="er-panel">
       <div class="er-panel-header">
         <h2>Nouveau participant</h2>
+        <button class="er-btn er-btn--small er-btn--ghost" (click)="toggleAddForm()">
+          {{ showAddForm() ? 'Fermer' : '+ Ajouter' }}
+        </button>
       </div>
-      <div class="er-panel-body er-panel-body--form">
+      <div class="er-panel-body er-panel-body--form" *ngIf="showAddForm()">
         <form [formGroup]="registerForm" (ngSubmit)="registerAttendee()" class="er-form">
           <div class="er-form-row">
             <div class="er-field">
@@ -109,6 +105,21 @@
             </div>
           </div>
           <div class="er-form-row">
+            <!-- ✅ Sélection de la formule -->
+            <div class="er-field">
+              <label for="formulaId">Formule <span class="er-required">*</span></label>
+              <div class="er-select-wrap">
+                <select id="formulaId" formControlName="formulaId">
+                  <option value="" disabled>Sélectionnez une formule</option>
+                  <option *ngFor="let f of getAvailableFormulas()" [value]="f.id">
+                    {{ f.name }} – {{ f.price }} {{ f.currency }} ({{ f.availablePlaces }} places)
+                  </option>
+                </select>
+                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <p class="er-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
+              <p class="er-text-warning" *ngIf="getAvailableFormulas().length === 0">Aucune formule disponible pour cet événement.</p>
+            </div>
             <div class="er-field">
               <label for="paymentStatus">Statut de paiement</label>
               <div class="er-select-wrap">
@@ -126,8 +137,8 @@
             </div>
           </div>
           <div class="er-form-actions">
-            <button type="button" class="er-btn er-btn--ghost" (click)="registerForm.reset()">Annuler</button>
-            <button type="submit" class="er-btn er-btn--primary" [disabled]="adding() || !canRegister() || isFull()">
+            <button type="button" class="er-btn er-btn--ghost" (click)="toggleAddForm()">Annuler</button>
+            <button type="submit" class="er-btn er-btn--primary" [disabled]="adding() || !canRegister() || isFull() || getAvailableFormulas().length === 0">
               <span *ngIf="!adding()">Inscrire</span>
               <span class="er-spinner er-spinner--btn" *ngIf="adding()"></span>
             </button>
@@ -136,7 +147,7 @@
             <p class="er-text-muted">Les inscriptions sont actuellement fermées pour cet événement.</p>
           </div>
           <div class="er-form-status" *ngIf="isFull()">
-            <p class="er-text-warning">Capacité atteinte, plus d’inscriptions possibles.</p>
+            <p class="er-text-warning">Plus de places disponibles (toutes les formules sont complètes).</p>
           </div>
         </form>
       </div>
@@ -157,6 +168,7 @@
               <th>Nom</th>
               <th>Email</th>
               <th>Téléphone</th>
+              <th>Formule</th>
               <th>Inscription</th>
               <th>Check-in</th>
               <th>Paiement</th>
@@ -168,6 +180,7 @@
               <td>{{ getAttendeeFullName(a) }}</td>
               <td>{{ a.email || '—' }}</td>
               <td>{{ a.phone || '—' }}</td>
+              <td>{{ getFormulaName(a.formulaId) }}</td>
               <td>{{ formatDateTime(a.registrationDate) }}</td>
               <td>
                 <button class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn"

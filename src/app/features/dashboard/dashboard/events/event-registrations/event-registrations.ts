@@ -1,3 +1,5 @@
+// src/app/features/dashboard/dashboard/events/event-registrations/event-registrations.ts
+
 import { Component, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -5,7 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 
-import { Event, EventStatus, PaymentStatus, EventAttendeeRegister } from '../../../../../core/models/Events/event.model';
+import { Event, EventStatus, PaymentStatus, EventAttendeeRegister, EventFormula } from '../../../../../core/models/Events/event.model';
 import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 
@@ -47,12 +49,15 @@ export class EventRegistrations implements OnInit {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.email]],
       phone: [''],
+      // ✅ NOUVEAU : Sélection de la formule
+      formulaId: ['', Validators.required],
       paymentStatus: [PaymentStatus.Pending],
       notes: [''],
     });
   }
 
-  ngOnInit(): void {
+
+    ngOnInit(): void {
     const eventId = this.route.snapshot.queryParamMap.get('eventId');
     if (eventId) {
       this.loadEvent(eventId);
@@ -61,6 +66,8 @@ export class EventRegistrations implements OnInit {
       this.loadEventsList();
     }
   }
+
+
 
   // ───────────────────────────────────────────────────────────────
   // CHARGEMENT DE LA LISTE DES ÉVÉNEMENTS
@@ -117,6 +124,16 @@ export class EventRegistrations implements OnInit {
 
           if (ev) {
             this.event.set(ev);
+            // Si des formules sont disponibles, pré-sélectionner la première active
+            if (ev.formulas && ev.formulas.length > 0) {
+              const defaultFormula = ev.formulas.find(f => f.isActive && f.isAvailable);
+              if (defaultFormula) {
+                this.registerForm.patchValue({ formulaId: defaultFormula.id });
+              } else {
+                // Si aucune formule disponible, sélectionner la première (sera désactivée)
+                this.registerForm.patchValue({ formulaId: ev.formulas[0]?.id || '' });
+              }
+            }
             this.loading.set(false);
           } else {
             this.error.set('Aucune donnée d’événement trouvée.');
@@ -156,11 +173,20 @@ export class EventRegistrations implements OnInit {
         lastName: '',
         email: '',
         phone: '',
+        formulaId: this.getDefaultFormulaId(),
         paymentStatus: PaymentStatus.Pending,
         notes: '',
       });
     }
     this.showAddForm.update((v) => !v);
+  }
+
+  // Helper pour récupérer la première formule disponible
+  private getDefaultFormulaId(): string {
+    const ev = this.event();
+    if (!ev || !ev.formulas || ev.formulas.length === 0) return '';
+    const active = ev.formulas.find(f => f.isActive && f.isAvailable);
+    return active ? active.id : ev.formulas[0]?.id || '';
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -177,13 +203,26 @@ export class EventRegistrations implements OnInit {
     if (!ev) return;
 
     const value = this.registerForm.value;
-    const payload: EventAttendeeRegister = {
+    const selectedFormula = ev.formulas?.find(f => f.id === value.formulaId);
+    if (!selectedFormula) {
+      this.error.set('Veuillez sélectionner une formule valide.');
+      return;
+    }
+    if (!selectedFormula.isAvailable) {
+      this.error.set('Cette formule n’a plus de places disponibles.');
+      return;
+    }
+
+    const payload: any = {
       eventId: ev.id,
       memberId: value.memberId || undefined,
       firstName: value.firstName.trim(),
       lastName: value.lastName.trim(),
       email: value.email || undefined,
       phone: value.phone || undefined,
+      formulaId: selectedFormula.id,
+      formulaName: selectedFormula.name,
+      formulaPrice: selectedFormula.price,
       paymentStatus: value.paymentStatus,
       notes: value.notes || undefined,
     };
@@ -212,15 +251,14 @@ export class EventRegistrations implements OnInit {
               lastName: '',
               email: '',
               phone: '',
+              formulaId: this.getDefaultFormulaId(),
               paymentStatus: PaymentStatus.Pending,
               notes: '',
             });
             Object.keys(this.registerForm.controls).forEach((key) => {
               this.registerForm.get(key)?.markAsPristine();
             });
-            // Pas d'erreur, on la vide
             this.error.set(null);
-            // Vous pouvez ajouter un message de succès (toast) ici
           } else {
             this.error.set(response.message || 'Erreur lors de l’inscription.');
           }
@@ -247,7 +285,7 @@ export class EventRegistrations implements OnInit {
     this.eventService
       .checkInAttendee({
         eventId: ev.id,
-        attendeeId: attendee.memberId || attendee.email || '',
+        attendeeId: attendee.id || attendee.memberId || '',
         checkedIn: newCheckedIn,
       })
       .pipe(
@@ -277,7 +315,8 @@ export class EventRegistrations implements OnInit {
     const ev = this.event();
     if (!ev) return;
 
-    const identifier = attendee.memberId || attendee.email || '';
+    // Utiliser l'ID du participant si disponible, sinon email
+    const identifier = attendee.id || attendee.memberId || attendee.email || '';
     if (!identifier) return;
 
     if (!confirm(`Retirer ${attendee.firstName} ${attendee.lastName} de l’événement ?`)) return;
@@ -320,15 +359,41 @@ export class EventRegistrations implements OnInit {
 
   isFull(): boolean {
     const ev = this.event();
-    return !!ev && ev.capacity !== undefined && ev.capacity > 0 && (ev.attendees?.length || 0) >= ev.capacity;
+    if (!ev) return false;
+    // Si l'événement a des formules, vérifier si toutes sont pleines
+    if (ev.formulas && ev.formulas.length > 0) {
+      return ev.formulas.every(f => !f.isAvailable);
+    }
+    // Sinon, utilisation de la capacité globale (ancien comportement)
+    return ev.capacity !== undefined && ev.capacity > 0 && (ev.attendees?.length || 0) >= ev.capacity;
   }
 
   get availableSpots(): number {
     const ev = this.event();
     if (!ev) return 0;
+    if (ev.formulas && ev.formulas.length > 0) {
+      return ev.formulas.reduce((sum, f) => sum + (f.isAvailable ? f.availablePlaces : 0), 0);
+    }
     if (ev.capacity) return Math.max(0, ev.capacity - (ev.attendees?.length || 0));
     return Infinity;
   }
+
+  // Retourne les formules disponibles pour l'inscription
+  getAvailableFormulas(): EventFormula[] {
+    const ev = this.event();
+    if (!ev || !ev.formulas) return [];
+    return ev.formulas.filter(f => f.isActive && f.isAvailable);
+  }
+
+  // Pour afficher le nom et le prix de la formule dans la liste des participants
+  // Dans event-registrations.ts
+getFormulaName(formulaId?: string): string {
+  if (!formulaId) return '—';
+  const ev = this.event();
+  if (!ev || !ev.formulas) return '—';
+  const formula = ev.formulas.find(f => f.id === formulaId);
+  return formula ? `${formula.name} (${formula.price} ${formula.currency})` : '—';
+}
 
   goBack(): void {
     const ev = this.event();

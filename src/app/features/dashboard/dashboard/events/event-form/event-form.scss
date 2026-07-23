@@ -212,3 +212,111 @@
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
 }
+
+
+
+
+// src/app/features/dashboard/dashboard/events/event-form/event-form.scss
+
+// ... (vos styles existants)
+
+// ─────────── FORMULES ───────────
+.ef-formula-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ef-formula-item {
+  border: 1px solid var(--ef-border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: var(--ef-bg-panel, #fff);
+
+  .ef-formula-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    .ef-formula-name {
+      font-weight: 600;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    .ef-formula-price {
+      font-weight: 500;
+      color: var(--ef-primary, #3b82f6);
+      padding: 0.25rem 0.75rem;
+      background: var(--ef-primary-light, #eff6ff);
+      border-radius: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .ef-formula-actions {
+      display: flex;
+      gap: 0.25rem;
+
+      .ef-icon-btn {
+        padding: 0.25rem;
+        svg {
+          width: 1.2rem;
+          height: 1.2rem;
+        }
+
+        &.ef-icon-btn--danger svg {
+          stroke: var(--ef-danger, #ef4444);
+        }
+      }
+    }
+  }
+
+  .ef-formula-edit {
+    margin-top: 1rem;
+    border-top: 1px solid var(--ef-border-light, #f3f4f6);
+    padding-top: 1rem;
+
+    .ef-formula-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+
+      .ef-field {
+        margin-bottom: 0;
+
+        label {
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+
+        input, select {
+          padding: 0.4rem 0.6rem;
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .ef-formula-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+  }
+}
+
+.ef-hint {
+  color: var(--ef-text-secondary, #6b7280);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .ef-formula-item .ef-formula-fields {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,6 @@
-
+// ============================================================
+// 1. ENUMS
+// ============================================================
 
 export enum EventType {
   SundayService = 'SundayService',
@@ -15,17 +17,6 @@ export enum EventType {
   Other = 'Other'
 }
 
-
-export interface Address {
-  street?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  latitude?: number;
-  longitude?: number;
-}
-
 export enum EventStatus {
   Scheduled = 'Scheduled',
   Ongoing = 'Ongoing',
@@ -38,18 +29,73 @@ export enum PaymentStatus {
   Pending = 'Pending',
   Paid = 'Paid',
   Cancelled = 'Cancelled',
-  Refunded = 'Refunded'
+  Refunded = 'Refunded',
+  Failed = 'Failed',      // ✅ Ajouté
+  Expired = 'Expired'     // ✅ Ajouté
 }
 
+export enum ParticipantProfileType {
+  Member = 'Member',       // Membre de l'église
+  Berehin = 'Berehin',     // Béréhin (visiteur intégré)
+  External = 'External',   // Personne extérieure
+  Leader = 'Leader',       // Leader
+  Pastor = 'Pastor'        // Pasteur
+}
+
+// ============================================================
+// 2. MODÈLES DE BASE
+// ============================================================
+
+export interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+// ============================================================
+// 3. FORMULE (EventFormula)
+// ============================================================
+
+export interface EventFormula {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;          // ex: "FCFA"
+  capacity: number;
+  registeredCount: number;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;         // ISO date string
+  // Propriétés calculées
+  availablePlaces: number;
+  isAvailable: boolean;
+}
+
+// ============================================================
+// 4. PARTICIPANT (EventAttendee)
+// ============================================================
+
 export interface EventAttendee {
-  id?: string;
+  id?: string;               // Généré côté serveur
   memberId?: string;
   firstName: string;
   lastName: string;
-  fullName: string;
+  fullName: string;          // Calculé (first + last)
   email?: string;
   phone?: string;
-  registrationDate: string;
+  gender?: string;           // ✅ Nouveau
+  profileType?: string;      // ✅ Nouveau (reflète ParticipantProfileType)
+  formulaId?: string;        // ✅ Nouveau
+  formulaName?: string;      // ✅ Nouveau (dénormalisé)
+  formulaPrice?: number;     // ✅ Nouveau
+  paymentMethod?: string;    // ✅ Nouveau (wave, orange_money, etc.)
+  paymentReference?: string; // ✅ Nouveau
+  registrationDate: string;  // ISO date
   checkedIn: boolean;
   checkInTime?: string;
   paymentStatus: PaymentStatus;
@@ -59,6 +105,34 @@ export interface EventAttendee {
   formattedRegistrationDate: string;
   formattedCheckInTime?: string;
 }
+
+// ============================================================
+// 5. TRANSACTION DE PAIEMENT (PaymentTransaction)
+// ============================================================
+
+export interface PaymentTransaction {
+  id: string;
+  attendeeId: string;
+  eventId: string;
+  amount: number;
+  currency: string;
+  provider: string;          // wave, orange_money, mtn_money
+  reference?: string;        // Référence GeniusPay
+  paymentUrl?: string;
+  checkoutUrl?: string;
+  qrCode?: string;           // Base64
+  status: PaymentStatus;
+  metadata?: Record<string, any>;
+  webhookPayload?: string;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+  errorMessage?: string;
+}
+
+// ============================================================
+// 6. ÉVÉNEMENT COMPLET (Event)
+// ============================================================
 
 export interface Event {
   id: string;
@@ -78,6 +152,8 @@ export interface Event {
   siteId?: string;
   siteName?: string;
   capacity?: number;
+  // ✅ Nouveau : liste des formules
+  formulas: EventFormula[];
   registrationRequired: boolean;
   registrationOpen: boolean;
   registrationDeadline?: string;
@@ -92,6 +168,7 @@ export interface Event {
   createdAt: string;
   updatedAt?: string;
   createdBy: string;
+  // Propriétés calculées
   attendeeCount: number;
   checkedInCount: number;
   paidCount: number;
@@ -105,11 +182,123 @@ export interface Event {
   errorMessage?: string;
 }
 
+// ============================================================
+// 7. DTOs POUR LES REQUÊTES/RÉPONSES
+// ============================================================
+
+// 7.1 DTO pour la formule (retour API)
+export interface EventFormulaDto {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;
+  capacity: number;
+  registeredCount: number;
+  availablePlaces: number;
+  isAvailable: boolean;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+// 7.2 DTO pour un participant (retour API)
+export interface EventAttendeeDto {
+  memberId?: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  registrationDate: string;
+  checkedIn: boolean;
+  checkInTime?: string;
+  paymentStatus: PaymentStatus;
+  paymentStatusLabel: string;
+  paymentStatusColor: string;
+  notes?: string;
+  formattedRegistrationDate: string;
+  formattedCheckInTime?: string;
+}
+
+// 7.3 DTO pour l'inscription d'un participant (admin)
+export interface EventRegistrationDto {
+  memberId?: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  gender?: string;               // ✅ Nouveau
+  profileType: ParticipantProfileType;
+  formulaId?: string;            // ✅ Nouveau
+  formulaName?: string;
+  formulaPrice?: number;
+  paymentMethod?: string;
+  paymentReference?: string;
+  registrationDate?: string;
+  checkedIn?: boolean;
+  checkInTime?: string;
+  paymentStatus?: PaymentStatus;
+  notes?: string;
+}
+
+// 7.4 DTO pour l'inscription publique (sans compte)
+export interface EventPublicRegistrationDto {
+  eventId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  gender: string;                // ✅ Requis
+  profileType: ParticipantProfileType;
+  formulaId: string;             // ✅ Requis
+  paymentMethod?: string;        // wave, orange_money, mtn_money
+  memberId?: string;             // optionnel si déjà membre
+}
+
+// 7.5 Réponse après inscription publique
+export interface EventPublicRegistrationResponseDto {
+  registrationId: string;
+  checkoutUrl?: string;
+  paymentUrl?: string;
+  qrCode?: string;
+  reference?: string;
+  amount: number;
+  currency: string;
+  message: string;
+  success: boolean;
+}
+export interface EventAttendeeCheckIn {
+  eventId: string;
+  attendeeId: string;
+  checkedIn: boolean;
+}
+
+export interface EventSummary {
+  totalEvents: number;
+  upcomingEvents: number;
+  ongoingEvents: number;
+  completedEvents: number;
+  cancelledEvents: number;
+  eventsByType: Record<EventType, number>;
+  totalAttendees: number;
+  totalCheckedIn: number;
+  totalPaid: number;
+  totalRevenue: number;
+  nextEvent?: Event;
+  recentEvents: Event[];
+  popularEvents: Event[];
+  averageAttendeesPerEvent: number;
+  checkInRate: number;
+  paymentRate: number;
+}
+
+
+// 7.6 DTO pour la création d'un événement
 export interface EventCreate {
   title: string;
   description?: string;
   type: EventType;
-  startDate: string;
+  startDate: string;            // ISO
   endDate?: string;
   location?: string;
   address?: Address;
@@ -125,8 +314,10 @@ export interface EventCreate {
   status?: EventStatus;
   isRecurring?: boolean;
   recurrencePattern?: string;
+  formulas?: EventFormula[];
 }
 
+// 7.7 DTO pour la mise à jour
 export interface EventUpdate {
   title?: string;
   description?: string;
@@ -135,9 +326,9 @@ export interface EventUpdate {
   endDate?: string;
   location?: string;
   address?: Address;
-  churchId?: string;      // ⬅️ AJOUT — à garder seulement si l'église doit être modifiable en édition
+  organizerId?: string;
+  churchId?: string;
   siteId?: string;
-  organizerId?: string;   // ⬅️ AJOUT — c'est la cause racine du bug
   capacity?: number;
   registrationRequired?: boolean;
   registrationOpen?: boolean;
@@ -147,8 +338,15 @@ export interface EventUpdate {
   status?: EventStatus;
   isRecurring?: boolean;
   recurrencePattern?: string;
+  formulas?: EventFormula[];
 }
 
+export interface EventResponse extends Event {
+  isSuccess: boolean;
+  errorMessage?: string;
+}
+
+// 7.8 DTO pour le filtre de recherche
 export interface EventFilter {
   title?: string;
   type?: EventType;
@@ -175,9 +373,10 @@ export interface EventFilter {
   page: number;
   pageSize: number;
   sortBy?: string;
-  sortOrder?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
+// 7.9 Réponse paginée
 export interface EventListResponse {
   items: Event[];
   totalCount: number;
@@ -188,42 +387,25 @@ export interface EventListResponse {
   hasNextPage: boolean;
 }
 
-export interface EventSummary {
-  totalEvents: number;
-  upcomingEvents: number;
-  ongoingEvents: number;
-  completedEvents: number;
-  cancelledEvents: number;
-  eventsByType: Record<EventType, number>;
-  totalAttendees: number;
-  totalCheckedIn: number;
-  totalPaid: number;
-  totalRevenue: number;
-  nextEvent?: Event;
-  recentEvents: Event[];
-  popularEvents: Event[];
-  averageAttendeesPerEvent: number;
-  checkInRate: number;
-  paymentRate: number;
-}
-
-export interface EventAttendeeRegister {
-  eventId: string;
-  memberId?: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  paymentStatus?: PaymentStatus;
-  notes?: string;
-}
-
-export interface EventAttendeeCheckIn {
+// 7.10 DTO pour le check-in
+export interface EventAttendeeCheckInDto {
   eventId: string;
   attendeeId: string;
   checkedIn: boolean;
 }
 
+// 7.11 DTO pour la réponse de statut de paiement
+export interface RegistrationStatusResponse {
+  success: boolean;
+  attendeeId: string;
+  paymentStatus: string;
+  isPaid: boolean;
+  reference?: string;
+}
+
+// ============================================================
+// 8. HELPERS / UTILS
+// ============================================================
 
 export const EventTypeLabels: Record<EventType, string> = {
   [EventType.SundayService]: 'Culte dominical',
@@ -290,17 +472,40 @@ export const PaymentStatusLabels: Record<PaymentStatus, string> = {
   [PaymentStatus.Pending]: 'En attente',
   [PaymentStatus.Paid]: 'Payé',
   [PaymentStatus.Cancelled]: 'Annulé',
-  [PaymentStatus.Refunded]: 'Remboursé'
+  [PaymentStatus.Refunded]: 'Remboursé',
+  [PaymentStatus.Failed]: 'Échoué',     // ✅
+  [PaymentStatus.Expired]: 'Expiré'     // ✅
 };
 
 export const PaymentStatusColors: Record<PaymentStatus, string> = {
   [PaymentStatus.Pending]: 'warning',
   [PaymentStatus.Paid]: 'success',
   [PaymentStatus.Cancelled]: 'danger',
-  [PaymentStatus.Refunded]: 'secondary'
+  [PaymentStatus.Refunded]: 'secondary',
+  [PaymentStatus.Failed]: 'danger',     // ✅
+  [PaymentStatus.Expired]: 'secondary'  // ✅
 };
 
-// Classe utilitaire pour les événements
+export const ParticipantProfileLabels: Record<ParticipantProfileType, string> = {
+  [ParticipantProfileType.Member]: 'Membre',
+  [ParticipantProfileType.Berehin]: 'Béréhin',
+  [ParticipantProfileType.External]: 'Externe',
+  [ParticipantProfileType.Leader]: 'Leader',
+  [ParticipantProfileType.Pastor]: 'Pasteur'
+};
+
+export const ParticipantProfileColors: Record<ParticipantProfileType, string> = {
+  [ParticipantProfileType.Member]: 'primary',
+  [ParticipantProfileType.Berehin]: 'success',
+  [ParticipantProfileType.External]: 'secondary',
+  [ParticipantProfileType.Leader]: 'warning',
+  [ParticipantProfileType.Pastor]: 'danger'
+};
+
+// ============================================================
+// 9. CLASSE UTILITAIRE (EventUtils)
+// ============================================================
+
 export class EventUtils {
   static getTypeLabel(type: EventType): string {
     return EventTypeLabels[type] || type;
@@ -330,16 +535,26 @@ export class EventUtils {
     return PaymentStatusColors[status] || 'secondary';
   }
 
-  static getFormattedDate(date: string): string {
-    return new Date(date).toLocaleDateString('fr-FR', {
+  static getParticipantProfileLabel(profile: ParticipantProfileType): string {
+    return ParticipantProfileLabels[profile] || profile;
+  }
+
+  static getParticipantProfileColor(profile: ParticipantProfileType): string {
+    return ParticipantProfileColors[profile] || 'secondary';
+  }
+
+  static getFormattedDate(date: string | Date): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
   }
 
-  static getFormattedDateTime(date: string): string {
-    return new Date(date).toLocaleString('fr-FR', {
+  static getFormattedDateTime(date: string | Date): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -348,10 +563,10 @@ export class EventUtils {
     });
   }
 
-  static getDuration(startDate: string, endDate?: string): string {
+  static getDuration(startDate: string | Date, endDate?: string | Date): string {
     if (!endDate) return 'N/A';
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
     const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return `${diffHours.toFixed(1)}h`;
   }
@@ -384,7 +599,6 @@ export class EventUtils {
   static searchEvents(events: Event[], searchTerm: string): Event[] {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return events;
-
     return events.filter(event =>
       event.title.toLowerCase().includes(term) ||
       (event.description && event.description.toLowerCase().includes(term)) ||
@@ -474,6 +688,22 @@ export class EventUtils {
     };
   }
 }
+
+export interface EventAttendeeRegister {
+  eventId: string;
+  memberId?: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  paymentStatus?: PaymentStatus;
+  notes?: string;
+}
+
+
+// ============================================================
+// 10. DEFAUTS
+// ============================================================
 
 export const DEFAULT_EVENT_FILTER: EventFilter = {
   page: 1,

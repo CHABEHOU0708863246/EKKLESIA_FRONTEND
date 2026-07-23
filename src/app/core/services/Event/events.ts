@@ -1,5 +1,3 @@
-// src/app/core/services/api/event.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -14,22 +12,51 @@ import {
   EventSummary,
   EventAttendeeRegister,
   EventAttendeeCheckIn,
-  DEFAULT_EVENT_FILTER
+  DEFAULT_EVENT_FILTER,
+  EventFormula,
+  EventPublicRegistrationDto,
+  EventPublicRegistrationResponseDto,
+  RegistrationStatusResponse
 } from '../../models/Events/event.model';
 import { ApiResponse } from '../../models/Common/api-response.model';
+
+// DTOs pour les formules (à ajouter dans le modèle)
+export interface FormulaCreateDto {
+  name: string;
+  description?: string;
+  price: number;
+  currency?: string;
+  capacity: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export interface FormulaUpdateDto {
+  name?: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  capacity?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class Events {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Event`;
+  private readonly publicBaseUrl = `${environment.apiUrl}/api/v1/public/PublicRegistration`;
 
   constructor(private http: HttpClient) {}
+
+  // ============================================================
+  // GESTION DES ÉVÉNEMENTS (admin)
+  // ============================================================
 
   /**
    * Crée un nouvel événement
    * POST /api/v1/Event
-   * ✅ Retourne EventResponseDto (avec IsSuccess, data, etc.)
    */
   create(eventData: EventCreate): Observable<ApiResponse<Event>> {
     return this.http.post<ApiResponse<Event>>(this.baseUrl, eventData);
@@ -38,15 +65,14 @@ export class Events {
   /**
    * Récupère un événement par son ID
    * GET /api/v1/Event/{id}
-   * ✅ Retourne EventResponseDto (avec IsSuccess, data, etc.)
    */
-  getById(id: string): Observable<Event> { // <-- Changement ici
-    return this.http.get<Event>(`${this.baseUrl}/${id}`); // <-- Changement ici
+  getById(id: string): Observable<Event> {
+    return this.http.get<Event>(`${this.baseUrl}/${id}`);
   }
 
   /**
    * Récupère la liste paginée des événements
-   * ✅ Retourne directement EventListResponse (SANS wrapper)
+   * GET /api/v1/Event
    */
   getAll(filter: EventFilter = DEFAULT_EVENT_FILTER): Observable<EventListResponse> {
     const params = this.buildFilterParams(filter);
@@ -54,8 +80,8 @@ export class Events {
   }
 
   /**
-   * Récupère les événements à venir
-   * ✅ Retourne directement un tableau d'Event[] (SANS wrapper)
+   * Récupère les événements à venir (admin)
+   * GET /api/v1/Event/upcoming
    */
   getUpcoming(churchId?: string, limit: number = 10): Observable<Event[]> {
     let params = new HttpParams().set('limit', limit.toString());
@@ -66,7 +92,6 @@ export class Events {
   /**
    * Met à jour un événement
    * PUT /api/v1/Event/{id}
-   * ✅ Retourne EventResponseDto
    */
   update(id: string, eventData: EventUpdate): Observable<ApiResponse<Event>> {
     return this.http.put<ApiResponse<Event>>(`${this.baseUrl}/${id}`, eventData);
@@ -75,7 +100,6 @@ export class Events {
   /**
    * Annule un événement
    * POST /api/v1/Event/{id}/cancel
-   * ✅ Retourne EventResponseDto
    */
   cancel(id: string): Observable<ApiResponse<Event>> {
     return this.http.post<ApiResponse<Event>>(`${this.baseUrl}/${id}/cancel`, {});
@@ -84,31 +108,107 @@ export class Events {
   /**
    * Supprime un événement (soft delete)
    * DELETE /api/v1/Event/{id}
-   * ✅ Retourne un booléen simple
    */
   delete(id: string): Observable<boolean> {
     return this.http.delete<boolean>(`${this.baseUrl}/${id}`);
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // 👤 INSCRIPTIONS & CHECK-IN
-  // ──────────────────────────────────────────────────────────────
+  // ============================================================
+  // FORMULES (admin)
+  // ============================================================
 
+  /**
+   * Ajoute une formule à un événement
+   * POST /api/v1/Event/{eventId}/formula
+   */
+  addFormula(eventId: string, formulaData: FormulaCreateDto): Observable<ApiResponse<Event>> {
+    return this.http.post<ApiResponse<Event>>(`${this.baseUrl}/${eventId}/formula`, formulaData);
+  }
+
+  /**
+   * Met à jour une formule
+   * PUT /api/v1/Event/{eventId}/formula/{formulaId}
+   */
+  updateFormula(eventId: string, formulaId: string, formulaData: FormulaUpdateDto): Observable<ApiResponse<Event>> {
+    return this.http.put<ApiResponse<Event>>(`${this.baseUrl}/${eventId}/formula/${formulaId}`, formulaData);
+  }
+
+  /**
+   * Supprime une formule
+   * DELETE /api/v1/Event/{eventId}/formula/{formulaId}
+   */
+  removeFormula(eventId: string, formulaId: string): Observable<ApiResponse<Event>> {
+    return this.http.delete<ApiResponse<Event>>(`${this.baseUrl}/${eventId}/formula/${formulaId}`);
+  }
+
+  // ============================================================
+  // INSCRIPTIONS ADMIN
+  // ============================================================
+
+  /**
+   * Inscrit un participant (admin)
+   * POST /api/v1/Event/{eventId}/register
+   */
   registerAttendee(eventId: string, registration: EventAttendeeRegister): Observable<ApiResponse<Event>> {
     return this.http.post<ApiResponse<Event>>(`${this.baseUrl}/${eventId}/register`, registration);
   }
 
+  /**
+   * Désinscrit un participant
+   * DELETE /api/v1/Event/{eventId}/register/{attendeeIdentifier}
+   */
   unregisterAttendee(eventId: string, attendeeIdentifier: string): Observable<boolean> {
     return this.http.delete<boolean>(`${this.baseUrl}/${eventId}/register/${attendeeIdentifier}`);
   }
 
+  /**
+   * Check-in d'un participant
+   * POST /api/v1/Event/checkin
+   */
   checkInAttendee(checkInData: EventAttendeeCheckIn): Observable<ApiResponse<Event>> {
     return this.http.post<ApiResponse<Event>>(`${this.baseUrl}/checkin`, checkInData);
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // 📊 STATISTIQUES (optionnel)
-  // ──────────────────────────────────────────────────────────────
+  // ============================================================
+  // ENDPOINTS PUBLICS (sans authentification)
+  // ============================================================
+
+  /**
+   * Liste des événements à venir (public)
+   * GET /api/v1/public/PublicRegistration/events/upcoming
+   */
+  getPublicUpcomingEvents(limit: number = 5): Observable<any[]> {
+    let params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<any[]>(`${this.publicBaseUrl}/events/upcoming`, { params });
+  }
+
+  /**
+   * Détails d'un événement (public)
+   * GET /api/v1/public/PublicRegistration/events/{eventId}
+   */
+  getPublicEventDetails(eventId: string): Observable<any> {
+    return this.http.get<any>(`${this.publicBaseUrl}/events/${eventId}`);
+  }
+
+  /**
+   * Inscription publique à un événement (avec paiement)
+   * POST /api/v1/public/PublicRegistration/register
+   */
+  registerPublic(registration: EventPublicRegistrationDto): Observable<EventPublicRegistrationResponseDto> {
+    return this.http.post<EventPublicRegistrationResponseDto>(`${this.publicBaseUrl}/register`, registration);
+  }
+
+  /**
+   * Vérifier le statut de paiement d'une inscription publique
+   * GET /api/v1/public/PublicRegistration/status/{attendeeId}
+   */
+  getRegistrationStatus(attendeeId: string): Observable<RegistrationStatusResponse> {
+    return this.http.get<RegistrationStatusResponse>(`${this.publicBaseUrl}/status/${attendeeId}`);
+  }
+
+  // ============================================================
+  // STATISTIQUES (optionnel)
+  // ============================================================
 
   getSummary(churchId?: string): Observable<EventSummary> {
     let params = new HttpParams();
@@ -116,9 +216,9 @@ export class Events {
     return this.http.get<EventSummary>(`${this.baseUrl}/summary`, { params });
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // 🛠️ MÉTHODES PRIVÉES
-  // ──────────────────────────────────────────────────────────────
+  // ============================================================
+  // MÉTHODE PRIVÉE
+  // ============================================================
 
   private buildFilterParams(filter: EventFilter): HttpParams {
     let params = new HttpParams()

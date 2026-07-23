@@ -199,3 +199,26 @@
 button:focus-visible {
   outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
 }
+
+
+
+
+// ── FORMULES ──
+.ev-formula-status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &--active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &--inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}

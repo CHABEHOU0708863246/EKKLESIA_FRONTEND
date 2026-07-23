@@ -24,8 +24,11 @@
           <span *ngIf="!deleting()">Supprimer</span>
           <span class="ev-spinner ev-spinner--btn" *ngIf="deleting()"></span>
         </button>
-        <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success" [routerLink]="['/dashboard/evenements', event()?.id, 'checkin']">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success"
+          [routerLink]="['/dashboard/evenements', event()?.id, 'checkin']">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
           Check-in
         </a>
       </div>
@@ -34,7 +37,10 @@
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
   <div class="ev-banner ev-banner--error" *ngIf="error()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
     <button class="ev-banner-close" (click)="error.set(null)">✕</button>
   </div>
@@ -67,7 +73,8 @@
           </div>
           <div class="ev-info-item">
             <label>Statut</label>
-            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status)
+              }}</span>
           </div>
           <div class="ev-info-item">
             <label>Début</label>
@@ -150,6 +157,43 @@
             <label>Places disponibles</label>
             <p>{{ event()?.availableSpots }}</p>
           </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ FORMULES ═══════════ -->
+      <div class="ev-panel" *ngIf="event()?.formulas && event()!.formulas.length > 0">
+        <div class="ev-panel-header">
+          <h2>Formules d'inscription ({{ event()?.formulas?.length || 0 }})</h2>
+        </div>
+        <div class="ev-panel-body ev-panel-body--no-padding">
+          <table class="ev-table ev-table--compact">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Prix</th>
+                <th>Capacité</th>
+                <th>Inscrits</th>
+                <th>Disponibles</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let f of event()!.formulas">
+                <td><strong>{{ f.name }}</strong></td>
+                <td>{{ f.description || '—' }}</td>
+                <td>{{ getFormulaPrice(f) }}</td>
+                <td>{{ f.capacity }}</td>
+                <td>{{ f.registeredCount }}</td>
+                <td>{{ f.availablePlaces }}</td>
+                <td>
+                  <span class="ev-formula-status" [class]="getFormulaStatusClass(f)">
+                    {{ getFormulaStatus(f) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

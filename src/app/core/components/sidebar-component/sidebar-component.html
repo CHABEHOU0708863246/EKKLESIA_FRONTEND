@@ -6,7 +6,7 @@
   <div class="sidebar-brand">
     <div class="brand-logo">✝</div>
     <div>
-      <div class="brand-name">MIAV <span>erp</span></div>
+      <div class="brand-name">MIAV <span>ERP</span></div>
       <div class="brand-tagline">Gestion d'Église</div>
     </div>
   </div>
@@ -265,7 +265,7 @@
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 6️⃣ COMMUNAUTÉ — planification des disponibilités bénévoles -->
       <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessCommunityModule()) {
+      <!-- @if (permission.canAccessCommunityModule()) {
       <div class="nav-section-label">Communauté</div>
 
       <li class="nav-item" routerLinkActive="active open">
@@ -294,7 +294,7 @@
           }
         </ul>
       </li>
-      }
+      } -->
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 7️⃣ RESSOURCES HUMAINES — équipe qui fait tourner l'église   -->
@@ -345,7 +345,7 @@
       </li>
       }
 
-      @if (permission.canViewVolunteers()) {
+      <!-- @if (permission.canViewVolunteers()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)">
           <i class="nav-icon bx bx-group"></i>
@@ -378,7 +378,7 @@
           }
         </ul>
       </li>
-      }
+      } -->
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
@@ -707,10 +707,6 @@
             </a>
           </li>
           } -->
-
-          <li class="nav-item nav-item--placeholder">
-            <span class="nav-text nav-text--muted">Aucun réglage disponible pour l'instant</span>
-          </li>
 
         </ul>
       </li>

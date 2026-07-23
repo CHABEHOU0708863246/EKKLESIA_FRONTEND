@@ -4,7 +4,7 @@ import { Component, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Event, EventStatus } from '../../../../../core/models/Events/event.model';
+import { Event, EventStatus, EventFormula } from '../../../../../core/models/Events/event.model';
 import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { Church } from '../../../../../core/services/Church/church';
@@ -44,63 +44,61 @@ export class EventDetail implements OnInit {
   // ───────────────────────────────────────────────────────────────
 
   loadEvent(id: string): void {
-  this.loading.set(true);
-  this.error.set(null);
+    this.loading.set(true);
+    this.error.set(null);
 
-  this.eventService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-    next: (response: any) => {
-      let ev: Event;
-      if (response && response.id) {
-        ev = response;
-      } else if (response && response.success && response.data) {
-        ev = response.data;
-      } else {
-        this.error.set(response?.message || 'Impossible de charger l’événement.');
-        this.loading.set(false);
-        return;
-      }
+    this.eventService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response: any) => {
+        let ev: Event;
+        if (response && response.id) {
+          ev = response;
+        } else if (response && response.success && response.data) {
+          ev = response.data;
+        } else {
+          this.error.set(response?.message || 'Impossible de charger l’événement.');
+          this.loading.set(false);
+          return;
+        }
 
-      // Enrichir avec les noms de l’église et du site
-      this.enrichEventNames(ev).then((enriched) => {
-        this.event.set(enriched);
+        this.enrichEventNames(ev).then((enriched) => {
+          this.event.set(enriched);
+          this.loading.set(false);
+        }).catch(() => {
+          this.event.set(ev);
+          this.loading.set(false);
+        });
+      },
+      error: (err) => {
+        console.error('❌ Erreur de chargement:', err);
+        this.error.set('Erreur lors du chargement de l’événement.');
         this.loading.set(false);
-      }).catch(() => {
-        this.event.set(ev); // fallback avec les IDs
-        this.loading.set(false);
-      });
-    },
-    error: (err) => {
-      // ...
+      },
+    });
+  }
+
+  private async enrichEventNames(event: Event): Promise<Event> {
+    const enriched = { ...event };
+
+    if (event.churchId) {
+      try {
+        const churchResp = await this.churchService.getChurchById(event.churchId).toPromise();
+        if (churchResp?.success && churchResp.data) {
+          enriched.churchName = churchResp.data.name;
+        }
+      } catch (e) {}
     }
-  });
-}
 
+    if (event.siteId) {
+      try {
+        const siteResp = await this.churchService.getSiteById(event.siteId).toPromise();
+        if (siteResp?.success && siteResp.data) {
+          enriched.siteName = siteResp.data.name;
+        }
+      } catch (e) {}
+    }
 
-private async enrichEventNames(event: Event): Promise<Event> {
-  const enriched = { ...event };
-
-  // Récupérer le nom de l’église
-  if (event.churchId) {
-    try {
-      const churchResp = await this.churchService.getChurchById(event.churchId).toPromise();
-      if (churchResp?.success && churchResp.data) {
-        enriched.churchName = churchResp.data.name;
-      }
-    } catch (e) {}
+    return enriched;
   }
-
-  // Récupérer le nom du site
-  if (event.siteId) {
-    try {
-      const siteResp = await this.churchService.getSiteById(event.siteId).toPromise();
-      if (siteResp?.success && siteResp.data) {
-        enriched.siteName = siteResp.data.name;
-      }
-    } catch (e) {}
-  }
-
-  return enriched;
-}
 
   // ───────────────────────────────────────────────────────────────
   // ACTIONS
@@ -150,7 +148,6 @@ private async enrichEventNames(event: Event): Promise<Event> {
         .subscribe({
           next: (response: any) => {
             this.cancelling.set(false);
-            // Gérer les deux formats
             if (response && response.success && response.data) {
               this.event.set(response.data);
             } else if (response && response.id) {
@@ -225,6 +222,19 @@ private async enrichEventNames(event: Event): Promise<Event> {
   getPaymentStatusClass(status: any): string {
     const color = this.getPaymentStatusColor(status);
     return `ev-payment-status ev-payment-status--${color}`;
+  }
+
+  // ── FORMULES ──
+  getFormulaPrice(formula: EventFormula): string {
+    return this.getFormattedPrice(formula.price, formula.currency);
+  }
+
+  getFormulaStatus(formula: EventFormula): string {
+    return formula.isActive ? 'Actif' : 'Inactif';
+  }
+
+  getFormulaStatusClass(formula: EventFormula): string {
+    return formula.isActive ? 'ev-formula-status--active' : 'ev-formula-status--inactive';
   }
 
   canEdit(): boolean {
