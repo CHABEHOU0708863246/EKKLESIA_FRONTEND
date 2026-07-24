@@ -40,22 +40,6 @@
     <!-- Champs principaux -->
     <div class="sa-grid-3">
       <div class="sa-field">
-        <label>Membres</label>
-        <input type="number" formControlName="members" min="0">
-      </div>
-      <div class="sa-field">
-        <label>Visiteurs</label>
-        <input type="number" formControlName="visitors" min="0">
-      </div>
-      <div class="sa-field">
-        <label>Enfants</label>
-        <input type="number" formControlName="children" min="0">
-      </div>
-    </div>
-
-    <!-- Nouvelle grille pour les champs supplémentaires -->
-    <div class="sa-grid-3">
-      <div class="sa-field">
         <label>Hommes</label>
         <input type="number" formControlName="men" min="0">
       </div>
@@ -64,19 +48,57 @@
         <input type="number" formControlName="women" min="0">
       </div>
       <div class="sa-field">
-        <label>Pasteur & staff</label>
-        <input type="number" formControlName="pastoralStaff" min="0">
+        <label>Enfants</label>
+        <input type="number" formControlName="children" min="0">
       </div>
     </div>
 
-    <!-- Total -->
-    <div class="sa-total">
-      <span>Total des participants : <strong>{{ total }}</strong></span>
+    <div class="sa-grid-2">
+      <div class="sa-field">
+        <label>Visiteurs</label>
+        <input type="number" formControlName="visitors" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Accepté Jésus</label>
+        <input type="number" formControlName="acceptedJesus" min="0">
+        <p class="sa-field-hint">Personnes ayant accepté Jésus lors du culte</p>
+      </div>
+      <div class="sa-field">
+        <label>Non accepté</label>
+        <input type="number" formControlName="notAcceptedJesus" min="0">
+        <p class="sa-field-hint">Personnes n’ayant pas accepté Jésus</p>
+      </div>
     </div>
 
-    <!-- Total -->
-    <div class="sa-total">
-      <span>Total des participants : <strong>{{ total }}</strong></span>
+    <!-- Totaux -->
+    <div class="sa-totals">
+      <div class="sa-total">
+        <span>Total avec enfants : <strong>{{ totalWithChildren }}</strong></span>
+      </div>
+      <div class="sa-total">
+        <span>Total sans enfants : <strong>{{ totalWithoutChildren }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Observation -->
+    <div class="sa-field">
+      <label>Observation</label>
+      <textarea formControlName="observation" rows="2" placeholder="Remarques sur le déroulement du culte…"></textarea>
+    </div>
+
+    <!-- Photo justificative -->
+    <div class="sa-field">
+      <label>Photo justificative <span class="sa-required">*</span></label>
+      <input type="file" (change)="onPhotoSelected($event)" accept="image/*" />
+      <p class="sa-field-hint" *ngIf="!form.get('photoUrl')?.value && !selectedPhotoFile">
+        Une photo est obligatoire pour valider l’enregistrement.
+      </p>
+      <p class="sa-field-hint sa-field-hint-success" *ngIf="selectedPhotoFile || form.get('photoUrl')?.value">
+        ✅ {{ selectedPhotoFile ? selectedPhotoFile.name : 'Photo déjà téléchargée' }}
+      </p>
+      <p class="sa-error-text" *ngIf="isFieldInvalid('photoUrl') && (form.get('photoUrl')?.touched || form.get('photoUrl')?.dirty)">
+        La photo est obligatoire.
+      </p>
     </div>
 
     <!-- Liste des visiteurs -->
@@ -115,5 +137,4 @@
 
   </form>
   }
-
 </div>

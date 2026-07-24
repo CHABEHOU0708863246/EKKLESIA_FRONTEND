@@ -5,11 +5,18 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { ServiceStatus, ServiceStatusLabels, ServiceUtils, ServiceStatusColors, ServiceFilter, DEFAULT_SERVICE_FILTER } from '../../../../../core/models/Events/service.model';
+import {
+  ServiceStatus,
+  ServiceStatusLabels,
+  ServiceUtils,
+  ServiceStatusColors,
+  ServiceFilter,
+  DEFAULT_SERVICE_FILTER,
+  ServiceAttendance
+} from '../../../../../core/models/Events/service.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
-
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -82,7 +89,20 @@ export class ServiceList implements OnInit, OnDestroy {
   getStatusLabel = ServiceUtils.getStatusLabel;
   getStatusColor = ServiceUtils.getStatusColor;
   getFormattedDate = ServiceUtils.getFormattedDate;
-  getTotalAttendance = ServiceUtils.getTotalAttendance;
+
+  /**
+   * ✅ Retourne le total avec enfants
+   */
+  getTotalWithChildren(attendance: ServiceAttendance): number {
+    return ServiceUtils.getTotalWithChildren(attendance);
+  }
+
+  /**
+   * ✅ Retourne le total sans enfants
+   */
+  getTotalWithoutChildren(attendance: ServiceAttendance): number {
+    return ServiceUtils.getTotalWithoutChildren(attendance);
+  }
 
   constructor() {}
 
@@ -90,7 +110,6 @@ export class ServiceList implements OnInit, OnDestroy {
     this.loadPreachers();
     this.loadServices();
 
-    // Recherche textuelle
     this.searchControl.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
@@ -98,7 +117,6 @@ export class ServiceList implements OnInit, OnDestroy {
         this.loadServices();
       });
 
-    // Filtre statut
     this.statusControl.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
@@ -106,7 +124,6 @@ export class ServiceList implements OnInit, OnDestroy {
         this.loadServices();
       });
 
-    // Filtre prédicateur
     this.preacherControl.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
@@ -147,68 +164,62 @@ export class ServiceList implements OnInit, OnDestroy {
   }
 
   private loadServices(): void {
-  this.loading.set(true);
-  this.error.set(null);
+    this.loading.set(true);
+    this.error.set(null);
 
-  const filter: ServiceFilter = {
-    ...DEFAULT_SERVICE_FILTER,
-    page: this.currentPage(),
-    pageSize: this.pageSize(),
-    title: this.searchControl.value || undefined,
-    status: this.statusControl.value as ServiceStatus || undefined,
-    preacherId: this.preacherControl.value || undefined,
-  };
+    const filter: ServiceFilter = {
+      ...DEFAULT_SERVICE_FILTER,
+      page: this.currentPage(),
+      pageSize: this.pageSize(),
+      title: this.searchControl.value || undefined,
+      status: this.statusControl.value as ServiceStatus || undefined,
+      preacherId: this.preacherControl.value || undefined,
+    };
 
-  this.serviceService
-    .getAll(filter)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response: any) => {
-        // ✅ Détection automatique de la structure
-        let data: any;
-        let success = true;
-        let message = '';
+    this.serviceService
+      .getAll(filter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          let data: any;
+          let success = true;
+          let message = '';
 
-        if (response && typeof response === 'object') {
-          // Cas 1 : wrapper ApiResponse
-          if ('success' in response && 'data' in response) {
-            success = response.success;
-            message = response.message || '';
-            data = response.data;
+          if (response && typeof response === 'object') {
+            if ('success' in response && 'data' in response) {
+              success = response.success;
+              message = response.message || '';
+              data = response.data;
+            } else if ('items' in response && 'totalCount' in response) {
+              data = response;
+            } else {
+              data = null;
+              success = false;
+              message = 'Structure de réponse inconnue.';
+            }
           }
-          // Cas 2 : réponse directe (items, totalCount, ...)
-          else if ('items' in response && 'totalCount' in response) {
-            data = response;
-          }
-          // Cas 3 : autre structure inconnue
-          else {
-            data = null;
-            success = false;
-            message = 'Structure de réponse inconnue.';
-          }
-        }
 
-        if (success && data && data.items) {
-          this.services.set(data.items);
-          this.totalCount.set(data.totalCount || 0);
-          this.currentPage.set(data.currentPage || 1);
-          this.totalPages.set(data.totalPages || 1);
-          this.error.set(null);
-        } else {
+          if (success && data && data.items) {
+            this.services.set(data.items);
+            this.totalCount.set(data.totalCount || 0);
+            this.currentPage.set(data.currentPage || 1);
+            this.totalPages.set(data.totalPages || 1);
+            this.error.set(null);
+          } else {
+            this.services.set([]);
+            this.totalCount.set(0);
+            this.error.set(message || 'Impossible de charger les cultes.');
+          }
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('❌ Erreur chargement cultes:', err);
           this.services.set([]);
-          this.totalCount.set(0);
-          this.error.set(message || 'Impossible de charger les cultes.');
-        }
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('❌ Erreur chargement cultes:', err);
-        this.services.set([]);
-        this.loading.set(false);
-        this.error.set('Erreur lors du chargement des cultes.');
-      },
-    });
-}
+          this.loading.set(false);
+          this.error.set('Erreur lors du chargement des cultes.');
+        },
+      });
+  }
 
   refresh(): void {
     this.loadServices();
@@ -263,9 +274,12 @@ export class ServiceList implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/cultes', service.id, 'edit']);
   }
 
-  manageAttendance(service: any, event: Event): void {
+  /**
+   * ✅ Redirige vers la page d'enregistrement des présences
+   */
+  recordAttendance(service: any, event: Event): void {
     event.stopPropagation();
-    this.router.navigate(['/dashboard/cultes', service.id, 'checkin']);
+    this.router.navigate(['/dashboard/cultes', service.id, 'attendance']);
   }
 
   requestDelete(service: any, event: Event): void {
@@ -337,11 +351,10 @@ export class ServiceList implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // EXPORT
+  // EXPORT (optionnel)
   // ──────────────────────────────────────────────────────────────
 
   exportServices(format: 'csv' | 'xlsx'): void {
-    // Implémentation si besoin
     console.log('Export en', format, 'pas encore implémenté');
   }
 }

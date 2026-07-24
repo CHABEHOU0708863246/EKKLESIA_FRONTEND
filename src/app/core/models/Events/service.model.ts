@@ -1,3 +1,8 @@
+// src/app/core/models/Service/service.model.ts
+
+// ============================================================
+// 1. ENUMS
+// ============================================================
 
 export enum ServiceStatus {
   Scheduled = 'Scheduled',
@@ -7,33 +12,9 @@ export enum ServiceStatus {
   Cancelled = 'Cancelled'
 }
 
-export interface TeamMember {
-  memberId: string;
-  memberName: string;
-  role: string;
-  confirmed: boolean;
-}
-
-export interface ServiceTeam {
-  worship: TeamMember[];
-  sound: TeamMember[];
-  lighting: TeamMember[];
-  welcome: TeamMember[];
-  ushers: TeamMember[];
-  children: TeamMember[];
-  media: TeamMember[];
-  other: TeamMember[];
-}
-
-export interface ServiceAttendance {
-  men: number;
-  women: number;
-  visitors: number;
-  children: number;
-  pastoralStaff: number;
-  total: number;
-  visitorNames: string[];
-}
+// ============================================================
+// 2. MODÈLES DE BASE
+// ============================================================
 
 export interface Song {
   id: string;
@@ -42,6 +23,28 @@ export interface Song {
   key?: string;
   tempo?: number;
 }
+
+// ============================================================
+// 3. PRÉSENCES (SERVICE ATTENDANCE)
+// ============================================================
+
+export interface ServiceAttendance {
+  men: number;
+  women: number;
+  visitors: number;
+  children: number;
+  acceptedJesus: number;
+  notAcceptedJesus: number;
+  observation?: string;
+  photoUrl?: string;
+  visitorNames: string[];
+  totalWithChildren?: number;
+  totalWithoutChildren?: number;
+}
+
+// ============================================================
+// 4. SERVICE COMPLET
+// ============================================================
 
 export interface Service {
   id: string;
@@ -57,9 +60,7 @@ export interface Service {
   theme?: string;
   songIds: string[];
   songs: Song[];
-  worshipLeaderId?: string;
-  worshipLeaderName?: string;
-  team: ServiceTeam;
+  // ✅ Champs supprimés : worshipLeaderId, worshipLeaderName, team
   attendance: ServiceAttendance;
   offeringIds: string[];
   status: ServiceStatus;
@@ -70,9 +71,11 @@ export interface Service {
   updatedAt?: string;
   createdBy: string;
   formattedDate: string;
-  totalTeamMembers: number;
-  confirmedTeamMembers: number;
 }
+
+// ============================================================
+// 5. DTOS POUR LES REQUÊTES/RÉPONSES
+// ============================================================
 
 export interface ServiceCreate {
   title: string;
@@ -84,8 +87,6 @@ export interface ServiceCreate {
   bibleText?: string;
   theme?: string;
   songIds?: string[];
-  worshipLeaderId?: string;
-  team?: ServiceTeam;
   attendance?: ServiceAttendance;
   status?: ServiceStatus;
   notes?: string;
@@ -100,8 +101,6 @@ export interface ServiceUpdate {
   bibleText?: string;
   theme?: string;
   songIds?: string[];
-  worshipLeaderId?: string;
-  team?: ServiceTeam;
   attendance?: ServiceAttendance;
   status?: ServiceStatus;
   notes?: string;
@@ -120,8 +119,6 @@ export interface ServiceFilter {
   dateTo?: string;
   createdFrom?: string;
   createdTo?: string;
-  minMembers?: number;
-  maxMembers?: number;
   minVisitors?: number;
   maxVisitors?: number;
   page: number;
@@ -140,7 +137,16 @@ export interface ServiceListResponse {
   hasNextPage: boolean;
 }
 
-// Labels pour les statuts
+export interface UploadPhotoResponse {
+  success: boolean;
+  photoId: string;
+  message: string;
+}
+
+// ============================================================
+// 6. LABELS ET CONSTANTES
+// ============================================================
+
 export const ServiceStatusLabels: Record<ServiceStatus, string> = {
   [ServiceStatus.Scheduled]: 'Planifié',
   [ServiceStatus.Prepared]: 'Préparé',
@@ -157,30 +163,10 @@ export const ServiceStatusColors: Record<ServiceStatus, string> = {
   [ServiceStatus.Cancelled]: 'danger'
 };
 
-// Types de rôles dans l'équipe
-export const TEAM_ROLES = {
-  Worship: 'worship',
-  Sound: 'sound',
-  Lighting: 'lighting',
-  Welcome: 'welcome',
-  Ushers: 'ushers',
-  Children: 'children',
-  Media: 'media',
-  Other: 'other'
-};
+// ============================================================
+// 7. CLASSE UTILITAIRE
+// ============================================================
 
-export const TEAM_ROLE_LABELS: Record<string, string> = {
-  [TEAM_ROLES.Worship]: 'Louange',
-  [TEAM_ROLES.Sound]: 'Sonorisation',
-  [TEAM_ROLES.Lighting]: 'Lumière',
-  [TEAM_ROLES.Welcome]: 'Accueil',
-  [TEAM_ROLES.Ushers]: 'Huissiers',
-  [TEAM_ROLES.Children]: 'Enfants',
-  [TEAM_ROLES.Media]: 'Médias',
-  [TEAM_ROLES.Other]: 'Autre'
-};
-
-// Classe utilitaire pour les cultes
 export class ServiceUtils {
   static getStatusLabel(status: ServiceStatus): string {
     return ServiceStatusLabels[status] || status;
@@ -200,77 +186,37 @@ export class ServiceUtils {
     });
   }
 
-  static getTeamRoleLabel(role: string): string {
-    return TEAM_ROLE_LABELS[role] || role;
-  }
-
-  static getTotalTeamMembers(team: ServiceTeam): number {
-    return team.worship.length +
-      team.sound.length +
-      team.lighting.length +
-      team.welcome.length +
-      team.ushers.length +
-      team.children.length +
-      team.media.length +
-      team.other.length;
-  }
-
-  static getConfirmedTeamMembers(team: ServiceTeam): number {
-    const allMembers = [
-      ...team.worship,
-      ...team.sound,
-      ...team.lighting,
-      ...team.welcome,
-      ...team.ushers,
-      ...team.children,
-      ...team.media,
-      ...team.other
-    ];
-    return allMembers.filter(m => m.confirmed).length;
-  }
-
-  static getConfirmationRate(team: ServiceTeam): number {
-    const total = this.getTotalTeamMembers(team);
-    if (total === 0) return 0;
-    const confirmed = this.getConfirmedTeamMembers(team);
-    return Math.round((confirmed / total) * 100);
-  }
-
-  static getConfirmationRateColor(rate: number): string {
-    if (rate >= 80) return 'success';
-    if (rate >= 50) return 'warning';
-    return 'danger';
-  }
+  // ─── Présences ─────────────────────────────────────────────
 
   static getTotalAttendance(attendance: ServiceAttendance): number {
-  return attendance.men + attendance.women + attendance.visitors
-    + attendance.children + attendance.pastoralStaff;
-}
+    return attendance.men + attendance.women + attendance.visitors + attendance.children;
+  }
 
-  static getEmptyTeam(): ServiceTeam {
-    return {
-      worship: [],
-      sound: [],
-      lighting: [],
-      welcome: [],
-      ushers: [],
-      children: [],
-      media: [],
-      other: []
-    };
+  static getTotalWithChildren(attendance: ServiceAttendance): number {
+    return attendance.totalWithChildren ?? this.getTotalAttendance(attendance);
+  }
+
+  static getTotalWithoutChildren(attendance: ServiceAttendance): number {
+    return attendance.totalWithoutChildren ?? (attendance.men + attendance.women + attendance.visitors);
   }
 
   static getEmptyAttendance(): ServiceAttendance {
-  return {
-    men: 0,
-    women: 0,
-    visitors: 0,
-    children: 0,
-    pastoralStaff: 0,
-    total: 0,
-    visitorNames: []
-  };
-}
+    return {
+      men: 0,
+      women: 0,
+      visitors: 0,
+      children: 0,
+      acceptedJesus: 0,
+      notAcceptedJesus: 0,
+      observation: '',
+      photoUrl: '',
+      visitorNames: [],
+      totalWithChildren: 0,
+      totalWithoutChildren: 0
+    };
+  }
+
+  // ─── Recherche et filtres ──────────────────────────────────
 
   static searchServices(services: Service[], searchTerm: string): Service[] {
     const term = searchTerm.toLowerCase().trim();
@@ -310,63 +256,70 @@ export class ServiceUtils {
     );
   }
 
+  // ─── Statistiques ──────────────────────────────────────────
+
   static getServiceStats(services: Service[]): {
-  total: number;
-  scheduled: number;
-  prepared: number;
-  ongoing: number;
-  completed: number;
-  cancelled: number;
-  totalMen: number;
-  totalWomen: number;
-  totalVisitors: number;
-  totalChildren: number;
-  totalPastoralStaff: number;
-  totalAttendees: number;
-  averageMen: number;
-  averageWomen: number;
-  averageVisitors: number;
-  averageChildren: number;
-  averagePastoralStaff: number;
-  averageAttendees: number;
-} {
-  const scheduled = services.filter(s => s.status === ServiceStatus.Scheduled);
-  const prepared = services.filter(s => s.status === ServiceStatus.Prepared);
-  const ongoing = services.filter(s => s.status === ServiceStatus.Ongoing);
-  const completed = services.filter(s => s.status === ServiceStatus.Completed);
-  const cancelled = services.filter(s => s.status === ServiceStatus.Cancelled);
+    total: number;
+    scheduled: number;
+    prepared: number;
+    ongoing: number;
+    completed: number;
+    cancelled: number;
+    totalMen: number;
+    totalWomen: number;
+    totalVisitors: number;
+    totalChildren: number;
+    totalAcceptedJesus: number;
+    totalNotAcceptedJesus: number;
+    totalAttendees: number;
+    averageMen: number;
+    averageWomen: number;
+    averageVisitors: number;
+    averageChildren: number;
+    averageAttendees: number;
+  } {
+    const scheduled = services.filter(s => s.status === ServiceStatus.Scheduled);
+    const prepared = services.filter(s => s.status === ServiceStatus.Prepared);
+    const ongoing = services.filter(s => s.status === ServiceStatus.Ongoing);
+    const completed = services.filter(s => s.status === ServiceStatus.Completed);
+    const cancelled = services.filter(s => s.status === ServiceStatus.Cancelled);
 
-  const totalMen = services.reduce((sum, s) => sum + (s.attendance.men || 0), 0);
-  const totalWomen = services.reduce((sum, s) => sum + (s.attendance.women || 0), 0);
-  const totalVisitors = services.reduce((sum, s) => sum + (s.attendance.visitors || 0), 0);
-  const totalChildren = services.reduce((sum, s) => sum + (s.attendance.children || 0), 0);
-  const totalPastoralStaff = services.reduce((sum, s) => sum + (s.attendance.pastoralStaff || 0), 0);
-  const totalAttendees = totalMen + totalWomen + totalVisitors + totalChildren + totalPastoralStaff;
+    const totalMen = services.reduce((sum, s) => sum + (s.attendance.men || 0), 0);
+    const totalWomen = services.reduce((sum, s) => sum + (s.attendance.women || 0), 0);
+    const totalVisitors = services.reduce((sum, s) => sum + (s.attendance.visitors || 0), 0);
+    const totalChildren = services.reduce((sum, s) => sum + (s.attendance.children || 0), 0);
+    const totalAcceptedJesus = services.reduce((sum, s) => sum + (s.attendance.acceptedJesus || 0), 0);
+    const totalNotAcceptedJesus = services.reduce((sum, s) => sum + (s.attendance.notAcceptedJesus || 0), 0);
+    const totalAttendees = totalMen + totalWomen + totalVisitors + totalChildren;
 
-  const count = services.length;
+    const count = services.length;
 
-  return {
-    total: count,
-    scheduled: scheduled.length,
-    prepared: prepared.length,
-    ongoing: ongoing.length,
-    completed: completed.length,
-    cancelled: cancelled.length,
-    totalMen,
-    totalWomen,
-    totalVisitors,
-    totalChildren,
-    totalPastoralStaff,
-    totalAttendees,
-    averageMen: count > 0 ? Math.round(totalMen / count) : 0,
-    averageWomen: count > 0 ? Math.round(totalWomen / count) : 0,
-    averageVisitors: count > 0 ? Math.round(totalVisitors / count) : 0,
-    averageChildren: count > 0 ? Math.round(totalChildren / count) : 0,
-    averagePastoralStaff: count > 0 ? Math.round(totalPastoralStaff / count) : 0,
-    averageAttendees: count > 0 ? Math.round(totalAttendees / count) : 0
-  };
+    return {
+      total: count,
+      scheduled: scheduled.length,
+      prepared: prepared.length,
+      ongoing: ongoing.length,
+      completed: completed.length,
+      cancelled: cancelled.length,
+      totalMen,
+      totalWomen,
+      totalVisitors,
+      totalChildren,
+      totalAcceptedJesus,
+      totalNotAcceptedJesus,
+      totalAttendees,
+      averageMen: count > 0 ? Math.round(totalMen / count) : 0,
+      averageWomen: count > 0 ? Math.round(totalWomen / count) : 0,
+      averageVisitors: count > 0 ? Math.round(totalVisitors / count) : 0,
+      averageChildren: count > 0 ? Math.round(totalChildren / count) : 0,
+      averageAttendees: count > 0 ? Math.round(totalAttendees / count) : 0,
+    };
+  }
 }
-}
+
+// ============================================================
+// 8. DEFAUTS
+// ============================================================
 
 export const DEFAULT_SERVICE_FILTER: ServiceFilter = {
   page: 1,

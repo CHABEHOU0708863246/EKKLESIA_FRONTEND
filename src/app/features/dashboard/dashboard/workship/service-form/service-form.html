@@ -55,7 +55,6 @@
         <button type="button" class="sf-clear-btn" *ngIf="form.get('preacherSearch')?.value"
           (click)="clearPreacher()">✕</button>
 
-        <!-- ✅ DROPDOWN DES RÉSULTATS -->
         <div class="sf-search-dropdown" *ngIf="preachers().length > 0">
           @for (user of preachers(); track user.id) {
           <button type="button" class="sf-search-result" (click)="selectPreacher(user)">
@@ -82,28 +81,6 @@
       </div>
     </div>
 
-    <!-- ─── CHEF DE LOUANGE ─── -->
-    <div class="sf-field">
-      <label>Chef de louange</label>
-      <p class="sf-field-hint">
-        Le responsable désigné ici sera automatiquement ajouté à l'équipe « Louange » ci-dessous.
-      </p>
-      <div class="sf-search-wrap">
-        <input type="text" formControlName="worshipLeaderSearch" placeholder="Rechercher un membre…" autocomplete="off">
-        <button type="button" class="sf-clear-btn" *ngIf="form.get('worshipLeaderSearch')?.value"
-          (click)="clearWorshipLeader()">✕</button>
-
-        <div class="sf-search-dropdown" *ngIf="worshipLeaders().length > 0">
-          @for (member of worshipLeaders(); track member.id) {
-          <button type="button" class="sf-search-result" (click)="selectWorshipLeader(member)">
-            <div class="sf-mini-avatar">{{ getMemberInitials(member) }}</div>
-            <div class="sf-mini-info"><strong>{{ getMemberFullName(member) }}</strong></div>
-          </button>
-          }
-        </div>
-      </div>
-    </div>
-
     <!-- ─── STATUT ─── -->
     <div class="sf-field">
       <label>Statut</label>
@@ -120,47 +97,6 @@
       <textarea formControlName="notes" rows="3" placeholder="Remarques, annonces, etc."></textarea>
     </div>
 
-    <!-- ─── ÉQUIPES ─── -->
-    <div class="sf-section-divider">Équipes liturgiques</div>
-
-    @for (teamKey of getTeamKeys(); track teamKey) {
-    <div class="sf-team-section">
-      <div class="sf-team-header">
-        <h3>{{ TEAM_ROLE_LABELS[teamKey] }}</h3>
-        <button type="button" class="sf-btn-small sf-btn-primary" (click)="addTeamMember(teamKey)">Ajouter</button>
-      </div>
-      <div class="sf-team-members">
-        @for (control of getTeamFormArray(teamKey).controls; track $index) {
-        <div class="sf-team-member" [formGroup]="$any(control)">
-          <div class="sf-grid-3">
-            <div class="sf-field">
-              <label>Nom</label>
-              <input type="text" formControlName="memberName" placeholder="Nom du membre">
-            </div>
-            <div class="sf-field">
-              <label>Rôle</label>
-              <select formControlName="role">
-                @for (roleOpt of TEAM_ROLE_OPTIONS; track roleOpt.value) {
-                <option [value]="roleOpt.value">{{ roleOpt.label }}</option>
-                }
-              </select>
-            </div>
-            <div class="sf-field sf-check">
-              <label>
-                <input type="checkbox" formControlName="confirmed"> Confirmé
-              </label>
-              <button type="button" class="sf-btn-small sf-btn-danger"
-                (click)="removeTeamMember(teamKey, $index)">✕</button>
-            </div>
-          </div>
-        </div>
-        }
-      </div>
-    </div>
-    }
-
-    <!-- ─── PRÉSENCES ─── -->
-    <div class="sf-section-divider">Présences</div>
     <!-- ─── PRÉSENCES ─── -->
     <div class="sf-section-divider">Présences</div>
     <div class="sf-grid-3" formGroupName="attendance">
@@ -182,10 +118,29 @@
         <label>Visiteurs</label>
         <input type="number" formControlName="visitors" min="0">
       </div>
+      <!-- ✅ REMPLACÉ "Pasteur & Staff" par "Accepté Jésus" et "Non accepté" -->
       <div class="sf-field">
-        <label>Pasteur & Staff</label>
-        <input type="number" formControlName="pastoralStaff" min="0">
+        <label>Accepté Jésus</label>
+        <input type="number" formControlName="acceptedJesus" min="0">
       </div>
+      <div class="sf-field">
+        <label>Non accepté</label>
+        <input type="number" formControlName="notAcceptedJesus" min="0">
+      </div>
+    </div>
+
+    <!-- ✅ NOUVEAU : Observation -->
+    <div class="sf-field" formGroupName="attendance">
+      <label>Observation</label>
+      <textarea formControlName="observation" rows="2" placeholder="Remarques sur le déroulement du culte..."></textarea>
+    </div>
+
+    <!-- ✅ NOUVEAU : Photo justificative (upload) -->
+    <div class="sf-field">
+      <label>Photo justificative (obligatoire pour valider les présences)</label>
+      <input type="file" (change)="onPhotoSelected($event)" accept="image/*" />
+      <p class="sf-field-hint" *ngIf="!form.get('attendance.photoUrl')?.value">Aucune photo sélectionnée</p>
+      <p class="sf-field-hint" *ngIf="form.get('attendance.photoUrl')?.value">✅ Photo téléchargée</p>
     </div>
 
     <!-- ─── BOUTONS D'ACTION ─── -->

@@ -10,46 +10,56 @@
     </div>
   </div>
 
-  <!-- STATISTIQUES RAPIDES -->
+  <!-- STATISTIQUES RAPIDES (mis à jour) -->
   @if (stats(); as stats) {
-    <div class="sl-stats">
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.total }}</span>
-        <span class="sl-stat-label">Total cultes</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.scheduled }}</span>
-        <span class="sl-stat-label">Planifiés</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.completed }}</span>
-        <span class="sl-stat-label">Terminés</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalAttendees }}</span>
-        <span class="sl-stat-label">Participants total</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalMen }}</span>
-        <span class="sl-stat-label">👨 Hommes</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalWomen }}</span>
-        <span class="sl-stat-label">👩 Femmes</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalChildren }}</span>
-        <span class="sl-stat-label">🧒 Enfants</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalVisitors }}</span>
-        <span class="sl-stat-label">👥 Visiteurs</span>
-      </div>
-      <div class="sl-stat-card">
-        <span class="sl-stat-value">{{ stats.totalPastoralStaff }}</span>
-        <span class="sl-stat-label">⛪ Pasteur & staff</span>
-      </div>
+  <div class="sl-stats">
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.total }}</span>
+      <span class="sl-stat-label">Total cultes</span>
     </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.scheduled }}</span>
+      <span class="sl-stat-label">Planifiés</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.completed }}</span>
+      <span class="sl-stat-label">Terminés</span>
+    </div>
+    <!-- ✅ Nouveaux totaux : avec/sans enfants -->
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalAttendees }}</span>
+      <span class="sl-stat-label">👨‍👩‍👦 Avec enfants</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalAttendees - stats.totalChildren }}</span>
+      <span class="sl-stat-label">👨‍👩 Sans enfants</span>
+    </div>
+    <!-- ✅ Indicateurs d'évangélisation -->
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalAcceptedJesus }}</span>
+      <span class="sl-stat-label">✝️ Accepté Jésus</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalNotAcceptedJesus }}</span>
+      <span class="sl-stat-label">❌ Non accepté</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalMen }}</span>
+      <span class="sl-stat-label">👨 Hommes</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalWomen }}</span>
+      <span class="sl-stat-label">👩 Femmes</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalChildren }}</span>
+      <span class="sl-stat-label">🧒 Enfants</span>
+    </div>
+    <div class="sl-stat-card">
+      <span class="sl-stat-value">{{ stats.totalVisitors }}</span>
+      <span class="sl-stat-label">👥 Visiteurs</span>
+    </div>
+  </div>
   }
 
   <!-- FILTRES -->
@@ -64,7 +74,7 @@
         <select [formControl]="statusControl">
           <option value="">Tous</option>
           @for (opt of statusOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
+          <option [value]="opt.value">{{ opt.label }}</option>
           }
         </select>
       </div>
@@ -73,7 +83,7 @@
         <select [formControl]="preacherControl">
           <option value="">Tous</option>
           @for (user of preachers(); track user.id) {
-            <option [value]="user.id">{{ getUserFullName(user) }}</option>
+          <option [value]="user.id">{{ getUserFullName(user) }}</option>
           }
         </select>
       </div>
@@ -85,130 +95,147 @@
 
   <!-- TABLEAU DES CULTES -->
   @if (loading()) {
-    <div class="sl-loading">Chargement des cultes…</div>
+  <div class="sl-loading">Chargement des cultes…</div>
   } @else if (error()) {
-    <div class="sl-error">{{ error() }}</div>
+  <div class="sl-error">{{ error() }}</div>
   } @else if (services().length === 0) {
-    <div class="sl-empty">
-      <i class="bx bx-calendar-x"></i>
-      <p>Aucun culte trouvé.</p>
-    </div>
+  <div class="sl-empty">
+    <i class="bx bx-calendar-x"></i>
+    <p>Aucun culte trouvé.</p>
+  </div>
   } @else {
-    <div class="sl-table-wrap">
-      <table class="sl-table">
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Date</th>
-            <th>Prédicateur</th>
-            <th>Statut</th>
-            <th>Présence</th>
-            <th class="sl-actions-col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (service of services(); track service.id) {
-            <tr (click)="viewService(service)">
-              <td>
-                <div class="sl-service-title">
-                  <span class="sl-title">{{ service.title }}</span>
-                  @if (service.theme) {
-                    <span class="sl-theme">{{ service.theme }}</span>
-                  }
-                </div>
-              </td>
-              <td>{{ getFormattedDate(service.date) }}</td>
-              <td>
-                <div class="sl-preacher">
-                  @if (service.preacherId) {
-                    <img
-                      class="sl-avatar"
-                      [src]="userService.getPhotoUrl(service.preacherPhotoUrl)"
-                      alt="{{ service.preacherName }}"
-                      (error)="onImageError($event)">
-                  } @else {
-                    <div class="sl-avatar sl-avatar-placeholder">{{ getInitials(service.preacherName || '?') }}</div>
-                  }
-                  <span>{{ getPreacherName(service) }}</span>
-                </div>
-              </td>
-              <td>
-                <span class="sl-badge" [class]="'sl-badge-' + getStatusColor(service.status)">
-                  {{ getStatusLabel(service.status) }}
+  <div class="sl-table-wrap">
+    <table class="sl-table">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Date</th>
+          <th>Prédicateur</th>
+          <th>Statut</th>
+          <th>Présence</th>
+          <th class="sl-actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (service of services(); track service.id) {
+        <tr (click)="viewService(service)">
+          <td>
+            <div class="sl-service-title">
+              <span class="sl-title">{{ service.title }}</span>
+              @if (service.theme) {
+              <span class="sl-theme">{{ service.theme }}</span>
+              }
+            </div>
+          </td>
+          <td>{{ getFormattedDate(service.date) }}</td>
+          <td>
+            <div class="sl-preacher">
+              @if (service.preacherId) {
+              <img class="sl-avatar" [src]="userService.getPhotoUrl(service.preacherPhotoUrl)"
+                alt="{{ service.preacherName }}" (error)="onImageError($event)">
+              } @else {
+              <div class="sl-avatar sl-avatar-placeholder">{{ getInitials(service.preacherName || '?') }}</div>
+              }
+              <span>{{ getPreacherName(service) }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="sl-badge" [class]="'sl-badge-' + getStatusColor(service.status)">
+              {{ getStatusLabel(service.status) }}
+            </span>
+          </td>
+          <td>
+            <div class="sl-attendance">
+              <!-- ✅ Affichage des deux totaux -->
+              <div>
+                <span class="sl-attendance-total">
+                  {{ getTotalWithChildren(service.attendance) }}
                 </span>
-              </td>
-              <td>
-                <span class="sl-attendance">
-                  {{ getTotalAttendance(service.attendance) }}
-                  <span class="sl-attendance-detail">
-                    (H: {{ service.attendance.men || 0 }} |
-                     F: {{ service.attendance.women || 0 }} |
-                     E: {{ service.attendance.children || 0 }} |
-                     V: {{ service.attendance.visitors || 0 }} |
-                     Staff: {{ service.attendance.pastoralStaff || 0 }})
-                  </span>
+                <span class="sl-attendance-label">(avec enfants)</span>
+              </div>
+              <div>
+                <span class="sl-attendance-total">
+                  {{ getTotalWithoutChildren(service.attendance) }}
                 </span>
-              </td>
-              <td>
-                <div class="sl-actions-btn">
-                  <button class="sl-icon-btn" (click)="viewService(service)" title="Voir">
-                    <i class="bx bx-show"></i>
-                  </button>
-                  <button class="sl-icon-btn" (click)="editService(service, $event)" title="Modifier">
-                    <i class="bx bx-edit"></i>
-                  </button>
-                  <button class="sl-icon-btn sl-icon-btn-danger" (click)="requestDelete(service, $event)" title="Supprimer">
-                    <i class="bx bx-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+                <span class="sl-attendance-label">(sans enfants)</span>
+              </div>
+              <div class="sl-attendance-detail">
+                H: {{ service.attendance.men || 0 }} |
+                F: {{ service.attendance.women || 0 }} |
+                E: {{ service.attendance.children || 0 }} |
+                V: {{ service.attendance.visitors || 0 }}
+              </div>
+              <!-- ✅ Indicateurs d'évangélisation -->
+              <div class="sl-attendance-evangelism"
+                *ngIf="service.attendance.acceptedJesus > 0 || service.attendance.notAcceptedJesus > 0">
+                ✝️ {{ service.attendance.acceptedJesus || 0 }} accepté |
+                ❌ {{ service.attendance.notAcceptedJesus || 0 }} non accepté
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="sl-actions-btn">
+              <button class="sl-icon-btn" (click)="viewService(service)" title="Voir">
+                <i class="bx bx-show"></i>
+              </button>
+              <button class="sl-icon-btn" (click)="editService(service, $event)" title="Modifier">
+                <i class="bx bx-edit"></i>
+              </button>
+              <!-- <button class="sl-icon-btn" (click)="recordAttendance(service, $event)" title="Enregistrer présence">
+                <i class="bx bx-check-circle"></i>
+              </button> -->
+              <button class="sl-icon-btn sl-icon-btn-danger" (click)="requestDelete(service, $event)" title="Supprimer">
+                <i class="bx bx-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
   }
 
   <!-- PAGINATION -->
   @if (totalCount() > 0) {
-    <div class="sl-pagination">
-      <div class="sl-pagination-info">
-        {{ pageRangeLabel() }}
-      </div>
-      <div class="sl-pagination-controls">
-        <button class="sl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
-          <i class="bx bx-chevron-left"></i>
-        </button>
-        @for (page of [].constructor(totalPages()); track $index) {
-          <button class="sl-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
-            {{ $index + 1 }}
-          </button>
-        }
-        <button class="sl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
-          <i class="bx bx-chevron-right"></i>
-        </button>
-        <select (change)="onPageSizeChange($any($event.target).value)">
-          @for (size of pageSizeOptions; track size) {
-            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
-          }
-        </select>
-      </div>
+  <div class="sl-pagination">
+    <div class="sl-pagination-info">
+      {{ pageRangeLabel() }}
     </div>
+    <div class="sl-pagination-controls">
+      <button class="sl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+        <i class="bx bx-chevron-left"></i>
+      </button>
+      @for (page of [].constructor(totalPages()); track $index) {
+      <button class="sl-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+        {{ $index + 1 }}
+      </button>
+      }
+      <button class="sl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+        <i class="bx bx-chevron-right"></i>
+      </button>
+      <select (change)="onPageSizeChange($any($event.target).value)">
+        @for (size of pageSizeOptions; track size) {
+        <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+        }
+      </select>
+    </div>
+  </div>
   }
 
   <!-- MODAL DE CONFIRMATION -->
   @if (deleteDialogVisible()) {
-    <div class="sl-modal-overlay" (click.self)="cancelDelete()">
-      <div class="sl-modal">
-        <h3>Confirmer la suppression</h3>
-        <p>Voulez‑vous vraiment supprimer le culte <strong>{{ serviceToDelete()?.title }}</strong> ?</p>
-        <div class="sl-modal-actions">
-          <button class="sl-btn-secondary" (click)="cancelDelete()">Annuler</button>
-          <button class="sl-btn-danger" (click)="confirmDelete()" [disabled]="deleting()">
-            @if (deleting()) { Suppression… } @else { Supprimer }
-          </button>
-        </div>
+  <div class="sl-modal-overlay" (click.self)="cancelDelete()">
+    <div class="sl-modal">
+      <h3>Confirmer la suppression</h3>
+      <p>Voulez‑vous vraiment supprimer le culte <strong>{{ serviceToDelete()?.title }}</strong> ?</p>
+      <div class="sl-modal-actions">
+        <button class="sl-btn-secondary" (click)="cancelDelete()">Annuler</button>
+        <button class="sl-btn-danger" (click)="confirmDelete()" [disabled]="deleting()">
+          @if (deleting()) { Suppression… } @else { Supprimer }
+        </button>
       </div>
     </div>
+  </div>
   }
 </div>

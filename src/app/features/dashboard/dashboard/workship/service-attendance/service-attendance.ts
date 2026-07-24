@@ -30,20 +30,22 @@ export class ServiceAttendance implements OnInit, OnDestroy {
 
   form: FormGroup;
   Math = Math;
+  selectedPhotoFile: File | null = null;
 
   getStatusLabel = ServiceUtils.getStatusLabel;
   getStatusColor = ServiceUtils.getStatusColor;
   getFormattedDate = ServiceUtils.getFormattedDate;
-  getTotalAttendance = ServiceUtils.getTotalAttendance;
 
   constructor() {
     this.form = this.fb.group({
-      members: [0, [Validators.min(0)]],
-      visitors: [0, [Validators.min(0)]],
-      children: [0, [Validators.min(0)]],
       men: [0, [Validators.min(0)]],
       women: [0, [Validators.min(0)]],
-      pastoralStaff: [0, [Validators.min(0)]],
+      visitors: [0, [Validators.min(0)]],
+      children: [0, [Validators.min(0)]],
+      acceptedJesus: [0, [Validators.min(0)]],
+      notAcceptedJesus: [0, [Validators.min(0)]],
+      observation: [''],
+      photoUrl: ['', Validators.required], // ✅ Rendre obligatoire
       visitorNames: this.fb.array([]),
     });
   }
@@ -100,19 +102,28 @@ export class ServiceAttendance implements OnInit, OnDestroy {
 
   private populateForm(service: any): void {
     const attendance = service.attendance || {
-      members: 0, visitors: 0, children: 0,
-      men: 0, women: 0, pastoralStaff: 0,
-      visitorNames: []
+      men: 0,
+      women: 0,
+      visitors: 0,
+      children: 0,
+      acceptedJesus: 0,
+      notAcceptedJesus: 0,
+      observation: '',
+      photoUrl: '',
+      visitorNames: [],
     };
     this.form.patchValue({
-      members: attendance.members || 0,
-      visitors: attendance.visitors || 0,
-      children: attendance.children || 0,
       men: attendance.men || 0,
       women: attendance.women || 0,
-      pastoralStaff: attendance.pastoralStaff || 0,
+      visitors: attendance.visitors || 0,
+      children: attendance.children || 0,
+      acceptedJesus: attendance.acceptedJesus || 0,
+      notAcceptedJesus: attendance.notAcceptedJesus || 0,
+      observation: attendance.observation || '',
+      photoUrl: attendance.photoUrl || '',
     });
 
+    // Noms des visiteurs
     const visitorNamesArray = this.form.get('visitorNames') as FormArray;
     visitorNamesArray.clear();
     (attendance.visitorNames || []).forEach((name: string) => {
@@ -139,16 +150,40 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     }
   }
 
-  // ── Calcul du total ──
+  // ── Calcul des totaux ──
 
-  get total(): number {
-    const members = this.form.get('members')?.value || 0;
-    const visitors = this.form.get('visitors')?.value || 0;
-    const children = this.form.get('children')?.value || 0;
+  get totalWithChildren(): number {
     const men = this.form.get('men')?.value || 0;
     const women = this.form.get('women')?.value || 0;
-    const pastoralStaff = this.form.get('pastoralStaff')?.value || 0;
-    return members + visitors + children + men + women + pastoralStaff;
+    const visitors = this.form.get('visitors')?.value || 0;
+    const children = this.form.get('children')?.value || 0;
+    return men + women + visitors + children;
+  }
+
+  get totalWithoutChildren(): number {
+    const men = this.form.get('men')?.value || 0;
+    const women = this.form.get('women')?.value || 0;
+    const visitors = this.form.get('visitors')?.value || 0;
+    return men + women + visitors;
+  }
+
+  // ── Gestion de la photo ──
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedPhotoFile = input.files[0];
+      // Marquer le champ photoUrl comme touché pour la validation
+      this.form.get('photoUrl')?.markAsTouched();
+      // On garde le fichier pour l’upload après sauvegarde
+      // On peut aussi afficher un message dans le formulaire
+      this.form.patchValue({ photoUrl: this.selectedPhotoFile.name });
+    }
+  }
+
+  isFieldInvalid(field: string): boolean {
+    const control = this.form.get(field);
+    return !!control && control.invalid && (control.dirty || control.touched);
   }
 
   // ── Sauvegarde ──
@@ -163,52 +198,81 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     const s = this.service();
     if (!s) return;
 
-    this.saving.set(true);
-    this.error.set(null);
-    this.success.set(false);
+    // Si une photo a été sélectionnée, on l’upload d’abord, puis on enregistre les présences
+    if (this.selectedPhotoFile) {
+      this.uploadPhotoAndSave(s);
+    } else {
+      // Sinon, on utilise l’éventuelle photoUrl existante (si déjà uploadée)
+      this.saveAttendance(s);
+    }
+  }
 
+  private uploadPhotoAndSave(service: any): void {
+  this.saving.set(true);
+  this.error.set(null);
+  this.success.set(false);
+
+  this.serviceService.uploadPhoto(service.id, this.selectedPhotoFile!)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.photoId) {
+          // ✅ Mettre à jour le champ photoUrl avec l'ID réel
+          this.form.patchValue({ photoUrl: response.photoId });
+          this.selectedPhotoFile = null;
+          this.saveAttendance(service);
+        } else {
+          this.saving.set(false);
+          this.error.set(response.message || 'Erreur lors de l’upload de la photo.');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur upload photo:', err);
+        this.saving.set(false);
+        this.error.set('Erreur lors de l’upload de la photo.');
+      },
+    });
+}
+
+  private saveAttendance(service: any): void {
     const raw = this.form.value;
+  const isValidPhotoId = /^[0-9a-fA-F]{24}$/.test(raw.photoUrl || '');
 
-    // Récupération des valeurs avec fallback à 0
-    const members = raw.members || 0;
-    const visitors = raw.visitors || 0;
-    const children = raw.children || 0;
-    const men = raw.men || 0;
-    const women = raw.women || 0;
-    const pastoralStaff = raw.pastoralStaff || 0;
-    const total = members + visitors + children + men + women + pastoralStaff;
+  if (!isValidPhotoId) {
+    this.saving.set(false);
+    this.error.set('La photo n\'a pas été correctement téléchargée. Veuillez réessayer.');
+    return;
+  }
 
     // Filtrage des noms de visiteurs non vides
     const visitorNames = (raw.visitorNames || [])
       .filter((name: string) => name && name.trim().length > 0);
 
     const payload = {
-      members,
-      visitors,
-      children,
-      men,
-      women,
-      pastoralStaff,
-      total,
+      men: raw.men || 0,
+      women: raw.women || 0,
+      visitors: raw.visitors || 0,
+      children: raw.children || 0,
+      acceptedJesus: raw.acceptedJesus || 0,
+      notAcceptedJesus: raw.notAcceptedJesus || 0,
+      observation: raw.observation || '',
+      photoUrl: raw.photoUrl || '',
       visitorNames,
     };
 
     this.serviceService
-      .recordAttendance(s.id, payload)
+      .recordAttendance(service.id, payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
           this.saving.set(false);
-          if (response.success) {
+          if (response.isSuccess !== false) {
             this.success.set(true);
-            const updated = response.data || this.service();
-            if (updated) {
-              this.service.set(updated);
-              this.populateForm(updated);
-            }
+            // Recharger le service pour mettre à jour les données
+            this.loadService(service.id);
             setTimeout(() => this.success.set(false), 3000);
           } else {
-            this.error.set(response.message || 'Erreur lors de l\'enregistrement.');
+            this.error.set(response.errorMessage || 'Erreur lors de l\'enregistrement.');
           }
         },
         error: (err) => {

@@ -6,8 +6,15 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../models/Common/api-response.model';
-import { ServiceCreate, ServiceFilter, DEFAULT_SERVICE_FILTER, ServiceListResponse, ServiceUpdate, TeamMember, ServiceAttendance, ServiceStatus } from '../../models/Events/service.model';
-
+import {
+  ServiceCreate,
+  ServiceFilter,
+  DEFAULT_SERVICE_FILTER,
+  ServiceListResponse,
+  ServiceUpdate,
+  ServiceAttendance,
+  ServiceStatus
+} from '../../models/Events/service.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +22,7 @@ import { ServiceCreate, ServiceFilter, DEFAULT_SERVICE_FILTER, ServiceListRespon
 export class Service {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Service`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ──────────────────────────────────────────────────────────────
   // 📝 CRUD
@@ -63,45 +70,37 @@ export class Service {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // 👥 ÉQUIPE LITURGIQUE
+  // 📸 PHOTO DU CULTE (nouveau)
   // ──────────────────────────────────────────────────────────────
 
   /**
-   * Ajoute un membre à une équipe
-   * POST /api/v1/Service/{id}/team/{team}
+   * Upload une photo justificative pour un culte
+   * POST /api/v1/Service/{id}/photo
    */
-  addTeamMember(serviceId: string, team: string, member: TeamMember): Observable<ApiResponse<Service>> {
-    return this.http.post<ApiResponse<Service>>(
-      `${this.baseUrl}/${serviceId}/team/${team}`,
-      member
+  uploadPhoto(serviceId: string, photoFile: File): Observable<{ success: boolean; photoId?: string; message?: string }> {
+    const formData = new FormData();
+    formData.append('photoFile', photoFile);
+    return this.http.post<{ success: boolean; photoId?: string; message?: string }>(
+      `${this.baseUrl}/${serviceId}/photo`,
+      formData
     );
   }
 
   /**
-   * Retire un membre d'une équipe
-   * DELETE /api/v1/Service/{id}/team/{team}/{memberId}
+   * Retourne l'URL complète pour afficher une photo de culte
    */
-  removeTeamMember(serviceId: string, team: string, memberId: string): Observable<ApiResponse<Service>> {
-    return this.http.delete<ApiResponse<Service>>(
-      `${this.baseUrl}/${serviceId}/team/${team}/${memberId}`
-    );
+  getPhotoUrl(photoId: string): string {
+    if (!photoId) return '';
+    return `${this.baseUrl}/photos/${photoId}`;
   }
 
   /**
-   * Confirme ou annule la confirmation d'un membre d'équipe
-   * PUT /api/v1/Service/{id}/team/{team}/{memberId}/confirm
+   * Récupère une photo de culte
+   * GET /api/v1/Service/photos/{photoId}
+   * Retourne un blob (image)
    */
-  confirmTeamMember(
-    serviceId: string,
-    team: string,
-    memberId: string,
-    confirmed: boolean = true
-  ): Observable<ApiResponse<Service>> {
-    return this.http.put<ApiResponse<Service>>(
-      `${this.baseUrl}/${serviceId}/team/${team}/${memberId}/confirm`,
-      null,
-      { params: { confirmed: confirmed.toString() } }
-    );
+  getPhoto(photoId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/photos/${photoId}`, { responseType: 'blob' });
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -122,12 +121,12 @@ export class Service {
   /**
    * Met à jour le statut d'un culte
    * PUT /api/v1/Service/{id}/status
+   * Le backend attend une chaîne dans le body.
    */
   updateStatus(serviceId: string, status: ServiceStatus): Observable<ApiResponse<Service>> {
-    // Le backend attend une string dans le body
     return this.http.put<ApiResponse<Service>>(
       `${this.baseUrl}/${serviceId}/status`,
-      status // Envoi direct de la valeur string
+      status // envoi direct de la valeur string
     );
   }
 
@@ -161,12 +160,6 @@ export class Service {
     if (filter.createdFrom) params = params.set('createdFrom', filter.createdFrom);
     if (filter.createdTo) params = params.set('createdTo', filter.createdTo);
 
-    if (filter.minMembers !== undefined) {
-      params = params.set('minMembers', filter.minMembers.toString());
-    }
-    if (filter.maxMembers !== undefined) {
-      params = params.set('maxMembers', filter.maxMembers.toString());
-    }
     if (filter.minVisitors !== undefined) {
       params = params.set('minVisitors', filter.minVisitors.toString());
     }

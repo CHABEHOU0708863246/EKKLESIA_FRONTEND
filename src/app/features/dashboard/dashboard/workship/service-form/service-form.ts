@@ -1,43 +1,22 @@
-import { Component, OnDestroy, OnInit, signal, computed } from '@angular/core';
+// src/app/features/dashboard/services/service-form/service-form.component.ts
+
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLinkActive, RouterModule } from '@angular/router';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
-import { ServiceCreate, ServiceStatus, ServiceStatusLabels, ServiceTeam, TEAM_ROLE_LABELS, TEAM_ROLES, TeamMember } from '../../../../../core/models/Events/service.model';
+import { ServiceCreate, ServiceStatus, ServiceStatusLabels } from '../../../../../core/models/Events/service.model';
 import { Site } from '../../../../../core/models/Church/site.model';
-import { Member } from '../../../../../core/models/Members/member.model';
 import { User } from '../../../../../core/models/Users/user.model';
-import { Members } from '../../../../../core/services/Members/members';
-import { Roles } from '../../../../../core/services/Roles/roles';
 import { Users } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 
-
-// Enum des statuts
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
   label: ServiceStatusLabels[value],
 }));
-
-// Rôles d'équipe disponibles pour les membres
-const TEAM_ROLE_OPTIONS = [
-  { value: 'Chef de louange', label: 'Chef de louange' },
-  { value: 'Chantre', label: 'Chantre' },
-  { value: 'Guitariste', label: 'Guitariste' },
-  { value: 'Bassiste', label: 'Bassiste' },
-  { value: 'Batteur', label: 'Batteur' },
-  { value: 'Claviériste', label: 'Claviériste' },
-  { value: 'Ingénieur son', label: 'Ingénieur son' },
-  { value: 'Lumière', label: 'Lumière' },
-  { value: 'Accueil', label: 'Accueil' },
-  { value: 'Huissier', label: 'Huissier' },
-  { value: 'Enseignant', label: 'Enseignant' },
-  { value: 'Vidéaste', label: 'Vidéaste' },
-  { value: 'Photographe', label: 'Photographe' },
-  { value: 'Autre', label: 'Autre' },
-];
 
 @Component({
   selector: 'app-service-form',
@@ -49,54 +28,34 @@ const TEAM_ROLE_OPTIONS = [
 export class ServiceForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  // ── Liste des statuts ──
   readonly statusOptions = STATUS_OPTIONS;
   readonly ServiceStatus = ServiceStatus;
-  readonly TEAM_ROLES = TEAM_ROLES;
-  readonly TEAM_ROLE_LABELS = TEAM_ROLE_LABELS;
-  readonly TEAM_ROLE_OPTIONS = TEAM_ROLE_OPTIONS;
 
-  preacherRoleNames = signal<string[]>([]);
-
-
-
-  // ── État du formulaire ──
+  // ── État ──
   saving = signal(false);
   error = signal<string | null>(null);
   isEditMode = signal(false);
   serviceId: string | null = null;
 
-  // ── Listes déroulantes ──
+  // ── Listes ──
   churches = signal<ChurchModel[]>([]);
   loadingChurches = signal(false);
   sites = signal<Site[]>([]);
   loadingSites = signal(false);
 
-  // ── Prédicateurs (pasteurs) ──
+  // ── Prédicateurs ──
   preachers = signal<User[]>([]);
   loadingPreachers = signal(false);
-  preacherSearchTerm = signal('');
 
-  // ── Chefs de louange (membres) ──
-  worshipLeaders = signal<Member[]>([]);
-  loadingWorshipLeaders = signal(false);
-  worshipLeaderSearchTerm = signal('');
-
-  // ── Membres pour les équipes (recherche par autocomplete) ──
-  searchingTeamMember = signal<{ team: string; index: number } | null>(null);
-  teamMemberResults = signal<Member[]>([]);
-  teamMemberSearchTerm = signal('');
-
-  // ── Formulaire principal ──
+  // ── Formulaire ──
   form: FormGroup;
+  private selectedPhotoFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
     private serviceService: Service,
     private churchService: ChurchService,
-    private memberService: Members,
     private userService: Users,
-    private roleService: Roles,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -108,42 +67,27 @@ export class ServiceForm implements OnInit, OnDestroy {
       preacherSearch: [''],
       bibleText: [''],
       theme: [''],
-      songIds: [[]],
-      worshipLeaderId: [''],
-      worshipLeaderSearch: [''],
       status: [ServiceStatus.Scheduled, Validators.required],
       notes: [''],
-      // Équipes – chacune un FormArray
-      team: this.fb.group({
-        worship: this.fb.array([]),
-        sound: this.fb.array([]),
-        lighting: this.fb.array([]),
-        welcome: this.fb.array([]),
-        ushers: this.fb.array([]),
-        children: this.fb.array([]),
-        media: this.fb.array([]),
-        other: this.fb.array([]),
-      }),
-      // Présences – on initialise à zéro
       attendance: this.fb.group({
-        men: [0, Validators.min(0)],
-        women: [0, Validators.min(0)],
-        visitors: [0, Validators.min(0)],
-        children: [0, Validators.min(0)],
-        pastoralStaff: [0, Validators.min(0)],
+        men: [0, [Validators.min(0)]],
+        women: [0, [Validators.min(0)]],
+        visitors: [0, [Validators.min(0)]],
+        children: [0, [Validators.min(0)]],
+        acceptedJesus: [0, [Validators.min(0)]],
+        notAcceptedJesus: [0, [Validators.min(0)]],
+        observation: [''],
+        photoUrl: [''],
         visitorNames: [[]],
       }),
     });
   }
 
   ngOnInit(): void {
-    // Dans ngOnInit, chargez ces noms
-    this.loadPreacherRoleNames();
-    // Détecter si on est en mode édition (via l'URL)
+    // Détecter mode édition
     const urlSegments = this.router.url.split('/');
     if (urlSegments.includes('edit')) {
       this.isEditMode.set(true);
-      // Extraire l'ID de l'URL : /dashboard/cultes/:id/edit
       const idIndex = urlSegments.indexOf('edit') - 1;
       this.serviceId = urlSegments[idIndex] || null;
       if (this.serviceId) {
@@ -151,27 +95,13 @@ export class ServiceForm implements OnInit, OnDestroy {
       }
     }
 
-    this.form.get('worshipLeaderSearch')?.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term: string) => {
-        this.worshipLeaderSearchTerm.set(term || '');
-        if (term && term.trim().length >= 2) {
-          this.searchWorshipLeaders(term.trim());
-        } else {
-          this.worshipLeaders.set([]);
-        }
-      });
-
-    // Charger les églises
+    // Charger églises
     this.loadChurches();
 
-    // Charger les prédicateurs (rôle PASTEUR_SITE ou PASTOR_PRINCIPAL)
+    // Charger prédicateurs (pasteurs)
     this.loadPreachers();
 
-    // Charger les chefs de louange (membres avec un rôle spécifique ou tous)
-    this.loadWorshipLeaders();
-
-    // ── Réactivité pour le changement d'église → recharger les sites ──
+    // Réactivité église → sites
     this.form.get('churchId')?.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((churchId: string) => {
@@ -180,7 +110,7 @@ export class ServiceForm implements OnInit, OnDestroy {
         if (churchId) this.loadSites(churchId);
       });
 
-    // ── Recherche de prédicateur ──
+    // Recherche prédicateur
     this.form.get('preacherSearch')?.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((term: string) => {
@@ -190,49 +120,6 @@ export class ServiceForm implements OnInit, OnDestroy {
           this.preachers.set([]);
         }
       });
-
-    // ── Recherche de chef de louange ──
-    this.form.get('worshipLeaderSearch')?.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term: string) => {
-        if (term && term.trim().length >= 2) {
-          this.searchWorshipLeaders(term.trim());
-        } else {
-          this.worshipLeaders.set([]);
-        }
-      });
-  }
-
-  private loadPreacherRoleNames(): void {
-    const codes = ['PASTOR_PRINCIPAL', 'PASTEUR_SITE'];
-    const names: string[] = [];
-    let remaining = codes.length;
-
-    for (const code of codes) {
-      this.roleService.getRoleByCode(code).subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            names.push(response.data.roleName);
-          }
-          remaining--;
-          if (remaining === 0) this.preacherRoleNames.set(names);
-        },
-        error: () => {
-          remaining--;
-          if (remaining === 0) this.preacherRoleNames.set(names);
-        },
-      });
-    }
-  }
-
-
-
-  /**
- * Retourne la liste des clés des équipes (worship, sound, lighting, etc.)
- * Utilisé dans le template pour itérer sur toutes les équipes.
- */
-  getTeamKeys(): string[] {
-    return Object.keys(TEAM_ROLES); // ['worship', 'sound', 'lighting', ...]
   }
 
   ngOnDestroy(): void {
@@ -247,7 +134,6 @@ export class ServiceForm implements OnInit, OnDestroy {
   private loadServiceData(id: string): void {
     this.serviceService.getById(id).subscribe({
       next: (response: any) => {
-        // ✅ GetServiceByIdAsync renvoie l'objet à plat, ou null si absent
         if (response) {
           this.populateForm(response);
         } else {
@@ -268,9 +154,6 @@ export class ServiceForm implements OnInit, OnDestroy {
       preacherSearch: service.preacherName || '',
       bibleText: service.bibleText || '',
       theme: service.theme || '',
-      songIds: service.songIds || [],
-      worshipLeaderId: service.worshipLeaderId || '',
-      worshipLeaderSearch: service.worshipLeaderName || '',
       status: service.status || ServiceStatus.Scheduled,
       notes: service.notes || '',
       attendance: {
@@ -278,32 +161,21 @@ export class ServiceForm implements OnInit, OnDestroy {
         women: service.attendance?.women || 0,
         visitors: service.attendance?.visitors || 0,
         children: service.attendance?.children || 0,
-        pastoralStaff: service.attendance?.pastoralStaff || 0,
+        acceptedJesus: service.attendance?.acceptedJesus || 0,
+        notAcceptedJesus: service.attendance?.notAcceptedJesus || 0,
+        observation: service.attendance?.observation || '',
+        photoUrl: service.attendance?.photoUrl || '',
         visitorNames: service.attendance?.visitorNames || [],
       },
     });
 
-    // Charger les équipes
-    if (service.team) {
-      const teamKeys = Object.keys(TEAM_ROLES);
-      teamKeys.forEach((key) => {
-        const members = service.team[key] || [];
-        const formArray = this.getTeamFormArray(key);
-        formArray.clear(); // Vider le FormArray avant d'ajouter
-        members.forEach((member: TeamMember) => {
-          formArray.push(this.createTeamMemberGroup(member));
-        });
-      });
-    }
-
-    // Charger les sites pour l'église sélectionnée
     if (service.churchId) {
       this.loadSites(service.churchId);
     }
   }
 
   // ──────────────────────────────────────────────────────────────
-  // CHARGEMENT DES LISTES (Églises, Sites, Prédicateurs, etc.)
+  // CHARGEMENT DES LISTES
   // ──────────────────────────────────────────────────────────────
 
   private loadChurches(): void {
@@ -333,8 +205,6 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   private loadPreachers(): void {
-    // Récupérer les utilisateurs ayant les rôles PASTEUR_SITE ou PASTOR_PRINCIPAL
-    // On utilise le service Users avec un filtre sur les rôles
     this.userService
       .getUsers({
         page: 1,
@@ -357,148 +227,37 @@ export class ServiceForm implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
-            const allowedNames = this.preacherRoleNames();
-            console.log('🔍 Noms autorisés :', allowedNames);
             const items = (response.data.items ?? []) as User[];
-            const filtered = allowedNames.length > 0
-              ? items.filter((u) => (u.roles ?? []).some((r) => allowedNames.includes(r)))
-              : items;
-            console.log('👥 Prédicateurs filtrés :', filtered);
+            // Filtrer les utilisateurs avec rôles de pasteur
+            const pastorRoles = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
+            const filtered = items.filter((u) =>
+              (u.roles ?? []).some((r) => pastorRoles.includes(r))
+            );
             this.preachers.set(filtered);
           } else {
             this.preachers.set([]);
           }
         },
-        error: (err) => {
-          console.error('❌ Erreur searchPreachers', err);
-          this.preachers.set([]);
-        },
+        error: () => this.preachers.set([]),
       });
   }
 
-  private loadWorshipLeaders(): void {
-    this.memberService
-      .getMembers({ page: 1, pageSize: 100 } as any)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          // ✅ La réponse est directement un objet avec `items`
-          const items = response?.items ?? [];
-          console.log('👥 Membres chargés :', items);
-          this.worshipLeaders.set(items);
-        },
-        error: (err) => {
-          console.error('❌ Erreur loadWorshipLeaders', err);
-          this.worshipLeaders.set([]);
-        },
-      });
-  }
-
-  getMemberPhotoUrl(member: Member): string {
-    return this.userService.getPhotoUrl(member.photoUrl);
-  }
-
-  onImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    // Remplacer par une image par défaut ou initiales
-    img.style.display = 'none';
-    // ou mettre une image par défaut
-    img.src = 'assets/default-avatar.png';
-  }
-
-  private searchWorshipLeaders(term: string): void {
-    this.memberService
-      .getMembers({ page: 1, pageSize: 20, fullName: term } as any)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          // ✅ Même structure
-          const items = response?.items ?? [];
-          this.worshipLeaders.set(items);
-        },
-        error: (err) => {
-          console.error('❌ Erreur searchWorshipLeaders', err);
-          this.worshipLeaders.set([]);
-        },
-      });
-  }
   // ──────────────────────────────────────────────────────────────
-  // GESTION DES ÉQUIPES (FormArray)
+  // PHOTO (upload)
   // ──────────────────────────────────────────────────────────────
 
-  /**
- * Récupère le FormArray d'une équipe spécifique
- * @param teamKey - La clé de l'équipe (ex: 'worship', 'sound')
- * @returns Le FormArray correspondant
- */
-  getTeamFormArray(teamKey: string): FormArray {
-    const control = this.form.get(`team.${teamKey}`);
-    if (!control) {
-      console.warn(`⚠️ Team "${teamKey}" non trouvée dans le formulaire, création automatique.`);
-      // Si le contrôle n'existe pas, on le crée dynamiquement
-      const formArray = this.fb.array([]);
-      (this.form.get('team') as FormGroup).setControl(teamKey, formArray);
-      return formArray;
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedPhotoFile = input.files[0];
+      this.form.patchValue({ attendance: { photoUrl: 'uploading...' } });
+      // L'upload sera fait lors de la soumission (après création du culte)
+      // ou on peut uploader immédiatement.
+      // Ici, on stocke le fichier pour l'envoyer après la création du culte.
+      // Mais pour simplifier, on peut attendre d'avoir l'ID du culte.
+      // On peut afficher un message.
+      this.form.patchValue({ attendance: { photoUrl: '✅ Fichier sélectionné' } });
     }
-    return control as FormArray;
-  }
-
-  createTeamMemberGroup(member?: TeamMember): FormGroup {
-    return this.fb.group({
-      memberId: [member?.memberId || ''],
-      memberName: [member?.memberName || ''],
-      role: [member?.role || 'Autre', Validators.required],
-      confirmed: [member?.confirmed || false],
-    });
-  }
-
-  addTeamMember(teamKey: string): void {
-    const formArray = this.getTeamFormArray(teamKey);
-    formArray.push(this.createTeamMemberGroup());
-  }
-
-  removeTeamMember(teamKey: string, index: number): void {
-    const formArray = this.getTeamFormArray(teamKey);
-    formArray.removeAt(index);
-  }
-
-  // ── Recherche de membre pour ajout dans une équipe ──
-  searchMembersForTeam(term: string, teamKey: keyof ServiceTeam, index: number): void {
-    if (term && term.trim().length >= 2) {
-      this.searchingTeamMember.set({ team: teamKey, index });
-      this.memberService
-        .getMembers({ page: 1, pageSize: 8, fullName: term } as any)
-        .subscribe({
-          next: (response) => {
-            if (response.success && response.data) {
-              this.teamMemberResults.set(response.data.items as any);
-            } else {
-              this.teamMemberResults.set([]);
-            }
-            this.searchingTeamMember.set(null);
-          },
-          error: () => {
-            this.teamMemberResults.set([]);
-            this.searchingTeamMember.set(null);
-          },
-        });
-    } else {
-      this.teamMemberResults.set([]);
-    }
-  }
-
-  selectTeamMember(teamKey: keyof ServiceTeam, index: number, member: Member): void {
-    const formArray = this.getTeamFormArray(teamKey);
-    const group = formArray.at(index) as FormGroup;
-    group.patchValue({
-      memberId: member.id,
-      memberName: `${member.firstName} ${member.lastName}`,
-    });
-    this.teamMemberResults.set([]);
-    this.searchingTeamMember.set(null);
-    // Effacer le terme de recherche
-    const input = document.querySelector(`input[data-team="${teamKey}"][data-index="${index}"]`) as HTMLInputElement;
-    if (input) input.value = '';
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -522,6 +281,7 @@ export class ServiceForm implements OnInit, OnDestroy {
 
     const rawValue = this.form.value;
 
+    // Construire le payload sans les champs obsolètes
     const payload: ServiceCreate = {
       title: rawValue.title,
       date: rawValue.date,
@@ -531,23 +291,17 @@ export class ServiceForm implements OnInit, OnDestroy {
       preacherName: rawValue.preacherSearch || undefined,
       bibleText: rawValue.bibleText || undefined,
       theme: rawValue.theme || undefined,
-      songIds: rawValue.songIds || [],
-      worshipLeaderId: rawValue.worshipLeaderId || undefined,
       status: rawValue.status || ServiceStatus.Scheduled,
       notes: rawValue.notes || undefined,
-      team: this.buildTeamPayload(rawValue.team),
       attendance: {
         men: rawValue.attendance?.men || 0,
         women: rawValue.attendance?.women || 0,
         visitors: rawValue.attendance?.visitors || 0,
         children: rawValue.attendance?.children || 0,
-        pastoralStaff: rawValue.attendance?.pastoralStaff || 0,
-        total:
-          (rawValue.attendance?.men || 0) +
-          (rawValue.attendance?.women || 0) +
-          (rawValue.attendance?.visitors || 0) +
-          (rawValue.attendance?.children || 0) +
-          (rawValue.attendance?.pastoralStaff || 0),
+        acceptedJesus: rawValue.attendance?.acceptedJesus || 0,
+        notAcceptedJesus: rawValue.attendance?.notAcceptedJesus || 0,
+        observation: rawValue.attendance?.observation || '',
+        photoUrl: rawValue.attendance?.photoUrl || '', // sera mis à jour après upload
         visitorNames: rawValue.attendance?.visitorNames || [],
       },
     };
@@ -559,14 +313,15 @@ export class ServiceForm implements OnInit, OnDestroy {
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         this.saving.set(false);
-
-        // ✅ Le backend renvoie ServiceResponseDto à plat : isSuccess + id
-        // directement sur l'objet, pas de wrapper { success, data }.
         if (response && response.isSuccess !== false && response.id) {
-          // ✅ Redirection vers la LISTE des cultes, pas vers le détail
-          this.router.navigate(['/dashboard/cultes']);
+          // Si une photo a été sélectionnée, on l'upload maintenant
+          if (this.selectedPhotoFile) {
+            this.uploadPhoto(response.id);
+          } else {
+            this.router.navigate(['/dashboard/cultes']);
+          }
         } else {
-          this.error.set(response?.errorMessage || "Une erreur est survenue lors de l'enregistrement.");
+          this.error.set(response?.errorMessage || "Erreur lors de l'enregistrement.");
         }
       },
       error: (err) => {
@@ -577,35 +332,32 @@ export class ServiceForm implements OnInit, OnDestroy {
     });
   }
 
-  private buildTeamPayload(teamValue: any): ServiceTeam {
-    const team: ServiceTeam = {
-      worship: [],
-      sound: [],
-      lighting: [],
-      welcome: [],
-      ushers: [],
-      children: [],
-      media: [],
-      other: [],
-    };
-    // Pour chaque équipe, transformer les valeurs
-    Object.keys(TEAM_ROLES).forEach((key) => {
-      const teamKey = key.toLowerCase() as keyof ServiceTeam;
-      const members = teamValue[teamKey] || [];
-      team[teamKey] = members
-        .filter((m: any) => m.memberId) // ignorer les lignes vides
-        .map((m: any) => ({
-          memberId: m.memberId,
-          memberName: m.memberName || '',
-          role: m.role || 'Autre',
-          confirmed: m.confirmed || false,
-        }));
-    });
-    return team;
-  }
+  // ──────────────────────────────────────────────────────────────
+  // UPLOAD DE LA PHOTO (après création du culte)
+  // ──────────────────────────────────────────────────────────────
 
-  cancel(): void {
-    this.router.navigate(['/dashboard/cultes']);
+  private uploadPhoto(serviceId: string): void {
+    if (!this.selectedPhotoFile) return;
+
+    this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.photoId) {
+            // ✅ Maintenant on met à jour le culte avec le photoUrl
+            this.serviceService.update(serviceId, { attendance: { photoUrl: response.photoId } } as any)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => this.router.navigate(['/dashboard/cultes']),
+                error: () => this.router.navigate(['/dashboard/cultes']),
+              });
+          } else {
+            // Échec de l'upload, on navigue quand même
+            this.router.navigate(['/dashboard/cultes']);
+          }
+        },
+        error: () => this.router.navigate(['/dashboard/cultes']),
+      });
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -616,16 +368,6 @@ export class ServiceForm implements OnInit, OnDestroy {
     if (!date) return '';
     const d = new Date(date);
     return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16);
-  }
-
-  getMemberFullName(member: Member): string {
-    return `${member.firstName} ${member.lastName}`.trim();
-  }
-
-  getMemberInitials(member: Member): string {
-    const first = member.firstName?.charAt(0) || '?';
-    const last = member.lastName?.charAt(0) || '?';
-    return `${first}${last}`.toUpperCase();
   }
 
   getUserFullName(user: User): string {
@@ -640,70 +382,11 @@ export class ServiceForm implements OnInit, OnDestroy {
     this.preachers.set([]);
   }
 
-  selectWorshipLeader(member: Member): void {
-    this.form.patchValue({
-      worshipLeaderId: member.id,
-      worshipLeaderSearch: this.getMemberFullName(member),
-    });
-    this.worshipLeaders.set([]);
-
-    // ✅ Synchronise automatiquement le chef de louange dans l'équipe "Louange"
-    this.syncWorshipLeaderIntoTeam(member);
-  }
-
-
-  /**
-   * Ajoute (ou met à jour) le chef de louange désigné dans le FormArray "worship",
-   * avec le rôle explicite "Chef de louange" et confirmé par défaut. Évite d'avoir
-   * un chef de louange qui n'apparaît pas dans l'équipe, ou une incohérence entre
-   * les deux champs.
-   */
-  private syncWorshipLeaderIntoTeam(member: Member): void {
-    const worshipArray = this.getTeamFormArray('worship');
-    const fullName = this.getMemberFullName(member);
-
-    // Retire toute entrée existante marquée "Chef de louange" (évite les doublons
-    // si l'utilisateur change de chef en cours de saisie)
-    for (let i = worshipArray.length - 1; i >= 0; i--) {
-      const group = worshipArray.at(i) as FormGroup;
-      if (group.get('role')?.value === 'Chef de louange') {
-        worshipArray.removeAt(i);
-      }
-    }
-
-    // Si ce membre existe déjà dans l'équipe sous un autre rôle, on met à jour son rôle
-    const existingIndex = worshipArray.controls.findIndex(
-      (c) => (c as FormGroup).get('memberId')?.value === member.id
-    );
-
-    if (existingIndex >= 0) {
-      const group = worshipArray.at(existingIndex) as FormGroup;
-      group.patchValue({ role: 'Chef de louange', confirmed: true });
-    } else {
-      worshipArray.insert(0, this.createTeamMemberGroup({
-        memberId: member.id,
-        memberName: fullName,
-        role: 'Chef de louange',
-        confirmed: true,
-      }));
-    }
-  }
-
   clearPreacher(): void {
     this.form.patchValue({ preacherId: '', preacherSearch: '' });
   }
 
-  clearWorshipLeader(): void {
-    const member = this.form.get('worshipLeaderId')?.value;
-    this.form.patchValue({ worshipLeaderId: '', worshipLeaderSearch: '' });
-
-    // ✅ Retire aussi l'entrée "Chef de louange" de l'équipe si on efface le champ
-    const worshipArray = this.getTeamFormArray('worship');
-    for (let i = worshipArray.length - 1; i >= 0; i--) {
-      const group = worshipArray.at(i) as FormGroup;
-      if (group.get('role')?.value === 'Chef de louange') {
-        worshipArray.removeAt(i);
-      }
-    }
+  cancel(): void {
+    this.router.navigate(['/dashboard/cultes']);
   }
 }
