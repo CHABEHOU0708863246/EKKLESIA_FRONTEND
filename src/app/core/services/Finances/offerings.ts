@@ -21,6 +21,7 @@ import {
   OfferingUtils,
   OfferingStatus,
   OfferingType,
+  OfferingCategory,
 } from '../../models/Finances/offering.model';
 
 /**
@@ -37,6 +38,24 @@ export class Offerings {
   constructor(private http: HttpClient) {
     this.baseUrl = `${environment.apiUrl}/api/v1/Offering`;
   }
+
+
+  /**
+ * Génère l'URL complète pour afficher la photo justificative
+ */
+getValidationPhotoUrl(photoId: string): string {
+  if (!photoId) return '';
+  return `${this.baseUrl}/photos/${photoId}`;
+}
+
+// /**
+//  * Récupère la photo justificative en blob (pour téléchargement)
+//  */
+// getValidationPhoto(photoId: string): Observable<Blob> {
+//   return this.http.get(`${this.baseUrl}/photos/${photoId}`, {
+//     responseType: 'blob'
+//   });
+// }
 
   // ──────────────────────────────────────────────────────────────
   // 📝 CRUD
@@ -116,6 +135,47 @@ export class Offerings {
         }),
         catchError(this.handleError<boolean>('delete'))
       );
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 📸 PHOTO JUSTIFICATIVE (validation)
+  // ──────────────────────────────────────────────────────────────
+
+  /**
+   * Upload la photo justificative (avec signatures) pour une offrande.
+   * POST /api/v1/Offering/{id}/upload-validation-photo
+   */
+  uploadValidationPhoto(offeringId: string, photoFile: File): Observable<ApiResponse<Offering>> {
+    const formData = new FormData();
+    formData.append('photo', photoFile);
+
+    return this.http.post<ApiResponse<Offering>>(
+      `${this.baseUrl}/${offeringId}/upload-validation-photo`,
+      formData
+    ).pipe(
+      tap(response => {
+        if (response.success) {
+          console.log('📸 Photo justificative uploadée pour l\'offrande:', offeringId);
+        }
+      }),
+      catchError(this.handleError<Offering>('uploadValidationPhoto'))
+    );
+  }
+
+  /**
+   * Récupère la photo justificative d'une offrande.
+   * GET /api/v1/Offering/photos/{photoId}
+   * Retourne un blob (image)
+   */
+  getValidationPhoto(photoId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/photos/${photoId}`, {
+      responseType: 'blob'
+    }).pipe(
+      catchError((error) => {
+        console.error('❌ Erreur lors du téléchargement de la photo:', error);
+        throw error;
+      })
+    );
   }
 
   // ──────────────────────────────────────────────────────────────

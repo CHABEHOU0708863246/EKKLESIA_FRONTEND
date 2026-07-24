@@ -1,6 +1,8 @@
 // ──────────────────────────────────────────────────────────────
-//   VARIABLES
+//   OFFERING-DETAIL — STYLES COMPLETS
 // ──────────────────────────────────────────────────────────────
+
+// ─── VARIABLES ────────────────────────────────────────────────
 
 $primary: #2a6f94;
 $primary-dark: #1f5a7e;
@@ -23,7 +25,7 @@ $box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 $transition: 0.2s ease-in-out;
 
 // ──────────────────────────────────────────────────────────────
-//   CONTENEUR
+//   CONTENEUR PRINCIPAL
 // ──────────────────────────────────────────────────────────────
 
 .od-container {
@@ -150,6 +152,8 @@ $transition: 0.2s ease-in-out;
 .od-badge-danger  { background: #f8d7da; color: #721c24; }
 .od-badge-secondary{ background: $gray-200; color: $gray-700; }
 
+// ─── BADGES DE TYPE ──────────────────────────────────────────
+
 .od-type-badge {
   display: inline-flex;
   align-items: center;
@@ -168,6 +172,31 @@ $transition: 0.2s ease-in-out;
 .od-type-orange  { background: #ffe5cc; color: #b85a00; }
 .od-type-secondary{ background: $gray-200; color: $gray-700; }
 
+// ─── BADGES DE CATÉGORIES ────────────────────────────────────
+
+.od-category-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.od-category-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.od-category-primary { background: #dbeafe; color: #1e40af; }
+.od-category-success { background: #d4edda; color: #155724; }
+.od-category-warning { background: #fff3cd; color: #856404; }
+.od-category-danger  { background: #f8d7da; color: #721c24; }
+.od-category-info    { background: #d1ecf1; color: #0c5460; }
+.od-category-secondary{ background: $gray-200; color: $gray-700; }
+
 // ─── GRILLE ───────────────────────────────────────────────────
 
 .od-grid {
@@ -177,7 +206,9 @@ $transition: 0.2s ease-in-out;
 }
 
 @media (max-width: 768px) {
-  .od-grid { grid-template-columns: 1fr; }
+  .od-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 // ─── CARTES ──────────────────────────────────────────────────
@@ -189,6 +220,7 @@ $transition: 0.2s ease-in-out;
   padding: 1.5rem 1.8rem;
   margin-bottom: 1.5rem;
   box-shadow: $box-shadow;
+  overflow: hidden; // pour éviter les débordements
 
   h3 {
     margin-top: 0;
@@ -214,11 +246,14 @@ $transition: 0.2s ease-in-out;
     font-weight: 500;
     color: $gray-600;
     min-width: 140px;
+    flex-shrink: 0;
   }
   .od-value {
     text-align: right;
     color: $gray-900;
     word-break: break-word;
+    flex: 1;
+    margin-left: 1rem;
   }
 }
 
@@ -231,6 +266,67 @@ $transition: 0.2s ease-in-out;
 .od-notes .od-value {
   white-space: pre-wrap;
   text-align: left;
+}
+
+// ─── SERVICE LINK ────────────────────────────────────────────
+
+.od-service-link {
+  cursor: pointer;
+  color: $primary;
+  font-weight: 500;
+  transition: color 0.2s;
+  &:hover {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+  .od-service-date {
+    font-weight: 400;
+    color: $gray-600;
+    font-size: 0.85rem;
+  }
+}
+
+// ─── PHOTO JUSTIFICATIVE ──────────────────────────────────────
+
+.od-photo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.od-photo-preview {
+  max-width: 100%;
+  max-height: 180px;        // ✅ Limite la hauteur pour ne pas écraser les autres cartes
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid $gray-300;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+}
+
+.od-photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.2rem;
+
+  .od-btn-icon {
+    padding: 0.2rem 0.5rem;
+    font-size: 1rem;
+    border-color: $gray-300;
+    &:hover {
+      background: $gray-100;
+      color: $primary;
+    }
+  }
 }
 
 // ─── REÇU ─────────────────────────────────────────────────────
@@ -292,4 +388,53 @@ $transition: 0.2s ease-in-out;
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+// ─── RESPONSIVE : ADAPTATIONS POUR PETITS ÉCRANS ────────────
+
+@media (max-width: 600px) {
+  .od-container {
+    padding: 1rem 0.8rem;
+  }
+
+  .od-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+  .od-header-left {
+    h1 { font-size: 1.3rem; }
+  }
+  .od-header-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .od-card {
+    padding: 1rem 1.2rem;
+  }
+
+  .od-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.6rem 0;
+
+    .od-label {
+      min-width: auto;
+      margin-bottom: 0.1rem;
+    }
+    .od-value {
+      text-align: left;
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+
+  .od-category-badges {
+    justify-content: flex-start;
+  }
+
+  .od-photo-preview {
+    max-height: 140px;
+  }
 }

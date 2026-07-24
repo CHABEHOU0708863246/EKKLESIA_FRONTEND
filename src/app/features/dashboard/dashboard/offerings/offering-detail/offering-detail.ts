@@ -4,7 +4,14 @@ import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Offering, OfferingStatus, OfferingType } from '../../../../../core/models/Finances/offering.model';
+import {
+  Offering,
+  OfferingStatus,
+  OfferingType,
+  OfferingCategory,
+  OfferingCategoryLabels,
+  OfferingCategoryColors
+} from '../../../../../core/models/Finances/offering.model';
 import { OfferingUtils } from '../../../../../core/models/Finances/offering.model';
 import { OfferingStatusLabels, OfferingStatusColors, OfferingTypeLabels, OfferingTypeIcons } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
@@ -45,6 +52,10 @@ export class OfferingDetail implements OnInit, OnDestroy {
   getFormattedDate = OfferingUtils.getFormattedDate;
   getFormattedDateTime = OfferingUtils.getFormattedDateTime;
   getFormattedCurrency = OfferingUtils.getFormattedCurrency;
+
+  // ✅ Helpers pour les catégories
+  getCategoryLabel = OfferingUtils.getCategoryLabel;
+  getCategoryColor = OfferingUtils.getCategoryColor;
 
   // ── Calculs dérivés ──
   canEdit = computed(() => {
@@ -101,6 +112,45 @@ export class OfferingDetail implements OnInit, OnDestroy {
       [OfferingType.Other]: 'secondary',
     };
     return `od-type-${colors[type] || 'secondary'}`;
+  }
+
+  // ✅ Couleur pour une catégorie
+  getCategoryClass(category: OfferingCategory): string {
+    const color = OfferingCategoryColors[category] || 'secondary';
+    return `od-category-${color}`;
+  }
+
+  // ── Gestion de la photo ──
+  getPhotoUrl(photoId: string): string {
+  if (!photoId) return '';
+  return this.offeringsService.getValidationPhotoUrl(photoId);
+}
+
+  viewPhoto(photoId: string): void {
+    const url = this.getPhotoUrl(photoId);
+    window.open(url, '_blank');
+  }
+
+  downloadPhoto(photoId: string): void {
+    this.offeringsService.getValidationPhoto(photoId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `validation_photo_${photoId}.jpg`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('❌ Erreur téléchargement photo:', err);
+        this.error.set('Impossible de télécharger la photo.');
+      },
+    });
+  }
+
+  // ── Navigation vers le culte associé ──
+  goToService(serviceId: string): void {
+    this.router.navigate(['/dashboard/cultes', serviceId]);
   }
 
   constructor() {}

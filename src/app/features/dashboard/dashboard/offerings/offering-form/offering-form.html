@@ -78,10 +78,41 @@
           </select>
         </div>
 
+        <!-- ✅ NOUVEAU : Lien vers un culte (collecte) -->
+        <div class="of-field of-field--span-2">
+          <label>Culte associé (collecte)</label>
+          <div class="of-search-wrap">
+            <ng-container *ngIf="selectedService() as service">
+              <div class="of-selected-row">
+                <div class="of-mini-info">
+                  <strong>{{ service.title }}</strong>
+                  <span class="of-mini-sub">{{ service.formattedDate }}</span>
+                </div>
+                <button type="button" class="of-icon-btn" (click)="clearService()">✕</button>
+              </div>
+            </ng-container>
+
+            <input *ngIf="!selectedService()" type="text" formControlName="serviceSearch"
+              placeholder="Rechercher un culte (date, titre)…" (focus)="showServiceResults.set(true)">
+
+            <div class="of-search-dropdown" *ngIf="showServiceResults() && !selectedService()">
+              <p class="of-search-status" *ngIf="searchingService()">Recherche en cours…</p>
+              <p class="of-search-status" *ngIf="!searchingService() && serviceResults().length === 0">Aucun culte trouvé</p>
+              @for (s of serviceResults(); track s.id) {
+              <button type="button" class="of-search-result" (click)="selectService(s)">
+                <div class="of-mini-info">
+                  <strong>{{ s.title }}</strong>
+                  <span class="of-mini-sub">{{ s.formattedDate }}</span>
+                </div>
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+
         <div class="of-field of-field--span-2">
           <label>Membre (facultatif)</label>
           <div class="of-search-wrap">
-            <!-- ✅ Utiliser *ngIf avec as -->
             <ng-container *ngIf="selectedMember() as member">
               <div class="of-selected-row">
                 <div class="of-mini-avatar">{{ getMemberInitials(member) }}</div>
@@ -95,8 +126,7 @@
 
             <div class="of-search-dropdown" *ngIf="showMemberResults() && !selectedMember()">
               <p class="of-search-status" *ngIf="searchingMember()">Recherche en cours…</p>
-              <p class="of-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé
-              </p>
+              <p class="of-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé</p>
               @for (m of memberResults(); track m.id) {
               <button type="button" class="of-search-result" (click)="selectMember(m)">
                 <div class="of-mini-avatar">{{ getMemberInitials(m) }}</div>
@@ -121,6 +151,48 @@
           <input type="text" formControlName="reference" placeholder="N° de virement, Mobile Money…">
         </div>
 
+      </div>
+    </section>
+
+    <!-- ─── CATÉGORIES (choix multiple) ─── -->
+    <section class="of-panel">
+      <div class="of-panel-header">
+        <h2>Catégories d'offrande</h2>
+        <span class="of-panel-hint">Sélectionnez une ou plusieurs catégories</span>
+      </div>
+      <div class="of-panel-body">
+        <div class="of-category-grid">
+          @for (cat of categoryOptions; track cat.value) {
+          <label class="of-checkbox-card" [class.is-checked]="isCategorySelected(cat.value)">
+            <input type="checkbox" [value]="cat.value" (change)="toggleCategory(cat.value, $event)">
+            <span class="of-checkbox-label">{{ cat.label }}</span>
+          </label>
+          }
+        </div>
+        <p class="of-error" *ngIf="isFieldInvalid('categories')">Veuillez sélectionner au moins une catégorie</p>
+      </div>
+    </section>
+
+    <!-- ─── PHOTO JUSTIFICATIVE (validation) ─── -->
+    <section class="of-panel">
+      <div class="of-panel-header">
+        <h2>Photo justificative</h2>
+        <span class="of-panel-hint">Obligatoire pour la validation de l'offrande</span>
+      </div>
+      <div class="of-panel-body">
+        <div class="of-upload-area" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+          <input type="file" (change)="onPhotoSelected($event)" accept="image/*" #fileInput hidden>
+          <div class="of-upload-content" *ngIf="!photoPreview() && !form.get('validationPhotoUrl')?.value">
+            <i class="bx bx-cloud-upload"></i>
+            <p>Glissez une photo ou <button type="button" class="of-link" (click)="fileInput.click()">parcourez</button></p>
+            <span class="of-hint">JPEG, PNG, WEBP – Max 5 Mo</span>
+          </div>
+          <div class="of-upload-preview" *ngIf="photoPreview() || form.get('validationPhotoUrl')?.value">
+            <img [src]="photoPreview() || getPhotoUrl(form.get('validationPhotoUrl')?.value)" alt="Photo justificative" />
+            <button type="button" class="of-remove-photo" (click)="removePhoto()">✕</button>
+          </div>
+        </div>
+        <p class="of-error" *ngIf="isFieldInvalid('validationPhotoUrl')">Une photo est requise</p>
       </div>
     </section>
 

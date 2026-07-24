@@ -2,6 +2,10 @@
 
 import { PaymentMethod, PaymentMethodLabels } from "./expense.model";
 
+// ============================================================
+// 1. ENUMS EXISTANTS
+// ============================================================
+
 export enum OfferingType {
   Tithe = 'Tithe',
   SundayOffering = 'SundayOffering',
@@ -20,11 +24,33 @@ export enum OfferingStatus {
   Cancelled = 'Cancelled'
 }
 
+// ============================================================
+// 2. NOUVEL ENUM : CATÉGORIES D'OFFRANDE (choix multiple)
+// ============================================================
+
+export enum OfferingCategory {
+  FirstOffering = 'FirstOffering',   // 1ère offrande
+  SecondOffering = 'SecondOffering', // 2ème offrande
+  Tithe = 'Tithe',                   // Dîmes
+  Vow = 'Vow',                       // Vœux
+  Sacrifice = 'Sacrifice',           // Sacrifice
+  Other = 'Other'                    // Autre
+}
+
+// ============================================================
+// 3. INTERFACE PRINCIPALE
+// ============================================================
+
 export interface Offering {
   id: string;
+  // ✅ Conservé pour compatibilité (type principal)
   type: OfferingType;
   typeLabel: string;
   typeIcon: string;
+  // ✅ Nouveaux champs pour le choix multiple
+  categories: OfferingCategory[];
+  categoriesLabel: string;           // Liste des catégories en texte (ex: "1ère offrande, Dîmes")
+  validationPhotoUrl?: string;       // URL de la photo justificative
   amount: number;
   currency: string;
   date: string;
@@ -55,6 +81,10 @@ export interface Offering {
   formattedCreatedAt: string;
 }
 
+// ============================================================
+// 4. DTOs POUR LES REQUÊTES
+// ============================================================
+
 export interface OfferingCreate {
   type: OfferingType;
   amount: number;
@@ -68,6 +98,9 @@ export interface OfferingCreate {
   paymentMethod?: PaymentMethod;
   reference?: string;
   notes?: string;
+  // ✅ Nouveaux champs
+  categories?: OfferingCategory[];
+  validationPhotoUrl?: string;
 }
 
 export interface OfferingUpdate {
@@ -82,6 +115,9 @@ export interface OfferingUpdate {
   paymentMethod?: PaymentMethod;
   reference?: string;
   notes?: string;
+  // ✅ Nouveaux champs
+  categories?: OfferingCategory[];
+  validationPhotoUrl?: string;
 }
 
 export interface OfferingFilter {
@@ -124,7 +160,10 @@ export interface OfferingValidate {
   generateReceipt?: boolean;
 }
 
-// Labels
+// ============================================================
+// 5. LABELS ET COULEURS (mise à jour)
+// ============================================================
+
 export const OfferingTypeLabels: Record<OfferingType, string> = {
   [OfferingType.Tithe]: 'Dîme',
   [OfferingType.SundayOffering]: 'Offrande dominicale',
@@ -158,6 +197,25 @@ export const OfferingTypeColors: Record<OfferingType, string> = {
   [OfferingType.Other]: 'secondary'
 };
 
+// ✅ Labels pour les catégories (choix multiple)
+export const OfferingCategoryLabels: Record<OfferingCategory, string> = {
+  [OfferingCategory.FirstOffering]: '1ère offrande',
+  [OfferingCategory.SecondOffering]: '2ème offrande',
+  [OfferingCategory.Tithe]: 'Dîmes',
+  [OfferingCategory.Vow]: 'Vœux',
+  [OfferingCategory.Sacrifice]: 'Sacrifice',
+  [OfferingCategory.Other]: 'Autre'
+};
+
+export const OfferingCategoryColors: Record<OfferingCategory, string> = {
+  [OfferingCategory.FirstOffering]: 'primary',
+  [OfferingCategory.SecondOffering]: 'success',
+  [OfferingCategory.Tithe]: 'warning',
+  [OfferingCategory.Vow]: 'info',
+  [OfferingCategory.Sacrifice]: 'danger',
+  [OfferingCategory.Other]: 'secondary'
+};
+
 export const OfferingStatusLabels: Record<OfferingStatus, string> = {
   [OfferingStatus.Pending]: 'En attente',
   [OfferingStatus.Verified]: 'Vérifié',
@@ -172,7 +230,10 @@ export const OfferingStatusColors: Record<OfferingStatus, string> = {
   [OfferingStatus.Cancelled]: 'danger'
 };
 
-// Classe utilitaire
+// ============================================================
+// 6. CLASSE UTILITAIRE (mise à jour)
+// ============================================================
+
 export class OfferingUtils {
   static getTypeLabel(type: OfferingType): string {
     return OfferingTypeLabels[type] || type;
@@ -184,6 +245,20 @@ export class OfferingUtils {
 
   static getTypeColor(type: OfferingType): string {
     return OfferingTypeColors[type] || 'secondary';
+  }
+
+  // ✅ Méthodes pour les catégories
+  static getCategoryLabel(category: OfferingCategory): string {
+    return OfferingCategoryLabels[category] || category;
+  }
+
+  static getCategoryColor(category: OfferingCategory): string {
+    return OfferingCategoryColors[category] || 'secondary';
+  }
+
+  static getCategoriesLabel(categories: OfferingCategory[]): string {
+    if (!categories || categories.length === 0) return '—';
+    return categories.map(c => this.getCategoryLabel(c)).join(', ');
   }
 
   static getStatusLabel(status: OfferingStatus): string {
@@ -246,6 +321,11 @@ export class OfferingUtils {
     return offerings.filter(offering => offering.memberId === memberId);
   }
 
+  static filterByCategory(offerings: Offering[], category: OfferingCategory): Offering[] {
+    if (!category) return offerings;
+    return offerings.filter(offering => offering.categories?.includes(category));
+  }
+
   static sortByAmount(offerings: Offering[], ascending: boolean = true): Offering[] {
     return [...offerings].sort((a, b) =>
       ascending ? a.amount - b.amount : b.amount - a.amount
@@ -263,6 +343,12 @@ export class OfferingUtils {
   static getTotalByType(offerings: Offering[], type: OfferingType): number {
     return offerings
       .filter(o => o.type === type)
+      .reduce((sum, o) => sum + o.amount, 0);
+  }
+
+  static getTotalByCategory(offerings: Offering[], category: OfferingCategory): number {
+    return offerings
+      .filter(o => o.categories?.includes(category))
       .reduce((sum, o) => sum + o.amount, 0);
   }
 
@@ -284,18 +370,21 @@ export class OfferingUtils {
     total: number;
     totalAmount: number;
     byType: Record<OfferingType, { count: number; amount: number }>;
+    byCategory: Record<OfferingCategory, { count: number; amount: number }>;
     byStatus: Record<OfferingStatus, { count: number; amount: number }>;
     averageAmount: number;
     minAmount: number;
     maxAmount: number;
   } {
     const byType: Record<OfferingType, { count: number; amount: number }> = {} as any;
+    const byCategory: Record<OfferingCategory, { count: number; amount: number }> = {} as any;
     const byStatus: Record<OfferingStatus, { count: number; amount: number }> = {} as any;
     let totalAmount = 0;
     let minAmount = Infinity;
     let maxAmount = 0;
 
     Object.values(OfferingType).forEach(t => byType[t] = { count: 0, amount: 0 });
+    Object.values(OfferingCategory).forEach(c => byCategory[c] = { count: 0, amount: 0 });
     Object.values(OfferingStatus).forEach(s => byStatus[s] = { count: 0, amount: 0 });
 
     offerings.forEach(o => {
@@ -304,6 +393,12 @@ export class OfferingUtils {
       if (o.amount > maxAmount) maxAmount = o.amount;
       byType[o.type].count++;
       byType[o.type].amount += o.amount;
+      if (o.categories) {
+        o.categories.forEach(cat => {
+          byCategory[cat].count++;
+          byCategory[cat].amount += o.amount;
+        });
+      }
       byStatus[o.status].count++;
       byStatus[o.status].amount += o.amount;
     });
@@ -312,6 +407,7 @@ export class OfferingUtils {
       total: offerings.length,
       totalAmount,
       byType,
+      byCategory,
       byStatus,
       averageAmount: offerings.length > 0 ? totalAmount / offerings.length : 0,
       minAmount: offerings.length > 0 ? minAmount : 0,
@@ -326,65 +422,37 @@ export const DEFAULT_OFFERING_FILTER: OfferingFilter = {
   sortBy: 'date',
   sortOrder: 'desc'
 };
-/**
- * DTO pour les statistiques globales des offrandes
- * Correspond à OfferingStatisticsDto en C#
- */
+
+// ============================================================
+// 7. STATISTIQUES (DÉJÀ PRÉSENTES, COMPLÉTÉES)
+// ============================================================
+
 export interface OfferingStatisticsDto {
-  /** Montant total */
   totalAmount: number;
-  /** Nombre total d'offrandes */
   totalCount: number;
-  /** Montant par type d'offrande */
   amountByType: Record<OfferingType, number>;
-  /** Nombre par type d'offrande */
   countByType: Record<OfferingType, number>;
-  /** Nombre par statut */
   countByStatus: Record<OfferingStatus, number>;
-  /** Nombre par mode de paiement */
   countByPaymentMethod: Record<PaymentMethod, number>;
-  /** Offrandes récentes (10 dernières) */
   recentOfferings: OfferingListResponse[];
-  /** Total du mois en cours */
   thisMonthTotal: number;
-  /** Total de la semaine en cours */
   thisWeekTotal: number;
-  /** Montant moyen d'une offrande */
   averageOffering: number;
 }
 
-/**
- * DTO pour le résumé des offrandes d'un membre
- * Correspond à OfferingSummaryDto en C#
- */
 export interface OfferingSummaryDto {
-  /** Total donné par le membre */
   totalGiven: number;
-  /** Nombre total d'offrandes */
   totalOfferings: number;
-  /** Total des dîmes */
   titheTotal: number;
-  /** Total des autres offrandes */
   offeringTotal: number;
-  /** Répartition par type d'offrande (clé = type, valeur = montant) */
   byType: Record<string, number>;
-  /** Répartition par mois (clé = "YYYY-MM", valeur = montant) */
   byMonth: Record<string, number>;
-  /** Offrandes récentes (5 dernières) */
   recentOfferings: Offering[];
-  /** Moyenne mensuelle */
   averageMonthly: number;
-  /** Total des 12 derniers mois */
   lastYearTotal: number;
 }
 
-// ──────────────────────────────────────────────────────────────
-// 📊 VALEURS PAR DÉFAUT
-// ──────────────────────────────────────────────────────────────
-
-/**
- * Valeurs par défaut pour les statistiques des offrandes
- */
+// Valeurs par défaut
 export const DEFAULT_OFFERING_STATISTICS: OfferingStatisticsDto = {
   totalAmount: 0,
   totalCount: 0,
@@ -398,9 +466,6 @@ export const DEFAULT_OFFERING_STATISTICS: OfferingStatisticsDto = {
   averageOffering: 0
 };
 
-/**
- * Valeurs par défaut pour le résumé des offrandes d'un membre
- */
 export const DEFAULT_OFFERING_SUMMARY: OfferingSummaryDto = {
   totalGiven: 0,
   totalOfferings: 0,
@@ -413,92 +478,40 @@ export const DEFAULT_OFFERING_SUMMARY: OfferingSummaryDto = {
   lastYearTotal: 0
 };
 
-// ──────────────────────────────────────────────────────────────
-// 🛠️ CLASSES UTILITAIRES
-// ──────────────────────────────────────────────────────────────
+// ============================================================
+// 8. UTILITAIRES POUR STATISTIQUES
+// ============================================================
 
-/**
- * Utilitaires pour les statistiques des offrandes
- */
 export class OfferingStatisticsUtils {
-  /**
-   * Calcule le pourcentage d'une valeur par rapport au total
-   */
   static getPercentage(value: number, total: number): number {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
   }
 
-  /**
-   * Formate un montant en devise
-   */
   static formatAmount(amount: number, currency: string = 'FCFA'): string {
     return `${amount.toLocaleString('fr-FR')} ${currency}`;
   }
 
-  /**
-   * Obtient le libellé d'un type d'offrande
-   */
   static getTypeLabel(type: OfferingType): string {
-    const labels: Record<OfferingType, string> = {
-      [OfferingType.Tithe]: 'Dîme',
-      [OfferingType.SundayOffering]: 'Offrande dominicale',
-      [OfferingType.SpecialOffering]: 'Offrande spéciale',
-      [OfferingType.BuildingFund]: 'Construction',
-      [OfferingType.Mission]: 'Mission',
-      [OfferingType.Seed]: 'Offrande de semence',
-      [OfferingType.Thanksgiving]: 'Action de grâce',
-      [OfferingType.Other]: 'Autre'
-    };
-    return labels[type] || type;
+    return OfferingTypeLabels[type] || type;
   }
 
-  /**
-   * Obtient l'icône d'un type d'offrande
-   */
   static getTypeIcon(type: OfferingType): string {
-    const icons: Record<OfferingType, string> = {
-      [OfferingType.Tithe]: 'fa-hand-holding-heart',
-      [OfferingType.SundayOffering]: 'fa-church',
-      [OfferingType.SpecialOffering]: 'fa-star',
-      [OfferingType.BuildingFund]: 'fa-building',
-      [OfferingType.Mission]: 'fa-globe',
-      [OfferingType.Seed]: 'fa-seedling',
-      [OfferingType.Thanksgiving]: 'fa-hands-praying',
-      [OfferingType.Other]: 'fa-coins'
-    };
-    return icons[type] || 'fa-coins';
+    return OfferingTypeIcons[type] || 'fa-coins';
   }
 
-  /**
-   * Obtient la couleur d'un statut pour l'affichage
-   */
+  static getCategoryLabel(category: OfferingCategory): string {
+    return OfferingCategoryLabels[category] || category;
+  }
+
   static getStatusColor(status: OfferingStatus): string {
-    const colors: Record<OfferingStatus, string> = {
-      [OfferingStatus.Pending]: 'warning',
-      [OfferingStatus.Verified]: 'info',
-      [OfferingStatus.Validated]: 'success',
-      [OfferingStatus.Cancelled]: 'danger'
-    };
-    return colors[status] || 'secondary';
+    return OfferingStatusColors[status] || 'secondary';
   }
 
-  /**
-   * Obtient le libellé d'un statut
-   */
   static getStatusLabel(status: OfferingStatus): string {
-    const labels: Record<OfferingStatus, string> = {
-      [OfferingStatus.Pending]: 'En attente',
-      [OfferingStatus.Verified]: 'Vérifié',
-      [OfferingStatus.Validated]: 'Validé',
-      [OfferingStatus.Cancelled]: 'Annulé'
-    };
-    return labels[status] || status;
+    return OfferingStatusLabels[status] || status;
   }
 
-  /**
-   * Obtient le libellé d'un mode de paiement
-   */
   static getPaymentMethodLabel(method: PaymentMethod): string {
     const labels: Record<PaymentMethod, string> = {
       [PaymentMethod.Cash]: 'Espèces',
@@ -511,9 +524,6 @@ export class OfferingStatisticsUtils {
     return labels[method] || method;
   }
 
-  /**
-   * Filtre les statistiques par type d'offrande
-   */
   static filterByType(stats: OfferingStatisticsDto, types: OfferingType[]): OfferingStatisticsDto {
     return {
       ...stats,
@@ -530,9 +540,6 @@ export class OfferingStatisticsUtils {
     };
   }
 
-  /**
-   * Obtient les types d'offrande les plus importants (par montant)
-   */
   static getTopTypes(stats: OfferingStatisticsDto, limit: number = 5): { type: OfferingType; amount: number }[] {
     return Object.entries(stats.amountByType)
       .map(([key, value]) => ({
@@ -543,9 +550,6 @@ export class OfferingStatisticsUtils {
       .slice(0, limit);
   }
 
-  /**
-   * Calcule le taux de croissance mensuel
-   */
   static getMonthlyGrowthRate(summary: OfferingSummaryDto): number {
     const months = Object.keys(summary.byMonth).sort();
     if (months.length < 2) return 0;
@@ -559,9 +563,6 @@ export class OfferingStatisticsUtils {
     return Math.round(((current - previous) / previous) * 100);
   }
 
-  /**
-   * Obtient la répartition des offrandes par catégorie (pour graphique)
-   */
   static getCategoryBreakdown(stats: OfferingStatisticsDto): { label: string; value: number; percentage: number }[] {
     const total = stats.totalAmount;
     return Object.entries(stats.amountByType).map(([key, value]) => ({
@@ -571,4 +572,3 @@ export class OfferingStatisticsUtils {
     }));
   }
 }
-

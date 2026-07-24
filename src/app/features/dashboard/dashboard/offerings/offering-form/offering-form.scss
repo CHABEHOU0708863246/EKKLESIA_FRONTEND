@@ -420,3 +420,208 @@ $transition: 0.2s ease-in-out;
   .of-header { flex-direction: column; align-items: stretch; gap: 0.8rem; }
   .of-type-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+
+// ─── CATÉGORIES (choix multiple) ───────────────────────────────────
+
+.of-category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.of-checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid $gray-200;
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color $transition, background $transition;
+  user-select: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &:hover {
+    border-color: $primary;
+    background: $gray-100;
+  }
+
+  &.is-checked {
+    border-color: $primary;
+    background: #dbeafe;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid $gray-400;
+    border-radius: 4px;
+    margin: 0;
+    flex-shrink: 0;
+    transition: background $transition, border-color $transition;
+    position: relative;
+    cursor: pointer;
+
+    &:checked {
+      background: $primary;
+      border-color: $primary;
+
+      &::after {
+        content: "✓";
+        color: #fff;
+        font-size: 0.7rem;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+      }
+    }
+  }
+
+  .of-checkbox-label {
+    line-height: 1.4;
+  }
+}
+
+// ─── INDICATEUR D'AIDE DANS L'EN-TÊTE ──────────────────────────────
+
+.of-panel-hint {
+  font-size: 0.8rem;
+  color: $gray-600;
+  font-weight: 400;
+}
+
+// ─── RECHERCHE DE CULTE (affichage des sous-informations) ──────────
+
+.of-mini-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: $gray-500;
+  font-weight: 400;
+}
+
+// ─── ZONE D'UPLOAD DE PHOTO ────────────────────────────────────────
+
+.of-upload-area {
+  border: 2px dashed $gray-300;
+  border-radius: $border-radius;
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color $transition, background $transition;
+  background: $gray-100;
+  cursor: pointer;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: $primary;
+    background: darken($gray-100, 2%);
+  }
+}
+
+.of-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+
+  i.bx {
+    font-size: 2.5rem;
+    color: $gray-500;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: $gray-700;
+  }
+
+  .of-link {
+    background: none;
+    border: none;
+    color: $primary;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+
+    &:hover {
+      color: $primary-dark;
+    }
+  }
+
+  .of-hint {
+    font-size: 0.75rem;
+    color: $gray-500;
+  }
+}
+
+.of-upload-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+
+  img {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: $border-radius;
+    border: 1px solid $gray-300;
+    object-fit: contain;
+  }
+
+  .of-remove-photo {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $danger;
+    color: #fff;
+    border: 2px solid #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background $transition;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+
+    &:hover {
+      background: darken($danger, 10%);
+    }
+  }
+}
+
+// ─── COMPATIBILITÉ RESPONSIVE ──────────────────────────────────────
+
+@media (max-width: 768px) {
+  .of-category-grid {
+    gap: 0.3rem;
+  }
+
+  .of-checkbox-card {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .of-upload-area {
+    padding: 1rem;
+    min-height: 100px;
+  }
+
+  .of-upload-content i.bx {
+    font-size: 2rem;
+  }
+}
