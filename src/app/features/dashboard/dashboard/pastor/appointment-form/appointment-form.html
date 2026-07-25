@@ -1,0 +1,178 @@
+<!-- src/app/features/dashboard/pastor/appointments/appointment-form/appointment-form.html -->
+
+<div class="af-container">
+
+  <!-- EN-TÊTE -->
+  <div class="af-header">
+    <h1>{{ isEditMode() ? 'Modifier le rendez-vous' : 'Nouveau rendez-vous' }}</h1>
+    <button type="button" class="af-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  <!-- BANNIÈRE D'ERREUR -->
+  @if (error()) {
+    <div class="af-banner af-banner--error">{{ error() }}</div>
+  }
+
+  <!-- FORMULAIRE -->
+  <form [formGroup]="form" (ngSubmit)="submit()" class="af-form">
+
+    <!-- ─── PASTEUR & ÉGLISE ─── -->
+    <section class="af-panel">
+      <div class="af-panel-header"><h2>Organisation</h2></div>
+      <div class="af-panel-body af-grid-2">
+
+        <div class="af-field">
+          <label for="pastorId">Pasteur <span class="af-required">*</span></label>
+          <select id="pastorId" formControlName="pastorId" [disabled]="loadingPastors()">
+            <option value="">— Sélectionner —</option>
+            @for (p of pastors(); track p.id) {
+              <option [value]="p.id">{{ getPastorFullName(p) }}</option>
+            }
+          </select>
+          <p class="af-error" *ngIf="isFieldInvalid('pastorId')">Le pasteur est requis.</p>
+        </div>
+
+        <div class="af-field">
+          <label for="churchId">Église <span class="af-required">*</span></label>
+          <select id="churchId" formControlName="churchId" [disabled]="loadingChurches()">
+            <option value="">— Sélectionner —</option>
+            @for (c of churches(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          <p class="af-error" *ngIf="isFieldInvalid('churchId')">L'église est requise.</p>
+        </div>
+
+        <div class="af-field">
+          <label for="siteId">Site</label>
+          <select id="siteId" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Aucun site —</option>
+            @for (s of sites(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── PARTICIPANT ─── -->
+    <section class="af-panel">
+      <div class="af-panel-header"><h2>Participant</h2></div>
+      <div class="af-panel-body">
+
+        <!-- Recherche de membre -->
+        <div class="af-field">
+          <label>Membre (facultatif)</label>
+          <div class="af-search-wrap">
+            <!-- ✅ Correction : utiliser *ngIf avec as -->
+            <ng-container *ngIf="selectedMember() as member">
+              <div class="af-selected-row">
+                <div class="af-mini-avatar">{{ getMemberInitials(member) }}</div>
+                <div class="af-mini-info">{{ getMemberFullName(member) }}</div>
+                <button type="button" class="af-icon-btn" (click)="clearMember()">✕</button>
+              </div>
+            </ng-container>
+
+            @if (!selectedMember()) {
+              <input type="text" formControlName="memberSearch" placeholder="Rechercher un membre…" (focus)="showMemberResults.set(true)">
+            }
+
+            <div class="af-search-dropdown" *ngIf="showMemberResults() && !selectedMember()">
+              <p class="af-search-status" *ngIf="searchingMember()">Recherche en cours…</p>
+              <p class="af-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé</p>
+              @for (m of memberResults(); track m.id) {
+                <button type="button" class="af-search-result" (click)="selectMember(m)">
+                  <div class="af-mini-avatar">{{ getMemberInitials(m) }}</div>
+                  <div class="af-mini-info">{{ getMemberFullName(m) }}</div>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations visiteur (activé si aucun membre sélectionné) -->
+        <div class="af-grid-2" *ngIf="!selectedMember()">
+          <div class="af-field">
+            <label for="visitorName">Nom du visiteur</label>
+            <input id="visitorName" type="text" formControlName="visitorName" placeholder="Nom complet">
+          </div>
+          <div class="af-field">
+            <label for="visitorPhone">Téléphone</label>
+            <input id="visitorPhone" type="text" formControlName="visitorPhone" placeholder="Téléphone">
+          </div>
+          <div class="af-field">
+            <label for="visitorEmail">Email</label>
+            <input id="visitorEmail" type="email" formControlName="visitorEmail" placeholder="Email">
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── DATE, HEURE, MOTIF ─── -->
+    <section class="af-panel">
+      <div class="af-panel-header"><h2>Détails du rendez-vous</h2></div>
+      <div class="af-panel-body af-grid-2">
+
+        <div class="af-field">
+          <label for="appointmentDate">Date & heure <span class="af-required">*</span></label>
+          <input id="appointmentDate" type="datetime-local" formControlName="appointmentDate">
+          <p class="af-error" *ngIf="isFieldInvalid('appointmentDate')">La date est requise.</p>
+        </div>
+
+        <div class="af-field">
+          <label for="durationMinutes">Durée (minutes) <span class="af-required">*</span></label>
+          <input id="durationMinutes" type="number" formControlName="durationMinutes" min="1" step="5">
+        </div>
+
+        <div class="af-field af-field--span-2">
+          <label for="location">Lieu</label>
+          <input id="location" type="text" formControlName="location" placeholder="Ex: Bureau pastoral, Salle de réunion…">
+        </div>
+
+        <div class="af-field af-field--span-2">
+          <label for="reason">Motif <span class="af-required">*</span></label>
+          <textarea id="reason" rows="2" formControlName="reason" placeholder="Motif du rendez-vous…"></textarea>
+          <p class="af-error" *ngIf="isFieldInvalid('reason')">Le motif est requis.</p>
+        </div>
+
+        <div class="af-field af-field--span-2">
+          <label for="notes">Notes (optionnel)</label>
+          <textarea id="notes" rows="2" formControlName="notes" placeholder="Informations complémentaires…"></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── STATUT (édition uniquement) ─── -->
+    @if (isEditMode()) {
+      <section class="af-panel">
+        <div class="af-panel-header"><h2>Statut</h2></div>
+        <div class="af-panel-body">
+          <div class="af-field">
+            <label for="status">Statut</label>
+            <select id="status" formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ─── ACTIONS ─── -->
+    <footer class="af-actions">
+      <button type="button" class="af-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="af-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+          <span class="af-spinner"></span> Enregistrement…
+        } @else {
+          {{ isEditMode() ? 'Mettre à jour' : 'Créer le rendez-vous' }}
+        }
+      </button>
+    </footer>
+
+  </form>
+</div>

@@ -1,3 +1,5 @@
+// src/app/core/services/Permissions/permissions.ts
+
 import { Injectable } from '@angular/core';
 import { Token } from '../Token/token';
 
@@ -29,7 +31,9 @@ export class Permissions {
     HR: 'Ressources Humaines',
     DASHBOARD: 'Tableau de Bord',
     NOTIFICATIONS: 'Notifications',
-    ADMINISTRATION: 'Administration'
+    ADMINISTRATION: 'Administration',
+    PASTORAL_ACTS: 'Actes Pastoraux',
+    APPOINTMENTS: 'Rendez-vous'
   };
 
   constructor(private tokenService: Token) {
@@ -39,66 +43,60 @@ export class Permissions {
   /**
    * Charge les permissions depuis le token JWT
    */
-private loadUserPermissions(): void {
-  const payload = this.tokenService.getPayload();
+  private loadUserPermissions(): void {
+    const payload = this.tokenService.getPayload();
 
-  if (!payload) {
-    this.userPermissions = [];
-    this.userRoles = [];
-    return;
+    if (!payload) {
+      this.userPermissions = [];
+      this.userRoles = [];
+      return;
+    }
+
+    this.userPermissions = this.extractPermissions(payload);
+    this.userRoles = this.extractRoles(payload);
   }
-
-  console.log('🔍 Payload JWT brut:', payload); // ← à retirer après debug
-
-  this.userPermissions = this.extractPermissions(payload);
-  this.userRoles = this.extractRoles(payload);
-
-  console.log('✅ Permissions extraites:', this.userPermissions); // ← à retirer après debug
-}
 
   /**
    * Extrait les permissions du payload JWT
    */
   private extractPermissions(payload: any): string[] {
-  const permissions: string[] = [];
+    const permissions: string[] = [];
 
-  // 1. Claim exact du token EKKLESIA : "Permission" (P majuscule, singulier)
-  if (payload.Permission) {
-    if (Array.isArray(payload.Permission)) {
-      permissions.push(...payload.Permission);
-    } else if (typeof payload.Permission === 'string') {
-      permissions.push(payload.Permission);
+    // 1. Claim exact du token EKKLESIA : "Permission" (P majuscule, singulier)
+    if (payload.Permission) {
+      if (Array.isArray(payload.Permission)) {
+        permissions.push(...payload.Permission);
+      } else if (typeof payload.Permission === 'string') {
+        permissions.push(payload.Permission);
+      }
     }
-  }
 
-  // 2. Permissions directes (variante minuscule, au cas où le back évolue)
-  if (payload.permissions && Array.isArray(payload.permissions)) {
-    permissions.push(...payload.permissions);
-  }
-
-  // 3. Claims de permissions namespacé Microsoft
-  const permClaims = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/permissions'];
-  if (permClaims) {
-    if (Array.isArray(permClaims)) {
-      permissions.push(...permClaims);
-    } else if (typeof permClaims === 'string') {
-      permissions.push(permClaims);
+    // 2. Permissions directes (variante minuscule, au cas où le back évolue)
+    if (payload.permissions && Array.isArray(payload.permissions)) {
+      permissions.push(...payload.permissions);
     }
-  }
 
-  // 4. Permission claim (singulier, minuscule)
-  if (payload.permission) {
-    if (Array.isArray(payload.permission)) {
-      permissions.push(...payload.permission);
-    } else if (typeof payload.permission === 'string') {
-      permissions.push(payload.permission);
+    // 3. Claims de permissions namespacé Microsoft
+    const permClaims = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/permissions'];
+    if (permClaims) {
+      if (Array.isArray(permClaims)) {
+        permissions.push(...permClaims);
+      } else if (typeof permClaims === 'string') {
+        permissions.push(permClaims);
+      }
     }
+
+    // 4. Permission claim (singulier, minuscule)
+    if (payload.permission) {
+      if (Array.isArray(payload.permission)) {
+        permissions.push(...payload.permission);
+      } else if (typeof payload.permission === 'string') {
+        permissions.push(payload.permission);
+      }
+    }
+
+    return [...new Set(permissions)];
   }
-
-  return [...new Set(permissions)];
-}
-
-
 
   /**
    * Extrait les rôles du payload JWT
@@ -135,27 +133,22 @@ private loadUserPermissions(): void {
     this.loadUserPermissions();
   }
 
-// ───────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────
   // 🧩 AGRÉGATEURS DE MODULE (visibilité de section dans le sidebar)
   // ───────────────────────────────────────────────────────────────
-  // Principe : une section n'est visible QUE si l'utilisateur a
-  // accès à AU MOINS UNE fonctionnalité qu'elle contient.
-  // Chaque lien individuel reste ensuite filtré par sa permission
-  // précise (Member_Create, Cell_Read, etc.) — pas de raccourci.
 
   /**
-   * Section "Membres" : annuaire, création, pipeline, suivi pastoral,
-   * cellules, import.
+   * Section "Membres" : annuaire, création, pipeline, suivi pastoral, cellules, import.
    */
   public canAccessMemberModule(): boolean {
-  return this.hasAnyPermission(
-    'Member_Read', 'Member_Create', 'Member_Update', 'Member_Delete', 'Member_Validate',
-    'Member_Export', 'Member_Import',
-    'Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update', 'Pastoral_Note_Delete',
-    'PastoralAct_Read', 'PastoralAct_Create', 'PastoralAct_Update', 'PastoralAct_Delete', // ✅ NOUVEAU
-    'Cell_Read', 'Cell_Create', 'Cell_Update', 'Cell_Delete', 'Cell_Assign'
-  );
-}
+    return this.hasAnyPermission(
+      'Member_Read', 'Member_Create', 'Member_Update', 'Member_Delete', 'Member_Validate',
+      'Member_Export', 'Member_Import', 'Member_Status_Manage',
+      'Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update', 'Pastoral_Note_Delete',
+      'PastoralAct_Read', 'PastoralAct_Create', 'PastoralAct_Update', 'PastoralAct_Delete',
+      'Cell_Read', 'Cell_Create', 'Cell_Update', 'Cell_Delete', 'Cell_Assign'
+    );
+  }
 
   /**
    * Section "Communauté" : disponibilités et planning des bénévoles.
@@ -178,8 +171,7 @@ private loadUserPermissions(): void {
   }
 
   /**
-   * Sous-section "Événements" seule (utile pour un affichage plus fin
-   * si besoin de dissocier de Cultes/Rendez-vous).
+   * Sous-section "Événements" seule.
    */
   public canAccessEventModule(): boolean {
     return this.hasAnyPermission(
@@ -193,25 +185,27 @@ private loadUserPermissions(): void {
    */
   public canAccessFinanceModule(): boolean {
     return this.hasAnyPermission(
-      'Finance_Offering_Read', 'Finance_Offering_Create', 'Finance_Offering_Validate',
+      'Finance_Offering_Read', 'Finance_Offering_Create', 'Finance_Offering_Validate', 'Finance_Offering_Update', 'Finance_Offering_Delete',
       'Finance_Expense_Read', 'Finance_Expense_Create', 'Finance_Expense_Validate', 'Finance_Expense_Approve',
-      'Finance_Budget_Read', 'Finance_Budget_Create', 'Finance_Budget_Update', 'Finance_Budget_Approve',
-      'Finance_Consolidated_View'
+      'Finance_Budget_Read', 'Finance_Budget_Create', 'Finance_Budget_Update', 'Finance_Budget_Approve', 'Finance_Budget_Delete',
+      'Finance_Consolidated_View', 'Finance_Report_Generate', 'Finance_Report_Export'
     );
   }
 
   /**
-   * Section "Patrimoine & Communication" : biens, contrats, maintenance,
-   * contenus, médias.
+   * Section "Patrimoine" : biens, contrats, maintenance.
    */
   public canAccessPropertyModule(): boolean {
     return this.hasAnyPermission(
       'Property_Read', 'Property_Create', 'Property_Update', 'Property_Delete',
-      'Contract_Read', 'Contract_Create', 'Contract_Update', 'Contract_Validate',
+      'Contract_Read', 'Contract_Create', 'Contract_Update', 'Contract_Validate', 'Contract_Terminate',
       'Maintenance_Report', 'Maintenance_Manage'
     );
   }
 
+  /**
+   * Section "Communication" : contenus, médias.
+   */
   public canAccessCommunicationModule(): boolean {
     return this.hasAnyPermission(
       'Content_Read', 'Content_Create', 'Content_Update', 'Content_Delete', 'Content_Publish',
@@ -225,183 +219,103 @@ private loadUserPermissions(): void {
   public canAccessHRModule(): boolean {
     return this.hasAnyPermission(
       'Employee_Read', 'Employee_Create', 'Employee_Update', 'Employee_Delete',
-      'Payroll_Read', 'Payroll_Calculate', 'Leave_Manage', 'Leave_Approve',
+      'Payroll_Read', 'Payroll_Calculate', 'Leave_Approve',
       'Volunteer_Read', 'Volunteer_Create', 'Volunteer_Update', 'Volunteer_Delete', 'Volunteer_Assign'
     );
   }
 
   /**
-   * Section "Administration" : utilisateurs, rôles, permissions,
-   * audit, paramètres généraux/église/sites, notifications système.
-   * ⚠️ Ne couvre QUE l'administration — jamais "Mon profil", qui est
-   * accessible à tout utilisateur connecté indépendamment de ceci.
+   * Section "Administration" : utilisateurs, rôles, permissions, audit, paramètres.
    */
   public canAccessAdministrationModule(): boolean {
     return this.hasAnyPermission(
       'User_Read', 'User_Create', 'User_Update', 'User_Delete', 'User_Activate', 'User_Deactivate',
       'Role_Manage', 'Permission_Manage',
       'Audit_Read', 'Audit_Export',
-      'Settings_Read', 'Settings_Update', 'Church_Settings_Manage', 'Site_Manage',
-      'Notification_Configure', 'Notification_Template_Manage'
+      'Settings_Read', 'Settings_Update', 'Church_Settings_Manage', 'Site_Manage'
     );
   }
 
   // ───────────────────────────────────────────────────────────────
-  // MÉTHODES DE BASE
+  // 📜 MODULE : ACTES PASTORAUX (PASTORAL ACTS)
   // ───────────────────────────────────────────────────────────────
 
-  /**
- * Vérifie si l'utilisateur a UNE permission spécifique
- * SUPER_ADMIN et PASTOR_PRINCIPAL ont un bypass total (miroir du backend)
- */
-  public hasPermission(permission: string): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
-    return this.userPermissions.includes(permission);
-  }
-
-  /**
- * Vérifie si l'utilisateur a AU MOINS UNE des permissions
- */
-  public hasAnyPermission(...permissions: string[]): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
-    return permissions.some(p => this.userPermissions.includes(p));
-  }
-
-  /**
- * Vérifie si l'utilisateur a TOUTES les permissions
- */
-  public hasAllPermissions(...permissions: string[]): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
-    return permissions.every(p => this.userPermissions.includes(p));
-  }
-
-    public clearPermissions(): void {
-      this.userPermissions = [];
-      this.userRoles = [];
-    }
-
-  /**
-   * Vérifie si l'utilisateur a un rôle spécifique
-   */
-  public hasRole(role: string): boolean {
-    return this.userRoles.some(r =>
-      r.toUpperCase() === role.toUpperCase() ||
-      r === role
+  public canManagePastoralActs(): boolean {
+    return this.hasAnyPermission(
+      'PastoralAct_Create', 'PastoralAct_Read', 'PastoralAct_Update', 'PastoralAct_Delete'
     );
   }
 
-  /**
-   * Vérifie si l'utilisateur a AU MOINS UN des rôles
-   */
-  public hasAnyRole(...roles: string[]): boolean {
-    return roles.some(role => this.hasRole(role));
+  public canViewPastoralActs(): boolean {
+    return this.hasAnyPermission('PastoralAct_Read', 'PastoralAct_Create', 'PastoralAct_Update');
+  }
+
+  public canCreatePastoralAct(): boolean {
+    return this.hasPermission('PastoralAct_Create');
+  }
+
+  public canUpdatePastoralAct(): boolean {
+    return this.hasPermission('PastoralAct_Update');
+  }
+
+  public canDeletePastoralAct(): boolean {
+    return this.hasPermission('PastoralAct_Delete');
+  }
+
+  public canGeneratePastoralActCertificate(): boolean {
+    return this.hasPermission('PastoralAct_Certificate_Generate');
   }
 
   // ───────────────────────────────────────────────────────────────
-  // RÔLES SPÉCIAUX
+  // 📅 MODULE : RENDEZ-VOUS PASTORAUX (APPOINTMENTS)
   // ───────────────────────────────────────────────────────────────
 
-  /**
-   * Vérifie si l'utilisateur est Super Admin
-   */
-  public isSuperAdmin(): boolean {
-    return this.hasRole('SUPER_ADMIN') ||
-           this.hasRole('SUPER ADMINISTRATEUR') ||
-           this.hasRole('Super Administrateur');
+  public canManageAppointments(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
   }
 
-  /**
-   * Vérifie si l'utilisateur est Pasteur Principal
-   */
-  public isPastorPrincipal(): boolean {
-    return this.hasRole('PASTOR_PRINCIPAL') ||
-           this.hasRole('Pasteur Principal');
+  public canViewAppointments(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
   }
 
-  /**
-   * Vérifie si l'utilisateur est Pasteur de Site
-   */
-  public isPasteurSite(): boolean {
-    return this.hasRole('PASTEUR_SITE') ||
-           this.hasRole('Pasteur de Site');
+  public canCreateAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
   }
 
-  /**
-   * Vérifie si l'utilisateur est Administrateur ou supérieur
-   */
-  public isAdminOrAbove(): boolean {
-    return this.isSuperAdmin() ||
-           this.isPastorPrincipal() ||
-           this.hasRole('ADMIN') ||
-           this.hasRole('Administrateur');
+  public canUpdateAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
   }
 
-  // ───────────────────────────────────────────────────────────────
-// 📜 MODULE : ACTES PASTORAUX
-// ───────────────────────────────────────────────────────────────
+  public canDeleteAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
+  }
 
-public canManagePastoralActs(): boolean {
-  return this.hasAnyPermission(
-    'PastoralAct_Create',
-    'PastoralAct_Read',
-    'PastoralAct_Update',
-    'PastoralAct_Delete'
-  );
-}
+  public canConfirmAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
+  }
 
-public canViewPastoralActs(): boolean {
-  return this.hasAnyPermission(
-    'PastoralAct_Read',
-    'PastoralAct_Create',
-    'PastoralAct_Update'
-  );
-}
+  public canCancelAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
+  }
 
-public canCreatePastoralAct(): boolean {
-  return this.hasPermission('PastoralAct_Create');
-}
+  public canCompleteAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
+  }
 
-public canUpdatePastoralAct(): boolean {
-  return this.hasPermission('PastoralAct_Update');
-}
-
-public canDeletePastoralAct(): boolean {
-  return this.hasPermission('PastoralAct_Delete');
-}
-
-public canGeneratePastoralActCertificate(): boolean {
-  return this.hasPermission('PastoralAct_Certificate_Generate');
-}
+  public canRescheduleAppointment(): boolean {
+    return this.hasPermission('Pastoral_Appointment_Manage');
+  }
 
   // ───────────────────────────────────────────────────────────────
   // 👥 MODULE : MEMBRES
   // ───────────────────────────────────────────────────────────────
 
   public canManageMembers(): boolean {
-    return this.hasAnyPermission(
-      'Member_Create',
-      'Member_Read',
-      'Member_Update',
-      'Member_Delete',
-      'Member_Validate'
-    );
+    return this.hasAnyPermission('Member_Create', 'Member_Read', 'Member_Update', 'Member_Delete', 'Member_Validate');
   }
 
-
-
   public canViewMembers(): boolean {
-    return this.hasAnyPermission(
-      'Member_Read',
-      'Member_Update',
-      'Member_Create',
-      'Member_Validate'
-    );
+    return this.hasAnyPermission('Member_Read', 'Member_Update', 'Member_Create', 'Member_Validate');
   }
 
   public canCreateMember(): boolean {
@@ -449,20 +363,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManagePastoralNotes(): boolean {
-    return this.hasAnyPermission(
-      'Pastoral_Note_Create',
-      'Pastoral_Note_Read',
-      'Pastoral_Note_Update',
-      'Pastoral_Note_Delete'
-    );
+    return this.hasAnyPermission('Pastoral_Note_Create', 'Pastoral_Note_Read', 'Pastoral_Note_Update', 'Pastoral_Note_Delete');
   }
 
   public canViewPastoralNotes(): boolean {
-    return this.hasAnyPermission(
-      'Pastoral_Note_Read',
-      'Pastoral_Note_Create',
-      'Pastoral_Note_Update'
-    );
+    return this.hasAnyPermission('Pastoral_Note_Read', 'Pastoral_Note_Create', 'Pastoral_Note_Update');
   }
 
   public canCreatePastoralNote(): boolean {
@@ -481,10 +386,6 @@ public canGeneratePastoralActCertificate(): boolean {
     return this.hasPermission('Pastoral_Note_View_All');
   }
 
-  public canManageAppointments(): boolean {
-    return this.hasPermission('Pastoral_Appointment_Manage');
-  }
-
   public canManagePrayers(): boolean {
     return this.hasPermission('Pastoral_Prayer_Manage');
   }
@@ -498,21 +399,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageCells(): boolean {
-    return this.hasAnyPermission(
-      'Cell_Create',
-      'Cell_Read',
-      'Cell_Update',
-      'Cell_Delete',
-      'Cell_Assign'
-    );
+    return this.hasAnyPermission('Cell_Create', 'Cell_Read', 'Cell_Update', 'Cell_Delete', 'Cell_Assign');
   }
 
   public canViewCells(): boolean {
-    return this.hasAnyPermission(
-      'Cell_Read',
-      'Cell_Update',
-      'Cell_Create'
-    );
+    return this.hasAnyPermission('Cell_Read', 'Cell_Update', 'Cell_Create');
   }
 
   public canCreateCell(): boolean {
@@ -552,24 +443,24 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageFinances(): boolean {
-    return this.hasAnyPermission(
-      'Finance_Offering_Read',
-      'Finance_Expense_Read',
-      'Finance_Budget_Read'
-    );
+    return this.hasAnyPermission('Finance_Offering_Read', 'Finance_Expense_Read', 'Finance_Budget_Read');
   }
 
   // Offrandes
   public canViewOfferings(): boolean {
-    return this.hasAnyPermission(
-      'Finance_Offering_Read',
-      'Finance_Offering_Create',
-      'Finance_Offering_Validate'
-    );
+    return this.hasAnyPermission('Finance_Offering_Read', 'Finance_Offering_Create', 'Finance_Offering_Validate');
   }
 
   public canCreateOffering(): boolean {
     return this.hasPermission('Finance_Offering_Create');
+  }
+
+  public canUpdateOffering(): boolean {
+    return this.hasPermission('Finance_Offering_Update');
+  }
+
+  public canDeleteOffering(): boolean {
+    return this.hasPermission('Finance_Offering_Delete');
   }
 
   public canValidateOffering(): boolean {
@@ -586,11 +477,7 @@ public canGeneratePastoralActCertificate(): boolean {
 
   // Dépenses
   public canViewExpenses(): boolean {
-    return this.hasAnyPermission(
-      'Finance_Expense_Read',
-      'Finance_Expense_Create',
-      'Finance_Expense_Validate'
-    );
+    return this.hasAnyPermission('Finance_Expense_Read', 'Finance_Expense_Create', 'Finance_Expense_Validate');
   }
 
   public canCreateExpense(): boolean {
@@ -611,11 +498,7 @@ public canGeneratePastoralActCertificate(): boolean {
 
   // Budget
   public canViewBudgets(): boolean {
-    return this.hasAnyPermission(
-      'Finance_Budget_Read',
-      'Finance_Budget_Create',
-      'Finance_Budget_Update'
-    );
+    return this.hasAnyPermission('Finance_Budget_Read', 'Finance_Budget_Create', 'Finance_Budget_Update');
   }
 
   public canCreateBudget(): boolean {
@@ -628,6 +511,10 @@ public canGeneratePastoralActCertificate(): boolean {
 
   public canApproveBudget(): boolean {
     return this.hasPermission('Finance_Budget_Approve');
+  }
+
+  public canDeleteBudget(): boolean {
+    return this.hasPermission('Finance_Budget_Delete');
   }
 
   public canFollowBudget(): boolean {
@@ -660,20 +547,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageEvents(): boolean {
-    return this.hasAnyPermission(
-      'Event_Create',
-      'Event_Read',
-      'Event_Update',
-      'Event_Delete'
-    );
+    return this.hasAnyPermission('Event_Create', 'Event_Read', 'Event_Update', 'Event_Delete');
   }
 
   public canViewEvents(): boolean {
-    return this.hasAnyPermission(
-      'Event_Read',
-      'Event_Update',
-      'Event_Create'
-    );
+    return this.hasAnyPermission('Event_Read', 'Event_Update', 'Event_Create');
   }
 
   public canCreateEvent(): boolean {
@@ -706,19 +584,11 @@ public canGeneratePastoralActCertificate(): boolean {
 
   // Cultes
   public canManageServices(): boolean {
-    return this.hasAnyPermission(
-      'Service_Create',
-      'Service_Read',
-      'Service_Update'
-    );
+    return this.hasAnyPermission('Service_Create', 'Service_Read', 'Service_Update');
   }
 
   public canViewServices(): boolean {
-    return this.hasAnyPermission(
-      'Service_Read',
-      'Service_Update',
-      'Service_Create'
-    );
+    return this.hasAnyPermission('Service_Read', 'Service_Update', 'Service_Create');
   }
 
   public canCreateService(): boolean {
@@ -750,20 +620,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageProperties(): boolean {
-    return this.hasAnyPermission(
-      'Property_Create',
-      'Property_Read',
-      'Property_Update',
-      'Property_Delete'
-    );
+    return this.hasAnyPermission('Property_Create', 'Property_Read', 'Property_Update', 'Property_Delete');
   }
 
   public canViewProperties(): boolean {
-    return this.hasAnyPermission(
-      'Property_Read',
-      'Property_Update',
-      'Property_Create'
-    );
+    return this.hasAnyPermission('Property_Read', 'Property_Update', 'Property_Create');
   }
 
   public canCreateProperty(): boolean {
@@ -780,20 +641,11 @@ public canGeneratePastoralActCertificate(): boolean {
 
   // Contrats
   public canManageContracts(): boolean {
-    return this.hasAnyPermission(
-      'Contract_Create',
-      'Contract_Read',
-      'Contract_Update',
-      'Contract_Validate'
-    );
+    return this.hasAnyPermission('Contract_Create', 'Contract_Read', 'Contract_Update', 'Contract_Validate');
   }
 
   public canViewContracts(): boolean {
-    return this.hasAnyPermission(
-      'Contract_Read',
-      'Contract_Update',
-      'Contract_Create'
-    );
+    return this.hasAnyPermission('Contract_Read', 'Contract_Update', 'Contract_Create');
   }
 
   public canCreateContract(): boolean {
@@ -842,20 +694,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageContent(): boolean {
-    return this.hasAnyPermission(
-      'Content_Create',
-      'Content_Read',
-      'Content_Update',
-      'Content_Delete'
-    );
+    return this.hasAnyPermission('Content_Create', 'Content_Read', 'Content_Update', 'Content_Delete');
   }
 
   public canViewContent(): boolean {
-    return this.hasAnyPermission(
-      'Content_Read',
-      'Content_Update',
-      'Content_Create'
-    );
+    return this.hasAnyPermission('Content_Read', 'Content_Update', 'Content_Create');
   }
 
   public canCreateContent(): boolean {
@@ -911,20 +754,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageEmployees(): boolean {
-    return this.hasAnyPermission(
-      'Employee_Create',
-      'Employee_Read',
-      'Employee_Update',
-      'Employee_Delete'
-    );
+    return this.hasAnyPermission('Employee_Create', 'Employee_Read', 'Employee_Update', 'Employee_Delete');
   }
 
   public canViewEmployees(): boolean {
-    return this.hasAnyPermission(
-      'Employee_Read',
-      'Employee_Update',
-      'Employee_Create'
-    );
+    return this.hasAnyPermission('Employee_Read', 'Employee_Update', 'Employee_Create');
   }
 
   public canCreateEmployee(): boolean {
@@ -965,20 +799,11 @@ public canGeneratePastoralActCertificate(): boolean {
 
   // Bénévoles
   public canManageVolunteers(): boolean {
-    return this.hasAnyPermission(
-      'Volunteer_Create',
-      'Volunteer_Read',
-      'Volunteer_Update',
-      'Volunteer_Delete'
-    );
+    return this.hasAnyPermission('Volunteer_Create', 'Volunteer_Read', 'Volunteer_Update', 'Volunteer_Delete');
   }
 
   public canViewVolunteers(): boolean {
-    return this.hasAnyPermission(
-      'Volunteer_Read',
-      'Volunteer_Update',
-      'Volunteer_Create'
-    );
+    return this.hasAnyPermission('Volunteer_Read', 'Volunteer_Update', 'Volunteer_Create');
   }
 
   public canCreateVolunteer(): boolean {
@@ -1030,11 +855,7 @@ public canGeneratePastoralActCertificate(): boolean {
   }
 
   public canViewReports(): boolean {
-    return this.hasAnyPermission(
-      'Report_Read',
-      'Report_Generate',
-      'Report_Export'
-    );
+    return this.hasAnyPermission('Report_Read', 'Report_Generate', 'Report_Export');
   }
 
   public canExportReport(): boolean {
@@ -1046,13 +867,7 @@ public canGeneratePastoralActCertificate(): boolean {
   }
 
   public canViewAnalytics(): boolean {
-    return this.hasAnyPermission(
-      'Dashboard_View',
-      'Report_Generate',
-      'Report_Read',
-      'Finance_Report_Generate',
-      'Member_Report_Generate'
-    );
+    return this.hasAnyPermission('Dashboard_View', 'Report_Generate', 'Report_Read');
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -1080,22 +895,11 @@ public canGeneratePastoralActCertificate(): boolean {
   // ───────────────────────────────────────────────────────────────
 
   public canManageUsers(): boolean {
-    return this.hasAnyPermission(
-      'User_Create',
-      'User_Read',
-      'User_Update',
-      'User_Delete',
-      'User_Activate',
-      'User_Deactivate'
-    );
+    return this.hasAnyPermission('User_Create', 'User_Read', 'User_Update', 'User_Delete', 'User_Activate', 'User_Deactivate');
   }
 
   public canViewUsers(): boolean {
-    return this.hasAnyPermission(
-      'User_Read',
-      'User_Update',
-      'User_Create'
-    );
+    return this.hasAnyPermission('User_Read', 'User_Update', 'User_Create');
   }
 
   public canCreateUser(): boolean {
@@ -1127,12 +931,7 @@ public canGeneratePastoralActCertificate(): boolean {
   }
 
   public canViewAdministration(): boolean {
-    return this.hasAnyPermission(
-      'User_Read',
-      'Role_Manage',
-      'Settings_Read',
-      'Audit_Read'
-    );
+    return this.hasAnyPermission('User_Read', 'Role_Manage', 'Settings_Read', 'Audit_Read');
   }
 
   // Audit
@@ -1159,6 +958,90 @@ public canGeneratePastoralActCertificate(): boolean {
 
   public canManageSites(): boolean {
     return this.hasPermission('Site_Manage');
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // MÉTHODES DE BASE
+  // ───────────────────────────────────────────────────────────────
+
+  /**
+   * Vérifie si l'utilisateur a UNE permission spécifique
+   * SUPER_ADMIN et PASTOR_PRINCIPAL ont un bypass total
+   */
+  public hasPermission(permission: string): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
+    return this.userPermissions.includes(permission);
+  }
+
+  /**
+   * Vérifie si l'utilisateur a AU MOINS UNE des permissions
+   */
+  public hasAnyPermission(...permissions: string[]): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
+    return permissions.some(p => this.userPermissions.includes(p));
+  }
+
+  /**
+   * Vérifie si l'utilisateur a TOUTES les permissions
+   */
+  public hasAllPermissions(...permissions: string[]): boolean {
+    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
+      return true;
+    }
+    return permissions.every(p => this.userPermissions.includes(p));
+  }
+
+  public clearPermissions(): void {
+    this.userPermissions = [];
+    this.userRoles = [];
+  }
+
+  /**
+   * Vérifie si l'utilisateur a un rôle spécifique
+   */
+  public hasRole(role: string): boolean {
+    return this.userRoles.some(r =>
+      r.toUpperCase() === role.toUpperCase() ||
+      r === role
+    );
+  }
+
+  /**
+   * Vérifie si l'utilisateur a AU MOINS UN des rôles
+   */
+  public hasAnyRole(...roles: string[]): boolean {
+    return roles.some(role => this.hasRole(role));
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // RÔLES SPÉCIAUX
+  // ───────────────────────────────────────────────────────────────
+
+  public isSuperAdmin(): boolean {
+    return this.hasRole('SUPER_ADMIN') ||
+           this.hasRole('SUPER ADMINISTRATEUR') ||
+           this.hasRole('Super Administrateur');
+  }
+
+  public isPastorPrincipal(): boolean {
+    return this.hasRole('PASTOR_PRINCIPAL') ||
+           this.hasRole('Pasteur Principal');
+  }
+
+  public isPasteurSite(): boolean {
+    return this.hasRole('PASTEUR_SITE') ||
+           this.hasRole('Pasteur de Site');
+  }
+
+  public isAdminOrAbove(): boolean {
+    return this.isSuperAdmin() ||
+           this.isPastorPrincipal() ||
+           this.hasRole('ADMIN') ||
+           this.hasRole('Administrateur');
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -1194,7 +1077,9 @@ public canGeneratePastoralActCertificate(): boolean {
       [this.MODULES.HR]: ['Employee_Read', 'Volunteer_Read'],
       [this.MODULES.DASHBOARD]: ['Dashboard_View'],
       [this.MODULES.NOTIFICATIONS]: ['Notification_Read'],
-      [this.MODULES.ADMINISTRATION]: ['User_Read', 'Audit_Read']
+      [this.MODULES.ADMINISTRATION]: ['User_Read', 'Audit_Read'],
+      [this.MODULES.PASTORAL_ACTS]: ['PastoralAct_Read', 'PastoralAct_Create'],
+      [this.MODULES.APPOINTMENTS]: ['Pastoral_Appointment_Manage']
     };
 
     const perms = modulePermissions[module] || [];
@@ -1216,7 +1101,9 @@ public canGeneratePastoralActCertificate(): boolean {
       this.MODULES.HR,
       this.MODULES.DASHBOARD,
       this.MODULES.NOTIFICATIONS,
-      this.MODULES.ADMINISTRATION
+      this.MODULES.ADMINISTRATION,
+      this.MODULES.PASTORAL_ACTS,
+      this.MODULES.APPOINTMENTS
     ];
 
     return modules.map(module => ({
@@ -1236,12 +1123,10 @@ public canGeneratePastoralActCertificate(): boolean {
     if (requiredRoles.length > 0) {
       const hasRole = this.hasAnyRole(...requiredRoles);
       if (!hasRole) {
-        // Si l'utilisateur n'a pas les rôles requis, vérifier les permissions
         if (requiredPermissions.length === 0) {
           return false;
         }
       } else {
-        // Si l'utilisateur a un rôle requis, il a accès (sauf si des permissions spécifiques sont requises)
         if (requiredPermissions.length === 0) {
           return true;
         }

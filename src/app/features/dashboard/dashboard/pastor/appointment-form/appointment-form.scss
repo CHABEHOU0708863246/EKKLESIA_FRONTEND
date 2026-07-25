@@ -1,0 +1,350 @@
+// src/app/features/dashboard/pastor/appointments/appointment-form/appointment-form.scss
+
+// ─── VARIABLES ──────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$transition: 0.2s ease-in-out;
+
+// ─── CONTENEUR ──────────────────────────────────────────────────
+
+.af-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── EN-TÊTE ────────────────────────────────────────────────────
+
+.af-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+}
+
+// ─── BANNIÈRE D'ERREUR ─────────────────────────────────────────
+
+.af-banner {
+  padding: 0.75rem 1.2rem;
+  border-radius: $border-radius;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+
+  &--error {
+    background: #fce4e4;
+    color: #9e2b2b;
+    border-left: 4px solid $danger;
+  }
+}
+
+// ─── FORMULAIRE ─────────────────────────────────────────────────
+
+.af-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.af-panel {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+}
+
+.af-panel-header {
+  padding: 0.8rem 1.5rem;
+  background: $gray-100;
+  border-bottom: 1px solid $gray-200;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: $gray-800;
+  }
+}
+
+.af-panel-body {
+  padding: 1.5rem;
+}
+
+// ─── GRILLE ────────────────────────────────────────────────────
+
+.af-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+
+  .af-field--span-2 {
+    grid-column: 1 / -1;
+  }
+}
+
+// ─── CHAMPS ────────────────────────────────────────────────────
+
+.af-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: $gray-700;
+  }
+
+  .af-required {
+    color: $danger;
+    margin-left: 2px;
+  }
+
+  input, select, textarea {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border-color $transition, box-shadow $transition;
+    background: #fff;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+    &.ng-invalid.ng-touched {
+      border-color: $danger;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .af-error {
+    color: $danger;
+    font-size: 0.8rem;
+    margin: 0.1rem 0 0 0;
+  }
+}
+
+// ─── RECHERCHE (autocomplete) ──────────────────────────────────
+
+.af-search-wrap {
+  position: relative;
+
+  .af-selected-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $gray-100;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid $gray-300;
+
+    .af-mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: $primary;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+    .af-mini-info {
+      flex: 1;
+      font-weight: 500;
+    }
+  }
+
+  input {
+    width: 100%;
+  }
+
+  .af-search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    z-index: 10;
+    padding: 0.3rem 0;
+  }
+
+  .af-search-status {
+    padding: 0.5rem 1rem;
+    margin: 0;
+    color: $gray-600;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .af-search-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background $transition;
+
+    &:hover {
+      background: $gray-100;
+    }
+    .af-mini-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: $primary;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+    .af-mini-info {
+      flex: 1;
+      font-weight: 500;
+    }
+  }
+}
+
+// ─── BOUTONS ────────────────────────────────────────────────────
+
+.af-btn-primary, .af-btn-secondary {
+  padding: 0.5rem 1.4rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background $transition, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.af-btn-primary {
+  background: $primary;
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+}
+
+.af-btn-secondary {
+  background: $gray-200;
+  color: $gray-800;
+  &:hover:not(:disabled) {
+    background: $gray-300;
+  }
+}
+
+.af-icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: $gray-600;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  line-height: 1;
+  &:hover {
+    color: $danger;
+  }
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────────
+
+.af-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid $gray-200;
+}
+
+.af-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .af-container {
+    padding: 1rem 0.8rem;
+  }
+  .af-grid-2 {
+    grid-template-columns: 1fr;
+    .af-field--span-2 {
+      grid-column: 1;
+    }
+  }
+  .af-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+}

@@ -1,0 +1,181 @@
+<!-- src/app/features/dashboard/pastor/appointments/appointment-detail/appointment-detail.html -->
+
+<div class="ad-container">
+
+  <!-- ÉTATS DE CHARGEMENT / ERREUR -->
+  @if (loading()) {
+    <div class="ad-loading">Chargement du rendez-vous…</div>
+  }
+
+  @if (error()) {
+    <div class="ad-error">{{ error() }}</div>
+  }
+
+  <!-- DÉTAIL -->
+  @if (!loading() && !error() && appointment(); as app) {
+
+    <!-- EN-TÊTE -->
+    <div class="ad-header">
+      <div class="ad-header-left">
+        <button class="ad-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>Rendez-vous pastoral</h1>
+        <span class="ad-badge" [class]="getStatusClass(app.status)">
+          {{ getStatusLabel(app.status) }}
+        </span>
+      </div>
+      <div class="ad-header-actions">
+        @if (canEdit() && permissions.canUpdateAppointment()) {
+          <button class="ad-btn-primary" (click)="editAppointment()">
+            <i class="bx bx-edit"></i> Modifier
+          </button>
+        }
+        @if (canConfirm() && permissions.canConfirmAppointment()) {
+          <button class="ad-btn-success" (click)="confirmAppointment()" [disabled]="updatingStatus()">
+            <i class="bx bx-check-circle"></i> Confirmer
+          </button>
+        }
+        @if (canComplete() && permissions.canCompleteAppointment()) {
+          <button class="ad-btn-success" (click)="completeAppointment()" [disabled]="updatingStatus()">
+            <i class="bx bx-check-double"></i> Terminer
+          </button>
+        }
+        @if (canCancel() && permissions.canCancelAppointment()) {
+          <button class="ad-btn-warning" (click)="cancelAppointment()" [disabled]="updatingStatus()">
+            <i class="bx bx-x-circle"></i> Annuler
+          </button>
+        }
+        @if (canDelete() && permissions.canDeleteAppointment()) {
+          <button class="ad-btn-danger" (click)="deleteAppointment()" [disabled]="deleting()">
+            @if (deleting()) { Suppression… } @else { <i class="bx bx-trash"></i> Supprimer }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- GRILLE D'INFORMATIONS -->
+    <div class="ad-grid">
+
+      <!-- COLONNE GAUCHE -->
+      <div class="ad-col-left">
+
+        <!-- CARTE : INFORMATIONS GÉNÉRALES -->
+        <div class="ad-card">
+          <h3>Informations générales</h3>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Date & heure</span>
+            <span class="ad-value">{{ getFormattedDate(app.appointmentDate) }}</span>
+          </div>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Durée</span>
+            <span class="ad-value">{{ getFormattedDuration(app.durationMinutes) }}</span>
+          </div>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Lieu</span>
+            <span class="ad-value">{{ app.location || '—' }}</span>
+          </div>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Motif</span>
+            <span class="ad-value ad-reason">{{ app.reason }}</span>
+          </div>
+
+          @if (app.notes) {
+            <div class="ad-info-row">
+              <span class="ad-label">Notes</span>
+              <span class="ad-value ad-notes">{{ app.notes }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- CARTE : PARTICIPANT -->
+        <div class="ad-card">
+          <h3>Participant</h3>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Nom</span>
+            <span class="ad-value">{{ getParticipantName(app) }}</span>
+          </div>
+
+          @if (app.memberId) {
+            <div class="ad-info-row">
+              <span class="ad-label">Type</span>
+              <span class="ad-value"><span class="ad-badge ad-badge-primary">Membre</span></span>
+            </div>
+            @if (app.memberName) {
+              <div class="ad-info-row">
+                <span class="ad-label">Membre</span>
+                <span class="ad-value">{{ app.memberName }}</span>
+              </div>
+            }
+          } @else {
+            <div class="ad-info-row">
+              <span class="ad-label">Type</span>
+              <span class="ad-value"><span class="ad-badge ad-badge-secondary">Visiteur</span></span>
+            </div>
+            @if (app.visitorPhone) {
+              <div class="ad-info-row">
+                <span class="ad-label">Téléphone</span>
+                <span class="ad-value">{{ app.visitorPhone }}</span>
+              </div>
+            }
+            @if (app.visitorEmail) {
+              <div class="ad-info-row">
+                <span class="ad-label">Email</span>
+                <span class="ad-value">{{ app.visitorEmail }}</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- COLONNE DROITE -->
+      <div class="ad-col-right">
+
+        <!-- CARTE : PASTEUR & ÉGLISE -->
+        <div class="ad-card">
+          <h3>Organisation</h3>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Pasteur</span>
+            <span class="ad-value">{{ app.pastorName || '—' }}</span>
+          </div>
+
+          <div class="ad-info-row">
+            <span class="ad-label">Église</span>
+            <span class="ad-value">{{ app.churchName || app.churchId }}</span>
+          </div>
+
+          @if (app.siteName) {
+            <div class="ad-info-row">
+              <span class="ad-label">Site</span>
+              <span class="ad-value">{{ app.siteName }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- CARTE : AUDIT -->
+        <div class="ad-card ad-meta">
+          <h3>Informations système</h3>
+
+          <div class="ad-meta-row">
+            <span>Créé le</span>
+            <span>{{ getFormattedDate(app.createdAt) }}</span>
+          </div>
+
+          @if (app.updatedAt) {
+            <div class="ad-meta-row">
+              <span>Modifié le</span>
+              <span>{{ getFormattedDate(app.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

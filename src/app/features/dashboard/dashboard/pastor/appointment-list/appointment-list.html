@@ -1,0 +1,225 @@
+<div class="al-container">
+
+  <!-- EN-TÊTE -->
+  <div class="al-header">
+    <div class="al-header-left">
+      <h1>📅 Agenda pastoral</h1>
+      <span class="al-badge al-badge-primary">{{ totalCount() }} rendez-vous</span>
+    </div>
+    <div class="al-header-actions">
+      <button class="al-btn al-btn-primary" [routerLink]="['/dashboard/rendez-vous/new']">
+        <i class="bx bx-plus"></i> Nouveau rendez-vous
+      </button>
+      <button class="al-btn al-btn-secondary" (click)="refresh()">
+        <i class="bx bx-refresh"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- STATISTIQUES RAPIDES -->
+  @if (stats(); as s) {
+  <div class="al-stats">
+    <div class="al-stat-card">
+      <span class="al-stat-value">{{ s.total }}</span>
+      <span class="al-stat-label">Total</span>
+    </div>
+    <div class="al-stat-card">
+      <span class="al-stat-value">{{ s.upcoming }}</span>
+      <span class="al-stat-label">À venir</span>
+    </div>
+    <div class="al-stat-card">
+      <span class="al-stat-value">{{ s.today }}</span>
+      <span class="al-stat-label">Aujourd'hui</span>
+    </div>
+    <div class="al-stat-card al-stat-card--warning">
+      <span class="al-stat-value">{{ s.scheduled }}</span>
+      <span class="al-stat-label">Planifiés</span>
+    </div>
+    <div class="al-stat-card al-stat-card--success">
+      <span class="al-stat-value">{{ s.confirmed }}</span>
+      <span class="al-stat-label">Confirmés</span>
+    </div>
+    <div class="al-stat-card al-stat-card--danger">
+      <span class="al-stat-value">{{ s.cancelled }}</span>
+      <span class="al-stat-label">Annulés</span>
+    </div>
+  </div>
+  }
+
+  <!-- FILTRES -->
+  <div class="al-filters">
+    <form [formGroup]="filterForm" class="al-filter-form">
+      <div class="al-filter-row">
+        <div class="al-field">
+          <label>Recherche</label>
+          <input type="text" formControlName="search" placeholder="Motif, nom, lieu…">
+        </div>
+        <div class="al-field">
+          <label>Statut</label>
+          <select formControlName="status">
+            <option value="">Tous</option>
+            @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="al-field">
+          <label>Date début</label>
+          <input type="date" formControlName="dateFrom">
+        </div>
+        <div class="al-field">
+          <label>Date fin</label>
+          <input type="date" formControlName="dateTo">
+        </div>
+        <div class="al-field al-field-actions">
+          <button type="button" class="al-btn al-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ÉTATS -->
+  @if (loading()) {
+  <div class="al-loading">Chargement des rendez-vous…</div>
+  }
+
+  @if (error()) {
+  <div class="al-error">{{ error() }}</div>
+  }
+
+  <!-- LISTE -->
+  @if (!loading() && !error()) {
+
+  @if (appointments().length === 0) {
+  <div class="al-empty">
+    <i class="bx bx-calendar-x"></i>
+    <p>Aucun rendez-vous trouvé.</p>
+  </div>
+  } @else {
+  <div class="al-table-wrap">
+    <table class="al-table">
+      <thead>
+        <tr>
+          <th>Date & heure</th>
+          <th>Participant</th>
+          <th>Motif</th>
+          <th>Pasteur</th>
+          <th>Statut</th>
+          <th style="width: 100px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (app of appointments(); track app.id) {
+        <tr (click)="viewAppointment(app.id)" class="al-row" [class.al-row-upcoming]="isUpcoming(app)" [class.al-row-today]="isToday(app)">
+          <td>
+            <div class="al-date-cell">
+              <span class="al-date">{{ getFormattedDate(app.appointmentDate) }}</span>
+              <span class="al-duration">{{ app.durationMinutes }} min</span>
+            </div>
+          </td>
+          <td>
+            <div class="al-participant">
+              <span class="al-participant-name">{{ getParticipantName(app) }}</span>
+              @if (app.visitorPhone) {
+              <span class="al-participant-phone">{{ app.visitorPhone }}</span>
+              }
+            </div>
+          </td>
+          <td>
+            <div class="al-reason">
+              <span>{{ app.reason }}</span>
+              @if (app.location) {
+              <span class="al-location">📍 {{ app.location }}</span>
+              }
+            </div>
+          </td>
+          <td>{{ app.pastorName || '—' }}</td>
+          <td>
+            <span class="al-badge" [class]="getStatusClass(app.status)">
+              {{ getStatusLabel(app.status) }}
+            </span>
+          </td>
+          <td>
+            <div class="al-actions">
+              <button class="al-icon-btn" (click)="viewAppointment(app.id)" title="Voir">
+                <i class="bx bx-show"></i>
+              </button>
+              @if (canEdit(app)) {
+              <button class="al-icon-btn" (click)="editAppointment(app.id, $event)" title="Modifier">
+                <i class="bx bx-edit"></i>
+              </button>
+              }
+              @if (canConfirm(app)) {
+              <button class="al-icon-btn al-icon-btn--success" (click)="confirmAppointment(app.id, $event)" title="Confirmer">
+                <i class="bx bx-check-circle"></i>
+              </button>
+              }
+              @if (canComplete(app)) {
+              <button class="al-icon-btn al-icon-btn--success" (click)="completeAppointment(app.id, $event)" title="Terminer">
+                <i class="bx bx-check-double"></i>
+              </button>
+              }
+              @if (canCancel(app)) {
+              <button class="al-icon-btn al-icon-btn--danger" (click)="cancelAppointment(app.id, $event)" title="Annuler">
+                <i class="bx bx-x-circle"></i>
+              </button>
+              }
+              @if (canDelete(app)) {
+              <button class="al-icon-btn al-icon-btn--danger" (click)="openDeleteModal(app, $event)" title="Supprimer">
+                <i class="bx bx-trash"></i>
+              </button>
+              }
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  @if (totalCount() > 0) {
+  <div class="al-pagination">
+    <div class="al-pagination-info">
+      {{ (currentPage() - 1) * pageSize() + 1 }}–{{ Math.min(currentPage() * pageSize(), totalCount()) }} sur {{ totalCount() }}
+    </div>
+    <div class="al-pagination-controls">
+      <button class="al-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+        <i class="bx bx-chevron-left"></i>
+      </button>
+      @for (page of [].constructor(totalPages()); track $index) {
+      <button class="al-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+        {{ $index + 1 }}
+      </button>
+      }
+      <button class="al-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+        <i class="bx bx-chevron-right"></i>
+      </button>
+      <select (change)="onPageSizeChange(+$any($event.target).value)">
+        @for (size of pageSizeOptions; track size) {
+        <option [value]="size" [selected]="size === currentPageSize()">{{ size }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  }
+  }
+  }
+
+  <!-- MODAL DE CONFIRMATION SUPPRESSION -->
+  @if (showDeleteModal()) {
+  <div class="al-modal-overlay" (click.self)="closeDeleteModal()">
+    <div class="al-modal">
+      <h3>Confirmer la suppression</h3>
+      <p>Voulez‑vous vraiment supprimer le rendez‑vous avec <strong>{{ appointmentToDelete()?.memberName || appointmentToDelete()?.visitorName }}</strong> ?</p>
+      <div class="al-modal-actions">
+        <button class="al-btn al-btn-secondary" (click)="closeDeleteModal()">Annuler</button>
+        <button class="al-btn al-btn-danger" (click)="confirmDelete()" [disabled]="deletingId()">
+          @if (deletingId()) { Suppression… } @else { Supprimer }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>

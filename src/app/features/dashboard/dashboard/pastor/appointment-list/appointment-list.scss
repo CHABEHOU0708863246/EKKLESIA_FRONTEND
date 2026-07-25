@@ -1,0 +1,422 @@
+// src/app/features/dashboard/pastor/appointments/appointment-list/appointment-list.scss
+
+// ─── VARIABLES ──────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$transition: 0.2s ease-in-out;
+
+// ─── CONTENEUR ──────────────────────────────────────────────────
+
+.al-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── EN-TÊTE ────────────────────────────────────────────────────
+
+.al-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.al-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+}
+
+.al-header-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+// ─── STATISTIQUES ──────────────────────────────────────────────
+
+.al-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.al-stat-card {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 0.6rem 0.4rem;
+  text-align: center;
+  box-shadow: $box-shadow;
+
+  .al-stat-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: $primary;
+    line-height: 1.2;
+  }
+  .al-stat-label {
+    font-size: 0.75rem;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &.al-stat-card--warning .al-stat-value { color: $warning; }
+  &.al-stat-card--success .al-stat-value { color: $success; }
+  &.al-stat-card--danger .al-stat-value { color: $danger; }
+}
+
+// ─── FILTRES ────────────────────────────────────────────────────
+
+.al-filters {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: $box-shadow;
+}
+
+.al-filter-form {
+  .al-filter-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+  }
+}
+
+.al-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: $gray-700;
+  }
+
+  input, select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color $transition;
+    background: #fff;
+    width: 100%;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+  }
+}
+
+.al-field-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+// ─── BOUTONS ────────────────────────────────────────────────────
+
+.al-btn {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background $transition, transform 0.1s;
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.al-btn-primary {
+  background: $primary;
+  color: #fff;
+  &:hover:not(:disabled) { background: $primary-dark; }
+}
+.al-btn-secondary {
+  background: $gray-200;
+  color: $gray-800;
+  &:hover:not(:disabled) { background: $gray-300; }
+}
+.al-btn-danger {
+  background: $danger;
+  color: #fff;
+  &:hover:not(:disabled) { background: darken($danger, 10%); }
+}
+
+// ─── BADGES ─────────────────────────────────────────────────────
+
+.al-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.al-badge-primary { background: #dbeafe; color: #1e40af; }
+.al-badge-success { background: #d4edda; color: #155724; }
+.al-badge-secondary { background: $gray-200; color: $gray-700; }
+.al-badge-danger { background: #f8d7da; color: #721c24; }
+.al-badge-warning { background: #fff3cd; color: #856404; }
+
+// ─── TABLEAU ────────────────────────────────────────────────────
+
+.al-table-wrap {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  overflow: hidden;
+  box-shadow: $box-shadow;
+}
+
+.al-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: $gray-100;
+    border-bottom: 2px solid $gray-200;
+    th {
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: $gray-700;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $gray-200;
+      cursor: pointer;
+      transition: background $transition;
+      &:hover {
+        background: $gray-100;
+      }
+      &.al-row-upcoming {
+        border-left: 3px solid $primary;
+      }
+      &.al-row-today {
+        border-left: 3px solid $warning;
+      }
+    }
+    td {
+      padding: 0.7rem 1rem;
+      vertical-align: middle;
+    }
+  }
+}
+
+.al-date-cell {
+  display: flex;
+  flex-direction: column;
+  .al-date { font-weight: 500; }
+  .al-duration { font-size: 0.75rem; color: $gray-500; }
+}
+
+.al-participant {
+  display: flex;
+  flex-direction: column;
+  .al-participant-name { font-weight: 500; }
+  .al-participant-phone { font-size: 0.75rem; color: $gray-500; }
+}
+
+.al-reason {
+  display: flex;
+  flex-direction: column;
+  .al-location { font-size: 0.75rem; color: $gray-500; }
+}
+
+// ─── ACTIONS DANS LE TABLEAU ──────────────────────────────────
+
+.al-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.al-icon-btn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.3rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+  color: $gray-600;
+  transition: background $transition, color $transition;
+  &:hover {
+    background: $gray-200;
+    color: $primary;
+  }
+  &.al-icon-btn--success:hover { color: $success; }
+  &.al-icon-btn--danger:hover { color: $danger; }
+}
+
+// ─── PAGINATION ──────────────────────────────────────────────────
+
+.al-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0.5rem;
+}
+
+.al-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  select {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid $gray-300;
+    font-size: 0.85rem;
+  }
+}
+
+.al-page-btn {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid $gray-300;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  transition: background $transition, border-color $transition;
+  &:hover:not(:disabled) {
+    background: $gray-100;
+    border-color: $primary;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  &.active {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+  }
+}
+
+// ─── ÉTATS ──────────────────────────────────────────────────────
+
+.al-loading, .al-error {
+  padding: 3rem 1rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.al-error { color: $danger; }
+
+.al-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: $gray-500;
+  i { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+  p { font-size: 1.1rem; margin: 0; }
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────
+
+.al-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.al-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+  h3 { margin-top: 0; }
+  p { color: $gray-600; line-height: 1.6; }
+  .al-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+  }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .al-container { padding: 1rem 0.8rem; }
+
+  .al-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .al-filter-form .al-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .al-table {
+    font-size: 0.8rem;
+    thead th, tbody td { padding: 0.4rem 0.5rem; }
+  }
+
+  .al-actions {
+    flex-wrap: wrap;
+    gap: 0.1rem;
+  }
+  .al-icon-btn { font-size: 1rem; }
+
+  .al-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .al-pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

@@ -65,6 +65,11 @@ export const DASHBOARD_ROUTES: Routes = [
         loadChildren: () =>
           import('./dashboard/budgets/budget.routes').then((m) => m.BUDGET_ROUTES),
       },
+      {
+        path: 'rendez-vous',
+        loadChildren: () =>
+          import('./dashboard/pastor/appointments.routes').then((m) => m.APPOINTMENTS_ROUTES),
+      },
     ],
   },
 ];
