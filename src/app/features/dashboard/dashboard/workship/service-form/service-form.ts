@@ -7,7 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
-import { ServiceCreate, ServiceStatus, ServiceStatusLabels } from '../../../../../core/models/Events/service.model';
+import { ServiceAttendance, ServiceCreate, ServiceStatus, ServiceStatusLabels, ServiceUpdate } from '../../../../../core/models/Events/service.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
@@ -84,7 +84,6 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Détecter mode édition
     const urlSegments = this.router.url.split('/');
     if (urlSegments.includes('edit')) {
       this.isEditMode.set(true);
@@ -95,13 +94,9 @@ export class ServiceForm implements OnInit, OnDestroy {
       }
     }
 
-    // Charger églises
     this.loadChurches();
-
-    // Charger prédicateurs (pasteurs)
     this.loadPreachers();
 
-    // Réactivité église → sites
     this.form.get('churchId')?.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((churchId: string) => {
@@ -110,7 +105,6 @@ export class ServiceForm implements OnInit, OnDestroy {
         if (churchId) this.loadSites(churchId);
       });
 
-    // Recherche prédicateur
     this.form.get('preacherSearch')?.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((term: string) => {
@@ -228,7 +222,6 @@ export class ServiceForm implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success && response.data) {
             const items = (response.data.items ?? []) as User[];
-            // Filtrer les utilisateurs avec rôles de pasteur
             const pastorRoles = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
             const filtered = items.filter((u) =>
               (u.roles ?? []).some((r) => pastorRoles.includes(r))
@@ -243,20 +236,14 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // PHOTO (upload)
+  // PHOTO (upload) — ✅ NE PAS définir photoUrl ici
   // ──────────────────────────────────────────────────────────────
 
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedPhotoFile = input.files[0];
-      this.form.patchValue({ attendance: { photoUrl: 'uploading...' } });
-      // L'upload sera fait lors de la soumission (après création du culte)
-      // ou on peut uploader immédiatement.
-      // Ici, on stocke le fichier pour l'envoyer après la création du culte.
-      // Mais pour simplifier, on peut attendre d'avoir l'ID du culte.
-      // On peut afficher un message.
-      this.form.patchValue({ attendance: { photoUrl: '✅ Fichier sélectionné' } });
+      // ✅ NE PAS modifier photoUrl avec un placeholder
     }
   }
 
@@ -281,7 +268,11 @@ export class ServiceForm implements OnInit, OnDestroy {
 
     const rawValue = this.form.value;
 
-    // Construire le payload sans les champs obsolètes
+    // ✅ Ne pas envoyer de placeholder pour photoUrl
+    const photoUrlValue = rawValue.attendance?.photoUrl;
+    const isValidPhotoUrl = photoUrlValue && photoUrlValue !== 'uploading...' && photoUrlValue !== '✅ Fichier sélectionné';
+    const photoUrl = isValidPhotoUrl ? photoUrlValue : '';
+
     const payload: ServiceCreate = {
       title: rawValue.title,
       date: rawValue.date,
@@ -301,7 +292,7 @@ export class ServiceForm implements OnInit, OnDestroy {
         acceptedJesus: rawValue.attendance?.acceptedJesus || 0,
         notAcceptedJesus: rawValue.attendance?.notAcceptedJesus || 0,
         observation: rawValue.attendance?.observation || '',
-        photoUrl: rawValue.attendance?.photoUrl || '', // sera mis à jour après upload
+        photoUrl: photoUrl, // ✅ vide si placeholder
         visitorNames: rawValue.attendance?.visitorNames || [],
       },
     };
@@ -314,7 +305,6 @@ export class ServiceForm implements OnInit, OnDestroy {
       next: (response: any) => {
         this.saving.set(false);
         if (response && response.isSuccess !== false && response.id) {
-          // Si une photo a été sélectionnée, on l'upload maintenant
           if (this.selectedPhotoFile) {
             this.uploadPhoto(response.id);
           } else {
@@ -336,29 +326,33 @@ export class ServiceForm implements OnInit, OnDestroy {
   // UPLOAD DE LA PHOTO (après création du culte)
   // ──────────────────────────────────────────────────────────────
 
-  private uploadPhoto(serviceId: string): void {
-    if (!this.selectedPhotoFile) return;
+private uploadPhoto(serviceId: string): void {
+  if (!this.selectedPhotoFile) return;
 
-    this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.photoId) {
-            // ✅ Maintenant on met à jour le culte avec le photoUrl
-            this.serviceService.update(serviceId, { attendance: { photoUrl: response.photoId } } as any)
-              .pipe(takeUntil(this.destroy$))
-              .subscribe({
-                next: () => this.router.navigate(['/dashboard/cultes']),
-                error: () => this.router.navigate(['/dashboard/cultes']),
-              });
-          } else {
-            // Échec de l'upload, on navigue quand même
-            this.router.navigate(['/dashboard/cultes']);
-          }
-        },
-        error: () => this.router.navigate(['/dashboard/cultes']),
-      });
-  }
+  this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (uploadResponse) => {
+        if (uploadResponse.success && uploadResponse.photoId) {
+          // ✅ Mise à jour partielle : uniquement le champ photoUrl dans attendance
+          const updatePayload: ServiceUpdate = {
+            attendance: {
+              photoUrl: uploadResponse.photoId
+            } as ServiceAttendance
+          };
+          this.serviceService.update(serviceId, updatePayload)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: () => this.router.navigate(['/dashboard/cultes']),
+              error: () => this.router.navigate(['/dashboard/cultes']),
+            });
+        } else {
+          this.router.navigate(['/dashboard/cultes']);
+        }
+      },
+      error: () => this.router.navigate(['/dashboard/cultes']),
+    });
+}
 
   // ──────────────────────────────────────────────────────────────
   // UTILITAIRES

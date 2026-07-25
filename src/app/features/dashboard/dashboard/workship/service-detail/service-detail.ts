@@ -53,24 +53,30 @@ photoLoadFailed = signal(false);
 
 
 private loadServicePhoto(photoId: string): void {
-  if (!photoId) return;
-  this.photoLoadFailed.set(false);
-  this.serviceService.getPhoto(photoId)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (blob) => this.photoObjectUrl.set(URL.createObjectURL(blob)),
-      error: (err) => {
-        console.error('❌ Erreur chargement photo culte:', err);
-        this.photoLoadFailed.set(true);
-      },
-    });
-}
+    if (!photoId) return;
+    this.photoLoadFailed.set(false);
+    this.serviceService.getPhoto(photoId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          // ✅ Créer une URL objet pour l’image
+          const url = URL.createObjectURL(blob);
+          this.photoObjectUrl.set(url);
+        },
+        error: (err) => {
+          console.error('❌ Erreur chargement photo culte:', err);
+          this.photoLoadFailed.set(true);
+        },
+      });
+  }
 
-  ngOnDestroy(): void {
+   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.photoObjectUrl()) URL.revokeObjectURL(this.photoObjectUrl()!);
-    if (this.preacherPhotoObjectUrl()) URL.revokeObjectURL(this.preacherPhotoObjectUrl()!);
+    // ✅ Libérer l’URL objet pour éviter les fuites mémoire
+    if (this.photoObjectUrl()) {
+      URL.revokeObjectURL(this.photoObjectUrl()!);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -96,7 +102,6 @@ private loadServicePhoto(photoId: string): void {
           }
 
           if (data) {
-            // Appeler les services pour obtenir les noms
             this.enrichServiceData(data);
           } else {
             this.error.set('Impossible de charger ce culte.');
@@ -122,7 +127,6 @@ private loadServicePhoto(photoId: string): void {
             if (response.success && response.data) {
               service.churchName = response.data.name;
             }
-            // Ensuite charger le site si besoin
             this.loadSiteName(service);
           },
           error: () => this.loadSiteName(service),
@@ -141,21 +145,23 @@ private loadServicePhoto(photoId: string): void {
             if (response.success && response.data) {
               service.siteName = response.data.name;
             }
-            if (service.attendance?.photoUrl) {
-              this.loadServicePhoto(service.attendance.photoUrl);
-            }
-            this.service.set(service);
-            this.loading.set(false);
+            // ✅ Après chargement des noms, charger la photo
+            this.finishLoading(service);
           },
-          error: () => {
-            this.service.set(service);
-            this.loading.set(false);
-          },
+          error: () => this.finishLoading(service),
         });
     } else {
-      this.service.set(service);
-      this.loading.set(false);
+      this.finishLoading(service);
     }
+  }
+
+  private finishLoading(service: any): void {
+    this.service.set(service);
+    // ✅ Charger la photo si elle existe
+    if (service.attendance?.photoUrl) {
+      this.loadServicePhoto(service.attendance.photoUrl);
+    }
+    this.loading.set(false);
   }
 
 

@@ -133,19 +133,20 @@
         </div>
         }
 
-@if (s.attendance.photoUrl) {
-<div class="sd-photo">
-  <strong>Photo justificative :</strong>
-  <div class="sd-photo-preview" (click)="openPhoto(s.attendance.photoUrl)">
-    @if (photoObjectUrl(); as url) {
-      <img [src]="url" alt="Photo du culte" />
-    } @else if (photoLoadFailed()) {
-      <span class="sd-photo-error">Photo introuvable</span>
-    } @else {
-      <span class="sd-photo-loading">Chargement…</span>
-    }
+<!-- Photo justificative -->
+@if (service()?.attendance?.photoUrl) {
+  <div class="sd-photo">
+    <strong>Photo justificative :</strong>
+    <div class="sd-photo-preview" (click)="openPhoto(service()!.attendance.photoUrl)">
+      @if (!photoLoadFailed() && photoObjectUrl()) {
+        <img [src]="photoObjectUrl()" alt="Photo du culte" />
+      } @else if (photoLoadFailed()) {
+        <div class="sd-photo-placeholder">⚠️ Photo non disponible</div>
+      } @else {
+        <div class="sd-photo-loading">Chargement…</div>
+      }
+    </div>
   </div>
-</div>
 }
 
         <!-- Noms des visiteurs -->

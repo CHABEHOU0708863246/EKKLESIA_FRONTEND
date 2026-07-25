@@ -17,6 +17,7 @@ import {
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -32,6 +33,10 @@ const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
 })
 export class ServiceList implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  private sanitizer = inject(DomSanitizer);
+
+photoUrl: SafeUrl | null = null;
 
   // Services
   private serviceService = inject(Service);
