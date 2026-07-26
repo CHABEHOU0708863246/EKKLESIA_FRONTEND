@@ -222,3 +222,142 @@ button:focus-visible {
     color: #991b1b;
   }
 }
+
+
+
+// ─── TABLE DES PARTICIPANTS ────────────────────────────────────
+
+.ev-participant-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--ekk-bg);
+    color: var(--ekk-ink-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--ekk-border);
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--ekk-border);
+    vertical-align: middle;
+  }
+
+  // ─── Responsive : cartes sur mobile ──────────────────────
+
+  @media (max-width: 768px) {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: block;
+    }
+
+    tr {
+      display: block;
+      border-bottom: 1px solid var(--ekk-border);
+      padding: 12px 14px;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--ekk-border);
+      gap: 8px;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--ekk-ink-muted);
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+
+
+// ─── Participants ──────────────────────────────────────────────
+
+.ev-attendee-name {
+  font-weight: 500;
+}
+
+.ev-attendee-contact {
+  font-size: 0.85rem;
+  color: var(--ekk-ink-muted);
+  line-height: 1.4;
+}
+
+.ev-formula-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: var(--ekk-ink);
+  white-space: nowrap;
+}
+
+.ev-checkin-status {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #6b7280;
+
+  &--checked {
+    background: #d1fae5;
+    color: #065f46;
+  }
+}
+
+.ev-payment-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &--warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  &--success {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  &--danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  &--secondary {
+    background: #e5e7eb;
+    color: #374151;
+  }
+}

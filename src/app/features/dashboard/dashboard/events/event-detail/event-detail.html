@@ -52,8 +52,10 @@
 
   <!-- ══════════════ CONTENU ══════════════ -->
   <div class="ev-detail-grid" *ngIf="!loading() && event()">
-    <!-- ─── Colonne de gauche : infos ─── -->
+    <!-- ─── Colonne unique : toutes les infos ─── -->
     <section class="ev-detail-info">
+
+      <!-- Carte : Informations générales -->
       <div class="ev-panel">
         <div class="ev-panel-header">
           <h2>Informations générales</h2>
@@ -73,8 +75,7 @@
           </div>
           <div class="ev-info-item">
             <label>Statut</label>
-            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status)
-              }}</span>
+            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
           </div>
           <div class="ev-info-item">
             <label>Début</label>
@@ -100,6 +101,7 @@
         </div>
       </div>
 
+      <!-- Carte : Organisation -->
       <div class="ev-panel">
         <div class="ev-panel-header">
           <h2>Organisation</h2>
@@ -120,6 +122,7 @@
         </div>
       </div>
 
+      <!-- Carte : Inscriptions -->
       <div class="ev-panel">
         <div class="ev-panel-header">
           <h2>Inscriptions</h2>
@@ -197,6 +200,63 @@
         </div>
       </div>
 
+      <!-- ═══════════ PARTICIPANTS (maintenant dans la colonne de gauche) ═══════════ -->
+      <section class="ev-detail-participants">
+        <div class="ev-panel">
+          <div class="ev-panel-header">
+            <h2>Participants ({{ event()?.attendees?.length || 0 }})</h2>
+          </div>
+          <div class="ev-panel-body ev-panel-body--no-padding">
+            <div *ngIf="event()?.attendees?.length === 0" class="ev-empty-state">
+              Aucun participant inscrit.
+            </div>
+            <table class="ev-table ev-table--compact" *ngIf="event()?.attendees?.length">
+              <thead>
+                <tr>
+                  <th>Participant</th>
+                  <th>Contact</th>
+                  <th>Formule</th>
+                  <th>Check‑in</th>
+                  <th>Paiement</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of event()!.attendees">
+                  <td>
+                    <div class="ev-attendee-name">
+                      <strong>{{ getAttendeeFullName(a) }}</strong>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="ev-attendee-contact">
+                      <div *ngIf="a.email">{{ a.email }}</div>
+                      <div *ngIf="a.phone">{{ a.phone }}</div>
+                      <div *ngIf="!a.email && !a.phone" class="ev-muted">—</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="ev-formula-badge">
+                      {{ a.formulaName || '—' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="ev-checkin-status" [class.ev-checkin-status--checked]="a.checkedIn">
+                      {{ a.checkedIn ? '✅ Présent' : '⬜ Absent' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="ev-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
+                      {{ getPaymentStatusLabel(a.paymentStatus) }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Carte : Récurrence -->
       <div class="ev-panel" *ngIf="event()?.isRecurring">
         <div class="ev-panel-header">
           <h2>Récurrence</h2>
@@ -208,48 +268,9 @@
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ─── Colonne de droite : participants ─── -->
-    <section class="ev-detail-participants">
-      <div class="ev-panel">
-        <div class="ev-panel-header">
-          <h2>Participants ({{ event()?.attendees?.length || 0 }})</h2>
-        </div>
-        <div class="ev-panel-body ev-panel-body--no-padding">
-          <div *ngIf="event()?.attendees?.length === 0" class="ev-empty-state">
-            Aucun participant inscrit.
-          </div>
-          <table class="ev-table ev-table--compact" *ngIf="event()?.attendees?.length">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Téléphone</th>
-                <th>Check-in</th>
-                <th>Paiement</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let a of event()!.attendees">
-                <td>{{ getAttendeeFullName(a) }}</td>
-                <td>{{ a.email || '—' }}</td>
-                <td>{{ a.phone || '—' }}</td>
-                <td>
-                  <span class="ev-checkin-status" [class.ev-checkin-status--checked]="a.checkedIn">
-                    {{ a.checkedIn ? '✓' : '—' }}
-                  </span>
-                </td>
-                <td>
-                  <span class="ev-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
-                    {{ getPaymentStatusLabel(a.paymentStatus) }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </section>
+    <!-- fin .ev-detail-info -->
   </div>
+  <!-- fin .ev-detail-grid -->
 </div>

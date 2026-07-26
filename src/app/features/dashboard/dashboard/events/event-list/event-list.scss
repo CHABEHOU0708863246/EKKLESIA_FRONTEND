@@ -765,3 +765,77 @@ select:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+
+// ─── TABLE DES PARTICIPANTS ────────────────────────────────────
+
+.ev-participant-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--ekk-bg);
+    color: var(--ekk-ink-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--ekk-border);
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--ekk-border);
+    vertical-align: middle;
+  }
+
+  // ─── Responsive : cartes sur mobile ──────────────────────
+
+  @media (max-width: 768px) {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: block;
+    }
+
+    tr {
+      display: block;
+      border-bottom: 1px solid var(--ekk-border);
+      padding: 12px 14px;
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--ekk-border);
+      gap: 8px;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--ekk-ink-muted);
+        flex-shrink: 0;
+      }
+    }
+  }
+}

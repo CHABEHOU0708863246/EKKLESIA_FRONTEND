@@ -87,7 +87,11 @@ export enum EventType {
   Concert = 'Concert',
   BibleStudy = 'BibleStudy',
   Training = 'Training',
-  Other = 'Other'
+  Other = 'Other',
+  HonorMyProphet = 'HonorMyProphet',           // Honnore mon prophète
+  NationalConvention = 'NationalConvention',   // Convention nationale
+  CampNational = 'CampNational',               // Camp national
+  CouplesService = 'CouplesService'            // Culte des couples
 }
 
 export enum EventStatus {
@@ -492,7 +496,11 @@ export const EventTypeLabels: Record<EventType, string> = {
   [EventType.Concert]: 'Concert',
   [EventType.BibleStudy]: 'Étude biblique',
   [EventType.Training]: 'Formation',
-  [EventType.Other]: 'Autre'
+  [EventType.Other]: 'Autre',
+  [EventType.HonorMyProphet]: 'Honnore mon prophète',
+  [EventType.NationalConvention]: 'Convention nationale',
+  [EventType.CampNational]: 'Camp national',
+  [EventType.CouplesService]: 'Culte des couples'
 };
 
 export const EventTypeIcons: Record<EventType, string> = {
@@ -507,7 +515,11 @@ export const EventTypeIcons: Record<EventType, string> = {
   [EventType.Concert]: 'fa-music',
   [EventType.BibleStudy]: 'fa-bible',
   [EventType.Training]: 'fa-graduation-cap',
-  [EventType.Other]: 'fa-calendar'
+  [EventType.Other]: 'fa-calendar',
+  [EventType.HonorMyProphet]: 'fa-hands-praying',
+  [EventType.NationalConvention]: 'fa-flag',
+  [EventType.CampNational]: 'fa-campground',
+  [EventType.CouplesService]: 'fa-heart'
 };
 
 export const EventTypeColors: Record<EventType, string> = {
@@ -522,7 +534,11 @@ export const EventTypeColors: Record<EventType, string> = {
   [EventType.Concert]: 'orange',
   [EventType.BibleStudy]: 'teal',
   [EventType.Training]: 'indigo',
-  [EventType.Other]: 'secondary'
+  [EventType.Other]: 'secondary',
+  [EventType.HonorMyProphet]: 'purple',
+  [EventType.NationalConvention]: 'info',
+  [EventType.CampNational]: 'success',
+  [EventType.CouplesService]: 'pink'
 };
 
 export const EventStatusLabels: Record<EventStatus, string> = {
@@ -583,6 +599,8 @@ export class EventUtils {
   static getTypeLabel(type: EventType): string {
     return EventTypeLabels[type] || type;
   }
+
+
 
   static getTypeIcon(type: EventType): string {
     return EventTypeIcons[type] || 'fa-calendar';
