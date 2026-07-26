@@ -24,13 +24,13 @@
           <span *ngIf="!deleting()">Supprimer</span>
           <span class="ev-spinner ev-spinner--btn" *ngIf="deleting()"></span>
         </button>
-        <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success"
+        <!-- <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success"
           [routerLink]="['/dashboard/evenements', event()?.id, 'checkin']">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M20 6L9 17l-5-5" />
           </svg>
           Check-in
-        </a>
+        </a> -->
       </div>
     </div>
   </header>
@@ -216,7 +216,7 @@
                   <th>Participant</th>
                   <th>Contact</th>
                   <th>Formule</th>
-                  <th>Check‑in</th>
+                  <!-- <th>Check‑in</th> -->
                   <th>Paiement</th>
                 </tr>
               </thead>
@@ -239,11 +239,11 @@
                       {{ a.formulaName || '—' }}
                     </span>
                   </td>
-                  <td>
+                  <!-- <td>
                     <span class="ev-checkin-status" [class.ev-checkin-status--checked]="a.checkedIn">
                       {{ a.checkedIn ? '✅ Présent' : '⬜ Absent' }}
                     </span>
-                  </td>
+                  </td> -->
                   <td>
                     <span class="ev-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
                       {{ getPaymentStatusLabel(a.paymentStatus) }}
