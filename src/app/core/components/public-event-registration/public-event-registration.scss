@@ -1,0 +1,508 @@
+// src/app/features/public/public-event-registration/public-event-registration.scss
+//
+// ── Palette (cohérente avec le sidebar admin de l'app) ──
+// $gold #B8862E · $gold-light #D9AE5F · $teal #1F6F63 · $teal-dark #14504A
+// $ink #14110E (texte) · $cream #FBF7EF (fond) · $burgundy #7A2E3B (erreurs douces)
+
+$gold:        #B8862E;
+$gold-dark:   #8A6220;
+$gold-light:  #D9AE5F;
+$teal:        #1F6F63;
+$teal-dark:   #14504A;
+$teal-light:  #4C9A8C;
+$burgundy:    #7A2E3B;
+$danger:      #A63A3A;
+$warn:        #B8862E;
+
+$ink:         #14110E;
+$ink-soft:    rgba(20, 17, 14, 0.62);
+$cream:       #FBF7EF;
+$card:        #FFFFFF;
+$hero-bg:     #10121C;
+
+$border:      rgba(20, 17, 14, 0.10);
+$radius-lg:   22px;
+$radius-md:   12px;
+$shadow:      0 12px 40px rgba(20, 17, 14, 0.10);
+$transition:  all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+$font-display: 'Fraunces', serif;
+$font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+// ── Page ─────────────────────────────────────────────────────────
+.per-page {
+  min-height: 100vh;
+  background: $cream;
+  font-family: $font-body;
+  color: $ink;
+
+  &--centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+}
+
+// ── États (chargement / erreur) ─────────────────────────────────
+.per-status-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+
+  p { font-size: 1.05rem; color: $ink-soft; }
+
+  &--error p { color: $burgundy; font-weight: 500; }
+}
+
+.per-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba($teal, 0.18);
+  border-top-color: $teal;
+  border-radius: 50%;
+  animation: per-spin 0.8s linear infinite;
+}
+
+.per-status-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+
+  &--error { background: $burgundy; }
+  &--warn  { background: $warn; }
+}
+
+@keyframes per-spin {
+  to { transform: rotate(360deg); }
+}
+
+// ══════════════════════════════════════════════════════════════
+// HERO
+// ══════════════════════════════════════════════════════════════
+.per-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(165deg, $hero-bg 0%, $teal-dark 130%);
+  padding: 3.5rem 1.5rem 5.5rem;
+  text-align: center;
+
+  @media (min-width: 640px) { padding: 4.5rem 2rem 6.5rem; }
+}
+
+.per-hero-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 18% 15%, rgba($gold, 0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 85%, rgba($teal-light, 0.22) 0%, transparent 50%);
+}
+
+.per-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.per-hero-emblem {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1.25rem;
+  border-radius: 20px 20px 8px 8px;
+  background: linear-gradient(160deg, $gold-light, $gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: $ink;
+  box-shadow: 0 6px 20px rgba($gold, 0.4);
+}
+
+.per-hero-eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: $gold-light;
+}
+
+.per-hero-title {
+  margin: 0 0 0.75rem;
+  font-family: $font-display;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 5vw, 2.75rem);
+  line-height: 1.15;
+  color: #fff;
+}
+
+.per-hero-desc {
+  margin: 0 auto 1.75rem;
+  max-width: 480px;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.per-hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.per-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba($gold-light, 0.35);
+  white-space: nowrap;
+
+  &--warn {
+    background: rgba($burgundy, 0.25);
+    border-color: rgba($burgundy, 0.5);
+  }
+}
+
+.per-pill-icon { font-size: 0.9rem; }
+
+// ══════════════════════════════════════════════════════════════
+// CORPS
+// ══════════════════════════════════════════════════════════════
+.per-main {
+  max-width: 920px;
+  margin: -3.5rem auto 3rem;
+  padding: 0 1.25rem;
+  position: relative;
+  z-index: 2;
+
+  @media (min-width: 640px) { padding: 0 2rem; }
+}
+
+.per-closed-card {
+  background: $card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  padding: 2.5rem 1.75rem;
+  text-align: center;
+
+  .per-status-icon { margin: 0 auto 1rem; }
+  h2 { margin: 0 0 0.5rem; font-family: $font-display; font-size: 1.35rem; }
+  p { margin: 0; color: $ink-soft; }
+}
+
+// ── Carte "billet" ──────────────────────────────────────────────
+.per-ticket {
+  position: relative;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: $card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  overflow: hidden;
+
+  @media (max-width: 780px) {
+    grid-template-columns: 1fr;
+  }
+
+  // Encoches perforées (desktop uniquement — position fiable car la
+  // colonne stub a une largeur fixe de 280px)
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 280px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: $cream;
+    transform: translateX(-50%);
+    z-index: 2;
+
+    @media (max-width: 780px) { display: none; }
+  }
+  &::before { top: -13px; }
+  &::after  { bottom: -13px; }
+}
+
+.per-ticket-stub {
+  background: linear-gradient(165deg, $teal, $teal-dark);
+  color: #fff;
+  padding: 2rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  border-right: 2px dashed rgba(255, 255, 255, 0.22);
+
+  @media (max-width: 780px) {
+    border-right: none;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.22);
+  }
+}
+
+.per-stub-label {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: $gold-light;
+}
+
+.per-stub-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.per-stub-key {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.per-stub-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.per-stub-formulas {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.per-formula-chip {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.per-formula-name { color: rgba(255, 255, 255, 0.9); }
+.per-formula-price { color: $gold-light; font-weight: 600; white-space: nowrap; }
+
+// ── Panneau formulaire ──────────────────────────────────────────
+.per-form-panel {
+  padding: 2rem 1.75rem 2.25rem;
+
+  @media (min-width: 640px) { padding: 2.5rem; }
+}
+
+.per-form-title {
+  margin: 0 0 1.5rem;
+  font-family: $font-display;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.per-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.per-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.per-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: $ink-soft;
+  }
+
+  input,
+  select {
+    padding: 0.7rem 0.85rem;
+    border: 1.5px solid $border;
+    border-radius: $radius-md;
+    font-size: 0.95rem;
+    font-family: $font-body;
+    background: $cream;
+    color: $ink;
+    width: 100%;
+    transition: $transition;
+
+    &:hover { border-color: rgba($teal, 0.35); }
+
+    &:focus {
+      outline: none;
+      border-color: $teal;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba($teal, 0.12);
+    }
+
+    &.ng-invalid.ng-touched {
+      border-color: $burgundy;
+    }
+  }
+
+  select { cursor: pointer; }
+
+  .per-field-error {
+    color: $burgundy;
+    font-size: 0.78rem;
+    margin: 0.05rem 0 0;
+  }
+}
+
+// ── Bouton d'action ──────────────────────────────────────────────
+.per-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.75rem;
+  margin-top: 0.4rem;
+  background: linear-gradient(160deg, $gold-light, $gold-dark);
+  color: $ink;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: $font-body;
+  cursor: pointer;
+  transition: $transition;
+  box-shadow: 0 8px 22px rgba($gold, 0.35);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba($gold, 0.42);
+  }
+
+  &:active:not(:disabled) { transform: translateY(0); }
+
+  &:focus-visible {
+    outline: 3px solid $teal;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.per-btn-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba($ink, 0.25);
+  border-top-color: $ink;
+  border-radius: 50%;
+  animation: per-spin 0.7s linear infinite;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ÉCRAN DE PAIEMENT (carte d'embarquement)
+// ══════════════════════════════════════════════════════════════
+.per-boarding-pass {
+  width: 100%;
+  max-width: 420px;
+  background: $card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.per-check-badge {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: linear-gradient(160deg, $teal-light, $teal-dark);
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba($teal, 0.35);
+}
+
+.per-boarding-pass h2 {
+  margin: 0 0 0.5rem;
+  font-family: $font-display;
+  font-size: 1.4rem;
+}
+
+.per-boarding-pass p {
+  margin: 0 0 1.25rem;
+  color: $ink-soft;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.per-ref-chip {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  padding: 0.4rem 0.9rem;
+  background: $cream;
+  border: 1px dashed $border;
+  border-radius: 8px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.78rem;
+  color: $ink-soft;
+  word-break: break-all;
+}
+
+.per-qr {
+  display: block;
+  width: 168px;
+  height: 168px;
+  margin: 0 auto 1.5rem;
+  padding: 0.6rem;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+}
+
+// ── Accessibilité / mouvement réduit ────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .per-spinner,
+  .per-btn-spinner {
+    animation: none;
+    border-top-color: rgba($teal, 0.6);
+  }
+  .per-btn-submit:hover:not(:disabled) {
+    transform: none;
+  }
+}

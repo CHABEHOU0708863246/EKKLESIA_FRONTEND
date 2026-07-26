@@ -1,0 +1,215 @@
+<!-- public-event-registration.component.html -->
+<div class="per-page">
+
+  @if (loading()) {
+  <div class="per-status-screen">
+    <div class="per-spinner" aria-hidden="true"></div>
+    <p>Chargement de l'événement…</p>
+  </div>
+  }
+
+  @if (error() && !loading()) {
+  <div class="per-status-screen per-status-screen--error">
+    <div class="per-status-icon per-status-icon--error" aria-hidden="true">✕</div>
+    <p>{{ error() }}</p>
+  </div>
+  }
+
+  @if (!loading() && event() && !registrationResult()) {
+
+  <!-- ══ HERO ══════════════════════════════════════════════════ -->
+  <header class="per-hero">
+    <div class="per-hero-glow" aria-hidden="true"></div>
+    <div class="per-hero-inner">
+      <div class="per-hero-emblem" aria-hidden="true">✝</div>
+      <p class="per-hero-eyebrow">MIAV &middot; Inscription à l'événement</p>
+      <h1 class="per-hero-title">{{ event()!.title }}</h1>
+      @if (event()!.description) {
+      <p class="per-hero-desc">{{ event()!.description }}</p>
+      }
+
+      <div class="per-hero-pills">
+        <span class="per-pill">
+          <span class="per-pill-icon" aria-hidden="true">📅</span>
+          {{ event()!.startDate | date:'dd MMM yyyy' }}
+          @if (event()!.endDate) { – {{ event()!.endDate | date:'dd MMM yyyy' }} }
+        </span>
+        @if (event()!.location) {
+        <span class="per-pill">
+          <span class="per-pill-icon" aria-hidden="true">📍</span>
+          {{ event()!.location }}
+        </span>
+        }
+        <span class="per-pill" [class.per-pill--warn]="event()!.isFull">
+          <span class="per-pill-icon" aria-hidden="true">🎟️</span>
+          @if (event()!.isFull) { Complet } @else { {{ event()!.availableSpots }} places disponibles }
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ CORPS ═════════════════════════════════════════════════ -->
+  <main class="per-main">
+
+    @if (!event()!.registrationOpen || event()!.isFull) {
+    <div class="per-closed-card">
+      <div class="per-status-icon per-status-icon--warn" aria-hidden="true">⏳</div>
+      <h2>{{ event()!.isFull ? 'Événement complet' : 'Inscriptions fermées' }}</h2>
+      <p>
+        @if (event()!.isFull) {
+        Toutes les places disponibles pour cet événement ont été réservées.
+        } @else {
+        Les inscriptions pour cet événement ne sont plus ouvertes actuellement.
+        }
+      </p>
+    </div>
+    }
+
+    @if (event()!.registrationOpen && !event()!.isFull) {
+    <div class="per-ticket">
+
+      <!-- ── Talon du billet ── -->
+      <aside class="per-ticket-stub">
+        <p class="per-stub-label">Votre billet</p>
+        <div class="per-stub-row">
+          <span class="per-stub-key">Événement</span>
+          <span class="per-stub-value">{{ event()!.title }}</span>
+        </div>
+        <div class="per-stub-row">
+          <span class="per-stub-key">Dates</span>
+          <span class="per-stub-value">
+            {{ event()!.startDate | date:'dd MMM yyyy' }}
+            @if (event()!.endDate) { <br>→ {{ event()!.endDate | date:'dd MMM yyyy' }} }
+          </span>
+        </div>
+        @if (event()!.location) {
+        <div class="per-stub-row">
+          <span class="per-stub-key">Lieu</span>
+          <span class="per-stub-value">{{ event()!.location }}</span>
+        </div>
+        }
+        <div class="per-stub-row">
+          <span class="per-stub-key">Places restantes</span>
+          <span class="per-stub-value">{{ event()!.availableSpots }}</span>
+        </div>
+
+        @if (availableFormulas().length > 0) {
+        <div class="per-stub-formulas">
+          <p class="per-stub-label">Formules proposées</p>
+          @for (f of availableFormulas(); track f.id) {
+          <div class="per-formula-chip">
+            <span class="per-formula-name">{{ f.name }}</span>
+            <span class="per-formula-price">{{ f.price | number }} {{ f.currency }}</span>
+          </div>
+          }
+        </div>
+        }
+      </aside>
+
+      <!-- ── Formulaire ── -->
+      <div class="per-form-panel">
+        <h2 class="per-form-title">Vos informations</h2>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="per-form">
+          <div class="per-row">
+            <div class="per-field">
+              <label for="firstName">Prénom *</label>
+              <input id="firstName" type="text" formControlName="firstName" placeholder="Votre prénom">
+              <p class="per-field-error" *ngIf="isFieldInvalid('firstName')">Champ requis.</p>
+            </div>
+            <div class="per-field">
+              <label for="lastName">Nom *</label>
+              <input id="lastName" type="text" formControlName="lastName" placeholder="Votre nom">
+              <p class="per-field-error" *ngIf="isFieldInvalid('lastName')">Champ requis.</p>
+            </div>
+          </div>
+
+          <div class="per-row">
+            <div class="per-field">
+              <label for="email">Email *</label>
+              <input id="email" type="email" formControlName="email" placeholder="vous@exemple.com">
+              <p class="per-field-error" *ngIf="isFieldInvalid('email')">Email invalide.</p>
+            </div>
+            <div class="per-field">
+              <label for="phone">Téléphone *</label>
+              <input id="phone" type="text" formControlName="phone" placeholder="07 08 86 32 46">
+              <p class="per-field-error" *ngIf="isFieldInvalid('phone')">Champ requis.</p>
+            </div>
+          </div>
+
+          <div class="per-row">
+            <div class="per-field">
+              <label for="gender">Sexe *</label>
+              <select id="gender" formControlName="gender">
+                <option value="">— Sélectionner —</option>
+                <option value="F">Femme</option>
+                <option value="M">Homme</option>
+              </select>
+            </div>
+            <div class="per-field">
+              <label for="profileType">Profil *</label>
+              <select id="profileType" formControlName="profileType">
+                @for (opt of profileOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="per-field">
+            <label for="formulaId">Formule *</label>
+            <select id="formulaId" formControlName="formulaId">
+              <option value="">— Choisir une formule —</option>
+              @for (f of availableFormulas(); track f.id) {
+              <option [value]="f.id">{{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }} places)</option>
+              }
+            </select>
+            <p class="per-field-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
+          </div>
+
+          <div class="per-field">
+            <label for="paymentMethod">Moyen de paiement</label>
+            <select id="paymentMethod" formControlName="paymentMethod">
+              <option value="wave">Wave</option>
+              <option value="orange_money">Orange Money</option>
+              <option value="mtn_money">MTN Money</option>
+            </select>
+          </div>
+
+          <button type="submit" class="per-btn-submit" [disabled]="submitting()">
+            @if (submitting()) {
+            <span class="per-btn-spinner" aria-hidden="true"></span> Envoi en cours…
+            } @else {
+            S'inscrire et payer
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+    }
+  </main>
+  }
+
+  @if (registrationResult(); as result) {
+  <div class="per-page per-page--centered">
+    <div class="per-boarding-pass">
+      <div class="per-check-badge" aria-hidden="true">✓</div>
+      <h2>Inscription enregistrée</h2>
+      <p>Votre place est réservée. Finalisez votre inscription en procédant au paiement pour la confirmer.</p>
+
+      <div class="per-ref-chip">
+        Réf. {{ result.registrationId }}
+      </div>
+
+      @if (result.qrCode) {
+      <img [src]="result.qrCode" alt="QR Code de paiement" class="per-qr">
+      }
+
+      <button class="per-btn-submit" (click)="goToPayment()">
+        Procéder au paiement
+      </button>
+    </div>
+  </div>
+  }
+
+</div>

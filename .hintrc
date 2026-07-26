@@ -4,15 +4,7 @@
   ],
   "hints": {
     "typescript-config/is-valid": "off",
-    "compat-api/css": [
-      "default",
-      {
-        "ignore": [
-          "backdrop-filter",
-          "user-select"
-        ]
-      }
-    ],
+    "compat-api/css": "off",
     "axe/name-role-value": [
       "default",
       {
@@ -51,6 +43,7 @@
         "nested-interactive": "off"
       }
     ],
-    "apple-touch-icons": "off"
+    "apple-touch-icons": "off",
+    "css-prefix-order": "off"
   }
 }

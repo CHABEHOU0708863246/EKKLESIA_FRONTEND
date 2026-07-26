@@ -1,9 +1,7 @@
-
-
-
 // ══════════════════════════════════════════════════════════════════════
 // EKKLESIA ERP — Sidebar Component SCSS
 // VERSION MOBILE-FIRST PWA — menus statiques, pas de scroll inutile
+// + Amélioration UX : chevrons dépliables plus visibles et explicites
 // ══════════════════════════════════════════════════════════════════════
 
 // ── Variables ────────────────────────────────────────────────────────
@@ -42,6 +40,13 @@ $touch-size:      44px;
 @keyframes slideInSidebar {
   from { transform: translateX(-100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
+}
+
+// ✅ NOUVEAU : accroche visuelle sur les chevrons au premier chargement,
+// pour signaler que ces menus sont dépliables (retour client UX)
+@keyframes chevron-hint {
+  0%, 100%  { transform: translateY(0);   opacity: 0.65; }
+  50%       { transform: translateY(2px); opacity: 1; }
 }
 
 // ── Host ─────────────────────────────────────────────────────────────
@@ -489,6 +494,31 @@ $touch-size:      44px;
   .nav-icon { opacity: 1; }
 }
 
+// ✅ NOUVEAU : les menus parents (dépliables) reçoivent une petite zone
+// de survol distinctive autour du chevron, pour renforcer visuellement
+// qu'il s'agit d'un élément interactif de type "déplier / replier"
+.nav-item:has(> .nav-sub) > .nav-link {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.2s ease;
+    pointer-events: none;
+  }
+
+  &:hover::after {
+    background: rgba(184, 134, 46, 0.14);
+  }
+}
+
 .nav-icon {
   width: 18px;
   min-width: 18px;
@@ -541,22 +571,46 @@ $touch-size:      44px;
   &.badge-gold { background: $gold; color: #1A140A; }
   &.badge-teal { background: $teal; color: #fff; }
   &.badge-red  { background: $danger; color: #fff; }
+  &.badge-blue { background: #3498db; color: #fff; }
+  &.badge-purple { background: #9b59b6; color: #fff; }
 }
 
+// ✅ MODIFIÉ : chevron nettement plus visible (taille, opacité, couleur),
+// icône désormais orientée vers le bas (bx-chevron-down dans le HTML)
+// pour être immédiatement reconnaissable comme un indicateur "dépliable"
 .nav-chevron {
-  font-size: 12px;
-  transition: transform 0.25s ease;
-  opacity: 0.45;
+  font-size: 15px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  opacity: 0.65;
+  color: $gold-light;
   flex-shrink: 0;
+  z-index: 1;
+  position: relative;
+
+  // Accroche visuelle au premier chargement de la page : attire l'œil
+  // sur les menus dépliables sans être intrusive par la suite
+  animation: chevron-hint 1.4s ease-in-out 2;
+  animation-delay: 0.8s;
 
   @media (min-width: 577px) {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 
+.nav-link:hover .nav-chevron {
+  opacity: 1;
+}
+
 .nav-item.open > .nav-link .nav-chevron {
-  transform: rotate(90deg);
-  opacity: 0.8;
+  transform: rotate(180deg);
+  opacity: 1;
+  animation: none; // désactive l'accroche une fois le menu ouvert
+}
+
+// Dès que l'utilisateur a déjà interagi avec un menu, plus besoin de
+// rejouer l'accroche visuelle dessus
+.nav-item.open .nav-chevron {
+  animation: none;
 }
 
 // ── SOUS-MENU : STATIQUE, PAS DE SCROLL ─────────────────────────────
@@ -621,6 +675,25 @@ $touch-size:      44px;
     &::before {
       background: $gold-light;
     }
+  }
+
+  .nav-icon-sub {
+    font-size: 14px;
+    width: 20px;
+    display: inline-block;
+    text-align: center;
+    margin-right: 8px;
+    color: var(--sidebar-sub-icon-color, rgba(255, 255, 255, 0.45));
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .nav-item.active .nav-icon-sub {
+    color: $gold-light;
+  }
+
+  .nav-item:hover .nav-icon-sub {
+    color: $gold-light;
   }
 }
 
@@ -862,68 +935,5 @@ $touch-size:      44px;
     height: 14px !important;
     font-size: 8px !important;
     padding: 0 3px !important;
-  }
-}
-
-
-
-// sidebar-component.scss
-
-.nav-icon-sub {
-  font-size: 14px;
-  width: 20px;
-  display: inline-block;
-  text-align: center;
-  margin-right: 8px;
-  color: var(--sidebar-sub-icon-color, #8898aa);
-  transition: color 0.2s;
-}
-
-.nav-item {
-  &.active {
-    .nav-icon-sub {
-      color: var(--sidebar-active-color, #5e72e4);
-    }
-  }
-
-  &:hover {
-    .nav-icon-sub {
-      color: var(--sidebar-hover-color, #5e72e4);
-    }
-  }
-}
-
-// Badges
-.nav-badge {
-  margin-left: auto;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.4;
-
-  &.badge-gold {
-    background: #f5a623;
-    color: #fff;
-  }
-
-  &.badge-teal {
-    background: #2ecc71;
-    color: #fff;
-  }
-
-  &.badge-red {
-    background: #e74c3c;
-    color: #fff;
-  }
-
-  &.badge-blue {
-    background: #3498db;
-    color: #fff;
-  }
-
-  &.badge-purple {
-    background: #9b59b6;
-    color: #fff;
   }
 }

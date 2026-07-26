@@ -1,5 +1,3 @@
-// auth.interceptor.ts
-
 import { Injectable, Inject, PLATFORM_ID, isDevMode } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
@@ -12,6 +10,16 @@ import { Router } from '@angular/router';
 export class AuthInterceptor implements HttpInterceptor {
   private isBrowser: boolean;
 
+  // ✅ NOUVEAU : préfixes de routes publiques — ne doivent jamais recevoir
+  // de token, et un 401 dessus ne doit jamais déclencher une déconnexion
+  // (elles sont [AllowAnonymous] côté backend et un visiteur non connecté
+  // les utilise, mais un admin connecté peut aussi les visiter en test —
+  // il ne faut pas le déconnecter pour ça).
+  private readonly publicUrlPrefixes = [
+    '/api/v1/public/',
+    '/api/v1/payment/webhook',
+  ];
+
   constructor(
     private tokenService: Token,
     private router: Router,
@@ -20,14 +28,29 @@ export class AuthInterceptor implements HttpInterceptor {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
+  private isPublicUrl(url: string): boolean {
+    return this.publicUrlPrefixes.some((prefix) => url.includes(prefix));
+  }
+
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // ❌ Côté serveur, pas de token disponible
     if (!this.isBrowser) {
       return next.handle(request);
     }
 
-    const token = this.tokenService.getToken();
+    // ✅ NOUVEAU : routes publiques — on ne touche pas à la requête,
+    // et on ne déclenche jamais handleTokenExpired() sur un 401 ici.
+    if (this.isPublicUrl(request.url)) {
+      this.log('🌐 Interceptor: route publique, requête envoyée sans token à', request.url);
+      return next.handle(request).pipe(
+        catchError((error: HttpErrorResponse) => {
+          this.log('⚠️ Interceptor: erreur sur route publique (aucune action de session)', error.status, request.url);
+          return throwError(() => error);
+        })
+      );
+    }
 
+    const token = this.tokenService.getToken();
     if (!token) {
       this.log('❌ Interceptor: Aucun token trouvé pour', request.url);
       return next.handle(request);
@@ -39,15 +62,10 @@ export class AuthInterceptor implements HttpInterceptor {
       return throwError(() => new Error('Token expiré'));
     }
 
-    // ✅ Vérifier si la requête contient un FormData
     const isFormData = request.body instanceof FormData;
-
-    // ✅ Construire les headers sans forcer Content-Type pour FormData
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
     };
-
-    // ✅ Ne pas définir Content-Type si c'est un FormData (le navigateur le fera)
     if (!isFormData) {
       headers['Content-Type'] = 'application/json';
     }
@@ -57,7 +75,6 @@ export class AuthInterceptor implements HttpInterceptor {
     });
 
     this.log('✅ Interceptor: Requête avec token envoyée à:', request.url);
-
     return next.handle(clonedRequest).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {

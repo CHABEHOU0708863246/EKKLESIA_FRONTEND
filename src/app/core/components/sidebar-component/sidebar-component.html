@@ -63,10 +63,10 @@
       <div class="nav-section-label">Membres</div>
 
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-user"></i>
           <span class="nav-text">Membres</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
 
         <ul class="nav-sub">
@@ -130,10 +130,10 @@
 
       @if (permission.canViewServices()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bxs-church"></i>
           <span class="nav-text">Cultes</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item">
@@ -165,10 +165,10 @@
 
       @if (permission.canAccessEventModule()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-calendar-star"></i>
           <span class="nav-text">Événements</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           @if (permission.canViewEvents()) {
@@ -200,13 +200,13 @@
       </li>
       }
 
-      <!-- ✅ NOUVEAU : RENDEZ-VOUS PASTORAUX -->
+      <!-- ✅ RENDEZ-VOUS PASTORAUX -->
       @if (permission.canManageAppointments()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-calendar-edit"></i>
           <span class="nav-text">Rendez-vous</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item">
@@ -234,10 +234,10 @@
       <div class="nav-section-label">Actes pastoraux</div>
 
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-certification"></i>
           <span class="nav-text">Actes pastoraux</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
 
         <ul class="nav-sub">
@@ -269,10 +269,10 @@
 
       @if (permission.canViewEmployees()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-id-card"></i>
           <span class="nav-text">Employés</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item">
@@ -318,10 +318,10 @@
       <div class="nav-section-label">Finances</div>
 
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-donate-heart"></i>
           <span class="nav-text">Dons & Offrandes</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item" routerLinkActive="active">
@@ -361,10 +361,10 @@
 
       @if (permission.canViewExpenses()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-wallet"></i>
           <span class="nav-text">Dépenses</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item">
@@ -389,10 +389,10 @@
 
       @if (permission.canViewBudgets()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-line-chart"></i>
           <span class="nav-text">Budget</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item">
@@ -431,10 +431,10 @@
 
       @if (permission.canAccessPropertyModule()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-building-house"></i>
           <span class="nav-text">Patrimoine</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           @if (permission.canViewProperties()) {
@@ -476,10 +476,10 @@
 
       @if (permission.canAccessCommunicationModule()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-broadcast"></i>
           <span class="nav-text">Médias</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           @if (permission.canViewContent()) {
@@ -528,10 +528,10 @@
 
       @if (permission.canManageUsers() || permission.canManageRoles()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-shield-quarter"></i>
           <span class="nav-text">Gestion des accès</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
 
@@ -574,10 +574,10 @@
 
       @if (permission.canManageChurchSettings() || permission.canManageSites()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bxs-church"></i>
           <span class="nav-text">Structure de l'église</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <li class="nav-item" routerLinkActive="active">
@@ -610,10 +610,10 @@
 
       @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications()) {
       <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)">
+        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bx-cog"></i>
           <span class="nav-text">Paramètres</span>
-          <i class="nav-chevron bx bx-chevron-right"></i>
+          <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
           <!-- Paramètres généraux — masqué, prêt pour activation -->

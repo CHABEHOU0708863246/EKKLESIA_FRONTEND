@@ -1,0 +1,28 @@
+<div class="pc-page">
+  <div class="pc-card">
+    @switch (status()) {
+      @case ('checking') {
+        <div class="pc-spinner" aria-hidden="true"></div>
+        <h2>Vérification du paiement</h2>
+        <p>Nous confirmons votre transaction, un instant…</p>
+      }
+      @case ('pending') {
+        <div class="pc-icon pc-icon--pending" aria-hidden="true">⏳</div>
+        <h2>Paiement en cours</h2>
+        <p>Votre paiement est en cours de traitement. Cette page se met à jour automatiquement.</p>
+      }
+      @case ('paid') {
+        <div class="pc-confetti" aria-hidden="true"></div>
+        <div class="pc-icon pc-icon--paid" aria-hidden="true">✓</div>
+        <h2>Paiement confirmé !</h2>
+        <p>Votre inscription est validée. Vous recevrez une confirmation par email.</p>
+      }
+      @case ('failed') {
+        <div class="pc-icon pc-icon--failed" aria-hidden="true">✕</div>
+        <h2>Paiement non confirmé</h2>
+        <p>Le paiement n'a pas pu être confirmé. Veuillez réessayer ou nous contacter.</p>
+      }
+    }
+    <a routerLink="/" class="pc-link">Retour à l'accueil</a>
+  </div>
+</div>

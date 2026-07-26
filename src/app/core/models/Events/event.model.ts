@@ -1,3 +1,76 @@
+export interface PublicFormula {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;
+  availablePlaces: number;
+  isAvailable: boolean;
+}
+
+export interface PublicEventDetails {
+  id: string;
+  title: string;
+  description?: string;
+  type: number;
+  typeLabel: string;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
+  registrationRequired: boolean;
+  registrationOpen: boolean;
+  registrationDeadline?: string;
+  price: number;
+  currency: string;
+  status: number;
+  statusLabel: string;
+  isFull: boolean;
+  attendeeCount: number;
+  availableSpots: number;
+  formulas: PublicFormula[];
+}
+
+export interface EventPublicRegistrationPayload {
+  eventId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  gender: string;
+  profileType: ParticipantProfileType;
+  formulaId: string;
+  paymentMethod?: string;
+  memberId?: string;
+}
+
+export interface EventPublicRegistrationResponse {
+  registrationId: string;
+  checkoutUrl?: string;
+  paymentUrl?: string;
+  qrCode?: string;
+  reference?: string;
+  amount: number;
+  currency: string;
+  message: string;
+  success: boolean;
+}
+
+export interface RegistrationStatusResponse {
+  success: boolean;
+  attendeeId: string;
+  paymentStatus: string;
+  isPaid: boolean;
+  reference?: string;
+}
+
+
 // ============================================================
 // 1. ENUMS
 // ============================================================
