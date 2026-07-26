@@ -73,17 +73,22 @@
       </thead>
       <tbody>
         <tr *ngFor="let event of events()">
-          <td>
+          <!-- ✅ data-label pour chaque cellule -->
+          <td data-label="Titre">
             <a [routerLink]="['/dashboard/evenements', event.id]" class="ev-event-title">
               {{ event.title }}
             </a>
           </td>
-          <td><span class="ev-type-badge" [class]="getTypeClass(event.type)">{{ getTypeLabel(event.type) }}</span></td>
-          <td>{{ formatDate(event.startDate) }}</td>
-          <td>{{ event.location || '—' }}</td>
-          <td><span class="ev-status-badge" [class]="getStatusClass(event.status)">{{ getStatusLabel(event.status) }}</span></td>
-          <td>{{ event.attendeeCount }}</td>
-          <td>
+          <td data-label="Type">
+            <span class="ev-type-badge" [class]="getTypeClass(event.type)">{{ getTypeLabel(event.type) }}</span>
+          </td>
+          <td data-label="Date">{{ formatDate(event.startDate) }}</td>
+          <td data-label="Lieu">{{ event.location || '—' }}</td>
+          <td data-label="Statut">
+            <span class="ev-status-badge" [class]="getStatusClass(event.status)">{{ getStatusLabel(event.status) }}</span>
+          </td>
+          <td data-label="Inscrits">{{ event.attendeeCount }}</td>
+          <td data-label="Actions" class="ev-table-actions">
             <div class="ev-actions">
               <a class="ev-action-btn ev-action-btn--view" [routerLink]="['/dashboard/evenements', event.id]" title="Voir">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
