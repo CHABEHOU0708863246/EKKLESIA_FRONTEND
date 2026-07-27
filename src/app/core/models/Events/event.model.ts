@@ -12,6 +12,9 @@ export interface PublicEventDetails {
   id: string;
   title: string;
   description?: string;
+  theme?: string;        // ✅ Nouveau — thème de l'événement
+  verse?: string;        // ✅ Nouveau — verset biblique associé
+  verseReference?: string;
   type: number;
   typeLabel: string;
   startDate: string;

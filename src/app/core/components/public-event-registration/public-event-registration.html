@@ -21,25 +21,61 @@
   <header class="per-hero">
     <div class="per-hero-glow" aria-hidden="true"></div>
     <div class="per-hero-inner">
-      <div class="per-hero-emblem" aria-hidden="true">✝</div>
+
+      <!-- Logo + emblème -->
+      <div class="per-hero-logo-row">
+        <img
+          src="/logos/A New Design - Fait avec PosterMyWall.png"
+          alt="Logo MIAV"
+          class="per-hero-logo"
+        >
+      </div>
+
       <p class="per-hero-eyebrow">MIAV &middot; Inscription à l'événement</p>
       <h1 class="per-hero-title">{{ event()!.title }}</h1>
+
+      @if (event()!.theme) {
+      <p class="per-hero-theme">
+        <span class="per-hero-theme-label">Thème :</span> {{ event()!.theme }}
+      </p>
+      }
+
       @if (event()!.description) {
       <p class="per-hero-desc">{{ event()!.description }}</p>
       }
 
+      @if (event()!.verse) {
+      <blockquote class="per-hero-verse">
+        <span class="per-hero-verse-mark" aria-hidden="true">&ldquo;</span>
+        <p>{{ event()!.verse }}</p>
+        @if (event()!.verseReference) {
+        {{ event()!.verseReference }}
+        }
+      </blockquote>
+      }
+
       <div class="per-hero-pills">
-        <span class="per-pill">
+        <span class="per-pill per-pill--period">
           <span class="per-pill-icon" aria-hidden="true">📅</span>
-          {{ event()!.startDate | date:'dd MMM yyyy' }}
-          @if (event()!.endDate) { – {{ event()!.endDate | date:'dd MMM yyyy' }} }
+          <span class="per-pill-content">
+            <span class="per-pill-label">Période</span>
+            <span class="per-pill-value">
+              {{ event()!.startDate | date:'dd MMMM yyyy' }}
+              @if (event()!.endDate) { – {{ event()!.endDate | date:'dd MMMM yyyy' }} }
+            </span>
+          </span>
         </span>
+
         @if (event()!.location) {
-        <span class="per-pill">
+        <span class="per-pill per-pill--location">
           <span class="per-pill-icon" aria-hidden="true">📍</span>
-          {{ event()!.location }}
+          <span class="per-pill-content">
+            <span class="per-pill-label">Lieu</span>
+            <span class="per-pill-value">{{ event()!.location }}</span>
+          </span>
         </span>
         }
+
         <span class="per-pill" [class.per-pill--warn]="event()!.isFull">
           <span class="per-pill-icon" aria-hidden="true">🎟️</span>
           @if (event()!.isFull) { Complet } @else { {{ event()!.availableSpots }} places disponibles }
@@ -75,8 +111,14 @@
           <span class="per-stub-key">Événement</span>
           <span class="per-stub-value">{{ event()!.title }}</span>
         </div>
+        @if (event()!.theme) {
         <div class="per-stub-row">
-          <span class="per-stub-key">Dates</span>
+          <span class="per-stub-key">Thème</span>
+          <span class="per-stub-value">{{ event()!.theme }}</span>
+        </div>
+        }
+        <div class="per-stub-row">
+          <span class="per-stub-key">Période</span>
           <span class="per-stub-value">
             {{ event()!.startDate | date:'dd MMM yyyy' }}
             @if (event()!.endDate) { <br>→ {{ event()!.endDate | date:'dd MMM yyyy' }} }

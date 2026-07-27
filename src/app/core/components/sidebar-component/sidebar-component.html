@@ -3,13 +3,19 @@
 <aside class="sidebar" id="sidebar" [class.open]="isMobileOpen" [class.collapsed]="isCollapsed">
 
   <!-- ══ BRAND ══════════════════════════════════════════════════════ -->
-  <div class="sidebar-brand">
-    <div class="brand-logo">✝</div>
-    <div>
-      <div class="brand-name">MIAV <span>ERP</span></div>
-      <div class="brand-tagline">Gestion d'Église</div>
-    </div>
+<div class="sidebar-brand">
+  <div class="brand-logo">
+    <img
+      src="/logos/A New Design - Fait avec PosterMyWall.png"
+      alt="Logo MIAV"
+      class="brand-logo-img"
+    >
   </div>
+  <div>
+    <div class="brand-name">MIAV <span>ERP</span></div>
+    <div class="brand-tagline">Gestion d'Église</div>
+  </div>
+</div>
 
   <div class="sidebar-user-section">
     <div class="user-avatar-sidebar">{{ getUserInitials() }}</div>

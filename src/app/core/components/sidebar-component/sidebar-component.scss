@@ -937,3 +937,15 @@ $touch-size:      44px;
     padding: 0 3px !important;
   }
 }
+
+
+.brand-logo {
+  // conservez vos règles existantes ici (width, height, border-radius, background, display: flex, align-items, justify-content, etc.)
+  overflow: hidden; // ✅ pour que l'image ne déborde pas du cadre existant
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
