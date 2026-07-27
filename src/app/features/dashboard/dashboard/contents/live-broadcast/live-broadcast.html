@@ -1,0 +1,159 @@
+<!-- src/app/features/dashboard/dashboard/medias/live-broadcast/live-broadcast.component.html -->
+
+<div class="lb-container">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="lb-header">
+    <div class="lb-header-left">
+      <div class="lb-breadcrumb">
+        <a [routerLink]="['/dashboard']">Tableau de bord</a>
+        <span class="lb-breadcrumb-sep">/</span>
+        <a [routerLink]="['/dashboard/medias/bibliotheque']">Médias</a>
+        <span class="lb-breadcrumb-sep">/</span>
+        <span class="lb-breadcrumb-current">Diffusion en direct</span>
+      </div>
+      <h1>📡 Diffusion en direct</h1>
+    </div>
+    <div class="lb-header-actions">
+      <button class="lb-btn lb-btn--secondary" (click)="refresh()" [disabled]="loading()">
+        <i class="bx bx-refresh"></i> Rafraîchir
+      </button>
+      <button class="lb-btn lb-btn--primary" [routerLink]="['/dashboard/medias/bibliotheque/new']" *ngIf="permissions.canCreateContent()">
+        <i class="bx bx-plus"></i> Nouvelle diffusion
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════ ÉTATS DE CHARGEMENT / ERREUR ══════════════ -->
+  @if (loading()) {
+    <div class="lb-loading">
+      <span class="lb-spinner"></span> Chargement de la diffusion…
+    </div>
+  }
+
+  @if (error() && !loading()) {
+    <div class="lb-error">
+      <i class="bx bx-error-circle"></i>
+      <span>{{ error() }}</span>
+      <button class="lb-error-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- ══════════════ CONTENU PRINCIPAL ══════════════ -->
+  @if (!loading() && !error()) {
+
+    <!-- ─── Aucune diffusion ─── -->
+    @if (!hasBroadcast()) {
+      <div class="lb-empty">
+        <div class="lb-empty-icon">
+          <i class="bx bx-broadcast"></i>
+        </div>
+        <h2>Aucune diffusion en cours</h2>
+        <p>Il n'y a pas de diffusion en direct pour le moment.</p>
+        <button class="lb-btn lb-btn--primary" [routerLink]="['/dashboard/medias/bibliotheque/new']" *ngIf="permissions.canCreateContent()">
+          <i class="bx bx-plus"></i> Lancer une diffusion
+        </button>
+      </div>
+    }
+
+    <!-- ─── Diffusion active ─── -->
+    @if (hasBroadcast()) {
+      <div class="lb-broadcast">
+
+        <!-- Bannière de statut LIVE -->
+        <div class="lb-live-banner">
+          <span class="lb-live-dot"></span>
+          <span class="lb-live-text">EN DIRECT</span>
+          <span class="lb-viewers">
+            <i class="bx bx-user"></i>
+            {{ viewerCount() }} spectateurs
+          </span>
+        </div>
+
+        <!-- Lecteur vidéo -->
+        <div class="lb-player-wrapper">
+          <div class="lb-player">
+            @if (broadcastUrl()) {
+              <iframe
+                [src]="getEmbedUrl(broadcastUrl())"
+                frameborder="0"
+                allow="autoplay; fullscreen"
+                allowfullscreen
+                title="{{ broadcastTitle() }}"
+              ></iframe>
+            } @else {
+              <div class="lb-player-placeholder">
+                <i class="bx bx-video-recording"></i>
+                <span>URL de la vidéo non disponible</span>
+              </div>
+            }
+          </div>
+
+          <!-- Overlay de contrôle -->
+          <div class="lb-player-controls">
+            <button class="lb-control-btn" (click)="openFullscreen()" title="Plein écran">
+              <i class="bx bx-expand"></i>
+            </button>
+            <button class="lb-control-btn" (click)="shareBroadcast()" title="Partager">
+              <i class="bx bx-share-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Informations de la diffusion -->
+        <div class="lb-info">
+          <div class="lb-info-header">
+            <h2>{{ broadcastTitle() }}</h2>
+            <span class="lb-badge lb-badge--live">En direct</span>
+          </div>
+
+          <p class="lb-description">{{ broadcastDescription() }}</p>
+
+          <div class="lb-meta">
+            <div class="lb-meta-item">
+              <i class="bx bx-calendar"></i>
+              <span>Diffusé le {{ (broadcast()?.publishedAt || broadcast()?.createdAt) | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="lb-meta-item">
+              <i class="bx bx-user"></i>
+              <span>{{ viewerCount() }} spectateurs</span>
+            </div>
+            @if (broadcast()?.metadata?.speaker) {
+              <div class="lb-meta-item">
+                <i class="bx bx-microphone"></i>
+                <span>{{ broadcast()?.metadata?.speaker }}</span>
+              </div>
+            }
+            @if (broadcast()?.metadata?.series) {
+              <div class="lb-meta-item">
+                <i class="bx bx-collection"></i>
+                <span>{{ broadcast()?.metadata?.series }}</span>
+              </div>
+            }
+          </div>
+
+          @if (broadcast()?.tags && broadcast()!.tags.length > 0) {
+            <div class="lb-tags">
+              @for (tag of broadcast()!.tags; track tag) {
+                <span class="lb-tag">#{{ tag }}</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Actions administrateur -->
+        @if (canManageBroadcast()) {
+          <div class="lb-actions-admin">
+            <button class="lb-btn lb-btn--outline" [routerLink]="['/dashboard/medias/bibliotheque', broadcast()!.id, 'edit']">
+              <i class="bx bx-edit"></i> Modifier
+            </button>
+            <button class="lb-btn lb-btn--outline" [routerLink]="['/dashboard/medias/bibliotheque', broadcast()!.id]">
+              <i class="bx bx-detail"></i> Voir les statistiques
+            </button>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

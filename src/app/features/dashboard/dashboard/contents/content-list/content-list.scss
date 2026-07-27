@@ -1,0 +1,716 @@
+// src/app/features/dashboard/dashboard/medias/content-list/content-list.component.scss
+
+// ─── Variables ──────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$transition: 0.2s ease-in-out;
+
+// ─── Conteneur ──────────────────────────────────────────────────
+
+.cl-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── EN-TÊTE ────────────────────────────────────────────────────
+
+.cl-header {
+  margin-bottom: 1.5rem;
+}
+
+.cl-breadcrumb {
+  font-size: 13px;
+  color: $gray-600;
+  margin-bottom: 8px;
+
+  a {
+    color: $gray-600;
+    text-decoration: none;
+    &:hover {
+      color: $primary;
+      text-decoration: underline;
+    }
+  }
+  &-sep {
+    margin: 0 6px;
+  }
+  &-current {
+    color: $gray-900;
+    font-weight: 600;
+  }
+}
+
+.cl-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+}
+
+.cl-header-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+// ─── BANNIÈRE D'ERREUR ──────────────────────────────────────────
+
+.cl-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: $border-radius;
+  font-size: 13px;
+  margin-bottom: 16px;
+  position: relative;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+  }
+
+  &--error {
+    background: #fce4e4;
+    color: $danger;
+  }
+
+  &-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: inherit;
+    cursor: pointer;
+    margin-left: auto;
+    line-height: 1;
+  }
+}
+
+// ─── STATISTIQUES ───────────────────────────────────────────────
+
+.cl-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.cl-stat-card {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 0.8rem 0.5rem;
+  text-align: center;
+  box-shadow: $box-shadow;
+
+  .cl-stat-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: $primary;
+    line-height: 1.2;
+  }
+  .cl-stat-label {
+    font-size: 0.75rem;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &--success .cl-stat-value { color: $success; }
+  &--warning .cl-stat-value { color: $warning; }
+  &--featured .cl-stat-value { color: #b8860b; }
+}
+
+// ─── FILTRES ────────────────────────────────────────────────────
+
+.cl-filters {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: $box-shadow;
+}
+
+.cl-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.cl-filter-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 150px;
+  min-width: 120px;
+
+  input, select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: $gray-900;
+    background: #fff;
+    border: 1px solid $gray-300;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color $transition, box-shadow $transition;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+  }
+
+  input {
+    padding-left: 32px;
+  }
+
+  svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: $gray-500;
+    pointer-events: none;
+  }
+
+  &--search {
+    flex: 2 1 200px;
+  }
+}
+
+.cl-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+
+  .cl-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+// ─── TABLEAU ────────────────────────────────────────────────────
+
+.cl-table-wrap {
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: $border-radius;
+  overflow: hidden;
+  box-shadow: $box-shadow;
+}
+
+.cl-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 0;
+  color: $gray-600;
+  font-size: 14px;
+}
+
+.cl-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.5px solid $gray-200;
+  border-top-color: $primary;
+  animation: clSpin 0.7s linear infinite;
+}
+
+@keyframes clSpin {
+  to { transform: rotate(360deg); }
+}
+
+.cl-spinner--btn {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.cl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    background: $gray-100;
+    border-bottom: 2px solid $gray-200;
+    th {
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: $gray-700;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $gray-200;
+      cursor: pointer;
+      transition: background $transition;
+      &:hover {
+        background: $gray-100;
+      }
+    }
+    td {
+      padding: 0.7rem 1rem;
+      vertical-align: middle;
+    }
+  }
+
+  &-actions {
+    text-align: right;
+    width: 180px;
+  }
+}
+
+.cl-content-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  .cl-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: $gray-200;
+  }
+
+  .cl-featured-badge {
+    font-size: 0.9rem;
+    margin-left: auto;
+  }
+}
+
+// ─── BADGES ─────────────────────────────────────────────────────
+
+.cl-type-badge, .cl-status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  i {
+    margin-right: 0.2rem;
+  }
+}
+
+.cl-type-badge {
+  &--primary { background: #dbeafe; color: #1e40af; }
+  &--success { background: #d4edda; color: #155724; }
+  &--danger { background: #f8d7da; color: #721c24; }
+  &--warning { background: #fff3cd; color: #856404; }
+  &--info { background: #d1ecf1; color: #0c5460; }
+  &--purple { background: #ede7f6; color: #4a3175; }
+  &--teal { background: #d5f5f0; color: #0e6655; }
+  &--orange { background: #ffede0; color: #b45f06; }
+  &--secondary { background: $gray-200; color: $gray-700; }
+}
+
+.cl-status-badge {
+  &--success { background: #d4edda; color: #155724; }
+  &--warning { background: #fff3cd; color: #856404; }
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────────
+
+.cl-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+
+.cl-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: $gray-600;
+  transition: background $transition, color $transition;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: $gray-200;
+  }
+
+  &--publish:hover {
+    color: $success;
+    background: #d4edda;
+  }
+
+  &--delete:hover {
+    color: $danger;
+    background: #f8d7da;
+  }
+}
+
+// ─── ÉTAT VIDE ──────────────────────────────────────────────────
+
+.cl-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: $gray-500;
+
+  svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+  }
+}
+
+// ─── PAGINATION ──────────────────────────────────────────────────
+
+.cl-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.5rem;
+  background: $gray-100;
+  border-top: 1px solid $gray-200;
+  font-size: 0.9rem;
+  color: $gray-600;
+}
+
+.cl-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  select {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid $gray-300;
+    font-size: 0.85rem;
+    background: #fff;
+  }
+}
+
+.cl-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid $gray-300;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  transition: background $transition, border-color $transition;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: $gray-100;
+    border-color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &.active {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+  }
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────
+
+.cl-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cl-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  h3 {
+    margin-top: 0;
+    color: $gray-900;
+  }
+
+  p {
+    color: $gray-600;
+    line-height: 1.6;
+  }
+
+  .cl-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+  }
+}
+
+// ─── BOUTONS ────────────────────────────────────────────────────
+
+.cl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background $transition, transform 0.1s;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+    &:hover:not(:disabled) { background: $primary-dark; }
+  }
+
+  &--ghost {
+    background: transparent;
+    border-color: $gray-300;
+    color: $gray-700;
+    &:hover:not(:disabled) { background: $gray-100; }
+  }
+
+  &--danger {
+    background: $danger;
+    color: #fff;
+    &:hover:not(:disabled) { background: darken($danger, 10%); }
+  }
+}
+
+// ─── RESPONSIVE ──────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .cl-container {
+    padding: 1rem 0.8rem;
+  }
+
+  .cl-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+
+    h1 {
+      font-size: 1.4rem;
+    }
+  }
+
+  .cl-header-actions {
+    width: 100%;
+    .cl-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .cl-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .cl-stat-card .cl-stat-value {
+    font-size: 1.2rem;
+  }
+
+  .cl-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .cl-filter-field {
+    flex: unset;
+    min-width: unset;
+    width: 100%;
+  }
+
+  .cl-filter-actions {
+    margin-left: 0;
+  }
+
+  .cl-table {
+    font-size: 0.8rem;
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      padding: 0.8rem 1rem;
+      border-bottom: 2px solid $gray-200;
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid $gray-200;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: $gray-600;
+        flex-shrink: 0;
+      }
+
+      &.cl-table-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 0.5rem;
+
+        &::before {
+          display: none;
+        }
+
+        .cl-actions {
+          justify-content: flex-end;
+          width: 100%;
+        }
+      }
+    }
+
+    .cl-content-title .cl-thumbnail {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .cl-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .cl-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cl-modal {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cl-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cl-table td {
+    flex-wrap: wrap;
+
+    &::before {
+      width: 100%;
+    }
+  }
+}
+
+// ─── RÉDUCTION DES ANIMATIONS ──────────────────────────────────
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,206 @@
+<!-- src/app/features/dashboard/dashboard/medias/content-form/content-form.html -->
+
+<div class="cf-container">
+
+  <!-- EN-TÊTE -->
+  <div class="cf-header">
+    <h1>{{ isEditMode() ? 'Modifier le contenu' : 'Ajouter un contenu' }}</h1>
+    <button type="button" class="cf-btn-secondary" (click)="cancel()">Annuler</button>
+  </div>
+
+  <!-- BANNIÈRE D'ERREUR -->
+  @if (error()) {
+    <div class="cf-banner cf-banner--error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="cf-form">
+
+    <!-- ─── INFORMATIONS GÉNÉRALES ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Informations générales</h2></div>
+      <div class="cf-panel-body cf-grid-2">
+
+        <div class="cf-field cf-field--span-2">
+          <label for="title">Titre <span class="cf-required">*</span></label>
+          <input id="title" type="text" formControlName="title" placeholder="Ex: La puissance de la prière">
+          <p class="cf-error" *ngIf="isFieldInvalid('title')">Le titre est requis (3 caractères minimum).</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="type">Type <span class="cf-required">*</span></label>
+          <select id="type" formControlName="type">
+            <option *ngFor="let opt of typeOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <div class="cf-field">
+          <label for="language">Langue</label>
+          <input id="language" type="text" formControlName="language" placeholder="Français, Anglais...">
+        </div>
+
+        <div class="cf-field cf-field--span-2">
+          <label for="description">Description</label>
+          <textarea id="description" rows="3" formControlName="description" placeholder="Description détaillée du contenu..."></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── FICHIERS & MÉDIAS ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Fichier & miniature</h2></div>
+      <div class="cf-panel-body cf-grid-2">
+
+        <div class="cf-field">
+          <label for="file">Fichier principal</label>
+          <input id="file" type="file" (change)="onFileSelected($event)" accept="video/*,audio/*,image/*,.pdf,.doc,.docx">
+          <p class="cf-hint" *ngIf="selectedFile">Fichier sélectionné : {{ selectedFile.name }}</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="thumbnail">Miniature</label>
+          <input id="thumbnail" type="file" (change)="onThumbnailSelected($event)" accept="image/*">
+          <p class="cf-hint" *ngIf="selectedThumbnail">Miniature sélectionnée : {{ selectedThumbnail.name }}</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="url">URL du fichier (si hébergé ailleurs)</label>
+          <input id="url" type="url" formControlName="url" placeholder="https://...">
+        </div>
+
+        <div class="cf-field">
+          <label for="thumbnailUrl">URL de la miniature</label>
+          <input id="thumbnailUrl" type="url" formControlName="thumbnailUrl" placeholder="https://...">
+        </div>
+
+        <div class="cf-field">
+          <label for="duration">Durée (secondes)</label>
+          <input id="duration" type="number" formControlName="duration" min="0" placeholder="ex: 2700">
+        </div>
+
+        <div class="cf-field">
+          <label for="size">Taille (octets)</label>
+          <input id="size" type="number" formControlName="size" min="0" placeholder="auto-rempli si upload">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── MÉTADONNÉES ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Métadonnées</h2></div>
+      <div class="cf-panel-body cf-grid-2" formGroupName="metadata">
+
+        <div class="cf-field">
+          <label for="speaker">Prédicateur / Intervenant</label>
+          <input id="speaker" type="text" formControlName="speaker" placeholder="Nom de l'intervenant">
+        </div>
+
+        <div class="cf-field">
+          <label for="bibleVerse">Verset biblique</label>
+          <input id="bibleVerse" type="text" formControlName="bibleVerse" placeholder="Ex: Jean 3:16">
+        </div>
+
+        <div class="cf-field">
+          <label for="eventDate">Date de l'événement</label>
+          <input id="eventDate" type="datetime-local" formControlName="eventDate">
+        </div>
+
+        <div class="cf-field">
+          <label for="location">Lieu</label>
+          <input id="location" type="text" formControlName="location" placeholder="Ex: Temple de Cocody">
+        </div>
+
+        <div class="cf-field">
+          <label for="series">Série</label>
+          <input id="series" type="text" formControlName="series" placeholder="Ex: Les fondements de la foi">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── TAGS ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Tags</h2></div>
+      <div class="cf-panel-body">
+        <div class="cf-tags-container">
+          <div class="cf-tag" *ngFor="let tag of tags()">
+            {{ tag }}
+            <button type="button" class="cf-tag-remove" (click)="removeTag(tag)">✕</button>
+          </div>
+        </div>
+        <div class="cf-tag-input-group">
+          <input type="text" [(ngModel)]="tagInput" placeholder="Ajouter un tag..." (keyup.enter)="addTag()" [ngModelOptions]="{standalone: true}">
+          <button type="button" class="cf-btn-small cf-btn-primary" (click)="addTag()">Ajouter</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ORGANISATION ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Organisation</h2></div>
+      <div class="cf-panel-body cf-grid-2">
+
+        <div class="cf-field">
+          <label for="churchId">Église <span class="cf-required">*</span></label>
+          <select id="churchId" formControlName="churchId" [disabled]="loadingChurches()">
+            <option value="">— Sélectionner —</option>
+            <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+          </select>
+          <p class="cf-error" *ngIf="isFieldInvalid('churchId')">L'église est requise.</p>
+        </div>
+
+        <div class="cf-field">
+          <label for="siteId">Site</label>
+          <select id="siteId" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Aucun site —</option>
+            <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── PUBLICATION ─── -->
+    <section class="cf-panel">
+      <div class="cf-panel-header"><h2>Publication</h2></div>
+      <div class="cf-panel-body cf-grid-2">
+
+        <div class="cf-field">
+          <label class="cf-checkbox">
+            <input type="checkbox" formControlName="isPublished">
+            <span class="cf-checkbox-box"></span>
+            <span class="cf-checkbox-text">Publié</span>
+          </label>
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-checkbox">
+            <input type="checkbox" formControlName="isFeatured">
+            <span class="cf-checkbox-box"></span>
+            <span class="cf-checkbox-text">Mis en avant</span>
+          </label>
+        </div>
+
+        <div class="cf-field cf-field--span-2">
+          <label for="publishedAt">Date de publication</label>
+          <input id="publishedAt" type="datetime-local" formControlName="publishedAt">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── ACTIONS ─── -->
+    <footer class="cf-actions">
+      <button type="button" class="cf-btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="cf-btn-primary" [disabled]="saving() || form.invalid">
+        @if (saving()) {
+          <span class="cf-spinner"></span> Enregistrement…
+        } @else {
+          {{ isEditMode() ? 'Mettre à jour' : 'Créer le contenu' }}
+        }
+      </button>
+    </footer>
+
+  </form>
+</div>

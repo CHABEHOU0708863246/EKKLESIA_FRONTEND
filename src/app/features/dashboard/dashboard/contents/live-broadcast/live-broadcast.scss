@@ -1,0 +1,513 @@
+// src/app/features/dashboard/dashboard/medias/live-broadcast/live-broadcast.component.scss
+
+// ─── Variables ──────────────────────────────────────────────────
+
+$primary: #2a6f94;
+$primary-dark: #1f5a7e;
+$danger: #dc3545;
+$success: #28a745;
+$warning: #ffc107;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$transition: 0.2s ease-in-out;
+
+// ─── Conteneur ──────────────────────────────────────────────────
+
+.lb-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: $gray-900;
+}
+
+// ─── En-tête ────────────────────────────────────────────────────
+
+.lb-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.lb-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+}
+
+.lb-breadcrumb {
+  font-size: 0.85rem;
+  color: $gray-600;
+
+  a {
+    color: $gray-600;
+    text-decoration: none;
+    &:hover {
+      color: $primary;
+      text-decoration: underline;
+    }
+  }
+  &-sep {
+    margin: 0 0.4rem;
+  }
+  &-current {
+    color: $gray-800;
+    font-weight: 600;
+  }
+}
+
+.lb-header-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+// ─── États ──────────────────────────────────────────────────────
+
+.lb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 4rem 1rem;
+  color: $gray-600;
+  font-size: 1.1rem;
+}
+
+.lb-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid $gray-200;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lb-error {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.2rem;
+  background: #fce4e4;
+  color: $danger;
+  border-radius: $border-radius;
+  border-left: 4px solid $danger;
+  margin-bottom: 1.5rem;
+
+  i {
+    font-size: 1.3rem;
+  }
+  span {
+    flex: 1;
+  }
+
+  &-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: inherit;
+    cursor: pointer;
+  }
+}
+
+// ─── État vide ──────────────────────────────────────────────────
+
+.lb-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #fff;
+  border-radius: $border-radius;
+  border: 1px solid $gray-200;
+  box-shadow: $box-shadow;
+
+  .lb-empty-icon {
+    font-size: 4rem;
+    color: $gray-400;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    color: $gray-800;
+  }
+
+  p {
+    color: $gray-600;
+    margin: 0 0 1.5rem;
+  }
+}
+
+// ─── Diffusion ──────────────────────────────────────────────────
+
+.lb-broadcast {
+  background: #fff;
+  border-radius: $border-radius;
+  border: 1px solid $gray-200;
+  overflow: hidden;
+  box-shadow: $box-shadow;
+}
+
+// ─── Bannière LIVE ─────────────────────────────────────────────
+
+.lb-live-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1.5rem;
+  background: #dc3545;
+  color: #fff;
+
+  .lb-live-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+
+  .lb-live-text {
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .lb-viewers {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+// ─── Lecteur vidéo ─────────────────────────────────────────────
+
+.lb-player-wrapper {
+  position: relative;
+  background: #000;
+  aspect-ratio: 16/9;
+}
+
+.lb-player {
+  width: 100%;
+  height: 100%;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .lb-player-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: $gray-500;
+    background: #1a1a2e;
+
+    i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    span {
+      font-size: 1rem;
+      opacity: 0.6;
+    }
+  }
+}
+
+// ─── Contrôles du lecteur ──────────────────────────────────────
+
+.lb-player-controls {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  .lb-player-wrapper:hover & {
+    opacity: 1;
+  }
+}
+
+.lb-control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+
+// ─── Informations ──────────────────────────────────────────────
+
+.lb-info {
+  padding: 1.5rem 2rem;
+}
+
+.lb-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .lb-badge {
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--live {
+      background: #dc3545;
+      color: #fff;
+    }
+  }
+}
+
+.lb-description {
+  color: $gray-700;
+  line-height: 1.7;
+  margin: 0 0 1rem;
+}
+
+.lb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-bottom: 0.8rem;
+  padding: 0.8rem 0;
+  border-top: 1px solid $gray-100;
+  border-bottom: 1px solid $gray-100;
+}
+
+.lb-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: $gray-600;
+
+  i {
+    font-size: 1.1rem;
+    color: $gray-500;
+  }
+}
+
+.lb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lb-tag {
+  font-size: 0.8rem;
+  color: $primary;
+  background: #e8f0fe;
+  padding: 0.2rem 0.8rem;
+  border-radius: 12px;
+}
+
+// ─── Actions administrateur ────────────────────────────────────
+
+.lb-actions-admin {
+  display: flex;
+  gap: 0.6rem;
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid $gray-200;
+  background: $gray-100;
+}
+
+// ─── Boutons ────────────────────────────────────────────────────
+
+.lb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+    &:hover:not(:disabled) {
+      background: $primary-dark;
+    }
+  }
+
+  &--secondary {
+    background: $gray-200;
+    color: $gray-800;
+    &:hover:not(:disabled) {
+      background: $gray-300;
+    }
+  }
+
+  &--outline {
+    background: transparent;
+    color: $primary;
+    border: 1px solid $primary;
+    &:hover:not(:disabled) {
+      background: #e8f0fe;
+    }
+  }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .lb-container {
+    padding: 1rem 0.8rem;
+  }
+
+  .lb-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .lb-header-left h1 {
+    font-size: 1.4rem;
+  }
+
+  .lb-header-actions {
+    justify-content: flex-start;
+  }
+
+  .lb-info {
+    padding: 1rem 1.2rem;
+  }
+
+  .lb-info-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .lb-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .lb-actions-admin {
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .lb-btn {
+      justify-content: center;
+    }
+  }
+
+  .lb-player-controls {
+    opacity: 1;
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .lb-control-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .lb-empty {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lb-live-banner {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.4rem 1rem;
+
+    .lb-viewers {
+      margin-left: 0;
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+}

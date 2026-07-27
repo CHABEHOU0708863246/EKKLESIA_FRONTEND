@@ -1,0 +1,245 @@
+<div class="cl-container">
+
+  <!-- ══════════════ EN-TÊTE ══════════════ -->
+  <header class="cl-header">
+    <div class="cl-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="cl-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/medias/bibliotheque']">Médias</a>
+      <span class="cl-breadcrumb-sep">/</span>
+      <span class="cl-breadcrumb-current">Bibliothèque</span>
+    </div>
+
+    <div class="cl-header-row">
+      <h1>Bibliothèque média</h1>
+      <div class="cl-header-actions">
+        <button class="cl-btn cl-btn--primary" (click)="goToCreate()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter un contenu
+        </button>
+        <button class="cl-btn cl-btn--ghost" (click)="refresh()" title="Rafraîchir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
+  @if (error()) {
+    <div class="cl-banner cl-banner--error">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>{{ error() }}</span>
+      <button class="cl-banner-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- ══════════════ STATISTIQUES ══════════════ -->
+  @if (stats(); as stats) {
+    <div class="cl-stats">
+      <div class="cl-stat-card">
+        <span class="cl-stat-value">{{ stats.total }}</span>
+        <span class="cl-stat-label">Total</span>
+      </div>
+      <div class="cl-stat-card cl-stat-card--success">
+        <span class="cl-stat-value">{{ stats.published }}</span>
+        <span class="cl-stat-label">Publiés</span>
+      </div>
+      <div class="cl-stat-card cl-stat-card--warning">
+        <span class="cl-stat-value">{{ stats.drafts }}</span>
+        <span class="cl-stat-label">Brouillons</span>
+      </div>
+      <div class="cl-stat-card cl-stat-card--featured">
+        <span class="cl-stat-value">{{ stats.featured }}</span>
+        <span class="cl-stat-label">Mis en avant</span>
+      </div>
+      <div class="cl-stat-card">
+        <span class="cl-stat-value">{{ stats.totalViews }}</span>
+        <span class="cl-stat-label">Vues totales</span>
+      </div>
+      <div class="cl-stat-card">
+        <span class="cl-stat-value">{{ stats.totalDownloads }}</span>
+        <span class="cl-stat-label">Téléchargements</span>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════ FILTRES ══════════════ -->
+  <div class="cl-filters">
+    <form [formGroup]="filterForm" class="cl-filter-form">
+      <div class="cl-filter-row">
+        <div class="cl-filter-field cl-filter-field--search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" formControlName="search" placeholder="Rechercher un contenu…">
+        </div>
+
+        <div class="cl-filter-field">
+          <select formControlName="type">
+            @for (opt of typeOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="cl-filter-field">
+          <select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="cl-filter-field">
+          <select formControlName="isFeatured">
+            @for (opt of featuredOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="cl-filter-field">
+          <input type="text" formControlName="speaker" placeholder="Prédicateur…">
+        </div>
+
+        <div class="cl-filter-field">
+          <input type="text" formControlName="series" placeholder="Série…">
+        </div>
+
+        <div class="cl-filter-actions">
+          <button type="button" class="cl-btn cl-btn--ghost" (click)="resetFilters()">Réinitialiser</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══════════════ TABLEAU ══════════════ -->
+  <div class="cl-table-wrap">
+    @if (loading()) {
+      <div class="cl-loading-state">
+        <span class="cl-spinner"></span> Chargement…
+      </div>
+    } @else if (contents().length === 0) {
+      <div class="cl-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 4v16M16 4v16M4 8h16M4 16h16"/></svg>
+        <p>Aucun contenu trouvé.</p>
+        <button class="cl-btn cl-btn--primary" (click)="goToCreate()">Ajouter un contenu</button>
+      </div>
+    } @else {
+      <table class="cl-table">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Prédicateur</th>
+            <th>Vues</th>
+            <th>Téléchargements</th>
+            <th>Statut</th>
+            <th class="cl-table-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (content of contents(); track content.id) {
+            <tr (click)="viewContent(content.id)">
+              <td>
+                <div class="cl-content-title">
+                  @if (content.thumbnailUrl) {
+                    <img [src]="content.thumbnailUrl" alt="" class="cl-thumbnail" (error)="$event.target.style.display='none'">
+                  }
+                  <span>{{ content.title }}</span>
+                  @if (content.isFeatured) {
+                    <span class="cl-featured-badge">⭐</span>
+                  }
+                </div>
+              </td>
+              <td>
+                <span class="cl-type-badge" [class]="getContentTypeClass(content.type)">
+                  <i class="bx {{ getTypeIcon(content.type) }}"></i>
+                  {{ getTypeLabel(content.type) }}
+                </span>
+              </td>
+              <td>{{ content.metadata?.speaker || '—' }}</td>
+              <td>{{ content.views }}</td>
+              <td>{{ content.downloads }}</td>
+              <td>
+                <span class="cl-status-badge" [class]="getStatusClass(content.isPublished)">
+                  {{ getStatusLabel(content.isPublished) }}
+                </span>
+              </td>
+              <td>
+                <div class="cl-actions">
+                  <button class="cl-icon-btn" (click)="viewContent(content.id)" title="Voir">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                  <button class="cl-icon-btn" (click)="editContent(content.id, $event)" title="Modifier">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5L20 7 8 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  </button>
+                  <button class="cl-icon-btn cl-icon-btn--publish" (click)="togglePublish(content, $event)" title="{{ content.isPublished ? 'Dépublier' : 'Publier' }}">
+                    @if (content.isPublished) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg>
+                    }
+                  </button>
+                  <button class="cl-icon-btn cl-icon-btn--delete" (click)="openDeleteModal(content, $event)" title="Supprimer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m-7 4v8m6-8v8"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- ══════════════ PAGINATION ══════════════ -->
+  @if (totalCount() > 0 && !loading()) {
+    <div class="cl-pagination">
+      <div class="cl-pagination-info">
+        {{ (currentPage() - 1) * pageSize() + 1 }}–{{ Math.min(currentPage() * pageSize(), totalCount()) }}
+        sur {{ totalCount() }}
+      </div>
+      <div class="cl-pagination-controls">
+        <button class="cl-page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        @for (page of [].constructor(totalPages()); track $index) {
+          <button class="cl-page-btn" [class.active]="$index + 1 === currentPage()" (click)="goToPage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+        }
+        <button class="cl-page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <select (change)="onPageSizeChange($any($event.target).value)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════ MODAL DE SUPPRESSION ══════════════ -->
+  @if (showDeleteModal()) {
+    <div class="cl-modal-overlay" (click.self)="closeDeleteModal()">
+      <div class="cl-modal">
+        <h3>Confirmer la suppression</h3>
+        <p>
+          Voulez‑vous vraiment supprimer le contenu
+          <strong>{{ contentToDelete()?.title }}</strong>
+          ?
+        </p>
+        <div class="cl-modal-actions">
+          <button class="cl-btn cl-btn--ghost" (click)="closeDeleteModal()">Annuler</button>
+          <button class="cl-btn cl-btn--danger" (click)="confirmDelete()" [disabled]="deletingId()">
+            @if (deletingId()) {
+              <span class="cl-spinner cl-spinner--btn"></span> Suppression…
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,165 @@
+<!-- src/app/features/dashboard/dashboard/medias/newsletter/newsletter.html -->
+
+<div class="nl-container">
+
+  <!-- EN-TÊTE -->
+  <header class="nl-header">
+    <div class="nl-header-left">
+      <h1>📧 Newsletters</h1>
+      <span class="nl-badge nl-badge-primary">{{ newsletters().length }} total</span>
+    </div>
+    <div class="nl-header-actions">
+      <button class="nl-btn nl-btn-primary" (click)="openCreateForm()" *ngIf="permissions.canCreateContent()">
+        <i class="bx bx-plus"></i> Nouvelle newsletter
+      </button>
+    </div>
+  </header>
+
+  <!-- STATISTIQUES -->
+  <div class="nl-stats">
+    <div class="nl-stat-card">
+      <span class="nl-stat-value">{{ stats().total }}</span>
+      <span class="nl-stat-label">Total</span>
+    </div>
+    <div class="nl-stat-card nl-stat-card--secondary">
+      <span class="nl-stat-value">{{ stats().drafts }}</span>
+      <span class="nl-stat-label">Brouillons</span>
+    </div>
+    <div class="nl-stat-card nl-stat-card--success">
+      <span class="nl-stat-value">{{ stats().sent }}</span>
+      <span class="nl-stat-label">Envoyés</span>
+    </div>
+    <div class="nl-stat-card nl-stat-card--danger" *ngIf="stats().failed > 0">
+      <span class="nl-stat-value">{{ stats().failed }}</span>
+      <span class="nl-stat-label">Échoués</span>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="nl-filters">
+    <div class="nl-filter-row">
+      <div class="nl-filter-field nl-filter-field--search">
+        <i class="bx bx-search"></i>
+        <input
+          type="text"
+          placeholder="Rechercher une newsletter…"
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+      </div>
+      <div class="nl-filter-field">
+        <select (change)="filterStatus.set($any($event.target).value)">
+          <option value="all">Tous les statuts</option>
+          <option value="draft">Brouillons</option>
+          <option value="sent">Envoyés</option>
+          <option value="failed">Échoués</option>
+        </select>
+      </div>
+      <button class="nl-btn nl-btn-ghost" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- LISTE -->
+  <div class="nl-table-wrap">
+    <div class="nl-loading-state" *ngIf="loading()">
+      <span class="nl-spinner"></span> Chargement des newsletters…
+    </div>
+
+    <table class="nl-table" *ngIf="!loading()">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Destinataires</th>
+          <th>Statut</th>
+          <th>Créé le</th>
+          <th class="nl-table-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let nl of filteredNewsletters">
+          <td>
+            <div class="nl-title-cell">
+              <span class="nl-title">{{ nl.title }}</span>
+              <span class="nl-preview" *ngIf="nl.description">{{ nl.description | slice:0:60 }}…</span>
+            </div>
+          </td>
+          <td>{{ (nl.recipients || []).length }} destinataires</td>
+          <td>
+            <span class="nl-status-badge" [class]="'nl-status-badge--' + getStatusColor(nl.status)">
+              {{ getStatusLabel(nl.status) }}
+            </span>
+          </td>
+          <td>{{ getFormattedDate(nl.createdAt) }}</td>
+          <td>
+            <div class="nl-actions">
+              <button class="nl-action-btn nl-action-btn--view" (click)="openEditForm(nl)" title="Modifier" *ngIf="nl.status !== 'sent'">
+                <i class="bx bx-edit"></i>
+              </button>
+              <button class="nl-action-btn nl-action-btn--send" (click)="sendNewsletter(nl, $event)" title="Envoyer" *ngIf="nl.status !== 'sent' && nl.status !== 'sending'">
+                <i class="bx bx-send"></i>
+              </button>
+              <button class="nl-action-btn nl-action-btn--delete" (click)="deleteNewsletter(nl, $event)" title="Supprimer" *ngIf="nl.status !== 'sent'">
+                <i class="bx bx-trash"></i>
+              </button>
+              <span class="nl-sending-indicator" *ngIf="nl.status === 'sending'">
+                <i class="bx bx-loader-alt bx-spin"></i>
+              </span>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredNewsletters.length === 0">
+          <td colspan="5" class="nl-empty-state">
+            <i class="bx bx-envelope-open"></i>
+            <p>Aucune newsletter trouvée.</p>
+            <button class="nl-btn nl-btn-primary" (click)="openCreateForm()">Créer la première newsletter</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL / FORMULAIRE -->
+  <div class="nl-modal-overlay" *ngIf="showForm()" (click.self)="closeForm()">
+    <div class="nl-modal">
+      <div class="nl-modal-header">
+        <h2>{{ isEditMode() ? 'Modifier la newsletter' : 'Nouvelle newsletter' }}</h2>
+        <button class="nl-modal-close" (click)="closeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="saveNewsletter()" class="nl-form">
+        <div class="nl-field">
+          <label for="title">Titre <span class="nl-required">*</span></label>
+          <input id="title" type="text" formControlName="title" placeholder="Titre de la newsletter" />
+          <p class="nl-error" *ngIf="isFieldInvalid('title')">Le titre est requis (minimum 3 caractères).</p>
+        </div>
+
+        <div class="nl-field">
+          <label for="recipients">Destinataires <span class="nl-required">*</span></label>
+          <input id="recipients" type="text" formControlName="recipients" placeholder="Ex: tous, groupe1, groupe2, email@exemple.com" />
+          <p class="nl-hint">Séparez les groupes par des virgules.</p>
+          <p class="nl-error" *ngIf="isFieldInvalid('recipients')">Veuillez spécifier les destinataires.</p>
+        </div>
+
+        <div class="nl-field">
+          <label for="content">Contenu <span class="nl-required">*</span></label>
+          <textarea id="content" rows="8" formControlName="content" placeholder="Rédigez le contenu de votre newsletter…"></textarea>
+          <p class="nl-error" *ngIf="isFieldInvalid('content')">Le contenu est requis.</p>
+        </div>
+
+        <div class="nl-form-actions">
+          <button type="button" class="nl-btn nl-btn-ghost" (click)="closeForm()">Annuler</button>
+          <button type="submit" class="nl-btn nl-btn-primary" [disabled]="saving() || form.invalid">
+            <span *ngIf="!saving()">{{ isEditMode() ? 'Mettre à jour' : 'Enregistrer' }}</span>
+            <span class="nl-spinner nl-spinner--btn" *ngIf="saving()"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BANNIÈRE D'ERREUR -->
+  <div class="nl-banner nl-banner--error" *ngIf="error()">
+    <i class="bx bx-error-circle"></i>
+    <span>{{ error() }}</span>
+    <button class="nl-banner-close" (click)="error.set(null)">✕</button>
+  </div>
+</div>

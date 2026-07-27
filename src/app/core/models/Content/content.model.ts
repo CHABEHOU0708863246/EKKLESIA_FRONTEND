@@ -210,6 +210,8 @@ export const ContentTypeColors: Record<ContentType, string> = {
 // ============================================================
 
 export class ContentUtils {
+
+
   static getTypeLabel(type: ContentType): string {
     return ContentTypeLabels[type] || type;
   }
@@ -326,6 +328,8 @@ export class ContentUtils {
     return this.sortByDownloads(contents, false)[0];
   }
 
+
+
   static getContentStats(contents: Content[]): {
     total: number;
     published: number;
@@ -395,3 +399,6 @@ export const EMPTY_CONTENT: Content = {
   statusLabel: 'Brouillon',
   statusColor: 'warning'
 };
+
+
+

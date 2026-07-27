@@ -1,0 +1,295 @@
+<!-- src/app/features/dashboard/dashboard/medias/content-detail/content-detail.component.html -->
+
+<div class="cd-container">
+
+  <!-- ÉTATS DE CHARGEMENT / ERREUR -->
+  @if (loading()) {
+    <div class="cd-loading">Chargement du contenu…</div>
+  }
+
+  @if (error()) {
+    <div class="cd-error">{{ error() }}</div>
+  }
+
+  <!-- DÉTAIL -->
+  @if (!loading() && !error() && content(); as c) {
+
+    <!-- EN-TÊTE -->
+    <div class="cd-header">
+      <div class="cd-header-left">
+        <button class="cd-btn-back" (click)="goBack()">
+          <i class="bx bx-arrow-back"></i> Retour
+        </button>
+        <h1>{{ c.title }}</h1>
+        <span class="cd-badge" [class]="getStatusClass(c.isPublished)">
+          {{ getStatusLabel(c.isPublished) }}
+        </span>
+        @if (c.isFeatured) {
+          <span class="cd-badge cd-badge-featured">⭐ Mis en avant</span>
+        }
+      </div>
+      <div class="cd-header-actions">
+        @if (canPublish()) {
+          <button class="cd-btn-success" (click)="togglePublish()" [disabled]="togglingPublish()">
+            @if (togglingPublish()) { <span class="cd-spinner"></span> }
+            @else { {{ c.isPublished ? '📥 Dépublier' : '📤 Publier' }} }
+          </button>
+        }
+        @if (canEdit()) {
+          <button class="cd-btn-primary" (click)="editContent()">
+            <i class="bx bx-edit"></i> Modifier
+          </button>
+        }
+        @if (canDelete()) {
+          <button class="cd-btn-danger" (click)="deleteContent()" [disabled]="deleting()">
+            @if (deleting()) { <span class="cd-spinner"></span> Suppression… }
+            @else { <i class="bx bx-trash"></i> Supprimer }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- GRILLE PRINCIPALE -->
+    <div class="cd-grid">
+
+      <!-- COLONNE GAUCHE -->
+      <div class="cd-col-left">
+
+        <!-- FICHIER / APERÇU -->
+        @if (c.url && canViewFile()) {
+          <div class="cd-card cd-player-card">
+            <div class="cd-player-container">
+              @if (isVideo(c.type) && fileObjectUrl()) {
+                <video controls class="cd-video" [src]="fileObjectUrl()" poster="{{ c.thumbnailUrl || '' }}"></video>
+              } @else if (isAudio(c.type) && fileObjectUrl()) {
+                <audio controls class="cd-audio" [src]="fileObjectUrl()"></audio>
+                <div class="cd-audio-cover" *ngIf="c.thumbnailUrl">
+                  <img [src]="c.thumbnailUrl" alt="Cover">
+                </div>
+              } @else if (isImage(c.type) && fileObjectUrl()) {
+                <img [src]="fileObjectUrl()" alt="{{ c.title }}" class="cd-image">
+              } @else if (fileLoadFailed()) {
+                <div class="cd-file-error">
+                  <i class="bx bx-error-circle"></i>
+                  <p>Impossible de charger le fichier.</p>
+                  <button class="cd-btn-secondary" (click)="downloadFile()">Télécharger</button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- INFORMATIONS GÉNÉRALES -->
+        <div class="cd-card">
+          <h3>Informations générales</h3>
+
+          <div class="cd-info-row">
+            <span class="cd-label">Type</span>
+            <span class="cd-value">
+              <span class="cd-type-badge" [class]="getTypeClass(c.type)">
+                <i class="bx {{ getTypeIcon(c.type) }}"></i>
+                {{ getTypeLabel(c.type) }}
+              </span>
+            </span>
+          </div>
+
+          @if (c.description) {
+            <div class="cd-info-row cd-description">
+              <span class="cd-label">Description</span>
+              <span class="cd-value">{{ c.description }}</span>
+            </div>
+          }
+
+          <div class="cd-info-row">
+            <span class="cd-label">Statut</span>
+            <span class="cd-value">
+              <span class="cd-badge" [class]="getStatusClass(c.isPublished)">
+                {{ getStatusLabel(c.isPublished) }}
+              </span>
+            </span>
+          </div>
+
+          @if (c.isFeatured) {
+            <div class="cd-info-row">
+              <span class="cd-label">Mis en avant</span>
+              <span class="cd-value"><span class="cd-badge cd-badge-featured">⭐ Oui</span></span>
+            </div>
+          }
+
+          <div class="cd-info-row">
+            <span class="cd-label">Créé le</span>
+            <span class="cd-value">{{ getFormattedDateTime(c.createdAt) }}</span>
+          </div>
+
+          @if (c.publishedAt) {
+            <div class="cd-info-row">
+              <span class="cd-label">Publié le</span>
+              <span class="cd-value">{{ getFormattedDateTime(c.publishedAt) }}</span>
+            </div>
+          }
+
+          @if (c.updatedAt) {
+            <div class="cd-info-row">
+              <span class="cd-label">Modifié le</span>
+              <span class="cd-value">{{ getFormattedDateTime(c.updatedAt) }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- STATISTIQUES -->
+        <div class="cd-card">
+          <h3>Statistiques</h3>
+
+          <div class="cd-stats-grid">
+            <div class="cd-stat-item">
+              <span class="cd-stat-value">{{ c.views }}</span>
+              <span class="cd-stat-label">👁️ Vues</span>
+            </div>
+            <div class="cd-stat-item">
+              <span class="cd-stat-value">{{ c.downloads }}</span>
+              <span class="cd-stat-label">📥 Téléchargements</span>
+            </div>
+            @if (c.duration) {
+              <div class="cd-stat-item">
+                <span class="cd-stat-value">{{ formatDuration(c.duration) }}</span>
+                <span class="cd-stat-label">⏱️ Durée</span>
+              </div>
+            }
+            @if (c.size) {
+              <div class="cd-stat-item">
+                <span class="cd-stat-value">{{ formatFileSize(c.size) }}</span>
+                <span class="cd-stat-label">📦 Taille</span>
+              </div>
+            }
+          </div>
+
+          @if (c.url) {
+            <div class="cd-action-row">
+              <button class="cd-btn-secondary" (click)="downloadFile()">
+                <i class="bx bx-download"></i> Télécharger le fichier
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- COLONNE DROITE -->
+      <div class="cd-col-right">
+
+        <!-- MÉTADONNÉES -->
+        @if (c.metadata) {
+          <div class="cd-card">
+            <h3>Métadonnées</h3>
+
+            @if (c.metadata.speaker) {
+              <div class="cd-info-row">
+                <span class="cd-label">Prédicateur / Intervenant</span>
+                <span class="cd-value">{{ c.metadata.speaker }}</span>
+              </div>
+            }
+
+            @if (c.metadata.bibleVerse) {
+              <div class="cd-info-row">
+                <span class="cd-label">Texte biblique</span>
+                <span class="cd-value cd-verse">{{ c.metadata.bibleVerse }}</span>
+              </div>
+            }
+
+            @if (c.metadata.eventDate) {
+              <div class="cd-info-row">
+                <span class="cd-label">Date de l'événement</span>
+                <span class="cd-value">{{ getFormattedDate(c.metadata.eventDate) }}</span>
+              </div>
+            }
+
+            @if (c.metadata.location) {
+              <div class="cd-info-row">
+                <span class="cd-label">Lieu</span>
+                <span class="cd-value">{{ c.metadata.location }}</span>
+              </div>
+            }
+
+            @if (c.metadata.series) {
+              <div class="cd-info-row">
+                <span class="cd-label">Série</span>
+                <span class="cd-value cd-series">{{ c.metadata.series }}</span>
+              </div>
+            }
+
+            @if (c.metadata.language) {
+              <div class="cd-info-row">
+                <span class="cd-label">Langue</span>
+                <span class="cd-value">{{ c.metadata.language }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- TAGS -->
+        @if (c.tags && c.tags.length > 0) {
+          <div class="cd-card">
+            <h3>Tags</h3>
+            <div class="cd-tags">
+              @for (tag of c.tags; track tag) {
+                <span class="cd-tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ACTIONS SUPPLÉMENTAIRES -->
+        <div class="cd-card">
+          <h3>Actions</h3>
+
+          @if (canPublish()) {
+            <div class="cd-action-row">
+              <button class="cd-btn-secondary" (click)="toggleFeatured()">
+                {{ c.isFeatured ? '⭐ Retirer des favoris' : '⭐ Mettre en avant' }}
+              </button>
+            </div>
+          }
+
+          @if (canEdit()) {
+            <div class="cd-action-row">
+              <button class="cd-btn-secondary" (click)="editContent()">
+                <i class="bx bx-edit"></i> Modifier
+              </button>
+            </div>
+          }
+
+          @if (canDelete()) {
+            <div class="cd-action-row cd-action-danger">
+              <button class="cd-btn-danger" (click)="deleteContent()" [disabled]="deleting()">
+                @if (deleting()) { <span class="cd-spinner"></span> Suppression… }
+                @else { <i class="bx bx-trash"></i> Supprimer définitivement }
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- INFORMATIONS SYSTÈME -->
+        <div class="cd-card cd-meta">
+          <h3>Informations système</h3>
+
+          <div class="cd-meta-row">
+            <span>Créé par</span>
+            <span>{{ c.createdByName || c.createdBy || '—' }}</span>
+          </div>
+
+          <div class="cd-meta-row">
+            <span>Église</span>
+            <span>{{ c.churchName || c.churchId || '—' }}</span>
+          </div>
+
+          @if (c.siteName) {
+            <div class="cd-meta-row">
+              <span>Site</span>
+              <span>{{ c.siteName }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

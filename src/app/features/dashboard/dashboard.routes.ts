@@ -70,6 +70,11 @@ export const DASHBOARD_ROUTES: Routes = [
         loadChildren: () =>
           import('./dashboard/pastor/appointments.routes').then((m) => m.APPOINTMENTS_ROUTES),
       },
+      {
+        path: 'medias',
+        loadChildren: () =>
+          import('./dashboard/contents/medias.routes').then((m) => m.MEDIAS_ROUTES),
+      },
     ],
   },
 ];
