@@ -55,7 +55,7 @@
 
       <div class="mc-panel-body">
 
-        <!-- Dans l'étape 1 : Identité -->
+        <!-- Photo de profil -->
         <div class="mc-field mc-field--span-2">
           <label>Photo de profil</label>
           <div class="mc-photo-upload">
@@ -86,16 +86,14 @@
           <label for="firstName">Prénom <span class="mc-required">*</span></label>
           <input id="firstName" type="text" formControlName="firstName" placeholder="Ex. Kouadio"
             autocomplete="given-name">
-          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères
-            min.)</p>
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères min.)</p>
         </div>
 
         <div class="mc-field">
           <label for="lastName">Nom <span class="mc-required">*</span></label>
           <input id="lastName" type="text" formControlName="lastName" placeholder="Ex. Affery"
             autocomplete="family-name">
-          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères min.)
-          </p>
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères min.)</p>
         </div>
 
         <div class="mc-field">
@@ -208,6 +206,39 @@
           <p class="mc-error" *ngIf="isFieldInvalid(affectationGroup, 'churchId')">Une église est requise</p>
         </div>
 
+        <!-- ✅ Sélection du Site (optionnel) -->
+        <div class="mc-field mc-field--span-2">
+          <label for="siteId">Site</label>
+
+          <!-- Cas 1 : des sites sont disponibles -->
+          <div class="mc-select-wrap" *ngIf="sites().length > 0">
+            <select id="siteId" formControlName="siteId">
+              <option value="">— Sélectionnez un site —</option>
+              <option *ngFor="let site of sites()" [value]="site.id">
+                {{ site.name }}
+              </option>
+            </select>
+            <svg class="mc-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <p class="mc-hint">Laisser vide pour rattacher le membre à l’église mère</p>
+          </div>
+
+          <!-- Cas 2 : chargement en cours -->
+          <p class="mc-hint" *ngIf="loadingSites()">Chargement des sites…</p>
+
+          <!-- Cas 3 : aucune site pour l'église sélectionnée -->
+          <p class="mc-hint" *ngIf="sites().length === 0 && !loadingSites() && affectationGroup.get('churchId')?.value">
+            Aucun site défini pour cette église. Le membre sera rattaché à l’église mère.
+          </p>
+
+          <!-- Cas 4 : aucune église sélectionnée -->
+          <p class="mc-hint" *ngIf="sites().length === 0 && !loadingSites() && !affectationGroup.get('churchId')?.value">
+            Sélectionnez d’abord une église pour voir les sites disponibles.
+          </p>
+        </div>
+
         <!-- ✅ Cellule (optionnelle, filtrée par église) -->
         <div class="mc-field">
           <label for="cellGroupId">Cellule de maison</label>
@@ -292,6 +323,14 @@
                 Affectation
                 <button type="button" class="mc-link-btn" (click)="goToStep(2)">Modifier</button>
               </th>
+            </tr>
+            <tr>
+              <td>Église</td>
+              <td>{{ getChurchName(affectationGroup.get('churchId')?.value) }}</td>
+            </tr>
+            <tr>
+              <td>Site</td>
+              <td>{{ getSiteName(affectationGroup.get('siteId')?.value) }}</td>
             </tr>
             <tr>
               <td>Cellule</td>

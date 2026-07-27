@@ -1,9 +1,13 @@
+// src/app/features/dashboard/dashboard/admin/church/church-edit/church-edit.ts
+
 import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Notification } from '../../../../../core/services/Notification/notification';
+import { Users } from '../../../../../core/services/Users/users';
+import { User } from '../../../../../core/models/Users/user.model';
 
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Site, SiteCreate, SiteUtils, AddressUtils } from '../../../../../core/models/Church/site.model';
@@ -13,6 +17,8 @@ import {
   ChurchUpdate,
   ChurchUtils
 } from '../../../../../core/models/Church/church.model';
+
+const PASTOR_ROLES = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL', 'PASTEUR', 'Pasteur', 'pasteur'];
 
 @Component({
   selector: 'app-church-edit',
@@ -42,6 +48,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
   siteForm: FormGroup;
   savingSite = signal(false);
 
+  // ── Liste des pasteurs (select) ──
+  pastors: WritableSignal<User[]> = signal([]);
+  loadingPastors = signal(false);
+
   // ── Formulaire principal ──
   churchForm: FormGroup;
 
@@ -52,6 +62,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private churchService: ChurchService,
+    private userService: Users,
     private route: ActivatedRoute,
     private notificationService: Notification,
     private router: Router,
@@ -112,6 +123,9 @@ export class ChurchEdit implements OnInit, OnDestroy {
       this.isEditMode.set(false);
       this.church.set(null);
     }
+
+    // Chargement de la liste des pasteurs pour le select
+    this.loadPastors();
   }
 
   ngOnDestroy(): void {
@@ -168,6 +182,56 @@ export class ChurchEdit implements OnInit, OnDestroy {
           console.error('❌ Erreur chargement sites:', err);
           this.siteError.set('Impossible de charger les sites.');
           this.loadingSites.set(false);
+        },
+      });
+  }
+
+  // ─── PASTEURS (SELECT) ───────────────────────────────────────────────
+
+  private loadPastors(): void {
+    this.loadingPastors.set(true);
+    this.userService
+      .getUsers({ page: 1, pageSize: 200 } as any)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const allUsers = (response.data.items ?? []) as User[];
+            const pastors = allUsers.filter((u) =>
+              (u.roles ?? []).some((r) => PASTOR_ROLES.includes(r))
+            );
+            this.pastors.set(pastors);
+          } else {
+            this.pastors.set([]);
+          }
+          this.loadingPastors.set(false);
+        },
+        error: () => {
+          this.pastors.set([]);
+          this.loadingPastors.set(false);
+        },
+      });
+  }
+
+  // S'assure que le pasteur actuellement assigné au site apparaît bien
+  // dans la liste du select, même s'il n'a pas été renvoyé par loadPastors()
+  // (rôle différent, compte désactivé, etc.)
+  private ensurePastorInList(pastorId: string): void {
+    if (!pastorId) return;
+    const alreadyThere = this.pastors().some((p) => p.id === pastorId);
+    if (alreadyThere) return;
+
+    this.userService
+      .getUserById(pastorId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: ApiResponse<User>) => {
+          if (response.success && response.data) {
+            this.pastors.update((list) => [response.data as User, ...list]);
+          }
+        },
+        error: () => {
+          // silencieux : si le pasteur n'existe plus, le select affichera juste "Aucun responsable"
         },
       });
   }
@@ -277,7 +341,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
         error: (err) => {
           console.error('❌ Erreur mise à jour église:', err);
           this.error.set('Erreur serveur.');
-          this.notificationService.error('Erreur','Erreur serveur lors de la sauvegarde du site');
+          this.notificationService.error('Erreur', 'Erreur serveur lors de la sauvegarde du site');
         },
       });
   }
@@ -286,7 +350,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
 
   startAddSite(): void {
     this.editingSite.set(null);
-    this.siteForm.reset({ isActive: true });
+    this.siteForm.reset({ isActive: true, pastorId: '' });
     this.showSiteForm.set(true);
   }
 
@@ -308,6 +372,11 @@ export class ChurchEdit implements OnInit, OnDestroy {
       isActive: site.isActive,
       serviceTimes: site.serviceTimes || [],
     });
+
+    if (site.pastorId) {
+      this.ensurePastorInList(site.pastorId);
+    }
+
     this.showSiteForm.set(true);
   }
 
@@ -373,6 +442,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
             }
             this.cancelSiteForm();
             this.siteError.set(null);
+            this.notificationService.success('Succès', 'Site enregistré avec succès');
           } else {
             this.siteError.set(response.message || 'Erreur lors de la sauvegarde du site.');
           }
@@ -396,10 +466,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
         next: (response: ApiResponse<boolean>) => {
           if (response.success) {
             this.sites.update((list) => list.filter((s) => s.id !== site.id));
-            this.notificationService.success('Succès',`Site "${site.name}" supprimé avec succès`);
+            this.notificationService.success('Succès', `Site "${site.name}" supprimé avec succès`);
           } else {
             this.siteError.set(response.message || 'Erreur lors de la suppression.');
-            this.notificationService.error('Erreur','Erreur serveur lors de la suppression du site');
+            this.notificationService.error('Erreur', response.message || 'Erreur lors de la suppression');
           }
         },
         error: (err) => {
@@ -422,18 +492,17 @@ export class ChurchEdit implements OnInit, OnDestroy {
             this.sites.update((list) =>
               list.map((s) => (s.id === site.id ? { ...s, isActive: !s.isActive } : s))
             );
-            // ✅ Notification de succès
             const status = site.isActive ? 'désactivé' : 'activé';
-            this.notificationService.success('Succès',`Site "${site.name}" ${status} avec succès`);
+            this.notificationService.success('Succès', `Site "${site.name}" ${status} avec succès`);
           } else {
             this.siteError.set(response.message || 'Erreur lors du changement de statut.');
-            this.notificationService.error('Erreur',response.message || 'Erreur lors du changement de statut');
+            this.notificationService.error('Erreur', response.message || 'Erreur lors du changement de statut');
           }
         },
         error: (err) => {
           console.error('❌ Erreur toggle site:', err);
           this.siteError.set('Erreur serveur.');
-          this.notificationService.error('Erreur','Erreur serveur lors du changement de statut');
+          this.notificationService.error('Erreur', 'Erreur serveur lors du changement de statut');
         },
       });
   }
@@ -460,7 +529,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
     return SiteUtils.getFormattedServices(site.serviceTimes);
   }
 
-  getInitials(name: string): string {
-    return ChurchUtils.getInitials(name);
+  getUserFullName(user: User): string {
+    return user.fullName || `${user.firstName} ${user.lastName}`;
   }
 }

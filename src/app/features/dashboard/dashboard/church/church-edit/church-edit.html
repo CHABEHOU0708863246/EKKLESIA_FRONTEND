@@ -8,7 +8,9 @@
       {{ isEditMode() ? 'Modifier l’église' : 'Nouvelle église' }}
     </h2>
     <button type="button" class="ce-close-btn" (click)="closePanel()" aria-label="Fermer">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
     </button>
   </header>
 
@@ -16,7 +18,10 @@
 
     <!-- ── Message d'erreur ── -->
     <div class="ce-banner ce-banner--error" *ngIf="error()">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
       <span>{{ error() }}</span>
       <button class="ce-banner-close" (click)="error.set(null)">×</button>
     </div>
@@ -32,11 +37,13 @@
           <div class="ce-col">
             <label for="ce-name">Nom *</label>
             <input id="ce-name" formControlName="name" type="text" placeholder="Nom de l'église" />
-            <span class="ce-error" *ngIf="churchForm.get('name')?.invalid && churchForm.get('name')?.touched">Requis</span>
+            <span class="ce-error"
+              *ngIf="churchForm.get('name')?.invalid && churchForm.get('name')?.touched">Requis</span>
           </div>
           <div class="ce-col">
             <label for="ce-legalName">Nom légal</label>
-            <input id="ce-legalName" formControlName="legalName" type="text" placeholder="Nom officiel (si différent)" />
+            <input id="ce-legalName" formControlName="legalName" type="text"
+              placeholder="Nom officiel (si différent)" />
           </div>
         </div>
 
@@ -44,7 +51,8 @@
           <div class="ce-col">
             <label for="ce-phone">Téléphone *</label>
             <input id="ce-phone" formControlName="phone" type="tel" placeholder="+225..." />
-            <span class="ce-error" *ngIf="churchForm.get('phone')?.invalid && churchForm.get('phone')?.touched">Requis</span>
+            <span class="ce-error"
+              *ngIf="churchForm.get('phone')?.invalid && churchForm.get('phone')?.touched">Requis</span>
           </div>
           <div class="ce-col">
             <label for="ce-email">Email</label>
@@ -81,33 +89,24 @@
           </div>
           <div class="ce-col">
             <label for="ce-denomination">Dénomination</label>
-            <input id="ce-denomination" formControlName="denomination" type="text" placeholder="Pentecôtiste, Baptiste, ..." />
+            <input id="ce-denomination" formControlName="denomination" type="text"
+              placeholder="Pentecôtiste, Baptiste, ..." />
           </div>
         </div>
 
         <div class="ce-row">
           <div class="ce-col">
             <label for="ce-missionStatement">Mission</label>
-            <textarea id="ce-missionStatement" formControlName="missionStatement" rows="2" placeholder="Énoncé de mission"></textarea>
+            <textarea id="ce-missionStatement" formControlName="missionStatement" rows="2"
+              placeholder="Énoncé de mission"></textarea>
           </div>
           <div class="ce-col">
             <label for="ce-visionStatement">Vision</label>
-            <textarea id="ce-visionStatement" formControlName="visionStatement" rows="2" placeholder="Énoncé de vision"></textarea>
+            <textarea id="ce-visionStatement" formControlName="visionStatement" rows="2"
+              placeholder="Énoncé de vision"></textarea>
           </div>
         </div>
 
-        <!-- <div class="ce-row">
-          <div class="ce-col ce-col--checkbox">
-            <label class="ce-checkbox">
-              <input type="checkbox" formControlName="isHeadquarters" />
-              <span>Siège / Église mère</span>
-            </label>
-          </div>
-          <div class="ce-col">
-            <label for="ce-parentChurchId">Église mère (ID)</label>
-            <input id="ce-parentChurchId" formControlName="parentChurchId" type="text" placeholder="ID de l'église mère" />
-          </div>
-        </div> -->
       </fieldset>
 
       <!-- Section : Adresse -->
@@ -117,7 +116,8 @@
         <div class="ce-row">
           <div class="ce-col">
             <label for="ce-addressStreet">Rue</label>
-            <input id="ce-addressStreet" formControlName="addressStreet" type="text" placeholder="Rue, numéro, quartier" />
+            <input id="ce-addressStreet" formControlName="addressStreet" type="text"
+              placeholder="Rue, numéro, quartier" />
           </div>
         </div>
 
@@ -162,11 +162,13 @@
         <div class="ce-row">
           <div class="ce-col">
             <label for="ce-settingsDefaultLanguage">Langue par défaut</label>
-            <input id="ce-settingsDefaultLanguage" formControlName="settingsDefaultLanguage" type="text" placeholder="fr" />
+            <input id="ce-settingsDefaultLanguage" formControlName="settingsDefaultLanguage" type="text"
+              placeholder="fr" />
           </div>
           <div class="ce-col">
             <label for="ce-settingsTimezone">Fuseau horaire</label>
-            <input id="ce-settingsTimezone" formControlName="settingsTimezone" type="text" placeholder="Africa/Abidjan" />
+            <input id="ce-settingsTimezone" formControlName="settingsTimezone" type="text"
+              placeholder="Africa/Abidjan" />
           </div>
         </div>
 
@@ -177,7 +179,8 @@
           </div>
           <div class="ce-col">
             <label for="ce-settingsFiscalYearStart">Début exercice (mois)</label>
-            <input id="ce-settingsFiscalYearStart" formControlName="settingsFiscalYearStart" type="number" min="1" max="12" />
+            <input id="ce-settingsFiscalYearStart" formControlName="settingsFiscalYearStart" type="number" min="1"
+              max="12" />
           </div>
         </div>
       </fieldset>
@@ -199,7 +202,9 @@
       <div class="ce-sites-header">
         <h3>Sites de l'église</h3>
         <button type="button" class="ce-btn ce-btn--primary ce-btn--sm" (click)="startAddSite()">
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
           Ajouter un site
         </button>
       </div>
@@ -232,12 +237,20 @@
           </div>
           <div class="ce-site-actions">
             <button type="button" class="ce-icon-btn" (click)="startEditSite(site, $event)" aria-label="Modifier">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8"/></svg>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor"
+                  stroke-width="1.8" />
+              </svg>
             </button>
-            <button type="button" class="ce-icon-btn ce-icon-btn--danger" (click)="deleteSite(site, $event)" aria-label="Supprimer">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8"/></svg>
+            <button type="button" class="ce-icon-btn ce-icon-btn--danger" (click)="deleteSite(site, $event)"
+              aria-label="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+                  stroke="currentColor" stroke-width="1.8" />
+              </svg>
             </button>
-            <button type="button" class="ce-status-toggle" [ngClass]="'is-' + getSiteStatusBadge(site.isActive).color" (click)="toggleSiteStatus(site, $event)">
+            <button type="button" class="ce-status-toggle" [ngClass]="'is-' + getSiteStatusBadge(site.isActive).color"
+              (click)="toggleSiteStatus(site, $event)">
               {{ site.isActive ? 'Désactiver' : 'Activer' }}
             </button>
           </div>
@@ -255,7 +268,8 @@
             <div class="ce-col">
               <label for="ce-site-name">Nom du site *</label>
               <input id="ce-site-name" formControlName="name" type="text" placeholder="Site Cocody" />
-              <span class="ce-error" *ngIf="siteForm.get('name')?.invalid && siteForm.get('name')?.touched">Requis</span>
+              <span class="ce-error"
+                *ngIf="siteForm.get('name')?.invalid && siteForm.get('name')?.touched">Requis</span>
             </div>
           </div>
           <div class="ce-row">
@@ -268,11 +282,22 @@
               <input id="ce-site-email" formControlName="email" type="email" />
             </div>
           </div>
-          <div class="ce-row">
+
+          <!-- ─── SÉLECTION DU PASTEUR RESPONSABLE (select, pas d'ID visible) ─── -->
+          <div class="ce-row ce-pastor-row">
             <div class="ce-col">
-              <label for="ce-site-pastorId">ID du pasteur</label>
-              <input id="ce-site-pastorId" formControlName="pastorId" type="text" placeholder="ID du membre pasteur" />
+              <label for="ce-site-pastorId">Pasteur / Responsable du site</label>
+              <select id="ce-site-pastorId" formControlName="pastorId" class="ce-select">
+                <option value="">— Aucun responsable —</option>
+                <option *ngFor="let p of pastors()" [value]="p.id">
+                  {{ getUserFullName(p) }}{{ p.phone ? ' — ' + p.phone : '' }}
+                </option>
+              </select>
+              <p class="ce-loading-text ce-loading-text--sm" *ngIf="loadingPastors()">
+                <span class="ce-spinner ce-spinner--sm"></span> Chargement des pasteurs…
+              </p>
             </div>
+
             <div class="ce-col ce-col--checkbox">
               <label class="ce-checkbox">
                 <input type="checkbox" formControlName="isActive" />
@@ -280,6 +305,7 @@
               </label>
             </div>
           </div>
+
           <fieldset class="ce-fieldset ce-fieldset--nested">
             <legend class="ce-legend ce-legend--nested">Adresse du site</legend>
             <div class="ce-row">

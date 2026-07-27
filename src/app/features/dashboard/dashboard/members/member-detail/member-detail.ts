@@ -8,7 +8,9 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { CellGroup } from '../../../../../core/models/Members/cell-group.model';
 import { Member } from '../../../../../core/models/Members/member.model';
 import { PastoralNote } from '../../../../../core/models/Members/pastoral-note.model';
+import { Site } from '../../../../../core/models/Church/site.model';
 import { Members } from '../../../../../core/services/Members/members';
+import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
 import { environment } from '../../../../../../environments/environment';
 
@@ -66,17 +68,20 @@ export class MemberDetail implements OnInit, OnDestroy {
   private memberId = '';
   private godfatherSearch$ = new Subject<string>();
 
+  // ── Photos ──
   photoFile = signal<File | null>(null);
-photoPreviewUrl = signal<string | null>(null);
-uploadingPhoto = signal(false);
-photoUploadError = signal<string | null>(null);
+  photoPreviewUrl = signal<string | null>(null);
+  uploadingPhoto = signal(false);
+  photoUploadError = signal<string | null>(null);
 
+  // ── Options ──
   readonly statusOptions = STATUS_OPTIONS;
   readonly spiritualStatusOptions = SPIRITUAL_STATUS_OPTIONS;
   readonly genderOptions = GENDER_OPTIONS;
   readonly visitorStageOrder = VISITOR_STAGE_ORDER;
   readonly visitorStageLabels = VISITOR_STAGE_LABELS;
 
+  // ── État ──
   member = signal<Member | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
@@ -86,24 +91,35 @@ photoUploadError = signal<string | null>(null);
   saveError = signal<string | null>(null);
   saveSuccess = signal(false);
 
+  // ── Données associées ──
   cellGroups = signal<CellGroup[]>([]);
   godfather = signal<Member | null>(null);
 
+  // ── Sites ──
+  sites = signal<Site[]>([]);
+  loadingSites = signal(false);
+
+  // ── Parrain / Marraine ──
   godfatherResults: Member[] = [];
   searchingGodfather = signal(false);
   showGodfatherResults = signal(false);
   selectedGodfather: Member | null = null;
 
+  // ── Notes ──
   pastoralNotes = signal<PastoralNote[]>([]);
   loadingNotes = signal(false);
 
+  // ── Parcours visiteur ──
   advancingStage = signal(false);
 
+  // ── Suppression ──
   deleteDialogVisible = signal(false);
   deleting = signal(false);
 
+  // ── Formulaire ──
   form: FormGroup;
 
+  // ── Computed ──
   currentStageIndex = computed(() => {
     const m = this.member();
     if (!m || !(m as any).visitorStage) return -1;
@@ -121,6 +137,7 @@ photoUploadError = signal<string | null>(null);
   constructor(
     private fb: FormBuilder,
     private memberService: Members,
+    private churchService: ChurchService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -142,6 +159,7 @@ photoUploadError = signal<string | null>(null);
         isLeader: [false],
       }),
       affectation: this.fb.group({
+        siteId: [''],           // ← Nouveau champ
         cellGroupId: [''],
         ministryId: [''],
         godfatherId: [''],
@@ -150,81 +168,80 @@ photoUploadError = signal<string | null>(null);
     });
   }
 
+  // ───────────────────────────────────────────────────────────────
+  // PHOTO
+  // ───────────────────────────────────────────────────────────────
 
   onPhotoSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
 
-  if (!file.type.startsWith('image/')) {
-    this.photoUploadError.set('Veuillez sélectionner une image.');
-    return;
+    if (!file.type.startsWith('image/')) {
+      this.photoUploadError.set('Veuillez sélectionner une image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.photoUploadError.set("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+
+    this.photoFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => this.photoPreviewUrl.set(reader.result as string);
+    reader.readAsDataURL(file);
+    this.photoUploadError.set(null);
   }
-  if (file.size > 5 * 1024 * 1024) {
-    this.photoUploadError.set("L'image ne doit pas dépasser 5 Mo.");
-    return;
+
+  removePhoto(): void {
+    this.photoFile.set(null);
+    this.photoPreviewUrl.set(null);
+    this.identiteGroup.get('photoUrl')?.setValue('');
   }
 
-  this.photoFile.set(file);
-  const reader = new FileReader();
-  reader.onload = () => this.photoPreviewUrl.set(reader.result as string);
-  reader.readAsDataURL(file);
-  this.photoUploadError.set(null);
-}
+  uploadPhoto(): void {
+    const file = this.photoFile();
+    if (!file) return;
 
-removePhoto(): void {
-  this.photoFile.set(null);
-  this.photoPreviewUrl.set(null);
-  this.identiteGroup.get('photoUrl')?.setValue('');
-}
+    this.uploadingPhoto.set(true);
+    this.photoUploadError.set(null);
 
-uploadPhoto(): void {
-  const file = this.photoFile();
-  if (!file) return;
+    this.memberService
+      .updateMemberPhoto(this.memberId, file)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updatedMember) => {
+          this.uploadingPhoto.set(false);
+          const photoUrl = updatedMember.photoUrl;
+          this.identiteGroup.get('photoUrl')?.setValue(photoUrl);
+          this.photoPreviewUrl.set(null);
+          this.photoFile.set(null);
 
-  this.uploadingPhoto.set(true);
-  this.photoUploadError.set(null);
-
-  // ✅ On passe directement le File, c'est le service qui construit le FormData
-  this.memberService
-    .updateMemberPhoto(this.memberId, file)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (updatedMember) => {
-        this.uploadingPhoto.set(false);
-
-        // ✅ Le backend renvoie le membre complet (MemberResponseDto),
-        // pas juste { photoUrl }, donc on lit updatedMember.photoUrl
-        const photoUrl = updatedMember.photoUrl;
-        this.identiteGroup.get('photoUrl')?.setValue(photoUrl);
-        this.photoPreviewUrl.set(null);
-        this.photoFile.set(null);
-
-        const m = this.member();
-        if (m) {
-          m.photoUrl = photoUrl;
-          this.member.set(m);
-        }
-      },
-      error: (err) => {
-        console.error('❌ Erreur upload photo:', err);
-        this.uploadingPhoto.set(false);
-        this.photoUploadError.set("Impossible d'enregistrer la photo.");
-      },
-    });
-}
-
-
-getPhotoUrl(photoIdOrUrl: string | undefined): string {
-  if (!photoIdOrUrl) return '';
-  // Si c'est une URL complète, on la retourne directement
-  if (photoIdOrUrl.startsWith('http://') || photoIdOrUrl.startsWith('https://')) {
-    return photoIdOrUrl;
+          const m = this.member();
+          if (m) {
+            m.photoUrl = photoUrl;
+            this.member.set(m);
+          }
+        },
+        error: (err) => {
+          console.error('❌ Erreur upload photo:', err);
+          this.uploadingPhoto.set(false);
+          this.photoUploadError.set("Impossible d'enregistrer la photo.");
+        },
+      });
   }
-  // Sinon, on construit l'URL vers l'API (à adapter selon votre backend)
-  return `${environment.apiUrl}/api/v1/Member/photo/${photoIdOrUrl}`;
-}
 
+  getPhotoUrl(photoIdOrUrl: string | undefined): string {
+    if (!photoIdOrUrl) return '';
+    if (photoIdOrUrl.startsWith('http://') || photoIdOrUrl.startsWith('https://')) {
+      return photoIdOrUrl;
+    }
+    return `${environment.apiUrl}/api/v1/Member/photo/${photoIdOrUrl}`;
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // CYCLES DE VIE
+  // ───────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
     this.memberId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -266,6 +283,11 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
           this.member.set(member);
           this.populateForm(member);
           this.loading.set(false);
+
+          // Charger les sites si l'église est définie
+          if (member.churchId) {
+            this.loadSites(member.churchId);
+          }
 
           const godfatherId = (member as any).godfatherId;
           if (godfatherId) this.loadGodfather(godfatherId);
@@ -320,6 +342,31 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
       });
   }
 
+  // ── Chargement des sites ──
+  private loadSites(churchId: string): void {
+    this.loadingSites.set(true);
+    this.churchService.getSitesByChurchId(churchId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.sites.set(Array.isArray(response.data) ? response.data : []);
+          } else {
+            this.sites.set([]);
+          }
+          this.loadingSites.set(false);
+        },
+        error: () => {
+          this.sites.set([]);
+          this.loadingSites.set(false);
+        },
+      });
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // FORMULAIRE
+  // ───────────────────────────────────────────────────────────────
+
   private populateForm(member: Member): void {
     const m = member as any;
     this.form.patchValue({
@@ -339,6 +386,7 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
         isLeader: !!m.isLeader,
       },
       affectation: {
+        siteId: m.siteId ?? '',           // ← Nouveau champ
         cellGroupId: m.cellGroupId ?? '',
         ministryId: m.ministryIds?.[0] ?? '',
         godfatherId: m.godfatherId ?? '',
@@ -414,6 +462,7 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
       isBaptized: statut.isBaptized,
       baptismDate: statut.isBaptized ? statut.baptizedDate || undefined : undefined,
       isLeader: statut.isLeader,
+      siteId: affectation.siteId || undefined,      // ← Nouveau champ
       cellGroupId: affectation.cellGroupId || undefined,
       ministryIds: affectation.ministryId ? [affectation.ministryId] : [],
       godfatherId: affectation.godfatherId || undefined,
@@ -444,7 +493,7 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
   }
 
   // ───────────────────────────────────────────────────────────────
-  // PARRAIN / MARRAINE (recherche, en mode édition)
+  // PARRAIN / MARRAINE
   // ───────────────────────────────────────────────────────────────
 
   onGodfatherInput(term: string): void {
@@ -589,6 +638,13 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
   getCellGroupName(id: string | undefined | null): string {
     if (!id) return 'Aucune';
     return this.cellGroups().find((c) => (c as any).id === id)?.name ?? 'Aucune';
+  }
+
+  // ── Site ──
+  getSiteName(siteId: string | undefined | null): string {
+    if (!siteId) return 'Église mère (siège)';
+    const site = this.sites().find((s) => s.id === siteId);
+    return site ? site.name : 'Site inconnu';
   }
 
   formatDate(date: string | Date | null | undefined): string {

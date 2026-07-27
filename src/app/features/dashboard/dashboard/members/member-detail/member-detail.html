@@ -120,76 +120,70 @@
         </div>
         <div class="md-panel-body md-panel-body--grid">
 
-<!-- ─── Photo de profil ─── -->
-<div class="md-field md-field--span-2">
-  <label>Photo de profil</label>
+          <!-- ─── Photo de profil ─── -->
+          <div class="md-field md-field--span-2">
+            <label>Photo de profil</label>
 
-  <div class="md-photo-upload">
+            <div class="md-photo-upload">
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                class="md-photo-input-hidden"
+                (change)="onPhotoSelected($event)"
+              />
 
-    <!-- Input file caché, toujours présent dans le DOM -->
-    <input
-      #fileInput
-      type="file"
-      accept="image/*"
-      class="md-photo-input-hidden"
-      (change)="onPhotoSelected($event)"
-    />
+              <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
+                <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
 
-    <!-- Aperçu (photo existante ou nouvelle sélectionnée) -->
-    <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
-      <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
+                <button
+                  *ngIf="isEditMode()"
+                  type="button"
+                  class="md-photo-change"
+                  (click)="fileInput.click()"
+                >
+                  Changer la photo
+                </button>
 
-      <button
-        *ngIf="isEditMode()"
-        type="button"
-        class="md-photo-change"
-        (click)="fileInput.click()"
-      >
-        Changer la photo
-      </button>
+                <button
+                  *ngIf="isEditMode() && photoPreviewUrl()"
+                  type="button"
+                  class="md-photo-remove"
+                  (click)="removePhoto()"
+                >×</button>
+              </div>
 
-      <button
-        *ngIf="isEditMode() && photoPreviewUrl()"
-        type="button"
-        class="md-photo-remove"
-        (click)="removePhoto()"
-      >×</button>
-    </div>
+              <div
+                *ngIf="isEditMode() && !photoPreviewUrl() && !member()?.photoUrl"
+                class="md-photo-dropzone"
+                (click)="fileInput.click()"
+              >
+                <span>Cliquez pour choisir une photo</span>
+                <small>JPG, PNG, GIF – Max 5 Mo</small>
+              </div>
 
-    <!-- Zone de dépôt visible uniquement quand il n'y a AUCUNE photo -->
-    <div
-      *ngIf="isEditMode() && !photoPreviewUrl() && !member()?.photoUrl"
-      class="md-photo-dropzone"
-      (click)="fileInput.click()"
-    >
-      <span>Cliquez pour choisir une photo</span>
-      <small>JPG, PNG, GIF – Max 5 Mo</small>
-    </div>
+              <div *ngIf="isEditMode() && photoFile()" class="md-photo-actions">
+                <button
+                  type="button"
+                  class="md-btn md-btn--primary"
+                  (click)="uploadPhoto()"
+                  [disabled]="uploadingPhoto()"
+                >
+                  <span *ngIf="!uploadingPhoto()">Enregistrer la photo</span>
+                  <span class="md-spinner md-spinner--btn" *ngIf="uploadingPhoto()"></span>
+                </button>
+                <button type="button" class="md-btn md-btn--ghost" (click)="removePhoto()">Annuler</button>
+              </div>
 
-    <div *ngIf="isEditMode() && photoFile()" class="md-photo-actions">
-      <button
-        type="button"
-        class="md-btn md-btn--primary"
-        (click)="uploadPhoto()"
-        [disabled]="uploadingPhoto()"
-      >
-        <span *ngIf="!uploadingPhoto()">Enregistrer la photo</span>
-        <span class="md-spinner md-spinner--btn" *ngIf="uploadingPhoto()"></span>
-      </button>
-      <button type="button" class="md-btn md-btn--ghost" (click)="removePhoto()">Annuler</button>
-    </div>
-
-    <p class="md-error" *ngIf="photoUploadError()">{{ photoUploadError() }}</p>
-  </div>
-</div>
+              <p class="md-error" *ngIf="photoUploadError()">{{ photoUploadError() }}</p>
+            </div>
+          </div>
 
           <ng-container *ngIf="!isEditMode()">
-            <div class="md-info-row"><span>Civilité</span><strong>{{ m.gender === 'F' ? 'Femme' : m.gender === 'M' ?
-                'Homme' : '—' }}</strong></div>
+            <div class="md-info-row"><span>Civilité</span><strong>{{ m.gender === 'F' ? 'Femme' : m.gender === 'M' ? 'Homme' : '—' }}</strong></div>
             <div class="md-info-row"><span>Téléphone</span><strong>{{ m.phone || '—' }}</strong></div>
             <div class="md-info-row"><span>E-mail</span><strong>{{ m.email || '—' }}</strong></div>
-            <div class="md-info-row"><span>Date de naissance</span><strong>{{ formatDate(m.dateOfBirth) }}</strong>
-            </div>
+            <div class="md-info-row"><span>Date de naissance</span><strong>{{ formatDate(m.dateOfBirth) }}</strong></div>
           </ng-container>
 
           <ng-container *ngIf="isEditMode()">
@@ -207,15 +201,13 @@
             <div class="md-field">
               <label for="firstName">Prénom <span class="md-required">*</span></label>
               <input id="firstName" type="text" formControlName="firstName">
-              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères
-                min.)</p>
+              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'firstName')">Le prénom est requis (2 caractères min.)</p>
             </div>
 
             <div class="md-field">
               <label for="lastName">Nom <span class="md-required">*</span></label>
               <input id="lastName" type="text" formControlName="lastName">
-              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères
-                min.)</p>
+              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'lastName')">Le nom est requis (2 caractères min.)</p>
             </div>
 
             <div class="md-field">
@@ -248,11 +240,9 @@
 
           <ng-container *ngIf="!isEditMode()">
             <div class="md-info-row"><span>Statut</span><strong>{{ getStatusLabel(m.status) }}</strong></div>
-            <div class="md-info-row"><span>Statut spirituel</span><strong>{{ getSpiritualStatusLabel(m.spiritualStatus)
-                }}</strong></div>
+            <div class="md-info-row"><span>Statut spirituel</span><strong>{{ getSpiritualStatusLabel(m.spiritualStatus) }}</strong></div>
             <div class="md-info-row"><span>Baptisé(e)</span><strong>{{ m.isBaptized ? 'Oui' : 'Non' }}</strong></div>
-            <div class="md-info-row" *ngIf="m.isBaptized"><span>Date de baptême</span><strong>{{
-                formatDate(m.baptismDate) }}</strong></div>
+            <div class="md-info-row" *ngIf="m.isBaptized"><span>Date de baptême</span><strong>{{ formatDate(m.baptismDate) }}</strong></div>
             <div class="md-info-row"><span>Leader</span><strong>{{ m.isLeader ? 'Oui' : 'Non' }}</strong></div>
           </ng-container>
 
@@ -264,8 +254,7 @@
                   <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
                 </select>
                 <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" />
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
             </div>
@@ -277,8 +266,7 @@
                   <option *ngFor="let s of spiritualStatusOptions" [value]="s.value">{{ s.label }}</option>
                 </select>
                 <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" />
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
             </div>
@@ -320,13 +308,33 @@
         <div class="md-panel-body md-panel-body--grid">
 
           <ng-container *ngIf="!isEditMode()">
-            <div class="md-info-row"><span>Cellule de maison</span><strong>{{ getCellGroupName(m.cellGroupId)
-                }}</strong></div>
-            <div class="md-info-row"><span>Parrain / Marraine</span><strong>{{ godfather() ? getFullName(godfather()) :
-                'Aucun' }}</strong></div>
+            <!-- Affichage du site -->
+            <div class="md-info-row"><span>Site</span><strong>{{ getSiteName(m.siteId) }}</strong></div>
+            <div class="md-info-row"><span>Cellule de maison</span><strong>{{ getCellGroupName(m.cellGroupId) }}</strong></div>
+            <div class="md-info-row"><span>Parrain / Marraine</span><strong>{{ godfather() ? getFullName(godfather()) : 'Aucun' }}</strong></div>
           </ng-container>
 
           <ng-container *ngIf="isEditMode()">
+            <!-- Sélection du site -->
+            <div class="md-field md-field--span-2">
+              <label for="siteId">Site</label>
+              <div class="md-select-wrap">
+                <select id="siteId" formControlName="siteId" [disabled]="loadingSites()">
+                  <option value="">— Sélectionnez un site —</option>
+                  <option *ngFor="let site of sites()" [value]="site.id">
+                    {{ site.name }}
+                  </option>
+                </select>
+                <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <p class="md-hint" *ngIf="loadingSites()">Chargement des sites…</p>
+              <p class="md-hint" *ngIf="!loadingSites() && sites().length === 0">
+                Aucun site défini pour cette église. Laisser vide pour l'église mère.
+              </p>
+            </div>
+
             <div class="md-field">
               <label for="cellGroupId">Cellule de maison</label>
               <div class="md-select-wrap">
@@ -335,8 +343,7 @@
                   <option *ngFor="let cg of cellGroups()" [value]="cg.id">{{ cg.name }}</option>
                 </select>
                 <svg class="md-select-caret" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" />
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
             </div>
@@ -362,8 +369,7 @@
 
               <div class="md-search-dropdown" *ngIf="showGodfatherResults() && !selectedGodfather">
                 <p class="md-search-status" *ngIf="searchingGodfather()">Recherche en cours…</p>
-                <p class="md-search-status" *ngIf="!searchingGodfather() && godfatherResults.length === 0">Aucun membre
-                  trouvé</p>
+                <p class="md-search-status" *ngIf="!searchingGodfather() && godfatherResults.length === 0">Aucun membre trouvé</p>
                 <button type="button" class="md-search-result" *ngFor="let gm of godfatherResults"
                   (click)="selectGodfather(gm)">
                   <div class="md-mini-avatar">{{ getInitials(gm) }}</div>
@@ -397,8 +403,7 @@
 
           <div class="md-note-card" *ngFor="let note of pastoralNotes()">
             <div class="md-note-head">
-              <span class="md-tag" [ngClass]="'md-tag--' + (note.summary).toLowerCase()">{{ note.summary || 'Général'
-                }}</span>
+              <span class="md-tag" [ngClass]="'md-tag--' + (note.summary).toLowerCase()">{{ note.summary || 'Général' }}</span>
               <span class="md-note-date">{{ formatDate(note.createdAt) }}</span>
             </div>
             <p class="md-note-content">{{ note.memberName }}</p>
