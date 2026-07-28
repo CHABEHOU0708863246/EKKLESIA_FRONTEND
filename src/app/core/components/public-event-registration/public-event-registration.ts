@@ -9,8 +9,10 @@ import { PublicRegistrationService } from '../../services/Event/public-registrat
 const PROFILE_OPTIONS = [
   { value: ParticipantProfileType.External, label: 'Personne extérieure' },
   { value: ParticipantProfileType.Member, label: 'Membre simple' },
-  { value: ParticipantProfileType.Berehin, label: 'Béréhin' },
-  { value: ParticipantProfileType.Leader, label: 'Leader' },
+  { value: ParticipantProfileType.Berehin, label: 'Béréen' },
+  { value: ParticipantProfileType.FraternityLeader, label: 'Leader de fraternité' },
+  { value: ParticipantProfileType.Shepherd, label: 'Berger' },
+  { value: ParticipantProfileType.ShepherdMinister, label: 'Ministre Berger' },
   { value: ParticipantProfileType.Pastor, label: 'Pasteur' },
 ];
 

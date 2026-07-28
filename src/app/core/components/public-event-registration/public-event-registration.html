@@ -24,25 +24,29 @@
 
       <!-- Logo + emblème -->
       <div class="per-hero-logo-row">
-        <img
-          src="/logos/A New Design - Fait avec PosterMyWall.png"
-          alt="Logo MIAV"
-          class="per-hero-logo"
-        >
+        <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-hero-logo">
+      </div>
+
+
+
+       <!-- @if (event()!.theme) {
+      <p class="per-hero-theme">
+        <span class="per-hero-theme-label">Thème :</span> {{ event()!.theme }}
+      </p>
+      } -->
+
+      <!-- @if (event()!.description) {
+      <p class="per-hero-desc">{{ event()!.description }}</p>
+      } -->
+
+            <!-- Thème / verse directeur -->
+      <div class="per-hero-banner">
+        <p class="per-hero-banner-text">Soit fidèle jusqu'à la mort en faisant plus pour Dieu</p>
+        <span class="per-hero-banner-ref">Romains 2:17</span>
       </div>
 
       <p class="per-hero-eyebrow">MIAV &middot; Inscription à l'événement</p>
       <h1 class="per-hero-title">{{ event()!.title }}</h1>
-
-      @if (event()!.theme) {
-      <p class="per-hero-theme">
-        <span class="per-hero-theme-label">Thème :</span> {{ event()!.theme }}
-      </p>
-      }
-
-      @if (event()!.description) {
-      <p class="per-hero-desc">{{ event()!.description }}</p>
-      }
 
       @if (event()!.verse) {
       <blockquote class="per-hero-verse">
@@ -53,6 +57,9 @@
         }
       </blockquote>
       }
+
+
+
 
       <div class="per-hero-pills">
         <span class="per-pill per-pill--period">
@@ -203,7 +210,8 @@
             <select id="formulaId" formControlName="formulaId">
               <option value="">— Choisir une formule —</option>
               @for (f of availableFormulas(); track f.id) {
-              <option [value]="f.id">{{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }} places)</option>
+              <option [value]="f.id">{{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }}
+                places)</option>
               }
             </select>
             <p class="per-field-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>

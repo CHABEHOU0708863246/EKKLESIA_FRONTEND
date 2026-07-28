@@ -115,11 +115,13 @@ export enum PaymentStatus {
 }
 
 export enum ParticipantProfileType {
-  Member = 'Member',       // Membre de l'église
-  Berehin = 'Berehin',     // Béréhin (visiteur intégré)
-  External = 'External',   // Personne extérieure
-  Leader = 'Leader',       // Leader
-  Pastor = 'Pastor'        // Pasteur
+  External = 'External',                   // a) Personne extérieure
+  Member = 'Member',                       // b) Membre simple
+  Berehin = 'Berehin',                     // c) Béréhin
+  FraternityLeader = 'FraternityLeader',   // d) Leader de fraternité
+  Shepherd = 'Shepherd',                   // e) Berger
+  ShepherdMinister = 'ShepherdMinister',   // f) Ministre Berger
+  Pastor = 'Pastor'                        // g) Pasteur
 }
 
 // ============================================================
@@ -579,18 +581,22 @@ export const PaymentStatusColors: Record<PaymentStatus, string> = {
 };
 
 export const ParticipantProfileLabels: Record<ParticipantProfileType, string> = {
-  [ParticipantProfileType.Member]: 'Membre',
+  [ParticipantProfileType.External]: 'Personne extérieure',
+  [ParticipantProfileType.Member]: 'Membre simple',
   [ParticipantProfileType.Berehin]: 'Béréhin',
-  [ParticipantProfileType.External]: 'Externe',
-  [ParticipantProfileType.Leader]: 'Leader',
+  [ParticipantProfileType.FraternityLeader]: 'Leader de fraternité',
+  [ParticipantProfileType.Shepherd]: 'Berger',
+  [ParticipantProfileType.ShepherdMinister]: 'Ministre Berger',
   [ParticipantProfileType.Pastor]: 'Pasteur'
 };
 
 export const ParticipantProfileColors: Record<ParticipantProfileType, string> = {
+  [ParticipantProfileType.External]: 'secondary',
   [ParticipantProfileType.Member]: 'primary',
   [ParticipantProfileType.Berehin]: 'success',
-  [ParticipantProfileType.External]: 'secondary',
-  [ParticipantProfileType.Leader]: 'warning',
+  [ParticipantProfileType.FraternityLeader]: 'info',
+  [ParticipantProfileType.Shepherd]: 'warning',
+  [ParticipantProfileType.ShepherdMinister]: 'orange',
   [ParticipantProfileType.Pastor]: 'danger'
 };
 
