@@ -15,23 +15,27 @@
       <h1 *ngIf="event()">{{ event()?.title }}</h1>
       <h1 *ngIf="!event() && !loading()">Événement introuvable</h1>
       <div class="ev-header-actions">
-        <button class="ev-btn ev-btn--outline" (click)="router.navigate(['/dashboard/evenements'])">Retour</button>
-        <button *ngIf="canCancel()" class="ev-btn ev-btn--warning" (click)="cancelEvent()" [disabled]="cancelling()">
-          <span *ngIf="!cancelling()">Annuler</span>
-          <span class="ev-spinner ev-spinner--btn" *ngIf="cancelling()"></span>
-        </button>
-        <button *ngIf="canDelete()" class="ev-btn ev-btn--danger" (click)="deleteEvent()" [disabled]="deleting()">
-          <span *ngIf="!deleting()">Supprimer</span>
-          <span class="ev-spinner ev-spinner--btn" *ngIf="deleting()"></span>
-        </button>
-        <!-- <a *ngIf="canCheckIn()" class="ev-btn ev-btn--success"
-          [routerLink]="['/dashboard/evenements', event()?.id, 'checkin']">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-          Check-in
-        </a> -->
-      </div>
+  <button class="ev-btn ev-btn--outline" (click)="router.navigate(['/dashboard/evenements'])">Retour</button>
+
+  <!-- Bouton pour exporter les participants -->
+  <button
+    *ngIf="event() && event()!.attendees && event()!.attendees.length > 0"
+    class="ev-btn ev-btn--primary"
+    (click)="exportAttendees()"
+    [disabled]="exporting()">
+    <span *ngIf="!exporting()">Exporter en Excel</span>
+    <span class="ev-spinner ev-spinner--btn" *ngIf="exporting()"></span>
+</button>
+
+  <button *ngIf="canCancel()" class="ev-btn ev-btn--warning" (click)="cancelEvent()" [disabled]="cancelling()">
+    <span *ngIf="!cancelling()">Annuler</span>
+    <span class="ev-spinner ev-spinner--btn" *ngIf="cancelling()"></span>
+  </button>
+  <button *ngIf="canDelete()" class="ev-btn ev-btn--danger" (click)="deleteEvent()" [disabled]="deleting()">
+    <span *ngIf="!deleting()">Supprimer</span>
+    <span class="ev-spinner ev-spinner--btn" *ngIf="deleting()"></span>
+  </button>
+</div>
     </div>
   </header>
 
@@ -75,7 +79,8 @@
           </div>
           <div class="ev-info-item">
             <label>Statut</label>
-            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+            <span class="ev-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status)
+              }}</span>
           </div>
           <div class="ev-info-item">
             <label>Début</label>
@@ -200,7 +205,7 @@
         </div>
       </div>
 
-      <!-- ═══════════ PARTICIPANTS (maintenant dans la colonne de gauche) ═══════════ -->
+      <!-- ═══════════ PARTICIPANTS ═══════════ -->
       <section class="ev-detail-participants">
         <div class="ev-panel">
           <div class="ev-panel-header">
@@ -216,17 +221,28 @@
                   <th>Participant</th>
                   <th>Contact</th>
                   <th>Formule</th>
-                  <!-- <th>Check‑in</th> -->
                   <th>Paiement</th>
+                  <th>Check-in</th>
+                  <th>Inscrit le</th>
+                  <th>Notes</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let a of event()!.attendees">
+                  <!-- Participant : nom + genre + profil -->
                   <td>
                     <div class="ev-attendee-name">
-                      <strong>{{ getAttendeeFullName(a) }}</strong>
+                      <strong>{{ a.fullName || getAttendeeFullName(a) }}</strong>
+                      <div class="ev-attendee-meta">
+                        <span *ngIf="a.gender" class="ev-attendee-tag">{{ getGenderLabel(a.gender) }}</span>
+                        <span *ngIf="a.profileType" class="ev-attendee-tag ev-attendee-tag--profile">
+                          {{ getProfileTypeLabel(a.profileType) }}
+                        </span>
+                      </div>
                     </div>
                   </td>
+
+                  <!-- Contact -->
                   <td>
                     <div class="ev-attendee-contact">
                       <div *ngIf="a.email">{{ a.email }}</div>
@@ -234,20 +250,55 @@
                       <div *ngIf="!a.email && !a.phone" class="ev-muted">—</div>
                     </div>
                   </td>
+
+                  <!-- Formule -->
                   <td>
-                    <span class="ev-formula-badge">
-                      {{ a.formulaName || '—' }}
+                    <span class="ev-formula-badge" *ngIf="a.formulaName; else noFormula">
+                      {{ a.formulaName }}
+                      <span class="ev-formula-price" *ngIf="a.formulaPrice != null">
+                        · {{ getFormattedPrice(a.formulaPrice, event()!.currency) }}
+                      </span>
                     </span>
+                    <ng-template #noFormula><span class="ev-muted">—</span></ng-template>
                   </td>
-                  <!-- <td>
-                    <span class="ev-checkin-status" [class.ev-checkin-status--checked]="a.checkedIn">
-                      {{ a.checkedIn ? '✅ Présent' : '⬜ Absent' }}
-                    </span>
-                  </td> -->
+
+                  <!-- Paiement : statut + moyen + référence -->
                   <td>
-                    <span class="ev-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
-                      {{ getPaymentStatusLabel(a.paymentStatus) }}
+                    <div class="ev-attendee-payment">
+                      <span class="ev-payment-status" [style.color]="a.paymentStatusColor"
+                        [class]="getPaymentStatusClass(a.paymentStatus)">
+                        {{ a.paymentStatusLabel || getPaymentStatusLabel(a.paymentStatus) }}
+                      </span>
+                      <div class="ev-payment-detail" *ngIf="a.paymentMethod">
+                        {{ getPaymentMethodLabel(a.paymentMethod) }}
+                      </div>
+                      <div class="ev-payment-detail ev-muted" *ngIf="a.paymentReference" [title]="a.paymentReference">
+                        Réf: {{ a.paymentReference }}
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Check-in -->
+                  <td>
+                    <span class="ev-checkin-badge" [class.ev-checkin-badge--done]="a.checkedIn">
+                      {{ a.checkedIn ? 'Présent' : 'Non arrivé' }}
                     </span>
+                    <div class="ev-muted" *ngIf="a.checkedIn && (a.formattedCheckInTime || a.checkInTime)">
+                      {{ a.formattedCheckInTime || formatDateTime(a.checkInTime!) }}
+                    </div>
+                  </td>
+
+                  <!-- Inscrit le -->
+                  <td class="ev-muted">
+                    {{ a.formattedRegistrationDate || formatDateTime(a.registrationDate) }}
+                  </td>
+
+                  <!-- Notes -->
+                  <td>
+                    <span class="ev-attendee-notes" [title]="a.notes || ''" *ngIf="a.notes; else noNotes">
+                      {{ a.notes | slice:0:30 }}{{ a.notes.length > 30 ? '…' : '' }}
+                    </span>
+                    <ng-template #noNotes><span class="ev-muted">—</span></ng-template>
                   </td>
                 </tr>
               </tbody>

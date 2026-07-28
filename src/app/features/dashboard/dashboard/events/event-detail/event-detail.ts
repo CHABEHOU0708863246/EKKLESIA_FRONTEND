@@ -22,6 +22,7 @@ export class EventDetail implements OnInit {
   private route = inject(ActivatedRoute);
   public router = inject(Router);
   private churchService = inject(Church);
+  exporting = signal(false);
 
   event = signal<Event | null>(null);
   loading = signal(false);
@@ -38,6 +39,77 @@ export class EventDetail implements OnInit {
     }
     this.loadEvent(id);
   }
+
+    getAttendeeNotes(attendee: any): string {
+    const notes = attendee?.notes || attendee?.comment || '';
+    if (!notes) return '—';
+    return notes.length > 30 ? notes.slice(0, 30) + '…' : notes;
+  }
+
+  exportAttendees(): void {
+  const ev = this.event();
+  if (!ev?.id) return;
+
+  this.exporting.set(true);
+  this.eventService.exportAttendeesReport(ev.id)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (blob: Blob) => {
+        this.downloadFile(blob, `rapport-inscrits-${ev.id}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+        this.exporting.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de l\'export:', err);
+        this.error.set('Erreur lors de l\'export du rapport.');
+        this.exporting.set(false);
+      }
+    });
+}
+
+private downloadFile(blob: Blob, fileName: string): void {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
+
+
+  getGenderLabel(gender: string): string {
+  const map: Record<string, string> = {
+    male: 'Homme',
+    female: 'Femme',
+    M: 'Homme',
+    F: 'Femme',
+  };
+  return map[gender] || gender;
+}
+
+getProfileTypeLabel(profileType: string): string {
+  const map: Record<string, string> = {
+    member: 'Membre',
+    visitor: 'Visiteur',
+    child: 'Enfant',
+    leader: 'Responsable',
+    // adaptez selon votre enum ParticipantProfileType
+  };
+  return map[profileType] || profileType;
+}
+
+getPaymentMethodLabel(method: string): string {
+  const map: Record<string, string> = {
+    wave: 'Wave',
+    orange_money: 'Orange Money',
+    mtn_money: 'MTN Money',
+    cash: 'Espèces',
+    card: 'Carte bancaire',
+    bank_transfer: 'Virement',
+  };
+  return map[method] || method;
+}
 
   // ───────────────────────────────────────────────────────────────
   // CHARGEMENT

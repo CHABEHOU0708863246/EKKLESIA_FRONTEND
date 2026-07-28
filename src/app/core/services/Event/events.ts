@@ -55,6 +55,16 @@ export class Events {
   // ============================================================
 
   /**
+ * Exporte la liste des participants d'un événement sous forme de rapport Excel.
+ * GET /api/v1/Event/{id}/export
+ */
+exportAttendeesReport(eventId: string): Observable<Blob> {
+  return this.http.get(`${this.baseUrl}/${eventId}/export`, {
+    responseType: 'blob' // Important pour recevoir un fichier binaire
+  });
+}
+
+  /**
    * Crée un nouvel événement
    * POST /api/v1/Event
    */

@@ -30,6 +30,7 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly ServiceStatus = ServiceStatus;
+  showPreacherResults = signal(false);
 
   // ── État ──
   saving = signal(false);
@@ -215,25 +216,40 @@ export class ServiceForm implements OnInit, OnDestroy {
       });
   }
 
-  private searchPreachers(term: string): void {
-    this.userService.getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            const items = (response.data.items ?? []) as User[];
-            const pastorRoles = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
-            const filtered = items.filter((u) =>
-              (u.roles ?? []).some((r) => pastorRoles.includes(r))
-            );
-            this.preachers.set(filtered);
-          } else {
-            this.preachers.set([]);
-          }
-        },
-        error: () => this.preachers.set([]),
-      });
-  }
+private searchPreachers(term: string): void {
+  this.userService.getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const items = (response.data.items ?? []) as User[];
+          const pastorRoles = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
+          const filtered = items.filter((u) =>
+            (u.roles ?? []).some((r) => pastorRoles.includes(r))
+          );
+          this.preachers.set(filtered);
+          this.showPreacherResults.set(true);
+        } else {
+          this.preachers.set([]);
+        }
+      },
+      error: () => this.preachers.set([]),
+    });
+}
+
+selectPreacher(user: User): void {
+  this.form.patchValue({
+    preacherId: user.id,
+    preacherSearch: this.getUserFullName(user),
+  });
+  this.preachers.set([]);
+  this.showPreacherResults.set(false);
+}
+
+clearPreacher(): void {
+  this.form.patchValue({ preacherId: '', preacherSearch: '' });
+  this.showPreacherResults.set(false);
+}
 
   // ──────────────────────────────────────────────────────────────
   // PHOTO (upload) — ✅ NE PAS définir photoUrl ici
@@ -368,17 +384,6 @@ private uploadPhoto(serviceId: string): void {
     return user.fullName || `${user.firstName} ${user.lastName}`.trim();
   }
 
-  selectPreacher(user: User): void {
-    this.form.patchValue({
-      preacherId: user.id,
-      preacherSearch: this.getUserFullName(user),
-    });
-    this.preachers.set([]);
-  }
-
-  clearPreacher(): void {
-    this.form.patchValue({ preacherId: '', preacherSearch: '' });
-  }
 
   cancel(): void {
     this.router.navigate(['/dashboard/cultes']);

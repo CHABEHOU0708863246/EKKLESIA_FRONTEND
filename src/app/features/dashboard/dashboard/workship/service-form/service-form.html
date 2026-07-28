@@ -55,7 +55,7 @@
         <button type="button" class="sf-clear-btn" *ngIf="form.get('preacherSearch')?.value"
           (click)="clearPreacher()">✕</button>
 
-        <div class="sf-search-dropdown" *ngIf="preachers().length > 0">
+        <div class="sf-search-dropdown" *ngIf="showPreacherResults() && preachers().length > 0">
           @for (user of preachers(); track user.id) {
           <button type="button" class="sf-search-result" (click)="selectPreacher(user)">
             <div class="sf-mini-avatar">{{ getUserFullName(user).charAt(0) }}</div>

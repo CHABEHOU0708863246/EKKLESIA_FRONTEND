@@ -60,6 +60,22 @@
         <p class="cgl-hint">La cellule sera créée dans cette église.</p>
       </div>
 
+<!-- ✅ NOUVEAU — site optionnel, uniquement si la cellule concerne un site particulier -->
+<div class="cgl-field">
+  <label for="cgSite">Site (optionnel)</label>
+  <div class="cgl-select-wrap">
+    <select id="cgSite" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+      <option value="">— Église mère (aucun site particulier) —</option>
+      <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+    </select>
+    <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <p class="cgl-hint" *ngIf="!loadingSites() && sites().length === 0">
+    Cette église n'a pas de site enregistré — la cellule sera rattachée à l'église mère.
+  </p>
+  <p class="cgl-hint" *ngIf="loadingSites()">Chargement des sites…</p>
+</div>
+
       <div class="cgl-field">
         <label for="cgName">Nom de la cellule <span class="cgl-required">*</span></label>
         <input id="cgName" type="text" formControlName="name" placeholder="Ex. Cellule Cocody Riviera">
@@ -181,7 +197,6 @@
           <th class="cgl-col-name">Nom de la cellule</th>
           <th>Église rattachée</th>
           <th>Responsable</th>
-          <th>Membres</th>
           <th>Statut</th>
           <th class="cgl-col-actions">Actions</th>
         </tr>
@@ -219,7 +234,6 @@
               <span class="cgl-role-badge" *ngIf="getLeaderRoleLabel(cg.leaderId) as roleLabel">{{ roleLabel }}</span>
             </div>
           </td>
-          <td>{{ cg.memberCount }}</td>
           <td>
             <span class="cgl-badge" [ngClass]="'is-' + getStatusBadge(cg.isActive).color">
               {{ getStatusBadge(cg.isActive).label }}
