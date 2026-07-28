@@ -141,6 +141,12 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.submitting.set(false);
+        this.registrationResult.set({
+          checkoutUrl: response.checkoutUrl,
+          paymentUrl: response.paymentUrl,
+          qrCode: response.qrCode,
+          registrationId: response.registrationId,
+        });
 
         if (!response.success) {
           this.error.set(response.message);
