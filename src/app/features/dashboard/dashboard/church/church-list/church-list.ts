@@ -256,8 +256,8 @@ export class ChurchList implements OnInit, OnDestroy {
   }
 
   viewChurch(church: Church): void {
-    this.router.navigate(['/dashboard/admin/parametres/eglise', church.id]);
-  }
+  this.router.navigate(['/dashboard/admin/parametres/eglise', church.id, 'edit']);
+}
 
   editChurch(church: Church, event: Event): void {
     event.stopPropagation();

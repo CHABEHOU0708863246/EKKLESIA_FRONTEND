@@ -385,3 +385,21 @@
   color: #888;
   margin: 2px 0 6px;
 }
+
+
+
+.sf-radio-group {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sf-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 400;
+
+  input[type='radio'] { cursor: pointer; }
+}

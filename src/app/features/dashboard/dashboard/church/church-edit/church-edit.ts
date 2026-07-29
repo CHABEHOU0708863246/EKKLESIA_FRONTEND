@@ -18,7 +18,37 @@ import {
   ChurchUtils
 } from '../../../../../core/models/Church/church.model';
 
-const PASTOR_ROLES = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL', 'PASTEUR', 'Pasteur', 'pasteur'];
+/** Majuscules, sans accents ni séparateurs. 'Pasteur de Site' → 'PASTEURDESITE' */
+function normalizeRole(value: unknown): string {
+  if (!value) return '';
+  const raw = typeof value === 'string'
+    ? value
+    : ((value as any).name ?? (value as any).roleName ?? (value as any).code ?? '');
+  return String(raw)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+}
+
+function extractRoles(user: any): string[] {
+  return [user?.roles, user?.roleNames, user?.primaryRole]
+    .flatMap((b) => (Array.isArray(b) ? b : b ? [b] : []))
+    .map(normalizeRole)
+    .filter(Boolean);
+}
+
+function isPastor(user: any): boolean {
+  return extractRoles(user).some((r) => r.includes('PASTOR') || r.includes('PASTEUR'));
+}
+
+/** L'API renvoie tantôt { success, data }, tantôt le DTO brut (GetUserById). */
+function unwrapUser(response: any): User | null {
+  if (!response) return null;
+  if (response.data) return response.data as User;
+  if (response.id) return response as User;
+  return null;
+}
 
 @Component({
   selector: 'app-church-edit',
@@ -189,35 +219,30 @@ export class ChurchEdit implements OnInit, OnDestroy {
   // ─── PASTEURS (SELECT) ───────────────────────────────────────────────
 
   private loadPastors(): void {
-    this.loadingPastors.set(true);
-    this.userService
-      .getUsers({ page: 1, pageSize: 200 } as any)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            const allUsers = (response.data.items ?? []) as User[];
-            const pastors = allUsers.filter((u) =>
-              (u.roles ?? []).some((r) => PASTOR_ROLES.includes(r))
-            );
-            this.pastors.set(pastors);
-          } else {
-            this.pastors.set([]);
-          }
-          this.loadingPastors.set(false);
-        },
-        error: () => {
-          this.pastors.set([]);
-          this.loadingPastors.set(false);
-        },
-      });
-  }
+  this.loadingPastors.set(true);
+  this.userService
+    .getUsers({ page: 1, pageSize: 100 } as any)   // ⚠️ 200 → HTTP 400
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        const items = (response?.data?.items ?? []) as User[];
+        this.pastors.set(items.filter(isPastor));
+        this.loadingPastors.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Chargement pasteurs — HTTP', err?.status, err?.error);
+        this.pastors.set([]);
+        this.loadingPastors.set(false);
+      },
+    });
+}
 
   // S'assure que le pasteur actuellement assigné au site apparaît bien
   // dans la liste du select, même s'il n'a pas été renvoyé par loadPastors()
   // (rôle différent, compte désactivé, etc.)
   private ensurePastorInList(pastorId: string): void {
     if (!pastorId) return;
+    if (this.pastors().some((p) => p.id === pastorId)) return;
     const alreadyThere = this.pastors().some((p) => p.id === pastorId);
     if (alreadyThere) return;
 

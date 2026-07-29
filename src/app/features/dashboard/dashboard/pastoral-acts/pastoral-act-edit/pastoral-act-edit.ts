@@ -21,6 +21,17 @@ import { Roles } from '../../../../../core/services/Roles/roles';
 import { Users } from '../../../../../core/services/Users/users';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
 
+/**
+ * L'API renvoie tantôt { success, data }, tantôt le DTO brut.
+ * Ce helper absorbe les deux formes.
+ */
+function unwrapUser(response: any): User | null {
+  if (!response) return null;
+  if (response.data) return response.data as User;          // { success, data }
+  if (response.id) return response as User;                 // DTO brut
+  return null;
+}
+
 @Component({
   selector: 'app-pastoral-act-edit',
   standalone: true,
@@ -171,7 +182,7 @@ export class PastoralActEdit implements OnInit, OnDestroy {
             this.populateForm(act);
             this.loadSites(act.churchId);
             // ✅ CORRECTION — récupération fiable de l'officiant via son vrai ID utilisateur
-            this.loadOfficiant(act.officiantId);
+            this.loadOfficiant(act);
           } else {
             this.error.set('Acte pastoral non trouvé.');
           }
@@ -236,39 +247,53 @@ export class PastoralActEdit implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ CORRECTION du bug de récupération de l'officiant.
-   * OfficiantId référence toujours un User (jamais un Member) côté backend.
-   * On le résout donc systématiquement via getUserById — plus de confusion
-   * entre memberId et userId comme c'était le cas dans l'ancien selectOfficiant().
-   */
-  private loadOfficiant(officiantId: string): void {
-    if (!officiantId) {
-      this.loadingOfficiant.set(false);
-      return;
-    }
+ * OfficiantId référence toujours un User (jamais un Member).
+ * On affiche d'abord ce que l'acte contient, puis on enrichit via l'API.
+ */
+private loadOfficiant(act: PastoralActResponseDto): void {
+  const officiantId = act.officiantId;
 
-    this.loadingOfficiant.set(true);
-    this.userService
-      .getUserById(officiantId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            this.selectedOfficiant.set(response.data);
-            const fullName = response.data.fullName
-              || `${response.data.firstName} ${response.data.lastName}`;
-            this.form.get('officiantSearch')?.setValue(fullName, { emitEvent: false });
-          }
-          this.loadingOfficiant.set(false);
-        },
-        error: (err) => {
-          console.error("❌ Erreur lors de la récupération de l'officiant:", err);
-          // Le nom déjà présent dans act.officiantName reste affiché en repli,
-          // l'utilisateur peut re-sélectionner un officiant manuellement.
-          this.loadingOfficiant.set(false);
-        },
-      });
+  if (!officiantId) {
+    this.loadingOfficiant.set(false);
+    return;
   }
+
+  // ── Repli immédiat depuis l'acte ──
+  if (act.officiantName) {
+    const parts = act.officiantName.trim().split(/\s+/);
+    this.selectedOfficiant.set({
+      id: officiantId,
+      fullName: act.officiantName,
+      firstName: parts[0] ?? '',
+      lastName: parts.slice(1).join(' '),
+    } as User);
+  }
+
+  // ── Enrichissement via l'API ──
+  this.loadingOfficiant.set(true);
+  this.userService
+    .getUserById(officiantId)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response: any) => {
+        const user = unwrapUser(response);
+        if (user) {
+          this.selectedOfficiant.set(user);
+          const fullName = user.fullName
+            || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+          this.form.get('officiantSearch')?.setValue(fullName, { emitEvent: false });
+        } else {
+          console.warn('⚠️ Officiant non résolu — format de réponse inattendu', response);
+        }
+        this.loadingOfficiant.set(false);
+      },
+      error: (err) => {
+        console.error(`❌ Officiant ${officiantId} — HTTP ${err?.status}`, err?.error);
+        // Le repli depuis act.officiantName reste affiché
+        this.loadingOfficiant.set(false);
+      },
+    });
+}
 
   private loadSites(churchId: string): void {
     if (!churchId) return;

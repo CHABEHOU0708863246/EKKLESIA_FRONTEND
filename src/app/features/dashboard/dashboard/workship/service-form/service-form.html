@@ -47,27 +47,85 @@
     </div>
 
     <!-- ─── PRÉDICATEUR ─── -->
-    <div class="sf-field">
-      <label>Prédicateur</label>
-      <div class="sf-search-wrap">
-        <input type="text" formControlName="preacherSearch" placeholder="Rechercher un pasteur…"
-          (focus)="preachers().length > 0 && preachers.set(preachers())" autocomplete="off">
-        <button type="button" class="sf-clear-btn" *ngIf="form.get('preacherSearch')?.value"
-          (click)="clearPreacher()">✕</button>
+<!-- ─── PRÉDICATEUR ─── -->
+<div class="sf-section-divider">Prédicateur</div>
 
-        <div class="sf-search-dropdown" *ngIf="showPreacherResults() && preachers().length > 0">
-          @for (user of preachers(); track user.id) {
-          <button type="button" class="sf-search-result" (click)="selectPreacher(user)">
-            <div class="sf-mini-avatar">{{ getUserFullName(user).charAt(0) }}</div>
-            <div class="sf-mini-info">
-              <strong>{{ getUserFullName(user) }}</strong>
-              <span class="sf-mini-role">{{ user.roles?.[0] || 'Pasteur' }}</span>
-            </div>
-          </button>
-          }
-        </div>
-      </div>
-    </div>
+<div class="sf-field">
+  <label>Type de prédicateur <span class="sf-required">*</span></label>
+  <div class="sf-radio-group">
+    <label class="sf-radio">
+      <input type="radio" formControlName="preacherMode" value="internal">
+      <span>Pasteur enregistré</span>
+    </label>
+    <label class="sf-radio">
+      <input type="radio" formControlName="preacherMode" value="external">
+      <span>Invité extérieur</span>
+    </label>
+  </div>
+</div>
+
+<!-- Mode 1 : pasteur du système -->
+@if (!isExternalPreacher) {
+  <div class="sf-field">
+    <label>Rechercher</label>
+    <input type="text"
+           [value]="preacherFilter()"
+           (input)="onPreacherFilterInput($event)"
+           placeholder="Filtrer par nom, email ou rôle…"
+           autocomplete="off">
+  </div>
+
+  <div class="sf-field">
+    <label>Pasteur <span class="sf-required">*</span></label>
+    <select formControlName="preacherId" [size]="filteredPreachers().length > 6 ? 6 : 1">
+      <option value="">-- Choisir un pasteur --</option>
+
+      <!-- Secours : pasteur enregistré absent de la liste chargée -->
+      @if (form.get('preacherId')?.value &&
+           !filteredPreachers().length &&
+           !preacherFilter()) {
+        <option [value]="form.get('preacherId')?.value">
+          (pasteur enregistré — hors liste)
+        </option>
+      }
+
+      @for (user of filteredPreachers(); track user.id) {
+        <option [value]="user.id">
+          {{ getUserFullName(user) }} — {{ getPreacherRoleLabel(user) }}
+        </option>
+      }
+    </select>
+
+    @if (loadingPreachers()) {
+      <p class="sf-field-hint">Chargement des pasteurs…</p>
+    } @else if (filteredPreachers().length === 0) {
+      <p class="sf-field-hint">
+        Aucun pasteur ne correspond. Choisissez « Invité extérieur » si nécessaire.
+      </p>
+    } @else {
+      <p class="sf-field-hint">{{ filteredPreachers().length }} pasteur(s) disponible(s)</p>
+    }
+
+    <p class="sf-error-text" *ngIf="isFieldInvalid('preacherId')">
+      Veuillez sélectionner un pasteur.
+    </p>
+  </div>
+}
+
+<!-- Mode 2 : invité extérieur -->
+@if (isExternalPreacher) {
+  <div class="sf-field">
+    <label>Nom de l'invité <span class="sf-required">*</span></label>
+    <input type="text" formControlName="preacherName"
+           placeholder="Ex : Pasteur Jean KOUAME (Église partenaire)">
+    <p class="sf-field-hint">
+      Le prédicateur ne sera pas rattaché à un compte utilisateur.
+    </p>
+    <p class="sf-error-text" *ngIf="isFieldInvalid('preacherName')">
+      Le nom de l'invité est requis (3 caractères minimum).
+    </p>
+  </div>
+}
 
     <!-- ─── THÈME & VERSET ─── -->
     <div class="sf-grid-2">

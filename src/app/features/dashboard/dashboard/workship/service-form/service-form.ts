@@ -1,13 +1,19 @@
 // src/app/features/dashboard/services/service-form/service-form.component.ts
 
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
-import { ServiceAttendance, ServiceCreate, ServiceStatus, ServiceStatusLabels, ServiceUpdate } from '../../../../../core/models/Events/service.model';
+import {
+  ServiceAttendance,
+  ServiceCreate,
+  ServiceStatus,
+  ServiceStatusLabels,
+  ServiceUpdate,
+} from '../../../../../core/models/Events/service.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
@@ -17,6 +23,48 @@ const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
   label: ServiceStatusLabels[value],
 }));
+
+type PreacherMode = 'internal' | 'external';
+
+// ──────────────────────────────────────────────────────────────
+// HELPERS RÔLES
+// Le backend peut renvoyer les rôles sous plusieurs formes :
+//   - codes techniques : 'PASTOR_PRINCIPAL', 'PASTEUR_SITE'
+//   - libellés         : 'Pasteur Principal', 'Pasteur de Site'
+//   - objets           : { id, name } / { code, label }
+// On normalise tout avant comparaison.
+// ──────────────────────────────────────────────────────────────
+
+/** Majuscules, sans accents, sans séparateurs. 'Pasteur de Site' → 'PASTEURDESITE' */
+function normalizeRole(value: unknown): string {
+  if (!value) return '';
+  const raw =
+    typeof value === 'string'
+      ? value
+      : ((value as any).name ??
+         (value as any).roleName ??
+         (value as any).code ??
+         (value as any).label ??
+         '');
+  return String(raw)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+}
+
+/** Rassemble tous les champs de rôle possibles renvoyés par l'API */
+function extractRoles(user: any): string[] {
+  return [user?.roles, user?.roleNames, user?.primaryRole]
+    .flatMap((bucket) => (Array.isArray(bucket) ? bucket : bucket ? [bucket] : []))
+    .map(normalizeRole)
+    .filter(Boolean);
+}
+
+/** Un pasteur = tout rôle contenant PASTOR ou PASTEUR (exclut Super Administrateur) */
+function isPastor(user: any): boolean {
+  return extractRoles(user).some((r) => r.includes('PASTOR') || r.includes('PASTEUR'));
+}
 
 @Component({
   selector: 'app-service-form',
@@ -30,7 +78,6 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly ServiceStatus = ServiceStatus;
-  showPreacherResults = signal(false);
 
   // ── État ──
   saving = signal(false);
@@ -45,8 +92,22 @@ export class ServiceForm implements OnInit, OnDestroy {
   loadingSites = signal(false);
 
   // ── Prédicateurs ──
-  preachers = signal<User[]>([]);
+  allPreachers = signal<User[]>([]);
   loadingPreachers = signal(false);
+  preacherFilter = signal('');
+
+  /** Liste filtrée côté client (nom, email, rôle) */
+  filteredPreachers = computed(() => {
+    const term = this.preacherFilter().trim().toLowerCase();
+    const list = this.allPreachers();
+    if (!term) return list;
+    return list.filter((u) => {
+      const name = this.getUserFullName(u).toLowerCase();
+      const email = (u.email ?? '').toLowerCase();
+      const role = this.getPreacherRoleLabel(u).toLowerCase();
+      return name.includes(term) || email.includes(term) || role.includes(term);
+    });
+  });
 
   // ── Formulaire ──
   form: FormGroup;
@@ -64,8 +125,12 @@ export class ServiceForm implements OnInit, OnDestroy {
       date: ['', Validators.required],
       churchId: ['', Validators.required],
       siteId: [''],
+
+      // ── Prédicateur ──
+      preacherMode: ['internal' as PreacherMode, Validators.required],
       preacherId: [''],
-      preacherSearch: [''],
+      preacherName: [''],
+
       bibleText: [''],
       theme: [''],
       status: [ServiceStatus.Scheduled, Validators.required],
@@ -106,20 +171,59 @@ export class ServiceForm implements OnInit, OnDestroy {
         if (churchId) this.loadSites(churchId);
       });
 
-    this.form.get('preacherSearch')?.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term: string) => {
-        if (term && term.trim().length >= 2) {
-          this.searchPreachers(term.trim());
-        } else {
-          this.preachers.set([]);
-        }
-      });
+    this.form.get('preacherMode')?.valueChanges
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((mode: PreacherMode) => this.applyPreacherMode(mode, true));
+
+    this.applyPreacherMode('internal', false);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // PRÉDICATEUR
+  // ──────────────────────────────────────────────────────────────
+
+  private applyPreacherMode(mode: PreacherMode, reset: boolean): void {
+    const idCtrl = this.form.get('preacherId');
+    const nameCtrl = this.form.get('preacherName');
+    if (!idCtrl || !nameCtrl) return;
+
+    if (mode === 'external') {
+      if (reset) idCtrl.setValue('', { emitEvent: false });
+      idCtrl.clearValidators();
+      nameCtrl.setValidators([Validators.required, Validators.minLength(3)]);
+    } else {
+      if (reset) nameCtrl.setValue('', { emitEvent: false });
+      idCtrl.setValidators([Validators.required]);
+      nameCtrl.clearValidators();
+    }
+    idCtrl.updateValueAndValidity({ emitEvent: false });
+    nameCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  onPreacherFilterInput(event: Event): void {
+    this.preacherFilter.set((event.target as HTMLInputElement).value ?? '');
+  }
+
+  get isExternalPreacher(): boolean {
+    return this.form.get('preacherMode')?.value === 'external';
+  }
+
+  getPreacherRoleLabel(user: User): string {
+    const roles = extractRoles(user);
+    if (roles.some((r) => r.includes('PRINCIPAL'))) return 'Pasteur principal';
+    if (roles.some((r) => r.includes('SITE'))) return 'Pasteur de site';
+    return 'Pasteur';
+  }
+
+  /** Nom du pasteur sélectionné, pour l'envoi au backend */
+  private resolvePreacherName(preacherId: string): string {
+    const found = this.allPreachers().find((u) => u.id === preacherId);
+    return found ? this.getUserFullName(found) : '';
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -140,13 +244,21 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   private populateForm(service: any): void {
+    const hasInternalPreacher = !!service.preacherId;
+    const mode: PreacherMode = hasInternalPreacher
+      ? 'internal'
+      : service.preacherName
+        ? 'external'
+        : 'internal';
+
     this.form.patchValue({
       title: service.title,
       date: this.formatDateInput(service.date),
       churchId: service.churchId,
       siteId: service.siteId || '',
+      preacherMode: mode,
       preacherId: service.preacherId || '',
-      preacherSearch: service.preacherName || '',
+      preacherName: hasInternalPreacher ? '' : (service.preacherName || ''),
       bibleText: service.bibleText || '',
       theme: service.theme || '',
       status: service.status || ServiceStatus.Scheduled,
@@ -164,9 +276,9 @@ export class ServiceForm implements OnInit, OnDestroy {
       },
     });
 
-    if (service.churchId) {
-      this.loadSites(service.churchId);
-    }
+    this.applyPreacherMode(mode, false);
+
+    if (service.churchId) this.loadSites(service.churchId);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -199,67 +311,53 @@ export class ServiceForm implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * ⚠️ Pas de paramètre `roles` : le backend renvoie HTTP 400 sur
+   * ?roles=A,B (model binding). On charge tous les utilisateurs
+   * actifs et on filtre côté client.
+   */
   private loadPreachers(): void {
-    this.userService
-      .getUsers({
-        page: 1,
-        pageSize: 100,
-        roles: ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'],
-      } as any)
+   this.loadingPreachers.set(true);
+  this.userService
+    .getUsers({ page: 1, pageSize: 100 } as any)   // ⚠️ maximum autorisé par l'API
+    .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            this.preachers.set(response.data.items as any);
-          }
+          const items = (response?.data?.items ?? []) as User[];
+          const pastors = items.filter(isPastor);
+
+          console.log(
+            `👉 ${items.length} utilisateur(s) reçu(s), ${pastors.length} pasteur(s) retenu(s)`,
+            items.map((u: any) => ({
+              nom: this.getUserFullName(u),
+              rolesBruts: u.roles,
+              rolesNormalises: extractRoles(u),
+              retenu: isPastor(u),
+            }))
+          );
+
+          this.allPreachers.set(pastors);
+          this.loadingPreachers.set(false);
         },
-        error: () => this.preachers.set([]),
+        error: (err) => {
+          console.error('❌ Échec chargement pasteurs', err?.status, err?.error);
+          this.allPreachers.set([]);
+          this.loadingPreachers.set(false);
+          this.error.set(
+            `Impossible de charger la liste des pasteurs (HTTP ${err?.status ?? '?'}).`
+          );
+        },
       });
   }
 
-private searchPreachers(term: string): void {
-  this.userService.getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          const items = (response.data.items ?? []) as User[];
-          const pastorRoles = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
-          const filtered = items.filter((u) =>
-            (u.roles ?? []).some((r) => pastorRoles.includes(r))
-          );
-          this.preachers.set(filtered);
-          this.showPreacherResults.set(true);
-        } else {
-          this.preachers.set([]);
-        }
-      },
-      error: () => this.preachers.set([]),
-    });
-}
-
-selectPreacher(user: User): void {
-  this.form.patchValue({
-    preacherId: user.id,
-    preacherSearch: this.getUserFullName(user),
-  });
-  this.preachers.set([]);
-  this.showPreacherResults.set(false);
-}
-
-clearPreacher(): void {
-  this.form.patchValue({ preacherId: '', preacherSearch: '' });
-  this.showPreacherResults.set(false);
-}
-
   // ──────────────────────────────────────────────────────────────
-  // PHOTO (upload) — ✅ NE PAS définir photoUrl ici
+  // PHOTO (upload)
   // ──────────────────────────────────────────────────────────────
 
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedPhotoFile = input.files[0];
-      // ✅ NE PAS modifier photoUrl avec un placeholder
     }
   }
 
@@ -279,14 +377,22 @@ clearPreacher(): void {
       return;
     }
 
+    const rawValue = this.form.value;
+    const isExternal = rawValue.preacherMode === 'external';
+
+    const preacherId = isExternal ? undefined : (rawValue.preacherId || undefined);
+    const preacherName = isExternal
+      ? (rawValue.preacherName || '').trim()
+      : this.resolvePreacherName(rawValue.preacherId);
+
     this.saving.set(true);
     this.error.set(null);
 
-    const rawValue = this.form.value;
-
-    // ✅ Ne pas envoyer de placeholder pour photoUrl
     const photoUrlValue = rawValue.attendance?.photoUrl;
-    const isValidPhotoUrl = photoUrlValue && photoUrlValue !== 'uploading...' && photoUrlValue !== '✅ Fichier sélectionné';
+    const isValidPhotoUrl =
+      photoUrlValue &&
+      photoUrlValue !== 'uploading...' &&
+      photoUrlValue !== '✅ Fichier sélectionné';
     const photoUrl = isValidPhotoUrl ? photoUrlValue : '';
 
     const payload: ServiceCreate = {
@@ -294,8 +400,8 @@ clearPreacher(): void {
       date: rawValue.date,
       churchId: rawValue.churchId,
       siteId: rawValue.siteId || undefined,
-      preacherId: rawValue.preacherId || undefined,
-      preacherName: rawValue.preacherSearch || undefined,
+      preacherId,
+      preacherName: preacherName || undefined,
       bibleText: rawValue.bibleText || undefined,
       theme: rawValue.theme || undefined,
       status: rawValue.status || ServiceStatus.Scheduled,
@@ -308,7 +414,7 @@ clearPreacher(): void {
         acceptedJesus: rawValue.attendance?.acceptedJesus || 0,
         notAcceptedJesus: rawValue.attendance?.notAcceptedJesus || 0,
         observation: rawValue.attendance?.observation || '',
-        photoUrl: photoUrl, // ✅ vide si placeholder
+        photoUrl: photoUrl,
         visitorNames: rawValue.attendance?.visitorNames || [],
       },
     };
@@ -342,33 +448,30 @@ clearPreacher(): void {
   // UPLOAD DE LA PHOTO (après création du culte)
   // ──────────────────────────────────────────────────────────────
 
-private uploadPhoto(serviceId: string): void {
-  if (!this.selectedPhotoFile) return;
+  private uploadPhoto(serviceId: string): void {
+    if (!this.selectedPhotoFile) return;
 
-  this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (uploadResponse) => {
-        if (uploadResponse.success && uploadResponse.photoId) {
-          // ✅ Mise à jour partielle : uniquement le champ photoUrl dans attendance
-          const updatePayload: ServiceUpdate = {
-            attendance: {
-              photoUrl: uploadResponse.photoId
-            } as ServiceAttendance
-          };
-          this.serviceService.update(serviceId, updatePayload)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: () => this.router.navigate(['/dashboard/cultes']),
-              error: () => this.router.navigate(['/dashboard/cultes']),
-            });
-        } else {
-          this.router.navigate(['/dashboard/cultes']);
-        }
-      },
-      error: () => this.router.navigate(['/dashboard/cultes']),
-    });
-}
+    this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (uploadResponse) => {
+          if (uploadResponse.success && uploadResponse.photoId) {
+            const updatePayload: ServiceUpdate = {
+              attendance: { photoUrl: uploadResponse.photoId } as ServiceAttendance,
+            };
+            this.serviceService.update(serviceId, updatePayload)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => this.router.navigate(['/dashboard/cultes']),
+                error: () => this.router.navigate(['/dashboard/cultes']),
+              });
+          } else {
+            this.router.navigate(['/dashboard/cultes']);
+          }
+        },
+        error: () => this.router.navigate(['/dashboard/cultes']),
+      });
+  }
 
   // ──────────────────────────────────────────────────────────────
   // UTILITAIRES
@@ -381,9 +484,8 @@ private uploadPhoto(serviceId: string): void {
   }
 
   getUserFullName(user: User): string {
-    return user.fullName || `${user.firstName} ${user.lastName}`.trim();
+    return user.fullName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
   }
-
 
   cancel(): void {
     this.router.navigate(['/dashboard/cultes']);

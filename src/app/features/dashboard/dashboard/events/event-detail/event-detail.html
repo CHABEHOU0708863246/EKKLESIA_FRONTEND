@@ -222,9 +222,7 @@
                   <th>Contact</th>
                   <th>Formule</th>
                   <th>Paiement</th>
-                  <th>Check-in</th>
                   <th>Inscrit le</th>
-                  <th>Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,27 +276,9 @@
                     </div>
                   </td>
 
-                  <!-- Check-in -->
-                  <td>
-                    <span class="ev-checkin-badge" [class.ev-checkin-badge--done]="a.checkedIn">
-                      {{ a.checkedIn ? 'Présent' : 'Non arrivé' }}
-                    </span>
-                    <div class="ev-muted" *ngIf="a.checkedIn && (a.formattedCheckInTime || a.checkInTime)">
-                      {{ a.formattedCheckInTime || formatDateTime(a.checkInTime!) }}
-                    </div>
-                  </td>
-
                   <!-- Inscrit le -->
                   <td class="ev-muted">
                     {{ a.formattedRegistrationDate || formatDateTime(a.registrationDate) }}
-                  </td>
-
-                  <!-- Notes -->
-                  <td>
-                    <span class="ev-attendee-notes" [title]="a.notes || ''" *ngIf="a.notes; else noNotes">
-                      {{ a.notes | slice:0:30 }}{{ a.notes.length > 30 ? '…' : '' }}
-                    </span>
-                    <ng-template #noNotes><span class="ev-muted">—</span></ng-template>
                   </td>
                 </tr>
               </tbody>
