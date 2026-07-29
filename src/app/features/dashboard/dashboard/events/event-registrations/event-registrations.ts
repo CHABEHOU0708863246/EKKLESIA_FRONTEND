@@ -10,6 +10,7 @@ import { finalize } from 'rxjs/operators';
 import { Event, EventStatus, PaymentStatus, EventAttendeeRegister, EventFormula } from '../../../../../core/models/Events/event.model';
 import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
+import { Church } from '../../../../../core/services/Church/church';
 
 @Component({
   selector: 'app-event-registrations',
@@ -24,6 +25,10 @@ export class EventRegistrations implements OnInit {
   private route = inject(ActivatedRoute);
   public router = inject(Router);
   private fb = inject(FormBuilder);
+  private churchService = inject(Church);
+  churches = signal<{ id: string; name: string }[]>([]);          // ✅ NOUVEAU
+  sites = signal<{ id: string; name: string; churchId: string }[]>([]); // ✅ NOUVEAU
+  loadingSites = signal(false);
 
   // État principal
   event = signal<Event | null>(null);
@@ -49,22 +54,69 @@ export class EventRegistrations implements OnInit {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.email]],
       phone: [''],
-      // ✅ NOUVEAU : Sélection de la formule
+      gender: [''],                    // ✅ NOUVEAU
+      profileType: [''],               // ✅ NOUVEAU
+      churchId: [''],                  // ✅ NOUVEAU — optionnel, pas de Validators.required
+      siteId: [{ value: '', disabled: true }], // ✅ NOUVEAU — désactivé tant qu'aucune église choisie
       formulaId: ['', Validators.required],
       paymentStatus: [PaymentStatus.Pending],
       notes: [''],
     });
+
+    // ✅ NOUVEAU — quand l'église change, on recharge les sites et on réinitialise
+    // le site sélectionné (il ne peut pas appartenir à l'ancienne église).
+    this.registerForm.get('churchId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((churchId: string) => {
+        const siteControl = this.registerForm.get('siteId');
+        siteControl?.setValue('');
+
+        if (!churchId) {
+          siteControl?.disable();
+          this.sites.set([]);
+          return;
+        }
+
+        siteControl?.enable();
+        this.loadSitesForChurch(churchId);
+      });
   }
 
 
-    ngOnInit(): void {
+  ngOnInit(): void {
+    this.loadChurches(); // ✅ NOUVEAU
     const eventId = this.route.snapshot.queryParamMap.get('eventId');
     if (eventId) {
       this.loadEvent(eventId);
     } else {
-      // Aucun événement sélectionné → afficher la liste
       this.loadEventsList();
     }
+  }
+
+
+  private loadChurches(): void {
+    this.churchService.getAllChurches().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response: any) => {
+        const list = response?.data || response || [];
+        this.churches.set(list.map((c: any) => ({ id: c.id, name: c.name })));
+      },
+      error: (err) => console.error('❌ Erreur chargement des églises:', err),
+    });
+  }
+
+  // ✅ NOUVEAU
+  private loadSitesForChurch(churchId: string): void {
+    this.loadingSites.set(true);
+    this.churchService.getSitesByChurchId(churchId).pipe(
+      finalize(() => this.loadingSites.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (response: any) => {
+        const list = response?.data || response || [];
+        this.sites.set(list.map((s: any) => ({ id: s.id, name: s.name, churchId: s.churchId })));
+      },
+      error: (err) => console.error('❌ Erreur chargement des sites:', err),
+    });
   }
 
 
@@ -173,6 +225,10 @@ export class EventRegistrations implements OnInit {
         lastName: '',
         email: '',
         phone: '',
+        gender: '',        // ✅ NOUVEAU
+        profileType: '',   // ✅ NOUVEAU
+        churchId: '',       // ✅ NOUVEAU
+        siteId: '',          // ✅ NOUVEAU
         formulaId: this.getDefaultFormulaId(),
         paymentStatus: PaymentStatus.Pending,
         notes: '',
@@ -220,6 +276,10 @@ export class EventRegistrations implements OnInit {
       lastName: value.lastName.trim(),
       email: value.email || undefined,
       phone: value.phone || undefined,
+      gender: value.gender || undefined,           // ✅ NOUVEAU
+      profileType: value.profileType || undefined, // ✅ NOUVEAU
+      churchId: value.churchId || undefined,        // ✅ NOUVEAU
+      siteId: value.siteId || undefined,            // ✅ NOUVEAU
       formulaId: selectedFormula.id,
       formulaName: selectedFormula.name,
       formulaPrice: selectedFormula.price,
@@ -387,13 +447,13 @@ export class EventRegistrations implements OnInit {
 
   // Pour afficher le nom et le prix de la formule dans la liste des participants
   // Dans event-registrations.ts
-getFormulaName(formulaId?: string): string {
-  if (!formulaId) return '—';
-  const ev = this.event();
-  if (!ev || !ev.formulas) return '—';
-  const formula = ev.formulas.find(f => f.id === formulaId);
-  return formula ? `${formula.name} (${formula.price} ${formula.currency})` : '—';
-}
+  getFormulaName(formulaId?: string): string {
+    if (!formulaId) return '—';
+    const ev = this.event();
+    if (!ev || !ev.formulas) return '—';
+    const formula = ev.formulas.find(f => f.id === formulaId);
+    return formula ? `${formula.name} (${formula.price} ${formula.currency})` : '—';
+  }
 
   goBack(): void {
     const ev = this.event();

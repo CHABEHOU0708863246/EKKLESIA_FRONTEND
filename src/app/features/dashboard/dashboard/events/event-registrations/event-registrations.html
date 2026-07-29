@@ -22,7 +22,10 @@
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
   <div class="er-banner er-banner--error" *ngIf="error()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
     <button class="er-banner-close" (click)="error.set(null)">✕</button>
   </div>
@@ -55,7 +58,8 @@
       </div>
       <div class="er-summary-item">
         <span class="er-summary-label">Statut</span>
-        <span class="er-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status) }}</span>
+        <span class="er-status-badge" [class]="getStatusClass(event()!.status)">{{ getStatusLabel(event()!.status)
+          }}</span>
       </div>
       <div class="er-summary-item">
         <span class="er-summary-label">Inscrits</span>
@@ -103,6 +107,36 @@
               <label for="phone">Téléphone</label>
               <input id="phone" type="text" formControlName="phone" placeholder="Téléphone">
             </div>
+            <!-- ✅ NOUVEAU : sélection église / site (tous deux optionnels) -->
+            <div class="er-form-row">
+              <div class="er-field">
+                <label for="churchId">Église <span class="er-optional">(optionnel)</span></label>
+                <div class="er-select-wrap">
+                  <select id="churchId" formControlName="churchId">
+                    <option value="">— Personne extérieure —</option>
+                    <option *ngFor="let c of churches()" [value]="c.id">{{ c.name }}</option>
+                  </select>
+                  <svg class="er-select-caret" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </div>
+              <div class="er-field">
+                <label for="siteId">Site <span class="er-optional">(optionnel)</span></label>
+                <div class="er-select-wrap">
+                  <select id="siteId" formControlName="siteId">
+                    <option value="">— Église mère uniquement —</option>
+                    <option *ngFor="let s of sites()" [value]="s.id">{{ s.name }}</option>
+                  </select>
+                  <svg class="er-select-caret" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <p class="er-text-muted" *ngIf="loadingSites()">Chargement des sites…</p>
+              </div>
+            </div>
           </div>
           <div class="er-form-row">
             <!-- ✅ Sélection de la formule -->
@@ -115,10 +149,14 @@
                     {{ f.name }} – {{ f.price }} {{ f.currency }} ({{ f.availablePlaces }} places)
                   </option>
                 </select>
-                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
               </div>
               <p class="er-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
-              <p class="er-text-warning" *ngIf="getAvailableFormulas().length === 0">Aucune formule disponible pour cet événement.</p>
+              <p class="er-text-warning" *ngIf="getAvailableFormulas().length === 0">Aucune formule disponible pour cet
+                événement.</p>
             </div>
             <div class="er-field">
               <label for="paymentStatus">Statut de paiement</label>
@@ -126,7 +164,10 @@
                 <select id="paymentStatus" formControlName="paymentStatus">
                   <option *ngFor="let opt of paymentStatusOptions" [value]="opt.value">{{ opt.label }}</option>
                 </select>
-                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="er-select-caret" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
               </div>
             </div>
           </div>
@@ -138,7 +179,8 @@
           </div>
           <div class="er-form-actions">
             <button type="button" class="er-btn er-btn--ghost" (click)="toggleAddForm()">Annuler</button>
-            <button type="submit" class="er-btn er-btn--primary" [disabled]="adding() || !canRegister() || isFull() || getAvailableFormulas().length === 0">
+            <button type="submit" class="er-btn er-btn--primary"
+              [disabled]="adding() || !canRegister() || isFull() || getAvailableFormulas().length === 0">
               <span *ngIf="!adding()">Inscrire</span>
               <span class="er-spinner er-spinner--btn" *ngIf="adding()"></span>
             </button>
@@ -168,6 +210,7 @@
               <th>Nom</th>
               <th>Email</th>
               <th>Téléphone</th>
+              <th>Église / Site</th>
               <th>Formule</th>
               <th>Inscription</th>
               <th>Check-in</th>
@@ -180,11 +223,15 @@
               <td>{{ getAttendeeFullName(a) }}</td>
               <td>{{ a.email || '—' }}</td>
               <td>{{ a.phone || '—' }}</td>
+              <td>
+                <span *ngIf="a.churchName">{{ a.churchName }}<span *ngIf="a.siteName"> — {{ a.siteName }}</span></span>
+                <span *ngIf="!a.churchName" class="er-muted">Externe</span>
+              </td>
               <td>{{ getFormulaName(a.formulaId) }}</td>
               <td>{{ formatDateTime(a.registrationDate) }}</td>
               <td>
-                <button class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn"
-                        (click)="toggleCheckIn(a)" [disabled]="togglingCheckIn() === (a.memberId || a.email)">
+                <button class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn" (click)="toggleCheckIn(a)"
+                  [disabled]="togglingCheckIn() === (a.memberId || a.email)">
                   <span *ngIf="togglingCheckIn() !== (a.memberId || a.email)">
                     {{ a.checkedIn ? '✅' : '⬜' }}
                   </span>
@@ -198,7 +245,7 @@
               </td>
               <td>
                 <button class="er-action-btn er-action-btn--delete" (click)="unregisterAttendee(a)"
-                        [disabled]="deleting() === (a.memberId || a.email)" title="Retirer">
+                  [disabled]="deleting() === (a.memberId || a.email)" title="Retirer">
                   <span *ngIf="deleting() === (a.memberId || a.email)" class="er-spinner er-spinner--btn"></span>
                   <span *ngIf="deleting() !== (a.memberId || a.email)">🗑️</span>
                 </button>

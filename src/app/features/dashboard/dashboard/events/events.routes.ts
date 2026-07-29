@@ -1,5 +1,3 @@
-// src/app/features/dashboard/dashboard/events/events.routes.ts
-
 import { Routes } from '@angular/router';
 import { authGuard } from '../../../../core/guards/auth.guard';
 
@@ -24,7 +22,6 @@ export const EVENTS_ROUTES: Routes = [
     data: { permissions: ['Event_Create'] },
   },
 
-  // ✅ Rendre la route dynamique avec l'ID de l'événement
   {
     path: 'inscriptions',
     loadComponent: () =>
@@ -42,6 +39,16 @@ export const EVENTS_ROUTES: Routes = [
     title: 'Check-in — MIAV',
     canActivate: [authGuard],
     data: { permissions: ['Event_Checkin'] },
+  },
+
+  // ✅ NOUVEAU — Statistiques de participation/paiement par église et site
+  {
+    path: ':id/statistiques-eglise',
+    loadComponent: () =>
+      import('./event-church-stats/event-church-stats').then((m) => m.EventChurchStats),
+    title: 'Statistiques par église — MIAV',
+    canActivate: [authGuard],
+    data: { permissions: ['Event_Read'] },
   },
 
   {

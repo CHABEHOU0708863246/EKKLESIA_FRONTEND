@@ -1,0 +1,42 @@
+<div class="cs-page">
+  <div class="cs-loading" *ngIf="loading()">Chargement…</div>
+  <div class="cs-error" *ngIf="error()">{{ error() }}</div>
+
+  <table class="cs-table" *ngIf="!loading() && stats().length > 0">
+    <thead>
+      <tr>
+        <th>Église</th>
+        <th>Site</th>
+        <th>Inscrits</th>
+        <th>Payés</th>
+        <th>En attente</th>
+        <th>Taux paiement</th>
+        <th>Montant encaissé</th>
+        <th>Montant en attente</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of stats()">
+        <td>{{ s.churchLabel }}</td>
+        <td>{{ s.siteLabel || '—' }}</td>
+        <td>{{ s.totalInscrits }}</td>
+        <td>{{ s.totalPayes }}</td>
+        <td>{{ s.totalEnAttente }}</td>
+        <td>{{ s.tauxPaiement }}%</td>
+        <td>{{ formatMoney(s.montantEncaisse) }}</td>
+        <td>{{ formatMoney(s.montantEnAttente) }}</td>
+      </tr>
+    </tbody>
+    <tfoot *ngIf="globalTotals()">
+      <tr class="cs-total-row">
+        <td colspan="2"><strong>{{ globalTotals()!.churchLabel }}</strong></td>
+        <td>{{ globalTotals()!.totalInscrits }}</td>
+        <td>{{ globalTotals()!.totalPayes }}</td>
+        <td>{{ globalTotals()!.totalEnAttente }}</td>
+        <td>—</td>
+        <td>{{ formatMoney(globalTotals()!.montantEncaisse) }}</td>
+        <td>{{ formatMoney(globalTotals()!.montantEnAttente) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

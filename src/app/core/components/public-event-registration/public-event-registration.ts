@@ -2,9 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
 import { PublicEventDetails, ParticipantProfileType } from '../../models/Events/event.model';
 import { PublicRegistrationService } from '../../services/Event/public-registration-service';
+import { Church as ChurchService } from '../../services/Church/church';
+import { Church as ChurchModel } from '../../models/Church/church.model';
+import { Site } from '../../models/Church/site.model';
 
 const PROFILE_OPTIONS = [
   { value: ParticipantProfileType.External, label: 'Personne extérieure' },
@@ -18,7 +21,8 @@ const PROFILE_OPTIONS = [
 
 @Component({
   selector: 'app-public-event-registration',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule], // ✅ FormsModule retiré — inutile et risque de conflit avec formControlName
   templateUrl: './public-event-registration.html',
   styleUrl: './public-event-registration.scss',
 })
@@ -27,6 +31,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private registrationService = inject(PublicRegistrationService);
+  private churchService = inject(ChurchService);
 
   eventId!: string;
   event = signal<PublicEventDetails | null>(null);
@@ -34,7 +39,11 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   submitting = signal(false);
 
-  // Résultat après soumission : on bascule l'UI vers l'écran de paiement
+  churches = signal<ChurchModel[]>([]);
+  sites = signal<Site[]>([]);
+  loadingChurches = signal(false);
+  loadingSites = signal(false);
+
   registrationResult = signal<{
     checkoutUrl?: string;
     paymentUrl?: string;
@@ -59,9 +68,34 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       phone: ['', Validators.required],
       gender: ['', Validators.required],
       profileType: [ParticipantProfileType.External, Validators.required],
+      churchId: [''],
+      siteId: [{ value: '', disabled: true }],
       formulaId: ['', Validators.required],
       paymentMethod: ['wave'],
     });
+
+    // 🔍 DEBUG — confirme que l'abonnement est bien créé au démarrage
+    console.debug('[PublicEventRegistration] Abonnement churchId.valueChanges initialisé');
+
+    this.form.get('churchId')?.valueChanges
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((churchId: string) => {
+        // 🔍 DEBUG — si cette ligne n'apparaît jamais dans la console au clic,
+        // le <select> du template n'est pas relié à ce FormControl.
+        console.debug('[PublicEventRegistration] churchId changé →', churchId);
+
+        const siteControl = this.form.get('siteId');
+        siteControl?.setValue('');
+        this.sites.set([]);
+
+        if (!churchId) {
+          siteControl?.disable();
+          return;
+        }
+
+        siteControl?.enable();
+        this.loadSitesForChurch(churchId);
+      });
   }
 
   ngOnInit(): void {
@@ -73,11 +107,59 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     }
     this.eventId = id;
     this.loadEvent();
+    this.loadChurches();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private loadChurches(): void {
+    this.loadingChurches.set(true);
+    console.debug('[PublicEventRegistration] Chargement des églises…');
+
+    this.churchService.getAllChurches().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        console.debug('[PublicEventRegistration] Réponse getAllChurches:', response);
+        if (response.success && response.data) {
+          this.churches.set(response.data);
+          console.debug(`[PublicEventRegistration] ${response.data.length} églises chargées`);
+        } else {
+          console.warn('[PublicEventRegistration] getAllChurches — réponse sans succès ou sans data', response);
+        }
+        this.loadingChurches.set(false);
+      },
+      error: (err) => {
+        console.error('❌ [PublicEventRegistration] Erreur chargement des églises:', err);
+        this.loadingChurches.set(false);
+      },
+    });
+  }
+
+  private loadSitesForChurch(churchId: string): void {
+    this.loadingSites.set(true);
+    console.debug('[PublicEventRegistration] Chargement des sites pour église', churchId);
+
+    this.churchService.getSitesByChurchId(churchId).pipe(
+      finalize(() => this.loadingSites.set(false)),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        console.debug('[PublicEventRegistration] Réponse getSitesByChurchId:', response);
+        if (response.success && response.data) {
+          this.sites.set(response.data);
+          console.debug(`[PublicEventRegistration] ${response.data.length} sites chargés`);
+        } else {
+          console.warn('[PublicEventRegistration] Aucun site retourné pour l\'église', churchId, response);
+          this.sites.set([]);
+        }
+      },
+      error: (err) => {
+        console.error('❌ [PublicEventRegistration] Erreur chargement des sites:', err);
+        this.sites.set([]);
+      },
+    });
   }
 
   private loadEvent(): void {
@@ -136,6 +218,8 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       phone: raw.phone.trim(),
       gender: raw.gender,
       profileType: raw.profileType,
+      churchId: raw.churchId || undefined,
+      siteId: raw.siteId || undefined,
       formulaId: raw.formulaId,
       paymentMethod: raw.paymentMethod,
     }).pipe(takeUntil(this.destroy$)).subscribe({
@@ -150,19 +234,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
 
         if (!response.success) {
           this.error.set(response.message);
-          return;
         }
-
-        // ✅ On garde l'utilisateur sur cette page, on affiche l'écran de
-        // paiement plutôt que de le rediriger d'office : s'il ferme
-        // l'onglet, la page de statut lui permettra de reprendre son
-        // paiement en attente (voir Étape 6.4 plus bas).
-        this.registrationResult.set({
-          checkoutUrl: response.checkoutUrl,
-          paymentUrl: response.paymentUrl,
-          qrCode: response.qrCode,
-          registrationId: response.registrationId,
-        });
       },
       error: (err) => {
         this.submitting.set(false);

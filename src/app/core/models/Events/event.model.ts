@@ -48,11 +48,39 @@ export interface EventPublicRegistrationPayload {
   phone: string;
   gender: string;
   profileType: ParticipantProfileType;
+  churchId?: string;      // ✅ NOUVEAU
+  siteId?: string;        // ✅ NOUVEAU
   formulaId: string;
   paymentMethod?: string;
   memberId?: string;
 }
 
+
+// ============================================================
+// 11. STATISTIQUES PAR ÉGLISE
+// ============================================================
+
+export interface ChurchParticipationStat {
+  churchId?: string;
+  churchLabel: string;
+  siteId?: string;
+  siteLabel?: string;
+  totalInscrits: number;
+  totalPayes: number;
+  totalEnAttente: number;
+  totalCheckedIn: number;
+  montantAttendu: number;
+  montantEncaisse: number;
+  montantEnAttente: number;
+  tauxPaiement: number; // pourcentage, ex: 76.5
+}
+
+export interface EventChurchStatisticsResponse {
+  isSuccess: boolean;
+  errorMessage?: string;
+  statistics: ChurchParticipationStat[];
+  globalTotals?: ChurchParticipationStat;
+}
 export interface EventPublicRegistrationResponse {
   registrationId: string;
   checkoutUrl?: string;
@@ -284,13 +312,25 @@ export interface EventFormulaDto {
 }
 
 // 7.2 DTO pour un participant (retour API)
-export interface EventAttendeeDto {
+export interface EventAttendee {
+  id?: string;
   memberId?: string;
   firstName: string;
   lastName: string;
   fullName: string;
   email?: string;
   phone?: string;
+  gender?: string;
+  profileType?: string;
+  churchId?: string;      // ✅ NOUVEAU — optionnel
+  churchName?: string;    // ✅ NOUVEAU — dénormalisé
+  siteId?: string;        // ✅ NOUVEAU — optionnel
+  siteName?: string;      // ✅ NOUVEAU — dénormalisé
+  formulaId?: string;
+  formulaName?: string;
+  formulaPrice?: number;
+  paymentMethod?: string;
+  paymentReference?: string;
   registrationDate: string;
   checkedIn: boolean;
   checkInTime?: string;
@@ -302,6 +342,35 @@ export interface EventAttendeeDto {
   formattedCheckInTime?: string;
 }
 
+
+export interface EventAttendeeDto {
+  memberId?: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  gender?: string;         // ✅ NOUVEAU
+  profileType?: string;    // ✅ NOUVEAU
+  churchId?: string;       // ✅ NOUVEAU
+  churchName?: string;     // ✅ NOUVEAU
+  siteId?: string;         // ✅ NOUVEAU
+  siteName?: string;       // ✅ NOUVEAU
+  formulaId?: string;
+  formulaName?: string;
+  formulaPrice?: number;
+  paymentMethod?: string;
+  paymentReference?: string;
+  registrationDate: string;
+  checkedIn: boolean;
+  checkInTime?: string;
+  paymentStatus: PaymentStatus;
+  paymentStatusLabel: string;
+  paymentStatusColor: string;
+  notes?: string;
+  formattedRegistrationDate: string;
+  formattedCheckInTime?: string;
+}
 // 7.3 DTO pour l'inscription d'un participant (admin)
 export interface EventRegistrationDto {
   memberId?: string;
@@ -309,9 +378,11 @@ export interface EventRegistrationDto {
   lastName: string;
   email?: string;
   phone?: string;
-  gender?: string;               // ✅ Nouveau
+  gender?: string;
   profileType: ParticipantProfileType;
-  formulaId?: string;            // ✅ Nouveau
+  churchId?: string;      // ✅ NOUVEAU — optionnel
+  siteId?: string;        // ✅ NOUVEAU — optionnel, requiert churchId
+  formulaId?: string;
   formulaName?: string;
   formulaPrice?: number;
   paymentMethod?: string;
@@ -330,11 +401,13 @@ export interface EventPublicRegistrationDto {
   lastName: string;
   email: string;
   phone: string;
-  gender: string;                // ✅ Requis
+  gender: string;
   profileType: ParticipantProfileType;
-  formulaId: string;             // ✅ Requis
-  paymentMethod?: string;        // wave, orange_money, mtn_money
-  memberId?: string;             // optionnel si déjà membre
+  churchId?: string;      // ✅ NOUVEAU — optionnel, personnes extérieures = vide
+  siteId?: string;        // ✅ NOUVEAU — optionnel, requiert churchId
+  formulaId: string;
+  paymentMethod?: string;
+  memberId?: string;
 }
 
 // 7.5 Réponse après inscription publique

@@ -27,19 +27,7 @@
         <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-hero-logo">
       </div>
 
-
-
-       <!-- @if (event()!.theme) {
-      <p class="per-hero-theme">
-        <span class="per-hero-theme-label">Thème :</span> {{ event()!.theme }}
-      </p>
-      } -->
-
-      <!-- @if (event()!.description) {
-      <p class="per-hero-desc">{{ event()!.description }}</p>
-      } -->
-
-            <!-- Thème / verse directeur -->
+      <!-- Thème / verse directeur -->
       <div class="per-hero-banner">
         <p class="per-hero-banner-text">Soit fidèle jusqu'à la mort en faisant plus pour Dieu</p>
         <span class="per-hero-banner-ref">Romains 2:17</span>
@@ -57,9 +45,6 @@
         }
       </blockquote>
       }
-
-
-
 
       <div class="per-hero-pills">
         <span class="per-pill per-pill--period">
@@ -202,6 +187,34 @@
                 <option [value]="opt.value">{{ opt.label }}</option>
                 }
               </select>
+            </div>
+          </div>
+
+          <!-- ✅ CORRIGÉ — déplacé À L'INTÉRIEUR du <form>, entre Profil et Formule -->
+          <div class="per-row">
+            <div class="per-field">
+              <label for="churchId">Église <span class="per-optional">(optionnel)</span></label>
+              <select id="churchId" formControlName="churchId">
+                <option value="">— Je ne suis pas rattaché(e) à une église —</option>
+                @if (loadingChurches()) {
+                <option disabled>Chargement…</option>
+                }
+                @for (c of churches(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="per-field">
+              <label for="siteId">Site <span class="per-optional">(optionnel)</span></label>
+              <select id="siteId" formControlName="siteId">
+                <option value="">— Église mère uniquement —</option>
+                @for (s of sites(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+                }
+              </select>
+              @if (loadingSites()) {
+              <p class="per-field-hint">Chargement des sites…</p>
+              }
             </div>
           </div>
 

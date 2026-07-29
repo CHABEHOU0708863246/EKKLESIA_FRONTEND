@@ -16,7 +16,8 @@ import {
   EventFormula,
   EventPublicRegistrationDto,
   EventPublicRegistrationResponseDto,
-  RegistrationStatusResponse
+  RegistrationStatusResponse,
+  EventChurchStatisticsResponse
 } from '../../models/Events/event.model';
 import { ApiResponse } from '../../models/Common/api-response.model';
 
@@ -62,6 +63,14 @@ exportAttendeesReport(eventId: string): Observable<Blob> {
   return this.http.get(`${this.baseUrl}/${eventId}/export`, {
     responseType: 'blob' // Important pour recevoir un fichier binaire
   });
+}
+
+/**
+ * ✅ NOUVEAU — Statistiques de participation/paiement par église et site
+ * GET /api/v1/Event/{id}/statistics/church
+ */
+getChurchStatistics(eventId: string): Observable<EventChurchStatisticsResponse> {
+  return this.http.get<EventChurchStatisticsResponse>(`${this.baseUrl}/${eventId}/statistics/church`);
 }
 
   /**
