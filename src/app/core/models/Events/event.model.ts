@@ -74,6 +74,26 @@ export interface ChurchParticipationStat {
   montantEnAttente: number;
   tauxPaiement: number; // pourcentage, ex: 76.5
 }
+/**
+ * Reçu de paiement, généré côté serveur dès la confirmation.
+ * ⚠️ Disponible uniquement lorsque le paiement est confirmé (404 sinon).
+ */
+export interface PaymentReceiptDto {
+  success: boolean;
+  receiptNumber: string;
+  customerName: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation?: string;
+  formulaName: string;
+  amount: number;
+  currency: string;
+  paymentMethod?: string;
+  reference: string;
+  paidAt: string;
+  /** URL absolue, jeton d'accès inclus */
+  downloadUrl: string;
+}
 
 export interface EventChurchStatisticsResponse {
   isSuccess: boolean;

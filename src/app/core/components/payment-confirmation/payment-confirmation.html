@@ -1,38 +1,113 @@
 <div class="pc-page">
   <div class="pc-card">
+
     @switch (status()) {
-    @case ('checking') {
 
-    <div class="pc-spinner" aria-hidden="true"></div>
-    <h2>Vérification du paiement</h2>
-    <p>Nous confirmons votre transaction, un instant…</p>
-    }
-    @case ('pending') {
-    <div class="pc-icon pc-icon--pending" aria-hidden="true">⏳</div>
-    <h2>Paiement en cours</h2>
-    <p>Votre paiement est en cours de traitement. Cette page se met à jour automatiquement.</p>
-    }
-    @case ('paid') {
-    <div class="pc-confetti" aria-hidden="true"></div>
-    <div class="pc-icon pc-icon--paid" aria-hidden="true">✓</div>
-    <h2>Paiement confirmé !</h2>
-    <p>Votre inscription est validée. Vous recevrez une confirmation par email.</p>
-    }
-    @case ('failed') {
-    <div class="pc-icon pc-icon--failed" aria-hidden="true">✕</div>
-    <h2>Paiement non confirmé</h2>
-    <p>Le paiement n'a pas pu être confirmé. Veuillez réessayer ou nous contacter.</p>
+      @case ('checking') {
+        <div class="pc-spinner" aria-hidden="true"></div>
+        <h2>Vérification du paiement</h2>
+        <p>Nous confirmons votre transaction, un instant…</p>
+      }
+
+      @case ('pending') {
+        <div class="pc-icon pc-icon--pending" aria-hidden="true">⏳</div>
+        <h2>Paiement en cours</h2>
+        <p>Votre paiement est en cours de traitement. Cette page se met à jour automatiquement.</p>
+      }
+
+      @case ('paid') {
+        <div class="pc-confetti" aria-hidden="true"></div>
+        <div class="pc-icon pc-icon--paid" aria-hidden="true">✓</div>
+        <h2>Paiement confirmé</h2>
+        <p>Votre inscription est validée. Un reçu vous a été envoyé par email.</p>
+      }
+
+      @case ('failed') {
+        <div class="pc-icon pc-icon--failed" aria-hidden="true">✕</div>
+        <h2>Paiement non abouti</h2>
+        <p>La transaction n'a pas été finalisée. Si vous avez malgré tout été débité,
+           contactez-nous avec votre référence de paiement.</p>
+      }
+
+      @case ('timeout') {
+        <div class="pc-icon pc-icon--pending" aria-hidden="true">⏱️</div>
+        <h2>Vérification plus longue que prévue</h2>
+        <p>Votre paiement est peut-être encore en cours de traitement chez votre opérateur.
+           <strong>Si vous avez été débité, votre inscription sera validée automatiquement</strong>
+           et votre reçu vous parviendra par email.</p>
+        <button type="button" class="pc-btn pc-btn--ghost" (click)="retryCheck()">
+          Vérifier à nouveau
+        </button>
+      }
     }
 
-    @case ('timeout') {
-    <div class="pc-icon pc-icon--pending" aria-hidden="true">⏱️</div>
-    <h2>Vérification plus longue que prévue</h2>
-    <p>Votre paiement est peut-être encore en cours de traitement chez votre opérateur (mobile money notamment). Vous
-      pouvez réessayer la vérification, ou revenir plus tard — nous vous enverrons une confirmation par email dès
-      validation.</p>
-    <button class="per-btn-submit" (click)="retryCheck()">Vérifier à nouveau</button>
+    <!-- ══ REÇU DE PAIEMENT ══════════════════════════════════ -->
+
+    @if (loadingReceipt()) {
+      <p class="pc-hint">Préparation de votre reçu…</p>
     }
+
+    @if (receipt(); as r) {
+      <section class="pc-receipt">
+
+        <header class="pc-receipt-head">
+          <span class="pc-receipt-tag">Reçu de paiement</span>
+          <strong class="pc-receipt-number">{{ r.receiptNumber }}</strong>
+        </header>
+
+        <div class="pc-receipt-amount">
+          <span class="pc-receipt-amount-label">Montant payé</span>
+          <span class="pc-receipt-amount-value">
+            {{ r.amount | number:'1.0-0' }} {{ r.currency }}
+          </span>
+        </div>
+
+        <dl class="pc-receipt-lines">
+          <div class="pc-receipt-line">
+            <dt>Participant</dt><dd>{{ r.customerName }}</dd>
+          </div>
+          <div class="pc-receipt-line">
+            <dt>Événement</dt><dd>{{ r.eventTitle }}</dd>
+          </div>
+          <div class="pc-receipt-line">
+            <dt>Date</dt><dd>{{ r.eventDate | date:'dd MMMM yyyy' }}</dd>
+          </div>
+          @if (r.eventLocation) {
+            <div class="pc-receipt-line">
+              <dt>Lieu</dt><dd>{{ r.eventLocation }}</dd>
+            </div>
+          }
+          <div class="pc-receipt-line">
+            <dt>Formule</dt><dd>{{ r.formulaName }}</dd>
+          </div>
+          <div class="pc-receipt-line">
+            <dt>Référence</dt><dd class="pc-mono">{{ r.reference }}</dd>
+          </div>
+          <div class="pc-receipt-line">
+            <dt>Payé le</dt><dd>{{ r.paidAt | date:'dd/MM/yyyy à HH:mm' }}</dd>
+          </div>
+        </dl>
+
+        <div class="pc-receipt-actions">
+          <button type="button" class="pc-btn pc-btn--primary" (click)="downloadReceipt()">
+            Télécharger le reçu (PDF)
+          </button>
+          <button type="button" class="pc-btn pc-btn--ghost"
+                  [disabled]="resending()" (click)="resendReceipt()">
+            @if (resending()) { Envoi en cours… } @else { Me le renvoyer par email }
+          </button>
+        </div>
+
+        @if (resendMessage()) {
+          <p class="pc-resend-msg">{{ resendMessage() }}</p>
+        }
+
+        <p class="pc-receipt-foot">
+          Conservez ce reçu et présentez-le à l'accueil le jour de l'événement.
+        </p>
+      </section>
     }
+
     <a routerLink="/" class="pc-link">Retour à l'accueil</a>
   </div>
 </div>
