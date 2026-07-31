@@ -62,10 +62,18 @@
           </span>
         </div>
 
-        <dl class="pc-receipt-lines">
+<dl class="pc-receipt-lines">
           <div class="pc-receipt-line">
             <dt>Participant</dt><dd>{{ r.customerName }}</dd>
           </div>
+
+          <!-- ✅ Affiché uniquement si une tierce personne a payé -->
+          @if (r.payerName) {
+            <div class="pc-receipt-line pc-receipt-line--payer">
+              <dt>Payé par</dt><dd>{{ r.payerName }}</dd>
+            </div>
+          }
+
           <div class="pc-receipt-line">
             <dt>Événement</dt><dd>{{ r.eventTitle }}</dd>
           </div>

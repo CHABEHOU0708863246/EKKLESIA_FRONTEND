@@ -276,3 +276,8 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   .pc-receipt-actions { flex-direction: row; }
   .pc-btn { flex: 1; }
 }
+
+.pc-receipt-line--payer dd {
+  color: #16a34a;
+  font-weight: 600;
+}

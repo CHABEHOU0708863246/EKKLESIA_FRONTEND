@@ -44,15 +44,39 @@ export interface EventPublicRegistrationPayload {
   eventId: string;
   firstName: string;
   lastName: string;
-  email: string;
+
+  /**
+   * ✅ OPTIONNEL — beaucoup de participants n'ont pas d'email.
+   * Si vide, `payerEmail` devient obligatoire (le reçu part chez le payeur).
+   */
+  email?: string;
+
   phone: string;
   gender: string;
   profileType: ParticipantProfileType;
-  churchId?: string;      // ✅ NOUVEAU
-  siteId?: string;        // ✅ NOUVEAU
+  churchId?: string;
+  siteId?: string;
   formulaId: string;
   paymentMethod?: string;
   memberId?: string;
+
+  // ══════════════════════════════════════════════════════════
+  // PAYEUR — ✅ NOUVEAU
+  // Permet à une même personne d'inscrire plusieurs participants
+  // avec son propre compte mobile money.
+  // ══════════════════════════════════════════════════════════
+
+  /** True si une autre personne paie pour ce participant. */
+  paidByThirdParty?: boolean;
+
+  /** Requis si paidByThirdParty = true. */
+  payerName?: string;
+
+  /** Numéro mobile money réellement débité. Requis si paidByThirdParty = true. */
+  payerPhone?: string;
+
+  /** Reçoit le reçu si le participant n'a pas d'email. */
+  payerEmail?: string;
 }
 
 
@@ -91,6 +115,11 @@ export interface PaymentReceiptDto {
   paymentMethod?: string;
   reference: string;
   paidAt: string;
+
+  /** ✅ Renseignés uniquement si une tierce personne a payé. */
+  payerName?: string;
+  payerPhone?: string;
+
   /** URL absolue, jeton d'accès inclus */
   downloadUrl: string;
 }
@@ -415,19 +444,26 @@ export interface EventRegistrationDto {
 }
 
 // 7.4 DTO pour l'inscription publique (sans compte)
+// 7.4 DTO pour l'inscription publique (sans compte)
 export interface EventPublicRegistrationDto {
   eventId: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;              // ✅ devenu optionnel
   phone: string;
   gender: string;
   profileType: ParticipantProfileType;
-  churchId?: string;      // ✅ NOUVEAU — optionnel, personnes extérieures = vide
-  siteId?: string;        // ✅ NOUVEAU — optionnel, requiert churchId
+  churchId?: string;
+  siteId?: string;
   formulaId: string;
   paymentMethod?: string;
   memberId?: string;
+
+  // ✅ NOUVEAU — payeur
+  paidByThirdParty?: boolean;
+  payerName?: string;
+  payerPhone?: string;
+  payerEmail?: string;
 }
 
 // 7.5 Réponse après inscription publique

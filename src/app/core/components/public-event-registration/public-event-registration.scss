@@ -642,3 +642,152 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+
+
+// ══ Bloc payeur ══════════════════════════════════════════════
+
+.per-section-divider {
+  margin: 2rem 0 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.per-field--checkbox {
+  margin-bottom: 1rem;
+}
+
+.per-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: .625rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0f172a;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #16a34a;
+  }
+}
+
+.per-payer-block {
+  margin: 0 0 1.25rem;
+  padding: 1.125rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.per-payer-title {
+  margin: 0 0 1rem;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.per-field-hint {
+  margin: .375rem 0 0;
+  font-size: .75rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.per-field-error--block {
+  padding: .75rem 1rem;
+  margin: 0 0 1rem;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.per-form-error {
+  padding: .875rem 1rem;
+  margin-bottom: 1.25rem;
+  border-left: 4px solid #dc2626;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+.per-optional {
+  font-weight: 400;
+  font-size: .78em;
+  color: #94a3b8;
+}
+
+// ══ Compteur d'inscriptions ══════════════════════════════════
+
+.per-stub-counter {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(255, 255, 255, .25);
+  text-align: center;
+}
+
+.per-stub-counter-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.per-stub-counter-label {
+  display: block;
+  margin-top: .25rem;
+  font-size: .72rem;
+  opacity: .8;
+}
+
+// ══ Écran de confirmation ════════════════════════════════════
+
+.per-participant-name {
+  margin: .25rem 0 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.per-next-block {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.per-next-hint {
+  margin: 0 0 .875rem;
+  font-size: .78rem;
+  line-height: 1.5;
+  color: #b45309;
+  background: #fef3c7;
+  padding: .625rem .875rem;
+  border-radius: 8px;
+}
+
+.per-btn-secondary {
+  width: 100%;
+  padding: .8rem 1.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #334155;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+
+  &:hover { background: #f8fafc; }
+}

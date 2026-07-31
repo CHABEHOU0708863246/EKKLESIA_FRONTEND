@@ -8,7 +8,7 @@
   </div>
   }
 
-  @if (error() && !loading()) {
+  @if (error() && !loading() && !event()) {
   <div class="per-status-screen per-status-screen--error">
     <div class="per-status-icon per-status-icon--error" aria-hidden="true">✕</div>
     <p>{{ error() }}</p>
@@ -22,12 +22,10 @@
     <div class="per-hero-glow" aria-hidden="true"></div>
     <div class="per-hero-inner">
 
-      <!-- Logo + emblème -->
       <div class="per-hero-logo-row">
         <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-hero-logo">
       </div>
 
-      <!-- Thème / verse directeur -->
       <div class="per-hero-banner">
         <p class="per-hero-banner-text">Soit fidèle jusqu'à la mort en faisant plus pour Dieu</p>
         <span class="per-hero-banner-ref">Romains 2:17</span>
@@ -138,34 +136,51 @@
           }
         </div>
         }
+
+        @if (registeredCount() > 0) {
+        <div class="per-stub-counter">
+          <span class="per-stub-counter-value">{{ registeredCount() }}</span>
+          <span class="per-stub-counter-label">
+            personne{{ registeredCount() > 1 ? 's' : '' }} inscrite{{ registeredCount() > 1 ? 's' : '' }}
+          </span>
+        </div>
+        }
       </aside>
 
       <!-- ── Formulaire ── -->
       <div class="per-form-panel">
-        <h2 class="per-form-title">Vos informations</h2>
+        <h2 class="per-form-title">Informations du participant</h2>
+
+        @if (error()) {
+        <div class="per-form-error">{{ error() }}</div>
+        }
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="per-form">
+
           <div class="per-row">
             <div class="per-field">
               <label for="firstName">Prénom *</label>
-              <input id="firstName" type="text" formControlName="firstName" placeholder="Votre prénom">
-              <p class="per-field-error" *ngIf="isFieldInvalid('firstName')">Champ requis.</p>
+              <input id="firstName" type="text" formControlName="firstName" placeholder="Prénom du participant">
+              <p class="per-field-error" *ngIf="isFieldInvalid('firstName')">Champ requis (2 caractères minimum).</p>
             </div>
             <div class="per-field">
               <label for="lastName">Nom *</label>
-              <input id="lastName" type="text" formControlName="lastName" placeholder="Votre nom">
-              <p class="per-field-error" *ngIf="isFieldInvalid('lastName')">Champ requis.</p>
+              <input id="lastName" type="text" formControlName="lastName" placeholder="Nom du participant">
+              <p class="per-field-error" *ngIf="isFieldInvalid('lastName')">Champ requis (2 caractères minimum).</p>
             </div>
           </div>
 
           <div class="per-row">
             <div class="per-field">
-              <label for="email">Email *</label>
-              <input id="email" type="email" formControlName="email" placeholder="vous@exemple.com">
-              <p class="per-field-error" *ngIf="isFieldInvalid('email')">Email invalide.</p>
+              <label for="email">Email <span class="per-optional">(facultatif)</span></label>
+              <input id="email" type="email" formControlName="email" placeholder="participant@exemple.com">
+              <p class="per-field-hint">
+                Si le participant n'a pas d'email, laissez vide et renseignez celui de la personne qui paie.
+              </p>
+              <p class="per-field-error" *ngIf="isFieldInvalid('email')">Format d'email invalide.</p>
             </div>
             <div class="per-field">
-              <label for="phone">Téléphone *</label>
+              <label for="phone">Téléphone du participant *</label>
               <input id="phone" type="text" formControlName="phone" placeholder="07 08 86 32 46">
               <p class="per-field-error" *ngIf="isFieldInvalid('phone')">Champ requis.</p>
             </div>
@@ -179,6 +194,7 @@
                 <option value="F">Femme</option>
                 <option value="M">Homme</option>
               </select>
+              <p class="per-field-error" *ngIf="isFieldInvalid('gender')">Champ requis.</p>
             </div>
             <div class="per-field">
               <label for="profileType">Profil *</label>
@@ -190,12 +206,11 @@
             </div>
           </div>
 
-          <!-- ✅ CORRIGÉ — déplacé À L'INTÉRIEUR du <form>, entre Profil et Formule -->
           <div class="per-row">
             <div class="per-field">
-              <label for="churchId">Église <span class="per-optional">(optionnel)</span></label>
+              <label for="churchId">Église <span class="per-optional">(facultatif)</span></label>
               <select id="churchId" formControlName="churchId">
-                <option value="">— Je ne suis pas rattaché(e) à une église —</option>
+                <option value="">— Pas rattaché(e) à une église —</option>
                 @if (loadingChurches()) {
                 <option disabled>Chargement…</option>
                 }
@@ -205,7 +220,7 @@
               </select>
             </div>
             <div class="per-field">
-              <label for="siteId">Site <span class="per-optional">(optionnel)</span></label>
+              <label for="siteId">Site <span class="per-optional">(facultatif)</span></label>
               <select id="siteId" formControlName="siteId">
                 <option value="">— Église mère uniquement —</option>
                 @for (s of sites(); track s.id) {
@@ -223,12 +238,65 @@
             <select id="formulaId" formControlName="formulaId">
               <option value="">— Choisir une formule —</option>
               @for (f of availableFormulas(); track f.id) {
-              <option [value]="f.id">{{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }}
-                places)</option>
+              <option [value]="f.id">
+                {{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }} places)
+              </option>
               }
             </select>
             <p class="per-field-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
           </div>
+
+          <!-- ══ QUI PAIE ? ══════════════════════════════════════ -->
+          <div class="per-section-divider">Paiement</div>
+
+          <div class="per-field per-field--checkbox">
+            <label class="per-checkbox">
+              <input type="checkbox" formControlName="paidByThirdParty">
+              <span>Je paie pour quelqu'un d'autre</span>
+            </label>
+            <p class="per-field-hint">
+              Cochez si vous inscrivez une autre personne et que le paiement part de votre compte
+              mobile money. Vous pourrez ensuite inscrire d'autres personnes avec le même compte.
+            </p>
+          </div>
+
+          @if (isThirdPartyPayer) {
+          <div class="per-payer-block">
+            <p class="per-payer-title">Personne qui paie</p>
+
+            <div class="per-row">
+              <div class="per-field">
+                <label for="payerName">Nom complet *</label>
+                <input id="payerName" type="text" formControlName="payerName"
+                       placeholder="Ex : CHABEHOU Jean">
+                <p class="per-field-error" *ngIf="isFieldInvalid('payerName')">Champ requis.</p>
+              </div>
+              <div class="per-field">
+                <label for="payerPhone">Numéro mobile money *</label>
+                <input id="payerPhone" type="text" formControlName="payerPhone"
+                       placeholder="Numéro qui sera débité">
+                <p class="per-field-error" *ngIf="isFieldInvalid('payerPhone')">Champ requis.</p>
+              </div>
+            </div>
+
+            <div class="per-field">
+              <label for="payerEmail">Email pour recevoir le reçu</label>
+              <input id="payerEmail" type="email" formControlName="payerEmail"
+                     placeholder="votre@email.com">
+              <p class="per-field-hint">
+                Le reçu de ce paiement sera envoyé à cette adresse, au nom du participant.
+              </p>
+              <p class="per-field-error" *ngIf="isFieldInvalid('payerEmail')">Format d'email invalide.</p>
+            </div>
+          </div>
+          }
+
+          @if (missingEmailEverywhere) {
+          <p class="per-field-error per-field-error--block">
+            Une adresse email est nécessaire pour recevoir le reçu : celle du participant,
+            ou celle de la personne qui paie.
+          </p>
+          }
 
           <div class="per-field">
             <label for="paymentMethod">Moyen de paiement</label>
@@ -253,24 +321,39 @@
   </main>
   }
 
+  <!-- ══ CONFIRMATION D'INSCRIPTION ═══════════════════════════ -->
   @if (registrationResult(); as result) {
   <div class="per-page per-page--centered">
     <div class="per-boarding-pass">
       <div class="per-check-badge" aria-hidden="true">✓</div>
       <h2>Inscription enregistrée</h2>
-      <p>Votre place est réservée. Finalisez votre inscription en procédant au paiement pour la confirmer.</p>
+      <p class="per-participant-name">{{ result.participantName }}</p>
 
-      <div class="per-ref-chip">
-        Réf. {{ result.registrationId }}
-      </div>
+      <p>
+        La place est réservée. <strong>Le paiement reste à effectuer</strong> pour
+        confirmer définitivement cette inscription.
+      </p>
+
+      <div class="per-ref-chip">Réf. {{ result.registrationId }}</div>
 
       @if (result.qrCode) {
       <img [src]="result.qrCode" alt="QR Code de paiement" class="per-qr">
       }
 
-      <button class="per-btn-submit" (click)="goToPayment()">
+      <button type="button" class="per-btn-submit" (click)="goToPayment()">
         Procéder au paiement
       </button>
+
+      <!-- ✅ Enchaînement des inscriptions -->
+      <div class="per-next-block">
+        <p class="per-next-hint">
+          ⚠️ Payez d'abord cette inscription avant d'en créer une autre :
+          chaque participant a son propre paiement.
+        </p>
+        <button type="button" class="per-btn-secondary" (click)="registerAnotherPerson()">
+          Inscrire une autre personne
+        </button>
+      </div>
     </div>
   </div>
   }
