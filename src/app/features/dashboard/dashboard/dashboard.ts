@@ -1,3 +1,5 @@
+// dashboard.ts
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule, RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subscription } from 'rxjs';
@@ -15,6 +17,10 @@ import { BaseChartDirective } from 'ng2-charts';
 import { SidebarComponent } from "../../../core/components/sidebar-component/sidebar-component";
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
+import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core/models/Dashboard/dashboard.model';
+import { Dashboards } from '../../../core/services/Dashboard/dashboards';
+
+
 
 Chart.register(...registerables);
 
@@ -55,93 +61,45 @@ export enum OfferingStatus {
 export class Dashboard implements OnInit, OnDestroy {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-
-  /**
-   * Référence directe au SidebarComponent enfant.
-   * On délègue TOUTE la logique d'ouverture/fermeture (mobile off-canvas
-   * ou collapse desktop) au sidebar lui-même : c'est lui qui possède
-   * les propriétés isMobileOpen / isCollapsed liées dans son propre
-   * template et son propre SCSS. Le Dashboard ne doit plus jamais
-   * manipuler le DOM du sidebar à la main.
-   */
   @ViewChild(SidebarComponent) sidebarComponent!: SidebarComponent;
 
-  // Données pour graphiques
-  chartData: any = {
-    membersByStatus: {
-      labels: ['Visiteurs', 'Adhérents', 'Actifs', 'Inactifs'],
-      datasets: [{
-        data: [0, 0, 0, 0],
-        backgroundColor: ['#FFD166', '#74B9FF', '#00B894', '#E17055'],
-        hoverBackgroundColor: ['#FFE08A', '#9DC6FF', '#55EFC4', '#F8A4A4']
-      }]
-    },
-    offeringsByType: {
-      labels: ['Dîmes', 'Offrandes', 'Spéciales', 'Construction', 'Mission', 'Semence', 'Action de grâce'],
-      datasets: [{
-        data: [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF', '#00CEC9', '#FF7675'],
-        hoverBackgroundColor: ['#8B7EE8', '#55EFC4', '#FDE68A', '#F8A4A4', '#A8D8FF', '#81ECEC', '#FFA4A4']
-      }]
-    },
-    attendanceTrend: {
-      labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-      datasets: [
-        {
-          label: 'Membres',
-          data: [120, 135, 142, 158, 165, 180],
-          borderColor: '#6C5CE7',
-          backgroundColor: 'rgba(108, 92, 231, 0.1)',
-          fill: true,
-          tension: 0.4
-        },
-        {
-          label: 'Visiteurs',
-          data: [15, 18, 12, 20, 25, 22],
-          borderColor: '#FDCB6E',
-          backgroundColor: 'rgba(253, 203, 110, 0.1)',
-          fill: true,
-          tension: 0.4
-        }
-      ]
-    }
-  };
+  // ─── Données du tableau de bord ──────────────────────────────
+  dashboardData: DashboardDto | null = null;
+  kpiData: DashboardKpiDto | null = null;
+  chartData: DashboardChartsDto | null = null;
 
+  // ─── Indicateurs affichés ─────────────────────────────────────
+  totalMembers: number = 0;
+  activeMembers: number = 0;
+  totalCells: number = 0;
+  upcomingEvents: number = 0;
+  monthlyCollection: number = 0;
+  averageAttendanceRate: number = 0;
+
+  // ─── Listes récentes ──────────────────────────────────────────
+  recentMembers: any[] = [];
+  recentOfferings: any[] = [];
+
+  // ─── Données graphiques (Chart.js) ───────────────────────────
+  genderChartData: any = { labels: [], datasets: [] };
+  offeringTypeChartData: any = { labels: [], datasets: [] };
+  attendanceChartData: any = { labels: [], datasets: [] };
+
+  // ─── Utilisateur ──────────────────────────────────────────────
   currentUser: User | null = null;
   userName: string = 'Utilisateur';
   userPhotoUrl: string = '';
   showUserMenu: boolean = false;
 
-  dashboardStats = {
-    totalMembers: 0,
-    newMembersThisMonth: 0,
-    activeCells: 0,
-    totalOfferings: 0,
-    upcomingEvents: 0,
-    totalEvents: 0,
-    attendanceRate: 0,
-    averageAttendance: 0,
-    visitorsThisMonth: 0
-  };
-
-  // Données récentes
-  recentMembers: any[] = [];
-  recentOfferings: any[] = [];
-
   isLoading: boolean = true;
+  errorMessage: string | null = null;
 
-  // Options des graphiques
+  // ─── Options des graphiques ──────────────────────────────────
   chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        }
-      }
+      legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
     }
   };
 
@@ -149,31 +107,15 @@ export class Dashboard implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        }
-      }
+      legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0,0,0,0.05)'
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        }
-      }
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+      x: { grid: { display: false } }
     }
   };
 
   private isBrowser: boolean;
-
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -181,19 +123,17 @@ export class Dashboard implements OnInit, OnDestroy {
     private tokenService: Token,
     private router: Router,
     public permission: Permissions,
+    private dashboardApi: Dashboards,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngOnInit(): void {
-    // ✅ Côté serveur : on ne vérifie rien, le client validera après hydratation
     if (!this.isBrowser) return;
 
     const token = this.tokenService.getToken();
-
     if (!token) {
-      console.error('❌ Pas de token - Redirection login');
       this.router.navigate(['/auth/login']);
       return;
     }
@@ -206,9 +146,10 @@ export class Dashboard implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  /**
-   * Charger l'utilisateur connecté
-   */
+  // ──────────────────────────────────────────────────────────────────
+  // 🔐 UTILISATEUR
+  // ──────────────────────────────────────────────────────────────────
+
   loadCurrentUser(): void {
     this.subscriptions.add(
       this.authService.getCurrentUser().subscribe({
@@ -217,14 +158,8 @@ export class Dashboard implements OnInit, OnDestroy {
           this.userName = this.formatUserName(user);
           this.userPhotoUrl = this.getUserPhotoUrl(user);
         },
-        error: (error: { message: string | string[]; }) => {
-          console.error('❌ Erreur chargement utilisateur:', error);
-          if (error.message?.includes('401')) {
-            console.error('🔐 Token invalide - Déconnexion');
-            this.tokenService.handleTokenExpired();
-          } else {
-            this.setDefaultUser();
-          }
+        error: () => {
+          this.setDefaultUser();
         }
       })
     );
@@ -236,15 +171,10 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   formatUserName(user: User): string {
-    if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    } else if (user.firstName) {
-      return user.firstName;
-    } else if (user.username) {
-      return user.username;
-    } else if (user.email) {
-      return user.email.split('@')[0];
-    }
+    if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+    if (user.firstName) return user.firstName;
+    if (user.username) return user.username;
+    if (user.email) return user.email.split('@')[0];
     return 'Utilisateur EKKLESIA';
   }
 
@@ -252,11 +182,7 @@ export class Dashboard implements OnInit, OnDestroy {
     if (user.photoUrl && user.photoUrl.length === 24) {
       return `${environment.apiUrl}/api/User/photo/${user.photoUrl}`;
     }
-
-    if (user.photoUrl && user.photoUrl.startsWith('http')) {
-      return user.photoUrl;
-    }
-
+    if (user.photoUrl?.startsWith('http')) return user.photoUrl;
     return this.generateAvatarUrl(user);
   }
 
@@ -264,112 +190,140 @@ export class Dashboard implements OnInit, OnDestroy {
     const name = this.formatUserName(user);
     const colors = ['6C5CE7', '00B894', 'FDCB6E', 'E17055', '74B9FF', 'FF7675', '00CEC9', 'FFD166'];
     const colorIndex = name.length % colors.length;
-
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${colors[colorIndex]}&color=fff&size=128`;
   }
 
   getUserInitials(): string {
     const name = this.userName;
     const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-    }
+    if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
     return name.charAt(0).toUpperCase();
   }
 
-  /**
-   * Charger toutes les données du dashboard
-   */
+  // ──────────────────────────────────────────────────────────────────
+  // 📊 CHARGEMENT DES DONNÉES DU TABLEAU DE BORD
+  // ──────────────────────────────────────────────────────────────────
+
   loadDashboardData(): void {
     this.isLoading = true;
+    this.errorMessage = null;
 
-    // Simuler le chargement des données (à remplacer par de vrais appels API)
-    setTimeout(() => {
-      this.loadSimulatedData();
-      this.isLoading = false;
-    }, 800);
+    // Récupérer toutes les données en parallèle
+    this.subscriptions.add(
+      forkJoin({
+        dashboard: this.dashboardApi.getDashboardData(),
+        kpi: this.dashboardApi.getKpiData(),
+        charts: this.dashboardApi.getChartData()
+      }).subscribe({
+        next: ({ dashboard, kpi, charts }) => {
+          if (dashboard.success && dashboard.data) {
+            this.dashboardData = dashboard.data;
+            this.extractDashboardData(dashboard.data);
+          } else {
+            this.errorMessage = dashboard.message || 'Erreur chargement du tableau de bord';
+          }
+
+          if (kpi.success && kpi.data) {
+            this.kpiData = kpi.data;
+            this.extractKpiData(kpi.data);
+          }
+
+          if (charts.success && charts.data) {
+            this.chartData = charts.data;
+            this.updateChartsFromApi(charts.data);
+          }
+
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('❌ Erreur API Dashboard:', err);
+          this.errorMessage = 'Impossible de charger les données. Veuillez réessayer.';
+          this.isLoading = false;
+        }
+      })
+    );
   }
 
-  /**
-   * Charger des données simulées (à remplacer par des appels API réels)
-   */
-  loadSimulatedData(): void {
-    this.dashboardStats = {
-      totalMembers: 247,
-      newMembersThisMonth: 12,
-      activeCells: 14,
-      totalOfferings: 1850000,
-      upcomingEvents: 4,
-      totalEvents: 18,
-      attendanceRate: 85,
-      averageAttendance: 210,
-      visitorsThisMonth: 28
-    };
+  // ─── Extraction des données du DTO Dashboard ──────────────────────
 
-    // Membres récents simulés
-    this.recentMembers = [
-      { fullName: 'Kouamé Marie-Claire', status: MemberStatus.Active, cellGroupName: 'Cocody' },
-      { fullName: 'Konan Jean', status: MemberStatus.Active, cellGroupName: 'Plateau' },
-      { fullName: 'Diallo Aïssatou', status: MemberStatus.Visitor, cellGroupName: '-' },
-      { fullName: 'Brou Frédéric', status: MemberStatus.Active, cellGroupName: 'Cocody' },
-      { fullName: 'N\'Guessan Thomas', status: MemberStatus.Active, cellGroupName: 'Marcory' }
-    ];
-
-    // Offrandes récentes simulées
-    this.recentOfferings = [
-      { type: OfferingType.Tithe, amount: 250000, status: OfferingStatus.Validated },
-      { type: OfferingType.SundayOffering, amount: 185000, status: OfferingStatus.Validated },
-      { type: OfferingType.SpecialOffering, amount: 95000, status: OfferingStatus.Verified },
-      { type: OfferingType.BuildingFund, amount: 50000, status: OfferingStatus.Pending },
-      { type: OfferingType.Mission, amount: 35000, status: OfferingStatus.Validated }
-    ];
-
-    // Mettre à jour les graphiques
-    this.updateCharts();
+  private extractDashboardData(data: DashboardDto): void {
+    this.totalMembers = data.totalMembers || 0;
+    this.activeMembers = data.activeMembers || 0;
+    this.totalCells = data.totalCells || 0;
+    this.upcomingEvents = data.upcomingEvents || 0;
+    this.monthlyCollection = data.monthlyCollection || 0;
+    this.averageAttendanceRate = data.averageAttendanceRate || 0;
+    this.recentMembers = data.recentMembers || [];
+    this.recentOfferings = data.recentOfferings || [];
   }
 
-  /**
-   * Mettre à jour les graphiques
-   */
-  updateCharts(): void {
-    // Graphique des statuts des membres
-    this.chartData.membersByStatus.datasets[0].data = [28, 45, 160, 14];
-
-    // Graphique des offrandes par type
-    this.chartData.offeringsByType.datasets[0].data = [850000, 620000, 250000, 80000, 35000, 15000, 0];
+  private extractKpiData(data: DashboardKpiDto): void {
+    // On peut mettre à jour des indicateurs supplémentaires si nécessaire
+    // Par exemple, le taux de présence, etc.
+    if (data.averageAttendanceRate !== undefined) {
+      this.averageAttendanceRate = data.averageAttendanceRate;
+    }
   }
 
-  /**
-   * Calculer la tendance des membres
-   */
-  getMembersTrend(): number {
-    return 8;
+  // ─── Mise à jour des graphiques à partir des données API ────────
+
+  private updateChartsFromApi(charts: DashboardChartsDto): void {
+    // Graphique répartition des membres par genre
+    if (charts.genderDistribution) {
+      const items = charts.genderDistribution.items || [];
+      const labels = items.map((i: { label: any; }) => i.label);
+      const counts = items.map((i: { count: any; }) => i.count);
+
+      this.genderChartData = {
+        labels: labels,
+        datasets: [{
+          data: counts,
+          backgroundColor: ['#FFD166', '#74B9FF', '#00B894', '#E17055'],
+          hoverBackgroundColor: ['#FFE08A', '#9DC6FF', '#55EFC4', '#F8A4A4']
+        }]
+      };
+    }
+
+    // Graphique offrandes par type
+    if (charts.offeringsByType) {
+      const items = charts.offeringsByType.items || [];
+      const labels = items.map((i: { label: any; }) => i.label);
+      const amounts = items.map((i: { amount: any; }) => i.amount);
+
+      this.offeringTypeChartData = {
+        labels: labels,
+        datasets: [{
+          data: amounts,
+          backgroundColor: ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF', '#00CEC9', '#FF7675'],
+          hoverBackgroundColor: ['#8B7EE8', '#55EFC4', '#FDE68A', '#F8A4A4', '#A8D8FF', '#81ECEC', '#FFA4A4']
+        }]
+      };
+    }
+
+    // Graphique tendance des présences
+    if (charts.attendanceTrend) {
+      const points = charts.attendanceTrend.points || [];
+      const labels = points.map((p: { date: any; }) => p.date);
+      const data = points.map((p: { attendance: any; }) => p.attendance);
+
+      this.attendanceChartData = {
+        labels: labels,
+        datasets: [{
+          label: 'Présences',
+          data: data,
+          borderColor: '#6C5CE7',
+          backgroundColor: 'rgba(108, 92, 231, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      };
+    }
   }
 
-  /**
-   * Calculer la tendance des offrandes
-   */
-  getOfferingsTrend(): number {
-    return 12;
-  }
+  // ──────────────────────────────────────────────────────────────────
+  // 🛠️ MÉTHODES D'AFFICHAGE (statuts, labels...)
+  // ──────────────────────────────────────────────────────────────────
 
-  /**
-   * Calculer la tendance des événements
-   */
-  getEventsTrend(): number {
-    return 5;
-  }
-
-  /**
-   * Calculer la tendance des présences
-   */
-  getAttendanceTrend(): number {
-    return 3;
-  }
-
-  /**
-   * Obtenir le texte du statut d'un membre
-   */
   getMemberStatusText(status: MemberStatus): string {
     switch (status) {
       case MemberStatus.Visitor: return 'Visiteur';
@@ -381,9 +335,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Obtenir la classe CSS pour le statut d'un membre
-   */
   getMemberStatusClass(status: MemberStatus): string {
     switch (status) {
       case MemberStatus.Visitor: return 'status-visitor';
@@ -395,9 +346,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Obtenir le texte du type d'offrande
-   */
   getOfferingTypeText(type: OfferingType): string {
     switch (type) {
       case OfferingType.Tithe: return 'Dîme';
@@ -411,9 +359,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Obtenir le texte du statut d'une offrande
-   */
   getOfferingStatusText(status: OfferingStatus): string {
     switch (status) {
       case OfferingStatus.Pending: return 'En attente';
@@ -424,9 +369,6 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Obtenir la classe CSS pour le statut d'une offrande
-   */
   getOfferingStatusClass(status: OfferingStatus): string {
     switch (status) {
       case OfferingStatus.Pending: return 'status-pending';
@@ -437,19 +379,14 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Formater un nombre avec séparateurs
-   */
   getFormattedNumber(value: number): string {
     return value.toLocaleString('fr-FR');
   }
 
-  /**
-   * Point d'entrée du bouton hamburger du Topbar.
-   * Toute la logique (mobile off-canvas vs desktop collapse) vit
-   * désormais dans SidebarComponent — le Dashboard se contente de
-   * déléguer via la référence @ViewChild.
-   */
+  // ──────────────────────────────────────────────────────────────────
+  // 👤 INTERACTIONS
+  // ──────────────────────────────────────────────────────────────────
+
   toggleSidebar(): void {
     this.sidebarComponent?.onMenuToggleClick();
   }
@@ -466,20 +403,11 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Déconnexion
-   */
   logout(): void {
     this.tokenService.logout();
-
     this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/auth/login']);
-      },
-      error: (error: any) => {
-        console.warn('⚠️ Erreur API déconnexion:', error);
-        this.router.navigate(['/auth/login']);
-      }
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login'])
     });
   }
 }

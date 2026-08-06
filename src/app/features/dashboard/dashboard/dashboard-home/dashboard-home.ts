@@ -1,18 +1,17 @@
 // src/app/features/dashboard/dashboard-home/dashboard-home.component.ts
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 
 import { Auth } from '../../../../core/services/Auth/auth';
 import { Token } from '../../../../core/services/Token/token';
 import { User } from '../../../../core/models/Users/user.model';
-import { DashboardDto } from '../../../../core/models/Dashboard/dashboard.model';
+import { DashboardDto, RecentMemberDto, RecentOfferingDto } from '../../../../core/models/Dashboard/dashboard.model';
 import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
-import { RecentMemberDto, RecentOfferingDto } from '../../../../core/models/Dashboard/dashboard.model';
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 
 // Enregistrer tous les composants Chart.js
@@ -29,21 +28,21 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   private isBrowser: boolean;
 
-  // Références aux canvas
+  // Références aux graphiques
   private genderChart: Chart | null = null;
   private offeringsChart: Chart | null = null;
   private attendanceChart: Chart | null = null;
 
-  // ── Utilisateur ──
+  // ─── Utilisateur ──────────────────────────────────────────────
   userName: string = 'Utilisateur';
   currentUser: User | null = null;
 
-  // ── Données du Dashboard ──
+  // ─── Données du Dashboard ─────────────────────────────────────
   dashboardData: DashboardDto | null = null;
   loading = false;
   error: string | null = null;
 
-  // ── Propriétés pour le template ──
+  // ─── Indicateurs pour le template ─────────────────────────────
   dashboardStats = {
     totalMembers: 0,
     newMembersThisMonth: 0,
@@ -59,7 +58,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   recentMembers: RecentMemberDto[] = [];
   recentOfferings: RecentOfferingDto[] = [];
 
-  // ── Données de chart (pour fallback si nécessaire) ──
+  // ─── Données des graphiques (fallback) ───────────────────────
   chartData = {
     genderLabels: [] as string[],
     genderData: [] as number[],
@@ -94,9 +93,9 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     this.destroyCharts();
   }
 
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DE L'UTILISATEUR
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
 
   loadCurrentUser(): void {
     const token = this.tokenService.getToken();
@@ -131,27 +130,64 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     return 'Utilisateur';
   }
 
-  // ──────────────────────────────────────────────
-  // CHARGEMENT DES DONNÉES DU DASHBOARD
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
+  // CHARGEMENT DES DONNÉES DU DASHBOARD (API)
+  // ──────────────────────────────────────────────────────────────
 
   loadDashboardData(): void {
     this.loading = true;
     this.error = null;
 
-    this.dashboardService.getDashboardData()
+    // Récupérer toutes les données en parallèle (dashboard complet, KPI, charts)
+    forkJoin({
+      dashboard: this.dashboardService.getDashboardData(),
+      kpi: this.dashboardService.getKpiData(),
+      charts: this.dashboardService.getChartData()
+    })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
+        next: ({ dashboard, kpi, charts }) => {
           this.loading = false;
-          if (response.success && response.data) {
-            this.dashboardData = response.data;
-            this.mapDashboardData(response.data);
-            // Créer les graphiques après que le DOM soit prêt
-            setTimeout(() => this.createCharts(), 100);
+
+          // 1. Dashboard principal
+          if (dashboard.success && dashboard.data) {
+            this.dashboardData = dashboard.data;
+            this.mapDashboardData(dashboard.data);
           } else {
-            this.error = response.message || 'Impossible de charger le tableau de bord.';
+            this.error = dashboard.message || 'Erreur chargement du tableau de bord.';
           }
+
+          // 2. KPI (si nécessaire pour compléter)
+          if (kpi.success && kpi.data) {
+            // On peut utiliser certaines valeurs du KPI si elles ne sont pas dans le DTO principal
+            // Exemple : mettre à jour le taux de présence
+            if (kpi.data.averageAttendanceRate !== undefined) {
+              this.dashboardStats.attendanceRate = Math.round(kpi.data.averageAttendanceRate);
+              this.dashboardStats.averageAttendance = Math.round(kpi.data.averageAttendanceRate);
+            }
+          }
+
+          // 3. Charts (si le DTO principal ne les contient pas)
+          if (charts.success && charts.data) {
+            // On peut mettre à jour les données des graphiques avec les données spécifiques
+            // Mais normalement elles sont déjà dans dashboard.data
+            // On peut les utiliser comme fallback
+            if (charts.data.genderDistribution) {
+              this.chartData.genderLabels = charts.data.genderDistribution.items?.map(i => i.label) || [];
+              this.chartData.genderData = charts.data.genderDistribution.items?.map(i => i.count) || [];
+            }
+            if (charts.data.offeringsByType) {
+              this.chartData.offeringLabels = charts.data.offeringsByType.items?.map(i => i.label) || [];
+              this.chartData.offeringData = charts.data.offeringsByType.items?.map(i => i.amount) || [];
+            }
+            if (charts.data.attendanceTrend) {
+              this.chartData.attendanceLabels = charts.data.attendanceTrend.points?.map(p => p.date) || [];
+              this.chartData.attendanceData = charts.data.attendanceTrend.points?.map(p => p.attendance) || [];
+            }
+          }
+
+          // Créer les graphiques après que le DOM soit prêt
+          setTimeout(() => this.createCharts(), 200);
         },
         error: (err) => {
           console.error('❌ Erreur chargement dashboard:', err);
@@ -161,37 +197,39 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  // ──────────────────────────────────────────────
-  // MAPPAGE DES DONNÉES
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
+  // MAPPAGE DES DONNÉES DU DTO Dashboard
+  // ──────────────────────────────────────────────────────────────
 
   private mapDashboardData(data: DashboardDto): void {
+    // Indicateurs principaux
     this.dashboardStats.totalMembers = data.totalMembers ?? 0;
     this.dashboardStats.activeCells = data.totalCells ?? 0;
     this.dashboardStats.upcomingEvents = data.upcomingEvents ?? 0;
-    this.dashboardStats.totalEvents = data.upcomingEvents ?? 0;
+    this.dashboardStats.totalEvents = data.upcomingEvents ?? 0; // ou totalEvents si disponible
     this.dashboardStats.totalOfferings = data.monthlyCollection ?? 0;
     this.dashboardStats.attendanceRate = Math.round(data.averageAttendanceRate ?? 0);
     this.dashboardStats.averageAttendance = Math.round(data.averageAttendanceRate ?? 0);
 
+    // Nouveaux membres ce mois-ci (à partir de recentMembers)
     const now = new Date();
     const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const newMembers = data.recentMembers?.filter(m =>
       new Date(m.createdAt) >= firstDayMonth
     ) || [];
     this.dashboardStats.newMembersThisMonth = newMembers.length;
-    this.dashboardStats.visitorsThisMonth = 0;
+    this.dashboardStats.visitorsThisMonth = 0; // Si non disponible
 
+    // Listes récentes
     this.recentMembers = data.recentMembers?.slice(0, 5) || [];
     this.recentOfferings = data.recentOfferings?.slice(0, 5) || [];
 
-    // Préparer les données pour les graphiques
-    // Répartition par sexe (si disponible)
+    // Données pour les graphiques
+    // Répartition par genre
     if (data.genderDistribution?.items) {
       this.chartData.genderLabels = data.genderDistribution.items.map(item => item.label);
       this.chartData.genderData = data.genderDistribution.items.map(item => item.count);
     } else {
-      // Fallback
       this.chartData.genderLabels = ['Hommes', 'Femmes', 'Autre', 'Non renseigné'];
       this.chartData.genderData = [0, 0, 0, 0];
     }
@@ -215,28 +253,27 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // CRÉATION DES GRAPHIQUES
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
+  // CRÉATION DES GRAPHIQUES (Chart.js)
+  // ──────────────────────────────────────────────────────────────
 
   private createCharts(): void {
     if (!this.isBrowser) return;
     this.destroyCharts();
 
-    // 1. Graphique circulaire : Répartition des membres
+    // 1. Répartition des membres (pie)
     this.createGenderChart();
 
-    // 2. Graphique circulaire : Offrandes par type
+    // 2. Offrandes par type (doughnut)
     this.createOfferingsChart();
 
-    // 3. Graphique en courbe : Évolution des présences
+    // 3. Évolution des présences (line)
     this.createAttendanceChart();
   }
 
   private createGenderChart(): void {
     const canvas = document.getElementById('genderChart') as HTMLCanvasElement;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -272,11 +309,9 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private createOfferingsChart(): void {
     const canvas = document.getElementById('offeringsChart') as HTMLCanvasElement;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Couleurs pour les offrandes
     const colors = ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF', '#00CEC9', '#FF7675'];
 
     this.offeringsChart = new Chart(ctx, {
@@ -286,7 +321,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
         datasets: [{
           data: this.chartData.offeringData,
           backgroundColor: colors.slice(0, this.chartData.offeringData.length),
-          hoverBackgroundColor: colors.map(c => c + 'CC'),
+          hoverBackgroundColor: colors.slice(0, this.chartData.offeringData.length).map(c => c + 'CC'),
           borderWidth: 2,
           borderColor: '#fff'
         }]
@@ -311,7 +346,6 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private createAttendanceChart(): void {
     const canvas = document.getElementById('attendanceChart') as HTMLCanvasElement;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -336,21 +370,15 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false
-          }
+          legend: { display: false }
         },
         scales: {
           y: {
             beginAtZero: true,
-            grid: {
-              color: 'rgba(0,0,0,0.05)'
-            }
+            grid: { color: 'rgba(0,0,0,0.05)' }
           },
           x: {
-            grid: {
-              display: false
-            }
+            grid: { display: false }
           }
         }
       }
@@ -372,30 +400,11 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // TRENDS (valeurs calculées ou statiques)
-  // ──────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
+  // MÉTHODES D'AFFICHAGE (statuts, labels, etc.)
+  // ──────────────────────────────────────────────────────────────
 
-  getMembersTrend(): number {
-    return 8;
-  }
-
-  getOfferingsTrend(): number {
-    return 12;
-  }
-
-  getEventsTrend(): number {
-    return 5;
-  }
-
-  getAttendanceTrend(): number {
-    return 3;
-  }
-
-  // ──────────────────────────────────────────────
-  // MÉTHODES MEMBRES
-  // ──────────────────────────────────────────────
-
+  // --- Membres ---
   getMemberStatusText(status: string): string {
     const map: Record<string, string> = {
       'Visitor': 'Visiteur',
@@ -418,10 +427,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     return map[status] || 'status-unknown';
   }
 
-  // ──────────────────────────────────────────────
-  // MÉTHODES OFFRANDES
-  // ──────────────────────────────────────────────
-
+  // --- Offrandes ---
   getOfferingTypeText(type: OfferingType): string {
     const map: Record<OfferingType, string> = {
       [OfferingType.Tithe]: 'Dîme',
@@ -433,7 +439,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       [OfferingType.Thanksgiving]: 'Action de grâce',
       [OfferingType.Other]: 'Autre'
     };
-    return map[type] || type;
+    return map[type] || 'Inconnu';
   }
 
   getOfferingStatusText(status: OfferingStatus): string {
@@ -443,7 +449,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       [OfferingStatus.Validated]: 'Validé',
       [OfferingStatus.Cancelled]: 'Annulé'
     };
-    return map[status] || status;
+    return map[status] || 'Inconnu';
   }
 
   getOfferingStatusClass(status: OfferingStatus): string {
@@ -456,10 +462,13 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     return map[status] || 'status-unknown';
   }
 
-  // ──────────────────────────────────────────────
-  // UTILITAIRES
-  // ──────────────────────────────────────────────
+  // --- Tendances (valeurs statiques pour l'instant) ---
+  getMembersTrend(): number { return 8; }
+  getOfferingsTrend(): number { return 12; }
+  getEventsTrend(): number { return 5; }
+  getAttendanceTrend(): number { return 3; }
 
+  // --- Formatage ---
   getFormattedNumber(value: number): string {
     return value.toLocaleString('fr-FR');
   }
