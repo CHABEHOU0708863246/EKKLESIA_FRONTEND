@@ -1,160 +1,122 @@
 // api/event-preview.js
+
+const BOT_SIGNATURES = [
+  'whatsapp',
+  'facebookexternalhit',
+  'facebot',
+  'twitterbot',
+  'telegrambot',
+  'linkedinbot',
+  'slackbot',
+  'discordbot',
+  'googlebot',
+  'bingbot',
+  'applebot',
+  'ia_archiver',
+  'msnbot',
+  'yahoo! slurp',
+  'duckduckbot',
+  'semrushbot',
+  'ahrefsbot',
+];
+
+const API_BASE = 'https://ekklesia-backend-jxkc.onrender.com';
+const SITE_BASE = 'https://ekklesia-frontend.vercel.app';
+const FALLBACK_IMAGE = `${SITE_BASE}/logos/A%20New%20Design%20-%20Fait%20avec%20PosterMyWall.png`;
+const FALLBACK_TITLE = 'Inscription en ligne — MIAV';
+const FALLBACK_DESC  = 'Mission Internationale Arbre de Vie — Inscription aux événements';
+
 export default async function handler(req, res) {
   const { eventId } = req.query;
 
+  // Sans eventId, on laisse Angular gérer
   if (!eventId) {
-    return res.redirect(302, '/');
+    return redirect(res, SITE_BASE);
   }
 
-  let event = null;
+  const targetUrl = `${SITE_BASE}/inscription/${eventId}`;
+  const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+  const isBot = BOT_SIGNATURES.some(sig => userAgent.includes(sig));
 
+  // ── Vrais utilisateurs : redirection directe, zéro latence ──
+  if (!isBot) {
+    res.setHeader('Location', targetUrl);
+    return res.status(302).end();
+  }
+
+  // ── Bots : on charge l'événement et on génère les meta OG ──
+  let event = null;
   try {
-    const apiUrl = 'https://ekklesia-backend-jxkc.onrender.com';
     const apiResponse = await fetch(
-      `${apiUrl}/api/v1/public/PublicRegistration/events/${eventId}`,
+      `${API_BASE}/api/v1/public/PublicRegistration/events/${eventId}`,
       {
-        // ⚠️ Timeout de 5 secondes : Render peut être endormi
         signal: AbortSignal.timeout(5000),
-        headers: { 'Accept': 'application/json' }
+        headers: { Accept: 'application/json' },
       }
     );
 
     if (apiResponse.ok) {
       const body = await apiResponse.json();
-
-      // ✅ Déballe l'enveloppe { success, data } ou prend l'objet directement
-      event = body?.data ?? body;
-
-      // Vérifie que c'est bien un événement, pas un message d'erreur
-      if (!event?.title) event = null;
+      const candidate = body?.data ?? body;
+      if (candidate?.title) event = candidate;
     }
   } catch (err) {
-    // Timeout Render, réseau indisponible : on tombe sur le fallback
-    console.error('Open Graph — événement non chargé:', err.name, err.message);
+    // Render endormi ou timeout : fallback gracieux
+    console.error('OG preview — fetch échoué:', err.name, err.message);
   }
 
-  // ── Métadonnées ──────────────────────────────────────────────
-  const title = event?.title
-    ?? 'Camp National 2026 – Inscription en ligne';
+  const title = event?.title ?? FALLBACK_TITLE;
+  const description = event ? buildDescription(event) : FALLBACK_DESC;
 
-  const description = event
-    ? buildDescription(event)
-    : 'Inscription en ligne — Camp National 2026';
+  // Priorité : bannerUrl → imageUrl → logo MIAV
+  const imageUrl = clean(event?.bannerUrl ?? event?.imageUrl) || FALLBACK_IMAGE;
 
-  // Priorité : bannerUrl du champ événement, sinon logo MIAV
-  const imageUrl = (event?.bannerUrl ?? event?.imageUrl ?? '').trim()
-    || 'https://ekklesia-frontend.vercel.app/logos/A%20New%20Design%20-%20Fait%20avec%20PosterMyWall.png';
-
-  const targetUrl = `https://ekklesia-frontend.vercel.app/inscription/${eventId}`;
-
-  // ── HTML Open Graph ──────────────────────────────────────────
-  const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(title)}</title>
-
-  <!-- Open Graph — WhatsApp, Facebook, Telegram -->
-  <meta property="og:type"         content="website">
-  <meta property="og:url"          content="${escapeHtml(targetUrl)}">
-  <meta property="og:title"        content="${escapeHtml(title)}">
-  <meta property="og:description"  content="${escapeHtml(description)}">
-  <meta property="og:image"        content="${escapeHtml(imageUrl)}">
-  <meta property="og:image:width"  content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:locale"       content="fr_CI">
-  <meta property="og:site_name"    content="Camp National 2026 – Inscription en ligne">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card"        content="summary_large_image">
-  <meta name="twitter:title"       content="${escapeHtml(title)}">
-  <meta name="twitter:description" content="${escapeHtml(description)}">
-  <meta name="twitter:image"       content="${escapeHtml(imageUrl)}">
-
-  <!-- Redirection immédiate vers la vraie page Angular -->
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(targetUrl)}">
-
-  <!-- Style minimaliste pour les 0,5 secondes avant redirection -->
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-    }
-    .loader {
-      text-align: center;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(255,255,255,.2);
-      border-top-color: #C9A227;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    a { color: #C9A227; }
-  </style>
-</head>
-<body>
-  <div class="loader">
-    <div class="spinner"></div>
-    <p>Chargement de la page d'inscription…</p>
-    <p><a href="${escapeHtml(targetUrl)}">Cliquer ici si la redirection ne fonctionne pas.</a></p>
-  </div>
-  <script>window.location.replace("${targetUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}");</script>
-</body>
-</html>`;
+  const html = buildHtml({ title, description, imageUrl, targetUrl, event });
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  // Cache 5 min (assez pour WhatsApp, pas trop long si les places se remplissent)
   res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
-  res.status(200).send(html);
+  return res.status(200).send(html);
 }
 
 // ── Helpers ─────────────────────────────────────────────────────
 
-function buildDescription(event) {
+function buildDescription(ev) {
   const parts = [];
 
-  if (event.startDate) {
-    const dateStr = formatDate(event.startDate);
-    const endStr = event.endDate ? ` au ${formatDate(event.endDate)}` : '';
-    parts.push(`📅 ${dateStr}${endStr}`);
+  if (ev.startDate) {
+    const debut = fmt(ev.startDate);
+    const fin   = ev.endDate ? ` au ${fmt(ev.endDate)}` : '';
+    parts.push(`📅 ${debut}${fin}`);
   }
 
-  if (event.location) {
-    parts.push(`📍 ${event.location}`);
-  }
+  if (ev.location) parts.push(`📍 ${ev.location}`);
 
-  if (event.availableSpots > 0) {
-    parts.push(`🎟️ ${event.availableSpots} places disponibles`);
-  } else if (event.isFull) {
+  if (ev.isFull) {
     parts.push('🎟️ Complet');
+  } else if (ev.availableSpots > 0) {
+    parts.push(`🎟️ ${ev.availableSpots} places disponibles`);
   }
 
-  parts.push('Inscription en ligne');
-
+  parts.push('👉 Cliquez pour vous inscrire');
   return parts.join(' — ');
 }
 
-function formatDate(isoDate) {
-  if (!isoDate) return '';
+function fmt(iso) {
   try {
-    return new Date(isoDate).toLocaleDateString('fr-FR', {
-      day: 'numeric', month: 'long', year: 'numeric'
+    return new Date(iso).toLocaleDateString('fr-FR', {
+      day: 'numeric', month: 'long', year: 'numeric',
     });
   } catch {
-    return String(isoDate);
+    return String(iso);
   }
 }
 
-function escapeHtml(str) {
+function clean(str) {
+  return (str ?? '').trim();
+}
+
+function h(str) {
   if (!str) return '';
   return String(str)
     .replace(/&/g, '&amp;')
@@ -162,4 +124,82 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function redirect(res, url) {
+  res.setHeader('Location', url);
+  return res.status(302).end();
+}
+
+function buildHtml({ title, description, imageUrl, targetUrl, event }) {
+  const safeTarget = h(targetUrl);
+  const jsTarget   = targetUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>${h(title)}</title>
+
+  <!-- ═══ Open Graph (WhatsApp, Facebook, Telegram) ════════ -->
+  <meta property="og:type"         content="website">
+  <meta property="og:url"          content="${safeTarget}">
+  <meta property="og:title"        content="${h(title)}">
+  <meta property="og:description"  content="${h(description)}">
+  <meta property="og:image"        content="${h(imageUrl)}">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"       content="fr_CI">
+  <meta property="og:site_name"    content="MIAV — Inscription en ligne">
+
+  <!-- ═══ Twitter Card ════════════════════════════════════ -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="${h(title)}">
+  <meta name="twitter:description" content="${h(description)}">
+  <meta name="twitter:image"       content="${h(imageUrl)}">
+
+  <!-- ═══ Description standard ════════════════════════════ -->
+  <meta name="description" content="${h(description)}">
+
+  <!-- Redirection immédiate pour les rares cas où un vrai user
+       atterrit ici malgré la détection de bot -->
+  <meta http-equiv="refresh" content="0;url=${safeTarget}">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      min-height:100vh;
+      background:#0f172a;color:#e2e8f0;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    .card{text-align:center;padding:2rem;max-width:480px}
+    .logo{width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:1rem}
+    h1{font-size:1.4rem;margin-bottom:.5rem;color:#f8fafc}
+    p{font-size:.9rem;color:#94a3b8;line-height:1.5;margin-bottom:.75rem}
+    .spinner{
+      width:36px;height:36px;
+      border:3px solid rgba(255,255,255,.15);
+      border-top-color:#C9A227;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+      margin:1.5rem auto .5rem;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    a{color:#C9A227;text-underline-offset:3px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="https://ekklesia-frontend.vercel.app/logos/A%20New%20Design%20-%20Fait%20avec%20PosterMyWall.png"
+         alt="Logo MIAV" class="logo">
+    <h1>${h(title)}</h1>
+    ${event?.location ? `<p>📍 ${h(event.location)}</p>` : ''}
+    <div class="spinner"></div>
+    <p>Chargement de la page d'inscription…</p>
+    <p><a href="${safeTarget}">Cliquer ici si la redirection ne fonctionne pas.</a></p>
+  </div>
+  <script>window.location.replace("${jsTarget}");</script>
+</body>
+</html>`;
 }
