@@ -4,9 +4,13 @@
   "framework": "angular",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    "source": "/inscription/([a-f0-9]{24})",
+    "destination": "/api/event-preview?eventId=$1"
+  },
+  {
+    "source": "/(.*)",
+    "destination": "/index.html"
+  }
   ],
   "headers": [
     {

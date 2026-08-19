@@ -37,7 +37,7 @@
             "styles": [
               "src/styles.scss"
             ],
-            "outputMode": "static",
+            "outputMode": "server",
             "outputPath": {
               "base": "dist/EKKLESIA_FRONTEND"
             }
