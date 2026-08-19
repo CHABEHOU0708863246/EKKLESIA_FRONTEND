@@ -3,24 +3,8 @@ export default async function handler(req, res) {
   const { eventId } = req.query;
 
   if (!eventId) {
-    res.setHeader('Location', 'https://ekklesia-frontend.vercel.app');
-    return res.status(302).end();
+    return res.redirect(302, '/');
   }
-
-  const targetUrl = `https://ekklesia-frontend.vercel.app/inscription/${eventId}`;
-
-  // Si un vrai utilisateur arrive ici malgré le middleware,
-  // on le redirige directement sans générer du HTML
-  const userAgent = (req.headers['user-agent'] || '').toLowerCase();
-  const BOT_SIGS = ['whatsapp','facebookexternalhit','facebot','twitterbot',
-    'telegrambot','linkedinbot','slackbot','discordbot','googlebot','bingbot','applebot'];
-  const isBot = BOT_SIGS.some(s => userAgent.includes(s));
-
-  if (!isBot) {
-    res.setHeader('Location', targetUrl);
-    return res.status(302).end();
-  }
-
 
   let event = null;
 
