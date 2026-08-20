@@ -15,16 +15,22 @@
       <h1 *ngIf="event()">{{ event()?.title }}</h1>
       <h1 *ngIf="!event() && !loading()">Événement introuvable</h1>
       <div class="ev-header-actions">
-        <button class="ev-btn ev-btn--outline" (click)="router.navigate(['/dashboard/evenements'])">Retour</button>
+        <!-- <button class="ev-btn ev-btn--outline" (click)="router.navigate(['/dashboard/evenements'])">Retour</button>
         <a class="ev-btn ev-btn--outline" [routerLink]="['/dashboard/evenements', event()?.id, 'statistiques-eglise']">
           Statistiques par église
-        </a>
+        </a> -->
 
         <!-- Bouton pour exporter les participants -->
         <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0" class="ev-btn ev-btn--primary"
           (click)="exportAttendees()" [disabled]="exporting()">
           <span *ngIf="!exporting()">Exporter en Excel</span>
           <span class="ev-spinner ev-spinner--btn" *ngIf="exporting()"></span>
+        </button>
+
+        <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0" class="ev-btn ev-btn--secondary"
+          (click)="exportAttendeesPdf()" [disabled]="exportingPdf()">
+          <span *ngIf="!exportingPdf()">Exporter en PDF</span>
+          <span class="ev-spinner ev-spinner--btn" *ngIf="exportingPdf()"></span>
         </button>
 
         <button *ngIf="canCancel()" class="ev-btn ev-btn--warning" (click)="cancelEvent()" [disabled]="cancelling()">

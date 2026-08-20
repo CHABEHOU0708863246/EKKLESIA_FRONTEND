@@ -23,6 +23,7 @@ export class EventDetail implements OnInit {
   public router = inject(Router);
   private churchService = inject(Church);
   exporting = signal(false);
+exportingPdf = signal(false); // ✅ NOUVEAU
 
   event = signal<Event | null>(null);
   loading = signal(false);
@@ -45,6 +46,30 @@ export class EventDetail implements OnInit {
     if (!notes) return '—';
     return notes.length > 30 ? notes.slice(0, 30) + '…' : notes;
   }
+
+  /**
+ * ✅ NOUVEAU — Exporte la liste des participants en PDF (version "jolie" avec
+ * logo, pour la dame et les personnes non techniques).
+ */
+exportAttendeesPdf(): void {
+  const ev = this.event();
+  if (!ev?.id) return;
+
+  this.exportingPdf.set(true);
+  this.eventService.exportAttendeesReportPdf(ev.id)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (blob: Blob) => {
+        this.downloadFile(blob, `rapport-inscrits-${ev.id}-${new Date().toISOString().slice(0, 10)}.pdf`);
+        this.exportingPdf.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de l\'export PDF:', err);
+        this.error.set('Erreur lors de l\'export du rapport PDF.');
+        this.exportingPdf.set(false);
+      }
+    });
+}
 
   exportAttendees(): void {
   const ev = this.event();

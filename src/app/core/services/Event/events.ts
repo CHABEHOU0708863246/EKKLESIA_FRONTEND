@@ -51,6 +51,17 @@ export class Events {
 
   constructor(private http: HttpClient) {}
 
+  /**
+ * ✅ NOUVEAU — Exporte la liste des participants en PDF (mise en page soignée
+ * avec logo, pensée pour les personnes non techniques), en plus de l'Excel.
+ * GET /api/v1/Event/{id}/export/pdf
+ */
+exportAttendeesReportPdf(eventId: string): Observable<Blob> {
+  return this.http.get(`${this.baseUrl}/${eventId}/export/pdf`, {
+    responseType: 'blob' // Important pour recevoir un fichier binaire
+  });
+}
+
   // ============================================================
   // GESTION DES ÉVÉNEMENTS (admin)
   // ============================================================
