@@ -4,6 +4,14 @@ import { jwtDecode } from 'jwt-decode';
 import { isPlatformBrowser } from '@angular/common';
 import { TokenData } from '../../models/Tolen/TokenData';
 import { EkklesiaJwtPayload } from '../../models/Tolen/EkklesiaJwtPayload';
+import { isDevMode } from '@angular/core';
+
+function log(...args: unknown[]): void {
+  if (isDevMode()) console.log(...args);
+}
+function warn(...args: unknown[]): void {
+  if (isDevMode()) console.warn(...args);
+}
 
 @Injectable({
   providedIn: 'root',
@@ -26,30 +34,29 @@ export class Token {
     }
   }
 
+
+
   /**
    * CORRECTION CRITIQUE: Récupère l'ID utilisateur depuis le token
    */
   getUserId(): string | null {
     const payload = this.getPayload();
-
     if (!payload) {
-      console.warn('⚠️ getUserId: Aucun payload disponible');
+      warn('⚠️ getUserId: Aucun payload disponible');
       return null;
     }
 
-    // Essayer dans cet ordre de priorité :
     const userId =
       payload.userId ||
       (payload as any).id ||
       (payload as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
 
     if (!userId) {
-      console.error('❌ User ID introuvable dans le token');
-      console.log('📋 Payload complet:', JSON.stringify(payload, null, 2));
+      warn('❌ User ID introuvable dans le token');
       return null;
     }
 
-    console.log('✅ User ID récupéré:', userId);
+    log('✅ User ID récupéré:', userId);
     return userId;
   }
 
@@ -86,13 +93,6 @@ export class Token {
       } catch (error) {
         console.error('❌ Erreur parsing authData:', error);
       }
-    }
-
-    // 2️⃣ Fallback sur l'ancien système
-    const legacyToken = localStorage.getItem('token');
-    if (legacyToken) {
-      console.warn('⚠️ Utilisation du token legacy');
-      return legacyToken;
     }
 
     return null;
@@ -134,27 +134,7 @@ export class Token {
     return isValid;
   }
 
-  /**
-   * Décode le token JWT (méthode manuelle)
-   */
-  decodeToken(token: string): any {
-    if (!this.isBrowser) return null;
 
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Erreur décodage token:', error);
-      return null;
-    }
-  }
 
   /**
    * Décodage sécurisé du Payload avec jwtDecode
@@ -202,33 +182,22 @@ export class Token {
  * À utiliser quand l'appelant (ex: un guard) gère lui-même la redirection,
  * pour éviter une double navigation concurrente.
  */
-clearSession(): void {
-  if (!this.isBrowser) return;
-
-  localStorage.removeItem(this.STORAGE_KEY);
-  localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-  localStorage.removeItem(this.REMEMBER_ME_KEY);
-  localStorage.removeItem('token');
-  sessionStorage.clear();
-}
+  clearSession(): void {
+    if (!this.isBrowser) return;
+    localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.REMEMBER_ME_KEY);
+    sessionStorage.clear();
+  }
 
   /**
    * Déconnexion complète
    */
   logout(): void {
     if (!this.isBrowser) return;
-
-    localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-    localStorage.removeItem(this.REMEMBER_ME_KEY);
-    localStorage.removeItem('token');
-    sessionStorage.clear();
-
+    this.clearSession();
     this.blockBackNavigation();
-
-    this.router.navigate(['/auth/login'], {
-      replaceUrl: true
-    });
+    this.router.navigate(['/auth/login'], { replaceUrl: true });
   }
 
   /**
@@ -236,17 +205,11 @@ clearSession(): void {
    */
   handleTokenExpired(): void {
     if (!this.isBrowser) return;
-
-    console.warn('⚠️ Token expiré - Déconnexion automatique');
-
-    localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-    localStorage.removeItem('token');
-    sessionStorage.clear();
-
+    warn('⚠️ Token expiré - Déconnexion automatique');
+    this.clearSession();
     this.router.navigate(['/auth/login'], {
       queryParams: { expired: true },
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
@@ -275,10 +238,10 @@ clearSession(): void {
     window.addEventListener('popstate', (event) => {
       if (!this.isLogged()) {
         const currentPath = window.location.pathname;
-
         if (!currentPath.includes('/auth/')) {
-          console.warn('⚠️ Tentative retour arrière sans auth');
+          warn('⚠️ Tentative retour arrière sans auth');
           event.preventDefault();
+          window.history.pushState(null, '', window.location.href);
           this.router.navigate(['/auth/login'], { replaceUrl: true });
         }
       }
@@ -340,3 +303,4 @@ clearSession(): void {
     }
   }
 }
+

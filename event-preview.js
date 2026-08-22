@@ -24,7 +24,7 @@ const API_BASE = 'https://ekklesia-backend-jxkc.onrender.com';
 const SITE_BASE = 'https://ekklesia-frontend.vercel.app';
 const FALLBACK_IMAGE = `${SITE_BASE}/logos/A%20New%20Design%20-%20Fait%20avec%20PosterMyWall.png`;
 const FALLBACK_TITLE = 'Inscription en ligne — MIAV';
-const FALLBACK_DESC  = 'Camp national des eglises MIAV 2026';
+const FALLBACK_DESC  = 'Mission Internationale Arbre de Vie — Inscription aux événements';
 
 export default async function handler(req, res) {
   const { eventId } = req.query;

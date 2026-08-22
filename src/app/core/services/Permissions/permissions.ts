@@ -2,14 +2,8 @@
 
 import { Injectable } from '@angular/core';
 import { Token } from '../Token/token';
-
-export interface PermissionInfo {
-  code: string;
-  module: string;
-  displayName: string;
-  isRead: boolean;
-  isWrite: boolean;
-}
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -36,8 +30,21 @@ export class Permissions {
     APPOINTMENTS: 'Rendez-vous'
   };
 
-  constructor(private tokenService: Token) {
+  constructor(private tokenService: Token, private http: HttpClient) {
     this.loadUserPermissions();
+  }
+
+  public async refreshFromServer(): Promise<void> {
+    try {
+      const fresh = await firstValueFrom(
+        this.http.get<{ permissions: string[]; roles: string[] }>('/api/v1/me/permissions')
+      );
+      this.userPermissions = fresh.permissions;
+      this.userRoles = fresh.roles;
+    } catch {
+      // silencieux : on garde l'état issu du JWT en cas d'échec réseau
+      // (ex: hors ligne) plutôt que de vider les permissions et casser l'UI.
+    }
   }
 
   /**
@@ -968,30 +975,16 @@ export class Permissions {
    * Vérifie si l'utilisateur a UNE permission spécifique
    * SUPER_ADMIN et PASTOR_PRINCIPAL ont un bypass total
    */
+
   public hasPermission(permission: string): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
     return this.userPermissions.includes(permission);
   }
 
-  /**
-   * Vérifie si l'utilisateur a AU MOINS UNE des permissions
-   */
   public hasAnyPermission(...permissions: string[]): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
     return permissions.some(p => this.userPermissions.includes(p));
   }
 
-  /**
-   * Vérifie si l'utilisateur a TOUTES les permissions
-   */
   public hasAllPermissions(...permissions: string[]): boolean {
-    if (this.isSuperAdmin() || this.isPastorPrincipal()) {
-      return true;
-    }
     return permissions.every(p => this.userPermissions.includes(p));
   }
 
@@ -1023,25 +1016,25 @@ export class Permissions {
 
   public isSuperAdmin(): boolean {
     return this.hasRole('SUPER_ADMIN') ||
-           this.hasRole('SUPER ADMINISTRATEUR') ||
-           this.hasRole('Super Administrateur');
+      this.hasRole('SUPER ADMINISTRATEUR') ||
+      this.hasRole('Super Administrateur');
   }
 
   public isPastorPrincipal(): boolean {
     return this.hasRole('PASTOR_PRINCIPAL') ||
-           this.hasRole('Pasteur Principal');
+      this.hasRole('Pasteur Principal');
   }
 
   public isPasteurSite(): boolean {
     return this.hasRole('PASTEUR_SITE') ||
-           this.hasRole('Pasteur de Site');
+      this.hasRole('Pasteur de Site');
   }
 
   public isAdminOrAbove(): boolean {
     return this.isSuperAdmin() ||
-           this.isPastorPrincipal() ||
-           this.hasRole('ADMIN') ||
-           this.hasRole('Administrateur');
+      this.isPastorPrincipal() ||
+      this.hasRole('ADMIN') ||
+      this.hasRole('Administrateur');
   }
 
   // ───────────────────────────────────────────────────────────────
