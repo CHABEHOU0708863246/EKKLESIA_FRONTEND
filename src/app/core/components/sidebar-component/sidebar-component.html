@@ -51,30 +51,6 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 🆕 COMMUNAUTÉ — planning personnel du bénévole. Section       -->
-      <!-- distincte de "Ressources Humaines" (qui est la gestion ADMIN -->
-      <!-- des bénévoles) : ici c'est la vue PERSONNELLE d'un bénévole  -->
-      <!-- sur son propre planning. canAccessCommunityModule() existait -->
-      <!-- déjà dans permissions.ts mais n'était référencé nulle part — -->
-      <!-- un utilisateur avec le rôle VOLUNTEER seul (sans             -->
-      <!-- Dashboard_View) n'avait donc pratiquement aucune entrée de   -->
-      <!-- menu utile. ⚠️ Adapte les routerLink ci-dessous à tes routes -->
-      <!-- réelles si elles diffèrent.                                  -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessCommunityModule()) {
-      <div class="nav-section-label">Mon service</div>
-
-      @if (permission.canViewVolunteerSchedule()) {
-      <li class="nav-item" routerLinkActive="active">
-        <a [routerLink]="['/dashboard/mon-planning']" class="nav-link" (click)="closeMobileSidebar()">
-          <i class="nav-icon bx bx-calendar-check"></i>
-          <span class="nav-text">Mon planning</span>
-        </a>
-      </li>
-      }
-      }
-
-      <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 2️⃣ TABLEAU DE BORD — vue d'ensemble avant d'aller dans le détail -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canViewDashboard()) {
@@ -226,14 +202,6 @@
             </a>
           </li>
           }
-          @if (permission.canManageEventPayments()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/evenements/paiements']" class="nav-link">
-              <i class="nav-icon-sub bx bx-credit-card"></i>
-              <span class="nav-text">Paiements</span>
-            </a>
-          </li>
-          }
         </ul>
       </li>
       }
@@ -348,44 +316,6 @@
       </li>
       }
 
-      <!-- 🆕 BÉNÉVOLES — canViewVolunteers/canCreateVolunteer/canManageVolunteerSchedule
-           existaient déjà dans permissions.ts et sont déjà comptés dans
-           canAccessHRModule(), mais n'avaient aucune entrée de menu.
-           ⚠️ Adapte les routerLink si tes routes réelles diffèrent. -->
-      @if (permission.canViewVolunteers()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
-          <i class="nav-icon bx bx-group"></i>
-          <span class="nav-text">Bénévoles</span>
-          <i class="nav-chevron bx bx-chevron-down"></i>
-        </a>
-        <ul class="nav-sub">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles']" class="nav-link">
-              <i class="nav-icon-sub bx bx-list-ul"></i>
-              <span class="nav-text">Tous les bénévoles</span>
-            </a>
-          </li>
-          @if (permission.canCreateVolunteer()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles/new']" class="nav-link">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouveau bénévole</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageVolunteerSchedule()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/benevoles/planning']" class="nav-link">
-              <i class="nav-icon-sub bx bx-calendar-check"></i>
-              <span class="nav-text">Planning des bénévoles</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
@@ -497,15 +427,6 @@
         </ul>
       </li>
       }
-
-      <!-- @if (permission.canViewConsolidated()) {
-      <li class="nav-item">
-        <a [routerLink]="['/dashboard/finances/consolide']" class="nav-link">
-          <i class="nav-icon bx bx-merge"></i>
-          <span class="nav-text">Consolidation multi-sites</span>
-        </a>
-      </li>
-      } -->
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
