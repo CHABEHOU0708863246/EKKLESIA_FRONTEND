@@ -2,20 +2,28 @@
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
 import { PERMISSIONS_BY_MODULE, RoleResponseDto, RoleFilterDto, DEFAULT_ROLE_FILTER, RoleDtoUtils } from '../../../../../core/models/Roles/role.models';
 import { Roles } from '../../../../../core/services/Roles/roles';
 import { getPermissionLabel, getPermissionLabelWithCode } from '../../../../../core/models/Roles/permission-labels';
+import { Users } from '../../../../../core/services/Users/users';
+import { UserFilter } from '../../../../../core/models/Users/user.model';
 
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
+interface UserOption {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
 @Component({
   selector: 'app-role-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, FormsModule],
   templateUrl: './role-list.html',
   styleUrl: './role-list.scss',
 })
@@ -53,13 +61,78 @@ export class RoleList implements OnInit, OnDestroy {
   roleToDelete = signal<RoleResponseDto | null>(null);
   deleting = signal(false);
 
+  // ── Dialogue d'assignation ──
+  assignDialogVisible = signal(false);
+  selectedRole = signal<RoleResponseDto | null>(null);
+  availableUsers = signal<UserOption[]>([]);
+  selectedUserId = signal('');
+
   private filter: RoleFilterDto = { ...DEFAULT_ROLE_FILTER };
 
   constructor(
     private roleService: Roles,
+    private usersService: Users,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
+
+  // ── Ouvrir le dialogue ──
+  openAssignDialog(role: RoleResponseDto, event: Event): void {
+    event.stopPropagation();
+    this.selectedRole.set(role);
+    this.selectedUserId.set('');
+    this.loadUsers();
+    this.assignDialogVisible.set(true);
+  }
+
+
+  // ── Assigner le rôle ──
+  assignRole(): void {
+    const role = this.selectedRole();
+    const userId = this.selectedUserId();
+    if (!role || !userId) return;
+
+    this.roleService.assignRoleToUser(userId, role.id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          // ✅ Notification de succès
+          this.assignDialogVisible.set(false);
+          this.selectedRole.set(null);
+          this.selectedUserId.set('');
+          // Optionnel : recharger la liste ou afficher un toast
+        } else {
+          // Gestion d'erreur
+        }
+      },
+      error: () => {
+        // Gestion d'erreur
+      }
+    });
+  }
+
+  // ── Annuler ──
+  cancelAssign(): void {
+    this.assignDialogVisible.set(false);
+    this.selectedRole.set(null);
+    this.selectedUserId.set('');
+  }
+
+
+  // ── Charger les utilisateurs ──
+  private loadUsers(): void {
+    const filter: UserFilter = { page: 1, pageSize: 100 };
+    this.usersService.getUsers(filter).subscribe((res) => {
+      if (res.success && res.data) {
+        this.availableUsers.set(
+          res.data.items.map((u: any) => ({
+            id: u.id,
+            fullName: u.fullName || u.username || u.email,
+            email: u.email
+          }))
+        );
+      }
+    });
+  }
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -197,9 +270,9 @@ export class RoleList implements OnInit, OnDestroy {
     return this.expandedRoleIds().has(roleId);
   }
 
-/**
-   * ✅ Grouper les permissions par module
-   */
+  /**
+     * ✅ Grouper les permissions par module
+     */
   getGroupedPermissions(role: RoleResponseDto): [string, string[]][] {
     // ✅ Typer explicitement le résultat
     const grouped: Record<string, string[]> = {};
@@ -257,7 +330,7 @@ export class RoleList implements OnInit, OnDestroy {
             this.error.set(response.message || 'Impossible de cloner ce rôle.');
           }
         },
-        error: (err: { message: any; }  ) => {
+        error: (err: { message: any; }) => {
           console.error('❌ Erreur lors du clonage:', err);
           this.error.set('Impossible de cloner ce rôle.');
         },
@@ -294,7 +367,7 @@ export class RoleList implements OnInit, OnDestroy {
             this.error.set(response.message || 'Impossible de supprimer ce rôle.');
           }
         },
-        error: (err: { message: any; }  ) => {
+        error: (err: { message: any; }) => {
           console.error('❌ Erreur lors de la suppression:', err);
           this.deleting.set(false);
           this.deleteDialogVisible.set(false);

@@ -98,6 +98,14 @@
         </div>
 
         <div class="rl-role-actions" (click)="$event.stopPropagation()">
+           <!-- ✅ AJOUT : Assigner à un utilisateur -->
+          <button type="button" class="rl-icon-btn" (click)="openAssignDialog(role, $event)"
+                  aria-label="Assigner à un utilisateur" title="Assigner ce rôle à un utilisateur">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <button type="button" class="rl-icon-btn" (click)="cloneRole(role, $event)" aria-label="Cloner"
             title="Cloner ce rôle">
             <svg viewBox="0 0 24 24" fill="none">
@@ -192,4 +200,38 @@
     confirmText="Supprimer" cancelText="Annuler" (confirm)="confirmDelete()"
     (cancel)="cancelDelete()"></app-confirm-dialog>
 
+</div>
+
+
+<!-- ══════════════ POPUP D'ASSIGNATION ══════════════ -->
+<div class="rl-modal-overlay" *ngIf="assignDialogVisible()" (click)="cancelAssign()">
+  <div class="rl-modal" (click)="$event.stopPropagation()">
+    <div class="rl-modal-header">
+      <h2>Assigner le rôle</h2>
+      <button type="button" class="rl-icon-btn rl-icon-btn--close" (click)="cancelAssign()">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="rl-modal-body">
+      <p>Attribuer le rôle <strong>{{ selectedRole()?.roleName }}</strong> à un utilisateur :</p>
+
+      <div class="rl-field">
+        <label for="userSelect">Choisir un utilisateur</label>
+        <select id="userSelect" [ngModel]="selectedUserId()" (ngModelChange)="selectedUserId.set($event)" [ngModelOptions]="{standalone: true}">
+          <option value="">— Sélectionner —</option>
+          <option *ngFor="let user of availableUsers()" [value]="user.id">
+            {{ user.fullName }} ({{ user.email }})
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="rl-modal-footer">
+      <button type="button" class="rl-btn rl-btn--ghost" (click)="cancelAssign()">Annuler</button>
+      <button type="button" class="rl-btn rl-btn--primary" (click)="assignRole()" [disabled]="!selectedUserId()">
+        Assigner
+      </button>
+    </div>
+  </div>
 </div>
