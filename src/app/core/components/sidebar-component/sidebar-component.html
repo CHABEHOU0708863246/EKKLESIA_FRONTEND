@@ -3,19 +3,15 @@
 <aside class="sidebar" id="sidebar" [class.open]="isMobileOpen" [class.collapsed]="isCollapsed">
 
   <!-- ══ BRAND ══════════════════════════════════════════════════════ -->
-<div class="sidebar-brand">
-  <div class="brand-logo">
-    <img
-      src="/logos/A New Design - Fait avec PosterMyWall.png"
-      alt="Logo MIAV"
-      class="brand-logo-img"
-    >
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="brand-logo-img">
+    </div>
+    <div>
+      <div class="brand-name">MIAV <span>ERP</span></div>
+      <div class="brand-tagline">Gestion d'Église</div>
+    </div>
   </div>
-  <div>
-    <div class="brand-name">MIAV <span>ERP</span></div>
-    <div class="brand-tagline">Gestion d'Église</div>
-  </div>
-</div>
 
   <div class="sidebar-user-section">
     <div class="user-avatar-sidebar">{{ getUserInitials() }}</div>
@@ -46,6 +42,16 @@
         <a [routerLink]="['/dashboard/mes-notifications']" class="nav-link" (click)="closeMobileSidebar()">
           <i class="nav-icon bx bx-bell"></i>
           <span class="nav-text">Mes notifications</span>
+        </a>
+      </li>
+      }
+
+      <!-- ✅ Si l'utilisateur est chef de zone, afficher le lien vers sa zone -->
+      @if (permission.isZoneManager()) {
+      <li class="nav-item">
+        <a [routerLink]="['/dashboard/ma-zone']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-map"></i>
+          <span class="nav-text">Ma zone</span>
         </a>
       </li>
       }
@@ -578,7 +584,8 @@
       </li>
       }
 
-      @if (permission.canManageChurchSettings() || permission.canManageSites()) {
+      <!-- 🏢 Structure de l'église -->
+      @if (permission.canManageChurchSettings() || permission.canManageSites() || permission.canViewZones()) {
       <li class="nav-item" routerLinkActive="active open">
         <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
           <i class="nav-icon bx bxs-church"></i>
@@ -586,6 +593,7 @@
           <i class="nav-chevron bx bx-chevron-down"></i>
         </a>
         <ul class="nav-sub">
+          <!-- Églises & sites -->
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/admin/parametres/eglise/list']" class="nav-link"
               (click)="closeMobileSidebar()">
@@ -601,6 +609,25 @@
               <span class="nav-badge badge-gold">+</span>
             </a>
           </li>
+
+          <!-- ✅ AJOUT : Gestion des zones -->
+          @if (permission.canViewZones()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/zones']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-map"></i>
+              <span class="nav-text">Zones</span>
+            </a>
+          </li>
+          }
+          @if (permission.canCreateZone()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/zones/new']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-plus-circle"></i>
+              <span class="nav-text">Nouvelle zone</span>
+              <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          }
         </ul>
       </li>
       }
@@ -634,6 +661,9 @@
         </ul>
       </li>
       }
+
+
+
       }
 
     </ul>

@@ -75,6 +75,15 @@ export const DASHBOARD_ROUTES: Routes = [
         loadChildren: () =>
           import('./dashboard/contents/medias.routes').then((m) => m.MEDIAS_ROUTES),
       },
+      {
+        path: 'admin/zones',
+        loadChildren: () => import('./dashboard/zones/zone.routes').then((m) => m.ZONE_ROUTES),
+      },
+      {
+        path: 'ma-zone',
+        loadComponent: () => import('./dashboard/zones/zone-list/zone-list').then((m) => m.ZoneList),
+        title: 'Ma zone — MIAV',
+      },
     ],
   },
 ];

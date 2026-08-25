@@ -1,0 +1,42 @@
+<!-- my-zone.html -->
+<div class="zn-page">
+  <header class="zn-page-header">
+    <div class="zn-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="zn-breadcrumb-sep">/</span>
+      <span class="zn-breadcrumb-current">Ma zone</span>
+    </div>
+    <div class="zn-page-title-row">
+      <h1>Ma zone</h1>
+    </div>
+  </header>
+
+  <div class="zn-state-block" *ngIf="loading()">
+    <span class="zn-spinner"></span> Chargement…
+  </div>
+
+  <div class="zn-state-block zn-state-block--empty" *ngIf="notChief()">
+    Vous n'êtes chef d'aucune zone actuellement.
+  </div>
+
+  <ng-container *ngIf="!loading() && zone() as z">
+    <div class="zn-hero-card">
+      <div class="zn-zone-avatar zn-zone-avatar--lg">{{ getInitials(z.name) }}</div>
+      <div>
+        <h2>{{ z.name }}</h2>
+        <p class="zn-hero-sub">{{ getSiteCountLabel(z) }} sous votre supervision</p>
+      </div>
+    </div>
+
+    <section class="zn-section">
+      <h3>Sites de la zone</h3>
+      <div class="zn-site-list-edit">
+        <div class="zn-site-item" *ngFor="let siteId of z.siteIds">
+          <span>{{ siteId }}</span>
+        </div>
+        <p class="zn-empty-sites" *ngIf="z.siteIds.length === 0">Aucun site rattaché.</p>
+      </div>
+      <p class="zn-hint">Vous pouvez consulter, valider les offrandes/dépenses et suivre les rapports de ces sites depuis leurs modules respectifs (Membres, Finances, Cultes…).</p>
+    </section>
+  </ng-container>
+</div>

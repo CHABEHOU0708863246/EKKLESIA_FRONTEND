@@ -1,0 +1,71 @@
+<!-- zone-form.html -->
+<div class="zn-page">
+  <header class="zn-page-header">
+    <div class="zn-breadcrumb">
+      <a [routerLink]="['/dashboard']">Tableau de bord</a>
+      <span class="zn-breadcrumb-sep">/</span>
+      <a [routerLink]="['/dashboard/admin/zones']">Zones</a>
+      <span class="zn-breadcrumb-sep">/</span>
+      <span class="zn-breadcrumb-current">Nouvelle zone</span>
+    </div>
+    <div class="zn-page-title-row">
+      <h1>Nouvelle zone</h1>
+    </div>
+  </header>
+
+  <div class="zn-banner zn-banner--error" *ngIf="error()">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>{{ error() }}</span>
+  </div>
+
+  <form class="zn-form" [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="zn-field">
+      <label>Nom de la zone <span class="zn-required">*</span></label>
+      <input type="text" formControlName="name" placeholder="ex: INTÉRIEUR 1" />
+      <p class="zn-field-error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
+        Le nom de la zone est requis (2 caractères minimum).
+      </p>
+    </div>
+
+    <div class="zn-field">
+      <label>Église rattachée</label>
+      <select formControlName="churchId">
+        <option value="">— Aucune —</option>
+        <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
+      </select>
+    </div>
+
+    <div class="zn-field">
+      <label>Chef de zone <span class="zn-required">*</span></label>
+      <select formControlName="chiefUserId">
+        <option value="">— Sélectionner —</option>
+        <option *ngFor="let user of users()" [value]="user.id">{{ user.fullName }}</option>
+      </select>
+      <p class="zn-field-error" *ngIf="form.get('chiefUserId')?.touched && form.get('chiefUserId')?.invalid">
+        Un chef de zone doit être désigné.
+      </p>
+    </div>
+
+    <div class="zn-field">
+      <label>Sites de la zone <span class="zn-required">*</span></label>
+      <div class="zn-site-picker">
+        <label class="zn-site-checkbox" *ngFor="let site of sites()">
+          <input type="checkbox" [checked]="isSiteSelected(site.id)" (change)="toggleSite(site.id)" />
+          <span>{{ site.name }} <em>({{ site.churchName }})</em></span>
+        </label>
+        <p class="zn-empty-sites" *ngIf="sites().length === 0">Aucun site disponible.</p>
+      </div>
+      <p class="zn-field-error" *ngIf="form.get('siteIds')?.touched && form.get('siteIds')?.invalid">
+        Sélectionnez au moins un site.
+      </p>
+    </div>
+
+    <div class="zn-form-actions">
+      <button type="button" class="zn-btn zn-btn--ghost" (click)="cancel()">Annuler</button>
+      <button type="submit" class="zn-btn zn-btn--primary" [disabled]="submitting()">
+        {{ submitting() ? 'Création…' : 'Créer la zone' }}
+      </button>
+    </div>
+  </form>
+</div>

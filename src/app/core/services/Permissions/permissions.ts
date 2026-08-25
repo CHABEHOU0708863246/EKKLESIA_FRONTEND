@@ -243,6 +243,29 @@ export class Permissions {
     );
   }
 
+  public canViewZones(): boolean {
+    return this.hasPermission('Zone_Read');
+  }
+  public canManageZones(): boolean {
+    return this.hasPermission('Zone_Manage');
+  }
+  public canCreateZone(): boolean {
+    return this.hasPermission('Zone_Create');
+  }
+  public canUpdateZone(): boolean {
+    return this.hasPermission('Zone_Update');
+  }
+  public canDeleteZone(): boolean {
+    return this.hasPermission('Zone_Delete');
+  }
+  public canAccessZoneModule(): boolean {
+    return this.hasAnyPermission('Zone_Read', 'Zone_Manage', 'Zone_Create', 'Zone_Update', 'Zone_Delete');
+  }
+
+  public isZoneManager(): boolean {
+  return this.hasRole('ZONE_MANAGER') || this.hasRole('Chef de Zone');
+}
+
   // ───────────────────────────────────────────────────────────────
   // 📜 MODULE : ACTES PASTORAUX (PASTORAL ACTS)
   // ───────────────────────────────────────────────────────────────

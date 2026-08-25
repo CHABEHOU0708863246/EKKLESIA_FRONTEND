@@ -1,0 +1,139 @@
+// zone-list.scss — mêmes tokens que church-list.scss, classes préfixées "zn-"
+:host {
+  --ekk-violet-900: #2d1b4e;
+  --ekk-violet-700: #4a3175;
+  --ekk-violet-600: #5b3a8e;
+  --ekk-violet-100: #ede7f6;
+  --ekk-gold-700: #a3801e;
+  --ekk-gold-500: #c9a227;
+  --ekk-gold-100: #faf1d6;
+  --ekk-ruby: #a83246;
+  --ekk-ruby-bg: #fbeaec;
+  --ekk-emerald: #2e7d5b;
+  --ekk-emerald-bg: #e6f4ec;
+  --ekk-slate-bg: #eef0f2;
+  --ekk-surface: #ffffff;
+  --ekk-bg: #f4f5f7;
+  --ekk-ink: #1f2430;
+  --ekk-ink-muted: #6b7280;
+  --ekk-border: #dfe2e8;
+
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--ekk-ink);
+  background: var(--ekk-bg);
+}
+
+* { box-sizing: border-box; }
+
+.zn-page { max-width: 1100px; margin: 0 auto; padding: 0 4px 40px; }
+
+.zn-page-header { padding: 20px 0 16px; }
+.zn-breadcrumb {
+  font-size: 13px; color: var(--ekk-ink-muted); margin-bottom: 10px;
+  a { color: var(--ekk-ink-muted); text-decoration: none; &:hover { color: var(--ekk-violet-700); text-decoration: underline; } }
+  &-sep { margin: 0 6px; }
+  &-current { color: var(--ekk-ink); font-weight: 600; }
+}
+.zn-page-title-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  h1 { margin: 0; font-size: 22px; font-weight: 700; }
+}
+
+.zn-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.zn-search {
+  position: relative; flex: 1; min-width: 220px;
+  svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ekk-ink-muted); }
+  input {
+    width: 100%; padding: 9px 12px 9px 34px; font-size: 14px;
+    border: 1px solid var(--ekk-border); border-radius: 7px; background: var(--ekk-surface); outline: none;
+    &:focus { border-color: var(--ekk-violet-600); box-shadow: 0 0 0 3px rgba(91, 58, 142, 0.14); }
+  }
+}
+.zn-select-wrap {
+  position: relative; min-width: 170px;
+  &--sm { min-width: 110px; }
+  select {
+    width: 100%; appearance: none; padding: 9px 32px 9px 12px; font-size: 13.5px; font-family: inherit;
+    color: var(--ekk-ink); background: var(--ekk-surface); border: 1px solid var(--ekk-border); border-radius: 7px; cursor: pointer; outline: none;
+  }
+  .zn-select-caret { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--ekk-ink-muted); pointer-events: none; }
+}
+
+.zn-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 7px;
+  font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid transparent;
+  transition: background 0.12s ease; white-space: nowrap;
+  svg { width: 15px; height: 15px; }
+  &--primary { background: var(--ekk-violet-900); color: #fff; &:hover { background: var(--ekk-violet-700); } }
+  &--ghost { background: var(--ekk-surface); border-color: var(--ekk-border); color: var(--ekk-ink); &:hover { background: var(--ekk-bg); } }
+}
+
+.zn-icon-btn {
+  flex-shrink: 0; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--ekk-border); background: var(--ekk-surface); border-radius: 7px; color: var(--ekk-ink-muted); cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  svg { width: 14px; height: 14px; }
+  &:hover { background: var(--ekk-violet-100); color: var(--ekk-violet-700); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  &--danger:hover { background: var(--ekk-ruby-bg); color: var(--ekk-ruby); }
+}
+
+.zn-banner {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;
+  svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; }
+  &--error { background: var(--ekk-ruby-bg); color: var(--ekk-ruby); }
+}
+
+.zn-state-block {
+  display: flex; align-items: center; justify-content: center; gap: 10px; padding: 50px 0; color: var(--ekk-ink-muted); font-size: 13.5px;
+  &--empty { font-style: italic; }
+}
+.zn-spinner {
+  display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+  border: 2.5px solid var(--ekk-border); border-top-color: var(--ekk-violet-700); animation: znSpin 0.7s linear infinite;
+}
+@keyframes znSpin { to { transform: rotate(360deg); } }
+
+.zn-zone-list { display: flex; flex-direction: column; gap: 10px; }
+.zn-zone-card { background: var(--ekk-surface); border: 1px solid var(--ekk-border); border-radius: 10px; overflow: hidden; }
+.zn-zone-row {
+  display: flex; align-items: center; gap: 14px; padding: 14px 18px; cursor: pointer; transition: background 0.1s ease;
+  &:hover { background: var(--ekk-violet-100); }
+}
+.zn-zone-avatar {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff; background: var(--ekk-violet-700);
+}
+.zn-zone-info { flex: 1; min-width: 0; }
+.zn-zone-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; strong { font-size: 14.5px; color: var(--ekk-ink); } }
+.zn-zone-chief { margin: 3px 0 0; font-size: 12.5px; color: var(--ekk-ink-muted); }
+
+.zn-badge {
+  flex-shrink: 0; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  &.is-success { background: var(--ekk-emerald-bg); color: var(--ekk-emerald); }
+  &.is-danger { background: var(--ekk-ruby-bg); color: var(--ekk-ruby); }
+}
+
+.zn-site-summary {
+  flex-shrink: 0; display: flex; align-items: baseline; gap: 4px; min-width: 60px;
+  .zn-site-count { font-size: 15px; font-weight: 700; color: var(--ekk-violet-700); }
+  .zn-site-label { font-size: 11.5px; color: var(--ekk-ink-muted); }
+}
+
+.zn-zone-actions { flex-shrink: 0; display: flex; gap: 6px; }
+
+.zn-pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 10px; }
+.zn-pagination-info { font-size: 13px; color: var(--ekk-ink-muted); }
+.zn-pagination-controls { display: flex; align-items: center; gap: 8px; }
+.zn-page-indicator { font-size: 13px; font-weight: 600; padding: 0 4px; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .zn-zone-row { flex-wrap: wrap; }
+  .zn-site-summary { order: 3; }
+  .zn-zone-actions { order: 4; }
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
+}
