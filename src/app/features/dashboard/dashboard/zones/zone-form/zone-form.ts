@@ -69,15 +69,15 @@ export class ZoneForm implements OnInit {
   }
 
   private loadUsers(): void {
-  this.usersService.getUsers({ page: 1, pageSize: 100 }).subscribe((res) => {
-    if (res.success && res.data) {
-      this.users.set(res.data.items.map((u: any) => ({
-        id: u.id,
-        fullName: u.fullName || u.username || u.email
-      })));
-    }
-  });
-}
+    this.usersService.getUsers({ page: 1, pageSize: 100 }).subscribe((res) => {
+      if (res.success && res.data) {
+        this.users.set(res.data.items.map((u: any) => ({
+          id: u.id,
+          fullName: u.fullName || u.username || u.email
+        })));
+      }
+    });
+  }
 
   isSiteSelected(siteId: string): boolean {
     return (this.form.value.siteIds || []).includes(siteId);
@@ -97,16 +97,33 @@ export class ZoneForm implements OnInit {
       return;
     }
 
+    // ✅ Validation supplémentaire
+    const formValue = this.form.value;
+    if (!formValue.chiefUserId) {
+      this.error.set('Veuillez sélectionner un chef de zone.');
+      return;
+    }
+    if (!formValue.siteIds || formValue.siteIds.length === 0) {
+      this.error.set('Veuillez sélectionner au moins un site.');
+      return;
+    }
+
     this.submitting.set(true);
     this.error.set(null);
 
-    this.zoneServices.createZone(this.form.value).subscribe((res: { success: any; message: string | null; }) => {
-      this.submitting.set(false);
-      if (!res.success) {
-        this.error.set(res.message);
-        return;
+    this.zoneServices.createZone(formValue).subscribe({
+      next: (res) => {
+        this.submitting.set(false);
+        if (!res.success) {
+          this.error.set(res.message);
+          return;
+        }
+        this.router.navigate(['/dashboard/admin/zones']);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.error.set(err.message || 'Erreur lors de la création de la zone.');
       }
-      this.router.navigate(['/dashboard/admin/zones']);
     });
   }
 
