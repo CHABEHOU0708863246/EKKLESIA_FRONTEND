@@ -135,6 +135,7 @@ export class RoleList implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadUsers();
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.loadRoles();
