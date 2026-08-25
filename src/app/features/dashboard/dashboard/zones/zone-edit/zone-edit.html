@@ -14,7 +14,10 @@
   </header>
 
   <div class="zn-banner zn-banner--error" *ngIf="error()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
   </div>
 
@@ -51,12 +54,20 @@
     <section class="zn-section">
       <h2>Chef de zone</h2>
       <div class="zn-inline-row">
-        <select [ngModel]="siteToAdd()" (ngModelChange)="siteToAdd.set($event)" [ngModelOptions]="{standalone: true}">
-          <option *ngFor="let user of users()" [value]="user.id">{{ user.fullName }}</option>
+        <select [ngModel]="newChiefId()" (ngModelChange)="newChiefId.set($event)" [ngModelOptions]="{standalone: true}">
+          <option value="">— Sélectionner un chef —</option>
+          <option *ngFor="let user of users()" [value]="user.id">
+            {{ user.fullName }}
+          </option>
         </select>
-        <button type="button" class="zn-btn zn-btn--primary" (click)="assignChief()">Assigner</button>
+        <button type="button" class="zn-btn zn-btn--primary" (click)="assignChief()"
+          [disabled]="!newChiefId() || newChiefId() === zone()?.chiefUserId">
+          Assigner
+        </button>
       </div>
-      <p class="zn-hint">Le nouveau chef verra les sites de la zone après sa prochaine reconnexion.</p>
+      <p class="zn-hint">
+        Le nouveau chef verra les sites de la zone après sa prochaine reconnexion.
+      </p>
     </section>
 
     <!-- Sites de la zone -->
@@ -66,8 +77,11 @@
       <div class="zn-site-list-edit">
         <div class="zn-site-item" *ngFor="let siteId of z.siteIds">
           <span>{{ siteName(siteId) }}</span>
-          <button type="button" class="zn-icon-btn zn-icon-btn--danger" (click)="removeSite(siteId)" title="Retirer de la zone">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <button type="button" class="zn-icon-btn zn-icon-btn--danger" (click)="removeSite(siteId)"
+            title="Retirer de la zone">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </button>
         </div>
         <p class="zn-empty-sites" *ngIf="z.siteIds.length === 0">Aucun site dans cette zone.</p>
@@ -76,7 +90,8 @@
       <div class="zn-inline-row" *ngIf="availableSitesToAdd.length > 0">
         <select [ngModel]="siteToAdd()" (ngModelChange)="siteToAdd.set($event)" [ngModelOptions]="{standalone: true}">
           <option value="">— Choisir un site à ajouter —</option>
-          <option *ngFor="let site of availableSitesToAdd" [value]="site.id">{{ site.name }} ({{ site.churchName }})</option>
+          <option *ngFor="let site of availableSitesToAdd" [value]="site.id">{{ site.name }} ({{ site.churchName }})
+          </option>
         </select>
         <button type="button" class="zn-btn zn-btn--ghost" (click)="addSite()">Ajouter</button>
       </div>
