@@ -32,6 +32,27 @@ export class ForgotPasswordForm implements OnDestroy {
     });
   }
 
+  ngOnInit(): void {
+    this.initParticles();
+  }
+
+  private initParticles(): void {
+    const container = document.getElementById('particles');
+    if (!container) return;
+    for (let i = 0; i < 40; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      const size = Math.random() * 6 + 2;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 6 + 's';
+      particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+      container.appendChild(particle);
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -41,34 +62,34 @@ export class ForgotPasswordForm implements OnDestroy {
   }
 
   onSubmit(): void {
-  if (this.forgotPasswordForm.valid && !this.isLoading) {
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    if (this.forgotPasswordForm.valid && !this.isLoading) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
 
-    const email = this.forgotPasswordForm.get('email')?.value;
-    const redirectPath = `${window.location.origin}/auth/reset-password`;
+      const email = this.forgotPasswordForm.get('email')?.value;
+      const redirectPath = `${window.location.origin}/auth/reset-password`;
 
-    this.authService.forgotPassword({ email, redirectPath })
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError(error => {
-          this.handleError(error);
-          return throwError(() => error);
-        })
-      )
-      .subscribe((response: any) => {
-        this.isLoading = false;
-        if (response.success) {
-          this.handleSuccess(response.message);
-        } else {
-          this.errorMessage = response.message;
-        }
-      });
-  } else {
-    this.forgotPasswordForm.markAllAsTouched();
+      this.authService.forgotPassword({ email, redirectPath })
+        .pipe(
+          takeUntil(this.destroy$),
+          catchError(error => {
+            this.handleError(error);
+            return throwError(() => error);
+          })
+        )
+        .subscribe((response: any) => {
+          this.isLoading = false;
+          if (response.success) {
+            this.handleSuccess(response.message);
+          } else {
+            this.errorMessage = response.message;
+          }
+        });
+    } else {
+      this.forgotPasswordForm.markAllAsTouched();
+    }
   }
-}
 
   handleSuccess(message: string): void {
     this.emailSent = true;

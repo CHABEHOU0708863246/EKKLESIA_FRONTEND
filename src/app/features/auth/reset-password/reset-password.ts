@@ -33,6 +33,7 @@ export class ResetPasswordComponent implements OnInit {
   token = '';
 
   ngOnInit(): void {
+      this.initParticles();
     // Redirection si déjà connecté
     if (this.tokenService.isLogged()) {
       this.router.navigate(['/dashboard']);
@@ -56,6 +57,23 @@ export class ResetPasswordComponent implements OnInit {
 
     this.initForm();
   }
+
+  private initParticles(): void {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  for (let i = 0; i < 40; i++) {
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+    const size = Math.random() * 6 + 2;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 6 + 's';
+    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+    container.appendChild(particle);
+  }
+}
 
   private initForm(): void {
     this.resetPasswordForm = this.fb.group({
