@@ -26,14 +26,33 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private notificationService = inject(Notification);
+isBlessed: any;
 
   ngOnInit(): void {
+    this.initParticles();
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       rememberMe: [true],
     });
   }
+
+  private initParticles(): void {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  for (let i = 0; i < 40; i++) {
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+    const size = Math.random() * 6 + 2;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 6 + 's';
+    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+    container.appendChild(particle);
+  }
+}
 
   goToForgotPassword(): void {
     this.router.navigate(['/auth/forgot-password']);

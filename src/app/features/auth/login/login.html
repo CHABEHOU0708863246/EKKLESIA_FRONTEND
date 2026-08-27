@@ -1,59 +1,73 @@
 <div class="ekklesia-premium-container">
-  <!-- Grille de fond -->
-  <div class="background-grid"></div>
 
-  <!-- Effets lumineux -->
-  <div class="bg-glow"></div>
-  <div class="bg-glow bg-glow--secondary"></div>
+  <!-- ═══ AMBIANCE CÉLESTE ═══ -->
+  <div class="heavenly-bg">
+    <div class="stars"></div>
+    <div class="nebula"></div>
+    <div class="divine-light"></div>
+  </div>
 
-  <!-- Carte principale -->
+  <!-- ═══ PARTICULES D'OR ═══ -->
+  <div class="particles-container" id="particles"></div>
+
+  <!-- ═══ ANGE 3D (CSS) ═══ -->
+  <div class="angel-3d">
+    <div class="angel-halo"></div>
+    <div class="angel-wings">
+      <span></span><span></span>
+    </div>
+  </div>
+
+  <!-- ═══ CROIX 3D TOURNANTE ═══ -->
+  <div class="cross-3d">
+    <div class="cross-face cross-front">✝</div>
+    <div class="cross-face cross-back">✝</div>
+    <div class="cross-face cross-right">✝</div>
+    <div class="cross-face cross-left">✝</div>
+    <div class="cross-face cross-top">✝</div>
+    <div class="cross-face cross-bottom">✝</div>
+  </div>
+
+  <!-- ═══ CARTE PRINCIPALE ═══ -->
   <div class="main-glass-card">
 
-    <!-- Section gauche : Branding et fonctionnalités -->
+    <!-- Branding -->
     <div class="brand-side">
-<!-- Logo -->
-<div class="logo-section">
-  <div class="logo-image-wrapper">
-    <img
-      src="/logos/A New Design - Fait avec PosterMyWall.png"
-      alt="Logo MIAV - Mission International Arbre de Vie"
-      class="church-logo"
-    >
-  </div>
-  <div class="brand-title">
-    <h1>MIAV (Mission International Arbre de Vie)</h1>
-    <p class="tagline">Plateforme de gestion d'église</p>
-  </div>
-</div>
+      <div class="logo-section">
+        <div class="logo-image-wrapper">
+          <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="church-logo">
+        </div>
+        <div class="brand-title">
+          <h1>MIAV</h1>
+          <p class="tagline">Mission International Arbre de Vie</p>
+        </div>
+      </div>
 
-      <!-- Séparateur déco -->
       <div class="brand-divider"></div>
 
-      <!-- Cartes de fonctionnalités -->
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon-wrap"><i class='bx bx-group'></i></div>
           <h3>Suivi Pastoral</h3>
-          <p>Accompagnement individualisé des membres et visiteurs</p>
+          <p>Accompagnement individualisé</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-wrap"><i class='bx bx-layer'></i></div>
           <h3>Multi-Sites</h3>
-          <p>Gérez plusieurs assemblées depuis un même espace</p>
+          <p>Gestion unifiée</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-wrap"><i class='bx bx-donate-heart'></i></div>
-          <h3>Finances Transparentes</h3>
-          <p>Collectes, dépenses et budgets sous contrôle</p>
+          <h3>Finances</h3>
+          <p>Transparence totale</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-wrap"><i class='bx bx-shield-alt'></i></div>
           <h3>Confidentialité</h3>
-          <p>Données protégées et accès selon les rôles</p>
+          <p>Données protégées</p>
         </div>
       </div>
 
-      <!-- Verset : occupe l'espace bas de la colonne, en cohérence avec le sujet -->
       <div class="verse-block">
         <i class='bx bxs-quote-alt-left verse-mark'></i>
         <p class="verse-text">Là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux.</p>
@@ -61,19 +75,16 @@
       </div>
     </div>
 
-    <!-- Section droite : Formulaire -->
+    <!-- Formulaire -->
     <div class="form-side">
-      <!-- En-tête du formulaire -->
       <div class="form-header">
         <div class="form-header-icon"><i class="bx bxs-church"></i></div>
         <h2>Bienvenue 🙏</h2>
         <p>Accédez à votre espace sécurisé</p>
       </div>
 
-      <!-- Carte du formulaire -->
       <div class="form-card">
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
           <!-- Email -->
           <div class="input-group-card">
             <label for="email">Email</label>
@@ -95,7 +106,7 @@
                   <span><i class='bx bx-error-circle'></i> L'email est requis</span>
                 }
                 @if (loginForm.get('email')?.errors?.['email']) {
-                  <span><i class='bx bx-error-circle'></i> Format d'email invalide</span>
+                  <span><i class='bx bx-error-circle'></i> Format invalide</span>
                 }
               </div>
             }
@@ -144,7 +155,7 @@
             </a>
           </div>
 
-          <!-- Bouton de connexion -->
+          <!-- Bouton -->
           <button
             type="submit"
             class="btn-primary-card"
@@ -164,28 +175,20 @@
               <div class="loading-spinner"></div>
             </div>
           }
-
         </form>
       </div>
 
-      <!-- Footer formulaire -->
       <div class="form-footer">
         <span class="footer-sep-line"></span>
         <p class="support-text">
           <i class='bx bx-support'></i>
           Besoin d'aide ? <a href="#">Contacter le support</a>
         </p>
-        <p class="version-text">© 2026 MIAV — Version 1.0.0</p>
+        <p class="version-text">© 2026 MIAV — Version 3.0</p>
       </div>
     </div>
 
   </div>
 
-  <!-- Notification Component -->
   <app-notification-component></app-notification-component>
 </div>
-
-
-
-
-
