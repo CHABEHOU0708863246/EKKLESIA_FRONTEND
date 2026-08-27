@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
@@ -20,6 +20,12 @@ import { Church as ChurchModel } from '../../../../../core/models/Church/church.
 })
 export class SermonForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  allPreachers = signal<User[]>([]);
+  loadingPreachers = signal(false);
+
+  // computed pour la liste des pasteurs (on garde tous, pas de filtre)
+  filteredPreachers = computed(() => this.allPreachers());
 
   readonly mediaTypeOptions = [
     { value: SermonMediaType.Audio, label: SermonMediaTypeLabels[SermonMediaType.Audio] },
@@ -63,8 +69,8 @@ export class SermonForm implements OnInit, OnDestroy {
   ) {
     this.form = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
-      preacherId: [''],
-      preacherSearch: ['', Validators.required],
+      preacherId: ['', Validators.required],        // ← nouvel ID
+      // Supprimer preacherSearch
       date: ['', Validators.required],
       churchId: ['', Validators.required],
       siteId: [''],
@@ -85,6 +91,7 @@ export class SermonForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.loadPreachers();
 
     this.form.get('churchId')?.valueChanges
       .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
@@ -108,6 +115,49 @@ export class SermonForm implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+
+  private loadPreachers(): void {
+    this.loadingPreachers.set(true);
+    this.userService
+      .getUsers({ page: 1, pageSize: 100 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          const items = response?.data?.items ?? [];
+          // Filtrer les pasteurs (PASTOR_PRINCIPAL ou PASTEUR_SITE)
+          const pastors = items.filter((u: any) => {
+            const roles = this.extractRoles(u);
+            return roles.some(r => r.includes('PASTOR') || r.includes('PASTEUR'));
+          });
+          this.allPreachers.set(pastors);
+          this.loadingPreachers.set(false);
+        },
+        error: () => {
+          this.allPreachers.set([]);
+          this.loadingPreachers.set(false);
+        },
+      });
+  }
+
+  // Helpers (copiés de service-form)
+  private extractRoles(user: any): string[] {
+    const roles = user?.roles ?? user?.roleNames ?? [];
+    return (Array.isArray(roles) ? roles : [roles])
+      .map((r: string) => r.toUpperCase().replace(/[^A-Z]/g, ''))
+      .filter(Boolean);
+  }
+
+  getUserFullName(user: User): string {
+    return user.fullName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+  }
+
+  getPreacherRoleLabel(user: User): string {
+    const roles = this.extractRoles(user);
+    if (roles.some(r => r.includes('PRINCIPAL'))) return 'Pasteur principal';
+    if (roles.some(r => r.includes('SITE'))) return 'Pasteur de site';
+    return 'Pasteur';
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -194,15 +244,17 @@ export class SermonForm implements OnInit, OnDestroy {
 
   submit(): void {
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.error.set('Veuillez corriger les champs invalides.');
-      return;
-    }
+    this.form.markAllAsTouched();
+    this.error.set('Veuillez corriger les champs invalides.');
+    return;
+  }
 
-    this.saving.set(true);
-    this.error.set(null);
+  this.saving.set(true);
+  this.error.set(null);
 
-    const value = this.form.value;
+  const value = this.form.value;
+  const selectedPreacher = this.allPreachers().find(u => u.id === value.preacherId);
+  const preacherName = selectedPreacher ? this.getUserFullName(selectedPreacher) : '';
     const payload: SermonCreate = {
       title: value.title.trim(),
       preacherId: value.preacherId || undefined,

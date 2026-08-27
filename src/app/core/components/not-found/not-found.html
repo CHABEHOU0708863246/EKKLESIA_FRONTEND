@@ -1,95 +1,91 @@
 <!-- not-found.component.html -->
 <div class="not-found-wrapper">
 
-  <!-- Fond avec dégradé dynamique -->
+  <!-- Rubans de signalisation -->
+  <div class="hazard-bar hazard-top"></div>
+  <div class="hazard-bar hazard-bottom"></div>
+
+  <!-- Fond -->
   <div class="dynamic-bg"></div>
-
-  <!-- Grille 3D perspective -->
   <div class="grid-3d"></div>
-
-  <!-- Particules flottantes -->
-  <div class="particles-container">
-    <div class="particle p1"></div>
-    <div class="particle p2"></div>
-    <div class="particle p3"></div>
-    <div class="particle p4"></div>
-    <div class="particle p5"></div>
-    <div class="particle p6"></div>
-    <div class="particle p7"></div>
-    <div class="particle p8"></div>
-    <div class="particle p9"></div>
-    <div class="particle p10"></div>
-  </div>
-
-  <!-- Glow principal -->
   <div class="main-glow"></div>
 
-  <!-- Conteneur principal -->
-  <div class="not-found-container" (mousemove)="onMouseMove($event)">
+  <div class="not-found-container">
 
     <!-- Header -->
     <header class="not-found-header">
       <a [routerLink]="['/dashboard']" class="back-home-btn">
         <i class="bx bx-arrow-back"></i>
-        <span>Retour à l'accueil</span>
+        <span>&lt; RETOUR_ACCUEIL</span>
       </a>
+      <span class="status-badge">
+        <span class="dot"></span>
+        Accès refusé
+      </span>
     </header>
 
-    <!-- Contenu 3D -->
-    <main class="not-found-content">
-
-      <!-- Scene 3D avec effet de cube -->
-      <div class="scene-wrapper" #sceneWrapper>
-        <div class="scene-3d" [style.transform]="getSceneTransform()">
-          <!-- Face avant du cube -->
-          <div class="cube-face front">
-            <div class="error-number">404</div>
-          </div>
-          <!-- Faces latérales décoratives -->
-          <div class="cube-face left">
-            <div class="decor-shape"></div>
-          </div>
-          <div class="cube-face right">
-            <div class="decor-shape"></div>
-          </div>
-          <div class="cube-face top">
-            <div class="decor-shape"></div>
-          </div>
-          <div class="cube-face bottom">
-            <div class="decor-shape"></div>
-          </div>
-          <div class="cube-face back">
-            <div class="error-number blur">404</div>
-          </div>
+    <!-- Terminal de sécurité -->
+    <main class="console-panel">
+      <div class="console-titlebar">
+        <div class="dots">
+          <span class="d1"></span>
+          <span class="d2"></span>
+          <span class="d3"></span>
         </div>
-        <!-- Éléments flottants autour du cube -->
-        <div class="float-element float-1">
-          <div class="float-shape"></div>
-        </div>
-        <div class="float-element float-2">
-          <div class="float-shape"></div>
-        </div>
-        <div class="float-element float-3">
-          <div class="float-shape"></div>
-        </div>
+        <span class="console-label">SECURITY_SYSTEM // ACCESS_CONTROL</span>
+        <span class="console-code">ERR_404</span>
       </div>
 
-      <!-- Texte et boutons -->
-      <div class="info-text">
-        <h2>Page introuvable</h2>
-        <p>
-          La page que vous recherchez est actuellement en construction ou n'existe pas.<br>
-          Vous pouvez retourner à l'accueil pour continuer à utiliser l'application.
-        </p>
-        <div class="action-buttons">
-          <a [routerLink]="['/dashboard']" class="btn-primary-premium">
-            <i class="bx bx-home-alt"></i>
-            Tableau de bord
-          </a>
-          <button class="btn-outline-premium" (click)="goBack()">
-            <i class="bx bx-arrow-back"></i>
-            Page précédente
-          </button>
+      <div class="console-body">
+        <div class="scanline"></div>
+
+        <div class="stamp">
+          <span class="stamp-icon">🚫</span>
+          <span class="stamp-title">Accès refusé</span>
+          <span class="stamp-sub">Requête bloquée</span>
+        </div>
+
+        <div class="ticker">
+          <div class="ticker-track">
+            <span class="ticker-item">✋ NON</span>
+            <span class="ticker-item">⛔ NON</span>
+            <span class="ticker-item">🚫 NON</span>
+            <span class="ticker-item">✋ NON</span>
+            <span class="ticker-item">⛔ NON</span>
+            <span class="ticker-item">🚫 NON</span>
+            <span class="ticker-item">✋ NON</span>
+            <span class="ticker-item">⛔ NON</span>
+            <span class="ticker-item">🚫 NON</span>
+            <span class="ticker-item">✋ NON</span>
+            <span class="ticker-item">⛔ NON</span>
+            <span class="ticker-item">🚫 NON</span>
+          </div>
+        </div>
+
+        <div class="info-text">
+          <h2>Vous n'êtes pas autorisé(e) à accéder à cette page</h2>
+          <p>
+            Cette page est protégée ou en cours de développement, elle n'est donc
+            pas encore accessible. Si vous pensez qu'il s'agit d'une erreur,
+            contactez le développeur.
+          </p>
+
+          <div class="contact-line">
+            <span class="prompt">&gt;</span>
+            <span>contacter_developpeur --tel</span>
+            <a href="tel:+2250708863246">+225 07 08 86 32 46</a>
+          </div>
+
+          <div class="action-buttons">
+            <a [routerLink]="['/dashboard']" class="btn-primary-premium">
+              <i class="bx bx-home-alt"></i>
+              Tableau de bord
+            </a>
+            <button class="btn-outline-premium" (click)="goBack()">
+              <i class="bx bx-arrow-back"></i>
+              Page précédente
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -98,7 +94,7 @@
     <footer class="not-found-footer">
       <span>© 2026 MIAV</span>
       <span class="separator">•</span>
-      <a [routerLink]="['/dashboard/about']">Aide & Support</a>
+      <a [routerLink]="['/dashboard/about']">Aide &amp; Support</a>
       <span class="separator">•</span>
       <a [routerLink]="['/dashboard/about']">À propos</a>
     </footer>

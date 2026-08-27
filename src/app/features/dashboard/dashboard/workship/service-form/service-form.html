@@ -46,7 +46,6 @@
       </div>
     </div>
 
-    <!-- ─── PRÉDICATEUR ─── -->
 <!-- ─── PRÉDICATEUR ─── -->
 <div class="sf-section-divider">Prédicateur</div>
 
@@ -66,15 +65,6 @@
 
 <!-- Mode 1 : pasteur du système -->
 @if (!isExternalPreacher) {
-  <div class="sf-field">
-    <label>Rechercher</label>
-    <input type="text"
-           [value]="preacherFilter()"
-           (input)="onPreacherFilterInput($event)"
-           placeholder="Filtrer par nom, email ou rôle…"
-           autocomplete="off">
-  </div>
-
   <div class="sf-field">
     <label>Pasteur <span class="sf-required">*</span></label>
     <select formControlName="preacherId" [size]="filteredPreachers().length > 6 ? 6 : 1">
@@ -100,7 +90,7 @@
       <p class="sf-field-hint">Chargement des pasteurs…</p>
     } @else if (filteredPreachers().length === 0) {
       <p class="sf-field-hint">
-        Aucun pasteur ne correspond. Choisissez « Invité extérieur » si nécessaire.
+        Aucun pasteur trouvé. Choisissez « Invité extérieur » si nécessaire.
       </p>
     } @else {
       <p class="sf-field-hint">{{ filteredPreachers().length }} pasteur(s) disponible(s)</p>
@@ -173,7 +163,7 @@
     </div>
     <div class="sf-grid-2" formGroupName="attendance">
       <div class="sf-field">
-        <label>Visiteurs</label>
+        <label>Nouveaux</label>
         <input type="number" formControlName="visitors" min="0">
       </div>
       <!-- ✅ REMPLACÉ "Pasteur & Staff" par "Accepté Jésus" et "Non accepté" -->

@@ -50,6 +50,10 @@ export class EventForm implements OnInit, OnDestroy {
   readonly statusOptions = STATUS_OPTIONS;
   readonly currencyOptions = CURRENCY_OPTIONS;
 
+  // ── Liste des utilisateurs ──
+allUsers = signal<User[]>([]);
+loadingUsers = signal(false);
+
   isEditMode = signal(false);
   loading = signal(false);
   saving = signal(false);
@@ -121,6 +125,7 @@ export class EventForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.loadAllUsers();
 
     this.eventId = this.route.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.eventId);
@@ -159,6 +164,22 @@ export class EventForm implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  private loadAllUsers(): void {
+  this.loadingUsers.set(true);
+  this.userService
+    .getUsers({ page: 1, pageSize: 100 })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.allUsers.set(response.data.items as User[]);
+        }
+        this.loadingUsers.set(false);
+      },
+      error: () => this.loadingUsers.set(false),
+    });
+}
 
   // ───────────────────────────────────────────────────────────────
   // CHARGEMENT (mode édition)

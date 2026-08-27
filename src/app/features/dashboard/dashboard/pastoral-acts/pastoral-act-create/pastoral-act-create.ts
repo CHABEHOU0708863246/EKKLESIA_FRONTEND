@@ -40,11 +40,20 @@ export class PastoralActCreate implements OnInit, OnDestroy {
   saving = signal(false);
   error = signal<string | null>(null);
 
+  // ── Liste des pasteurs (officiants) ──
+allPastors = signal<User[]>([]);
+loadingPastors = signal(false);
+
   // ── Église / Site ──
   churches = signal<ChurchModel[]>([]);
   loadingChurches = signal(false);
   sites = signal<Site[]>([]);
   loadingSites = signal(false);
+
+  getPastorFullName(user: User): string {
+    if (user.fullName) return user.fullName;
+    return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Pasteur';
+  }
 
   // ── Officiant (recherche de pasteur) ──
   officiantRoleNames = signal<string[]>([]);
@@ -122,6 +131,7 @@ export class PastoralActCreate implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+     this.loadPastors();
 
     this.loadChurches();
     this.loadOfficiantRoleNames();
@@ -164,6 +174,48 @@ export class PastoralActCreate implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
   // ÉGLISE / SITE
   // ───────────────────────────────────────────────────────────────
+
+  private extractItems<T>(response: any): T[] {
+  if (!response) return [];
+  if (Array.isArray(response)) return response as T[];
+  if (Array.isArray(response.items)) return response.items as T[];
+  if (response.data) {
+    if (Array.isArray(response.data)) return response.data as T[];
+    if (Array.isArray(response.data.items)) return response.data.items as T[];
+  }
+  return [];
+}
+
+  private loadPastors(): void {
+  this.loadingPastors.set(true);
+  this.userService
+    .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response: any) => {
+        const users = this.extractItems<User>(response);
+        const pastorRoleIdentifiers = [
+          'PASTEUR_SITE', 'PASTOR_PRINCIPAL',
+          'Pasteur de Site', 'Pasteur Principal',
+          'PASTEUR SITE', 'PASTOR PRINCIPAL'
+        ];
+        const pastors = users.filter((user: any) => {
+          const roles = user.roles ?? user.roleNames ?? user.Roles ?? [];
+          const roleList = Array.isArray(roles) ? roles : [roles];
+          return roleList.some((r: string) =>
+            pastorRoleIdentifiers.some(id => r.toUpperCase().includes(id.toUpperCase()))
+          );
+        });
+        this.allPastors.set(pastors);
+        this.loadingPastors.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Erreur chargement pasteurs:', err);
+        this.allPastors.set([]);
+        this.loadingPastors.set(false);
+      },
+    });
+}
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

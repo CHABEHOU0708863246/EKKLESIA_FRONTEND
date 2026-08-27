@@ -3,6 +3,15 @@ import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } f
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, map, catchError, tap, finalize } from 'rxjs/operators';
+
+interface ResponsibleOption {
+  id: string;
+  fullName: string;
+  phone: string;
+  email: string;
+}
 
 import {
   CellGroup,
@@ -68,6 +77,9 @@ export class CellGroupList implements OnInit, OnDestroy {
   sites = signal<SiteModel[]>([]);
   loadingSites = signal(false);
 
+responsibles = signal<ResponsibleOption[]>([]);
+  loadingResponsibles = signal(false);
+
   searchControl = new FormControl('');
   dayControl = new FormControl('');
   statusControl = new FormControl('');
@@ -102,28 +114,29 @@ export class CellGroupList implements OnInit, OnDestroy {
   leaderRolesVersion = signal(0);
 
   constructor(
-  private fb: FormBuilder,
-  private memberService: Members,
-  private churchService: ChurchService,
-  private userService: Users,
-  private router: Router,
-  @Inject(PLATFORM_ID) private platformId: Object
-) {
-  this.createForm = this.fb.group({
-    churchId: ['', Validators.required],
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    leaderId: ['', Validators.required],
-    location: [''],
-    meetingDay: [''],
-    meetingTime: [''],
-    siteId: [''],
-  });
-}
+    private fb: FormBuilder,
+    private memberService: Members,
+    private churchService: ChurchService,
+    private userService: Users,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.createForm = this.fb.group({
+      churchId: ['', Validators.required],
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      leaderId: ['', Validators.required],
+      location: [''],
+      meetingDay: [''],
+      meetingTime: [''],
+      siteId: [''],
+    });
+  }
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.loadChurches();
+    this.loadResponsibles();
 
     this.searchControl.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -146,6 +159,56 @@ export class CellGroupList implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+private loadResponsibles(): void {
+  this.loadingResponsibles.set(true);
+
+  const responsibleRoles = [
+    'Responsable de Cellule',
+    'Pasteur de Site',
+    'Pasteur Principal',
+    'Ancien / Diacre',
+    'Responsable de Département'
+  ];
+
+  this.userService
+    .getUsers({ page: 1, pageSize: 100 })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingResponsibles.set(false)), // 🔥 toujours exécuté
+      tap((response) => {
+        if (response.data?.items) {
+          console.log('🔍 Exemple de rôles :', response.data.items[0]?.roles);
+        }
+      }),
+      map((userResponse) => {
+        if (!userResponse.success || !userResponse.data) return [];
+
+        return userResponse.data.items
+          .filter((user) =>
+            (user.roles ?? []).some((r) =>
+              responsibleRoles.some((allowed) => allowed === r)
+            )
+          )
+          .map((user) => ({
+            id: user.id,
+            fullName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            phone: user.phone || '',
+            email: user.email || '',
+          }));
+      })
+    )
+    .subscribe({
+      next: (results) => {
+        console.log('✅ Responsables filtrés :', results);
+        this.responsibles.set(results);
+      },
+      error: (err) => {
+        console.error('❌ Erreur :', err);
+        this.responsibles.set([]);
+      },
+    });
+}
 
   private loadLeaderName(memberId: string): void {
     if (!memberId || this.leaderNameCache.has(memberId)) return;
@@ -218,34 +281,34 @@ export class CellGroupList implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   // ✅ NOUVEAU
-// ───────────────────────────────────────────────────────────────
-// SITES (dépendants de l'église sélectionnée dans le panneau de création)
-// ───────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────
+  // SITES (dépendants de l'église sélectionnée dans le panneau de création)
+  // ───────────────────────────────────────────────────────────────
 
-private loadSitesForChurch(churchId: string): void {
-  if (!churchId) {
-    this.sites.set([]);
-    return;
+  private loadSitesForChurch(churchId: string): void {
+    if (!churchId) {
+      this.sites.set([]);
+      return;
+    }
+
+    this.loadingSites.set(true);
+    this.churchService
+      .getSitesByChurchId(churchId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // ✅ handleError() de Church renvoie un next avec success:false en cas
+          // d'erreur HTTP (pas de branche error() séparée à gérer ici).
+          this.sites.set(response.success && response.data ? response.data : []);
+          this.loadingSites.set(false);
+        },
+        // Filet de sécurité, même si le service intercepte déjà les erreurs.
+        error: () => {
+          this.sites.set([]);
+          this.loadingSites.set(false);
+        },
+      });
   }
-
-  this.loadingSites.set(true);
-  this.churchService
-    .getSitesByChurchId(churchId)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        // ✅ handleError() de Church renvoie un next avec success:false en cas
-        // d'erreur HTTP (pas de branche error() séparée à gérer ici).
-        this.sites.set(response.success && response.data ? response.data : []);
-        this.loadingSites.set(false);
-      },
-      // Filet de sécurité, même si le service intercepte déjà les erreurs.
-      error: () => {
-        this.sites.set([]);
-        this.loadingSites.set(false);
-      },
-    });
-}
 
   // ───────────────────────────────────────────────────────────────
   // CHARGEMENT DE LA LISTE
@@ -388,8 +451,8 @@ private loadSitesForChurch(churchId: string): void {
     this.showCreatePanel.set(true);
     this.createError.set(null);
     this.createForm.patchValue({ churchId: this.selectedChurchId(), siteId: '' });
-    // ✅ NOUVEAU — charge les sites disponibles pour l'église déjà sélectionnée
     this.loadSitesForChurch(this.selectedChurchId());
+    this.loadResponsibles(); // rafraîchit si besoin
   }
 
   closeCreatePanel(): void {
@@ -420,14 +483,53 @@ private loadSitesForChurch(churchId: string): void {
   private performLeaderSearch(term: string): void {
     this.searchingLeader.set(true);
     this.showLeaderResults.set(true);
+    this.leaderResults = [];
+
+    // Rôles considérés comme responsables
+const responsibleRoles = [
+  'CELL_LEADER', 'Responsable de Cellule',
+  'PASTEUR_SITE', 'Pasteur de Site',
+  'PASTOR_PRINCIPAL', 'Pasteur Principal',
+  'ELDER', 'Ancien / Diacre',
+  'DEPARTMENT_HEAD', 'Responsable de Département'
+];
 
     this.memberService
-      .getMembers({ page: 1, pageSize: 6, fullName: term } as any)
-      .pipe(takeUntil(this.destroy$))
+      .getMembers({ page: 1, pageSize: 10, fullName: term } as any)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((res: MemberListResponse) => {
+          const members = res.items || [];
+          if (members.length === 0) {
+            return of([]);
+          }
+
+          // Pour chaque membre, charger son rôle (depuis le cache ou via API)
+          const roleRequests = members.map((member) => {
+            if (this.leaderRoleCache.has(member.id)) {
+              return of({ member, roles: this.leaderRoleCache.get(member.id) });
+            } else {
+              return this.userService.getUserByMemberId(member.id).pipe(
+                map((userResponse) => {
+                  const roles = userResponse.success ? userResponse.data?.roles ?? [] : [];
+                  this.leaderRoleCache.set(member.id, roles);
+                  return { member, roles };
+                }),
+                catchError(() => of({ member, roles: [] }))
+              );
+            }
+          });
+
+          return forkJoin(roleRequests);
+        })
+      )
       .subscribe({
-        next: (res: MemberListResponse) => {
-          this.leaderResults = res.items || [];
+        next: (results) => {
+          this.leaderResults = results
+            .filter((item) => (item.roles ?? []).some((r) => responsibleRoles.includes(r)))
+            .map((item) => item.member);
           this.searchingLeader.set(false);
+          this.showLeaderResults.set(true);
         },
         error: (err) => {
           console.error('❌ Erreur lors de la recherche de responsables:', err);

@@ -13,11 +13,11 @@
 
     <div class="cgl-page-title-row">
       <h1>Cellules de maison</h1>
-      <button type="button" class="cgl-btn cgl-btn--primary"
-              (click)="openCreatePanel()"
-              [disabled]="!canCreate()"
-              [title]="!canCreate() ? 'Sélectionnez une église pour créer une cellule' : ''">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <button type="button" class="cgl-btn cgl-btn--primary" (click)="openCreatePanel()" [disabled]="!canCreate()"
+        [title]="!canCreate() ? 'Sélectionnez une église pour créer une cellule' : ''">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
         Nouvelle cellule
       </button>
     </div>
@@ -25,15 +25,22 @@
     <!-- ═══ Sélecteur d'église (Lookup, filtre parent) ═══ -->
     <div class="cgl-church-lookup">
       <label for="churchLookup">
-        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
         Église
       </label>
       <div class="cgl-select-wrap cgl-select-wrap--church">
-        <select id="churchLookup" [ngModel]="selectedChurchId()" (ngModelChange)="onChurchSelected($event)" [disabled]="loadingChurches()">
+        <select id="churchLookup" [ngModel]="selectedChurchId()" (ngModelChange)="onChurchSelected($event)"
+          [disabled]="loadingChurches()">
           <option value="">— Toutes les églises / sélectionner —</option>
           <option *ngFor="let church of churches()" [value]="church.id">{{ church.name }}</option>
         </select>
-        <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
       </div>
       <span class="cgl-lookup-hint" *ngIf="!canCreate()">⚠️ Sélectionnez une église pour activer la création</span>
     </div>
@@ -45,7 +52,9 @@
     <div class="cgl-drawer-header">
       <h2>Nouvelle cellule de maison</h2>
       <button type="button" class="cgl-icon-btn" (click)="closeCreatePanel()" aria-label="Fermer">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
     </div>
 
@@ -54,27 +63,33 @@
       <div class="cgl-field">
         <label>Église</label>
         <div class="cgl-selected-church-static">
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
           <span>{{ selectedChurch()?.name }}</span>
         </div>
         <p class="cgl-hint">La cellule sera créée dans cette église.</p>
       </div>
 
-<!-- ✅ NOUVEAU — site optionnel, uniquement si la cellule concerne un site particulier -->
-<div class="cgl-field">
-  <label for="cgSite">Site (optionnel)</label>
-  <div class="cgl-select-wrap">
-    <select id="cgSite" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
-      <option value="">— Église mère (aucun site particulier) —</option>
-      <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
-    </select>
-    <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </div>
-  <p class="cgl-hint" *ngIf="!loadingSites() && sites().length === 0">
-    Cette église n'a pas de site enregistré — la cellule sera rattachée à l'église mère.
-  </p>
-  <p class="cgl-hint" *ngIf="loadingSites()">Chargement des sites…</p>
-</div>
+      <!-- ✅ NOUVEAU — site optionnel, uniquement si la cellule concerne un site particulier -->
+      <div class="cgl-field">
+        <label for="cgSite">Site (optionnel)</label>
+        <div class="cgl-select-wrap">
+          <select id="cgSite" formControlName="siteId" [disabled]="loadingSites() || sites().length === 0">
+            <option value="">— Église mère (aucun site particulier) —</option>
+            <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
+          </select>
+          <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+        <p class="cgl-hint" *ngIf="!loadingSites() && sites().length === 0">
+          Cette église n'a pas de site enregistré — la cellule sera rattachée à l'église mère.
+        </p>
+        <p class="cgl-hint" *ngIf="loadingSites()">Chargement des sites…</p>
+      </div>
 
       <div class="cgl-field">
         <label for="cgName">Nom de la cellule <span class="cgl-required">*</span></label>
@@ -82,36 +97,23 @@
         <p class="cgl-error" *ngIf="isFieldInvalid('name')">Le nom est requis (3 caractères min.)</p>
       </div>
 
-      <div class="cgl-field cgl-leader-search">
-        <label for="leaderSearch">Responsable <span class="cgl-required">*</span></label>
-
-        <div class="cgl-selected-row" *ngIf="selectedLeader">
-          <div class="cgl-mini-avatar">{{ getInitials(getFullName(selectedLeader)) }}</div>
-          <div class="cgl-mini-info">
-            <strong>{{ getFullName(selectedLeader) }}</strong>
-            <span>{{ selectedLeader.phone }}</span>
-          </div>
-          <button type="button" class="cgl-icon-btn cgl-icon-btn--sm" (click)="clearLeader()" aria-label="Retirer">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </button>
+      <!-- 🔁 Responsable : sélection dans une liste déroulante -->
+      <div class="cgl-field">
+        <label for="leaderSelect">Responsable <span class="cgl-required">*</span></label>
+        <div class="cgl-select-wrap">
+          <select id="leaderSelect" formControlName="leaderId">
+            <option value="">— Sélectionner un responsable —</option>
+            <option *ngFor="let m of responsibles()" [value]="m.id">
+              {{ m.fullName }} ({{ m.phone }})
+            </option>
+          </select>
+          <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
         </div>
-
-        <input *ngIf="!selectedLeader" id="leaderSearch" type="text" placeholder="Rechercher un membre…"
-               (input)="onLeaderInput($any($event.target).value)">
-
+        <p class="cgl-hint" *ngIf="loadingResponsibles()">Chargement des responsables…</p>
         <p class="cgl-error" *ngIf="isFieldInvalid('leaderId')">Un responsable est requis</p>
-
-        <div class="cgl-search-dropdown" *ngIf="showLeaderResults() && !selectedLeader">
-          <p class="cgl-search-status" *ngIf="searchingLeader()">Recherche en cours…</p>
-          <p class="cgl-search-status" *ngIf="!searchingLeader() && leaderResults.length === 0">Aucun membre trouvé</p>
-          <button type="button" class="cgl-search-result" *ngFor="let m of leaderResults" (click)="selectLeader(m)">
-            <div class="cgl-mini-avatar">{{ getInitials(getFullName(m)) }}</div>
-            <div class="cgl-mini-info">
-              <strong>{{ getFullName(m) }}</strong>
-              <span>{{ m.phone }}</span>
-            </div>
-          </button>
-        </div>
       </div>
 
       <div class="cgl-field">
@@ -127,7 +129,10 @@
               <option value="">— Non défini —</option>
               <option *ngFor="let day of weekDays" [value]="day">{{ day }}</option>
             </select>
-            <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
           </div>
         </div>
 
@@ -138,7 +143,10 @@
       </div>
 
       <div class="cgl-banner cgl-banner--error" *ngIf="createError()">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+          <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
         <span>{{ createError() }}</span>
       </div>
 
@@ -155,7 +163,10 @@
   <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
   <div class="cgl-toolbar">
     <div class="cgl-search">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+        <path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
       <input type="text" [formControl]="searchControl" placeholder="Rechercher une cellule, un lieu, un responsable…">
     </div>
 
@@ -164,7 +175,9 @@
         <option value="">Tous les jours</option>
         <option *ngFor="let day of weekDays" [value]="day">{{ day }}</option>
       </select>
-      <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </div>
 
     <div class="cgl-select-wrap">
@@ -173,19 +186,27 @@
         <option value="true">Actives</option>
         <option value="false">Inactives</option>
       </select>
-      <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </div>
 
     <button type="button" class="cgl-btn cgl-btn--ghost" (click)="resetFilters()">Réinitialiser</button>
 
     <button type="button" class="cgl-icon-btn" (click)="refresh()" aria-label="Actualiser" title="Actualiser">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16"
+          stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </button>
   </div>
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
   <div class="cgl-banner cgl-banner--error" *ngIf="error()">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
     <span>{{ error() }}</span>
   </div>
 
@@ -215,7 +236,7 @@
           </td>
         </tr>
 
-        <tr *ngFor="let cg of cellGroups()" class="cgl-row" >
+        <tr *ngFor="let cg of cellGroups()" class="cgl-row">
           <td class="cgl-col-name">
             <div class="cgl-name-cell">
               <div class="cgl-avatar">{{ getInitials(cg.name) }}</div>
@@ -240,11 +261,19 @@
             </span>
           </td>
           <td class="cgl-col-actions">
-            <button type="button" class="cgl-icon-btn" (click)="editCellGroup(cg, $event)" aria-label="Modifier" title="Modifier">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <button type="button" class="cgl-icon-btn" (click)="editCellGroup(cg, $event)" aria-label="Modifier"
+              title="Modifier">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
             </button>
-            <button type="button" class="cgl-icon-btn cgl-icon-btn--danger" (click)="requestDelete(cg, $event)" aria-label="Supprimer" title="Supprimer">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <button type="button" class="cgl-icon-btn cgl-icon-btn--danger" (click)="requestDelete(cg, $event)"
+              aria-label="Supprimer" title="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
             </button>
           </td>
         </tr>
@@ -262,31 +291,36 @@
         <select [value]="pageSize()" (change)="onPageSizeChange($any($event.target).value)">
           <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} / page</option>
         </select>
-        <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="cgl-select-caret" viewBox="0 0 24 24" fill="none">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
       </div>
 
-      <button type="button" class="cgl-icon-btn" [disabled]="currentPage() === 1" (click)="previousPage()" aria-label="Page précédente">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button type="button" class="cgl-icon-btn" [disabled]="currentPage() === 1" (click)="previousPage()"
+        aria-label="Page précédente">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
       </button>
 
       <span class="cgl-page-indicator">Page {{ currentPage() }} / {{ totalPages() }}</span>
 
-      <button type="button" class="cgl-icon-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()" aria-label="Page suivante">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button type="button" class="cgl-icon-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()"
+        aria-label="Page suivante">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
       </button>
     </div>
   </div>
 
   <!-- ══════════════ POPUP DE CONFIRMATION ══════════════ -->
-  <app-confirm-dialog
-    [visible]="deleteDialogVisible()"
-    title="Supprimer cette cellule"
+  <app-confirm-dialog [visible]="deleteDialogVisible()" title="Supprimer cette cellule"
     [message]="cellGroupToDelete() ? 'Êtes-vous sûr de vouloir supprimer la cellule « ' + cellGroupToDelete()!.name + ' » ?' : ''"
-    details="Les membres rattachés ne seront pas supprimés, seule la cellule le sera."
-    confirmText="Supprimer"
-    cancelText="Annuler"
-    (confirm)="confirmDelete()"
-    (cancel)="cancelDelete()"
-  ></app-confirm-dialog>
+    details="Les membres rattachés ne seront pas supprimés, seule la cellule le sera." confirmText="Supprimer"
+    cancelText="Annuler" (confirm)="confirmDelete()" (cancel)="cancelDelete()"></app-confirm-dialog>
 
 </div>

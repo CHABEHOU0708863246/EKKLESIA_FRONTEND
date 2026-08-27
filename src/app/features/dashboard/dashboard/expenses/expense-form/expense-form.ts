@@ -59,6 +59,14 @@ export class ExpenseForm implements OnInit, OnDestroy {
   private userService = inject(Users);
   private router = inject(Router);
 
+  getUserFullName(user: User): string {
+  return user.fullName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Utilisateur';
+}
+
+  // ── Liste de tous les utilisateurs ──
+  allUsers = signal<User[]>([]);
+  loadingUsers = signal(false);
+
   // ── Exposé des énumérations au template ──
   readonly ExpenseStatus = ExpenseStatus;
   readonly ExpenseCategory = ExpenseCategory;
@@ -104,9 +112,9 @@ export class ExpenseForm implements OnInit, OnDestroy {
   /**
  * Récupère l'ID d'un demandeur (membre ou utilisateur)
  */
-getRequesterId(person: any): string {
-  return person?.id || '';
-}
+  getRequesterId(person: any): string {
+    return person?.id || '';
+  }
 
   constructor() {
     this.form = this.fb.group({
@@ -130,6 +138,7 @@ getRequesterId(person: any): string {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.loadUsers();
 
     // Détection du mode édition
     const urlSegments = this.router.url.split('/');
@@ -184,6 +193,37 @@ getRequesterId(person: any): string {
       },
       error: () => this.error.set('Erreur lors du chargement de la dépense.'),
     });
+  }
+
+
+  private loadUsers(): void {
+    this.loadingUsers.set(true);
+    this.userService
+      .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          const users = this.extractItems<User>(response);
+          this.allUsers.set(users);
+          this.loadingUsers.set(false);
+        },
+        error: (err) => {
+          console.error('❌ Erreur chargement utilisateurs:', err);
+          this.allUsers.set([]);
+          this.loadingUsers.set(false);
+        },
+      });
+  }
+
+  private extractItems<T>(response: any): T[] {
+    if (!response) return [];
+    if (Array.isArray(response)) return response as T[];
+    if (Array.isArray(response.items)) return response.items as T[];
+    if (response.data) {
+      if (Array.isArray(response.data)) return response.data as T[];
+      if (Array.isArray(response.data.items)) return response.data.items as T[];
+    }
+    return [];
   }
 
   private populateForm(expense: any): void {

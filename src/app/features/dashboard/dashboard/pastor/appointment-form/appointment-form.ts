@@ -34,6 +34,7 @@ export class AppointmentForm implements OnInit, OnDestroy {
   private memberService = inject(Members);
 
 
+
   // ── État ──
   isEditMode = signal(false);
   appointmentId: string | null = null;
@@ -238,41 +239,26 @@ export class AppointmentForm implements OnInit, OnDestroy {
 private loadPastors(): void {
   this.loadingPastors.set(true);
   this.userService
-    .getUsers({ page: 1, pageSize: 100 } as any)
+    .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+    .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response: any) => {
-        console.log('📡 [loadPastors] Réponse brute:', response);
-        const allUsers = this.extractItems<User>(response);
-        console.log('👥 Tous les utilisateurs:', allUsers);
-
-        // 🔍 Log des rôles pour chaque utilisateur
-        allUsers.forEach(u => {
-          console.log(`👤 ${u.fullName} | roles:`, u.roles, '| roleNames:', u.roles);
-        });
-
-        // ✅ Filtrer les utilisateurs ayant un rôle de pasteur
-        const pastorRoleCodes = ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'];
-        const pastorRoleNames = ['Pasteur de Site', 'Pasteur Principal', 'PASTEUR SITE', 'PASTOR PRINCIPAL'];
-
-        const filtered = allUsers.filter((u: any) => {
-          // Récupérer tous les rôles possibles
-          const userRoles = [
-            ...(u.roles ?? []),
-            ...(u.roleNames ?? []),
-            ...(u.Roles ?? []),
-            ...(u.roleName ? [u.roleName] : [])
-          ].map((r: string) => r.toUpperCase().trim());
-
-          // Vérifier si un rôle correspond
-          return userRoles.some((r: string) =>
-            pastorRoleCodes.includes(r) ||
-            pastorRoleNames.some(n => r === n.toUpperCase().trim())
+        const users = this.extractItems<User>(response);
+        const pastorRoleIdentifiers = [
+          'PASTEUR_SITE', 'PASTOR_PRINCIPAL',
+          'Pasteur de Site', 'Pasteur Principal',
+          'PASTEUR SITE', 'PASTOR PRINCIPAL'
+        ];
+        const pastors = users.filter((user: any) => {
+          const roles = user.roles ?? user.roleNames ?? user.Roles ?? [];
+          const roleList = Array.isArray(roles) ? roles : [roles];
+          return roleList.some((r: string) =>
+            pastorRoleIdentifiers.some(id => r.toUpperCase().includes(id.toUpperCase()))
           );
         });
-
-        console.log('✅ Pasteurs filtrés:', filtered);
-        this.pastors.set(filtered);
+        this.pastors.set(pastors);
         this.loadingPastors.set(false);
+        console.log('✅ Pasteurs chargés:', pastors.length);
       },
       error: (err) => {
         console.error('❌ Erreur chargement pasteurs:', err);
