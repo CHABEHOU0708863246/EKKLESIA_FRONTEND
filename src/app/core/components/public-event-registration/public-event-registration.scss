@@ -1048,3 +1048,14 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
     }
   }
 }
+
+
+
+.per-modal-logo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 0.8rem;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba($gold, 0.3));
+}

@@ -1,7 +1,7 @@
 <!-- public-event-registration.component.html -->
 <div class="per-page">
 
-   <!-- ═══ ALERTE DE FERMETURE 3D ═══ -->
+  <!-- ═══ ALERTE DE FERMETURE 3D ═══ -->
   <div class="per-closure-alert" *ngIf="showClosureAlert">
     <div class="per-alert-inner">
       <div class="per-alert-icon">⏳</div>
@@ -10,7 +10,8 @@
         <p>
           Les inscriptions en ligne seront définitivement <strong>fermées le dimanche 30 août 2026 à 23h59</strong>.
           <br>Passé ce délai, aucune nouvelle inscription ne sera acceptée.
-          <br>Merci de finaliser votre inscription avant cette date pour faciliter l’encaissement et la préparation comptable.
+          <br>Merci de finaliser votre inscription avant cette date pour faciliter l’encaissement et la préparation
+          comptable.
         </p>
         <div class="per-countdown">
           <span class="per-cd-item"><span class="per-cd-number">{{ days }}</span> j</span>
@@ -29,7 +30,8 @@
   <!-- ═══ MODAL DE CONFIRMATION (popup au chargement) ═══ -->
   <div class="per-modal-overlay" *ngIf="showModal">
     <div class="per-modal-box">
-      <div class="per-modal-icon">📢</div>
+      <!-- ✅ Logo MIAV -->
+      <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-modal-logo">
       <h2>Information importante</h2>
       <p>
         Les inscriptions en ligne pour cet événement seront fermées le
@@ -310,22 +312,19 @@
             <div class="per-row">
               <div class="per-field">
                 <label for="payerName">Nom complet *</label>
-                <input id="payerName" type="text" formControlName="payerName"
-                       placeholder="Ex : CHABEHOU Jean">
+                <input id="payerName" type="text" formControlName="payerName" placeholder="Ex : CHABEHOU Jean">
                 <p class="per-field-error" *ngIf="isFieldInvalid('payerName')">Champ requis.</p>
               </div>
               <div class="per-field">
                 <label for="payerPhone">Numéro mobile money *</label>
-                <input id="payerPhone" type="text" formControlName="payerPhone"
-                       placeholder="Numéro qui sera débité">
+                <input id="payerPhone" type="text" formControlName="payerPhone" placeholder="Numéro qui sera débité">
                 <p class="per-field-error" *ngIf="isFieldInvalid('payerPhone')">Champ requis.</p>
               </div>
             </div>
 
             <div class="per-field">
               <label for="payerEmail">Email pour recevoir le reçu</label>
-              <input id="payerEmail" type="email" formControlName="payerEmail"
-                     placeholder="votre@email.com">
+              <input id="payerEmail" type="email" formControlName="payerEmail" placeholder="votre@email.com">
               <p class="per-field-hint">
                 Le reçu de ce paiement sera envoyé à cette adresse, au nom du participant.
               </p>
@@ -402,7 +401,3 @@
   }
 
 </div>
-
-
-
-
