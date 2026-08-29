@@ -1,6 +1,49 @@
 <!-- public-event-registration.component.html -->
 <div class="per-page">
 
+   <!-- ═══ ALERTE DE FERMETURE 3D ═══ -->
+  <div class="per-closure-alert" *ngIf="showClosureAlert">
+    <div class="per-alert-inner">
+      <div class="per-alert-icon">⏳</div>
+      <div class="per-alert-content">
+        <h3>⚠️ Fermeture des inscriptions en ligne</h3>
+        <p>
+          Les inscriptions en ligne seront définitivement <strong>fermées le dimanche 30 août 2026 à 23h59</strong>.
+          <br>Passé ce délai, aucune nouvelle inscription ne sera acceptée.
+          <br>Merci de finaliser votre inscription avant cette date pour faciliter l’encaissement et la préparation comptable.
+        </p>
+        <div class="per-countdown">
+          <span class="per-cd-item"><span class="per-cd-number">{{ days }}</span> j</span>
+          <span class="per-cd-item"><span class="per-cd-number">{{ hours }}</span> h</span>
+          <span class="per-cd-item"><span class="per-cd-number">{{ minutes }}</span> min</span>
+          <span class="per-cd-item"><span class="per-cd-number">{{ seconds }}</span> s</span>
+        </div>
+      </div>
+      <button class="per-alert-close" (click)="closeClosureAlert()">✕</button>
+      <button class="per-alert-audio" (click)="speakAlert()" title="Écouter l'alerte">
+        🎧
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL DE CONFIRMATION (popup au chargement) ═══ -->
+  <div class="per-modal-overlay" *ngIf="showModal">
+    <div class="per-modal-box">
+      <div class="per-modal-icon">📢</div>
+      <h2>Information importante</h2>
+      <p>
+        Les inscriptions en ligne pour cet événement seront fermées le
+        <strong>dimanche 30 août 2026 à 23h59</strong>.
+      </p>
+      <p>
+        Passé ce délai, aucune inscription ne sera possible en ligne.
+        Merci de finaliser votre inscription avant cette date.
+      </p>
+      <button class="per-modal-btn" (click)="closeModal()">J’ai compris</button>
+      <button class="per-modal-audio" (click)="speakAlert()">🔊 Écouter</button>
+    </div>
+  </div>
+
   @if (loading()) {
   <div class="per-status-screen">
     <div class="per-spinner" aria-hidden="true"></div>

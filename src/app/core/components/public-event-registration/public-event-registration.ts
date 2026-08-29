@@ -47,6 +47,21 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private registrationService = inject(PublicRegistrationService);
   private churchService = inject(ChurchService);
 
+  // ── Alerte de fermeture ──
+  showClosureAlert = true;
+  showModal = true;
+  closureDate = new Date('2026-08-30T23:59:00'); // 30 août 2026 à 23h59
+
+  // Compte à rebours
+  days = 0;
+  hours = 0;
+  minutes = 0;
+  seconds = 0;
+  private countdownInterval?: any;
+
+  // ── Synthèse vocale ──
+  private synth = window.speechSynthesis;
+
   eventId!: string;
   event = signal<PublicEventDetails | null>(null);
   loading = signal(true);
@@ -146,6 +161,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.startCountdown();
     const id = this.route.snapshot.paramMap.get('eventId');
     if (!id) {
       this.error.set("Lien d'inscription invalide.");
@@ -160,6 +176,62 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+    this.synth?.cancel();
+  }
+
+   private startCountdown(): void {
+    this.updateCountdown();
+    this.countdownInterval = setInterval(() => this.updateCountdown(), 1000);
+  }
+
+
+  private updateCountdown(): void {
+    const now = new Date().getTime();
+    const diff = this.closureDate.getTime() - now;
+    if (diff <= 0) {
+      this.days = 0;
+      this.hours = 0;
+      this.minutes = 0;
+      this.seconds = 0;
+      clearInterval(this.countdownInterval);
+      return;
+    }
+    this.days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    this.hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    this.minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    this.seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  }
+
+  // ── Alerte vocale ──
+  speakAlert(): void {
+    if (!this.synth) {
+      alert('La synthèse vocale n’est pas supportée par votre navigateur.');
+      return;
+    }
+    // Annuler toute lecture en cours
+    this.synth.cancel();
+
+    const message =
+      'Attention. Les inscriptions en ligne seront fermées le dimanche 30 août 2026 à 23 heures 59. ' +
+      'Passé ce délai, aucune nouvelle inscription ne sera acceptée. ' +
+      'Merci de finaliser votre inscription avant cette date.';
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.95;
+    utterance.pitch = 1.1;
+    this.synth.speak(utterance);
+  }
+
+  // ── Fermeture de l'alerte (bandeau) ──
+  closeClosureAlert(): void {
+    this.showClosureAlert = false;
+  }
+
+  // ── Fermeture du modal ──
+  closeModal(): void {
+    this.showModal = false;
   }
 
   // ══════════════════════════════════════════════════════════
