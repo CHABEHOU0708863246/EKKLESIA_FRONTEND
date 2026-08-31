@@ -1,362 +1,409 @@
+
 <!-- public-event-registration.component.html -->
 <div class="per-page">
 
-  @if (loading()) {
-  <div class="per-status-screen">
-    <div class="per-spinner" aria-hidden="true"></div>
-    <p>Chargement de l'événement…</p>
-  </div>
-  }
+  <!-- ═══ PAGE DE MAINTENANCE (si activée) ═══ -->
+  @if (maintenanceMode()) {
+    <div class="per-maintenance">
+      <div class="per-maint-inner">
 
-  @if (error() && !loading() && !event()) {
-  <div class="per-status-screen per-status-screen--error">
-    <div class="per-status-icon per-status-icon--error" aria-hidden="true">✕</div>
-    <p>{{ error() }}</p>
-  </div>
-  }
+        <!-- Logo -->
+        <div class="per-hero-logo-row">
+          <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-maint-logo">
+        </div>
 
-  @if (!loading() && event() && !registrationResult()) {
+        <h1 class="per-maint-title">👼 En maintenance</h1>
 
-  <!-- ══ HERO ══════════════════════════════════════════════════ -->
-  <header class="per-hero">
-    <div class="per-hero-glow" aria-hidden="true"></div>
-    <div class="per-hero-inner">
+        <div class="per-maint-message">
+          <p>
+            Nous effectuons actuellement des travaux de sécurité
+            pour protéger vos données et améliorer votre expérience.
+          </p>
+          <p class="per-maint-strong">
+            L'inscription sera de nouveau disponible à <strong>10h00</strong>.
+          </p>
+        </div>
 
-      <div class="per-hero-logo-row">
-        <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-hero-logo">
-      </div>
+        <!-- Compte à rebours -->
+        <div class="per-maint-timer">
+          <span class="per-maint-clock">{{ timeUntilTen() }}</span>
+          <span class="per-maint-label">avant la réouverture</span>
+        </div>
 
-      <div class="per-hero-banner">
-        <p class="per-hero-banner-text">Soit fidèle jusqu'à la mort en faisant plus pour Dieu</p>
-        <span class="per-hero-banner-ref">Romains 2:17</span>
-      </div>
+        <!-- Anges animés -->
+        <div class="per-angels">
+          <span class="per-angel" style="--delay:0s; --x:10%; --y:20%;">😇</span>
+          <span class="per-angel" style="--delay:1.5s; --x:70%; --y:10%;">👼</span>
+          <span class="per-angel" style="--delay:3s; --x:30%; --y:60%;">✨</span>
+          <span class="per-angel" style="--delay:4.5s; --x:80%; --y:50%;">🌟</span>
+          <span class="per-angel" style="--delay:6s; --x:50%; --y:80%;">🕊️</span>
+        </div>
 
-      <p class="per-hero-eyebrow">MIAV &middot; Inscription à l'événement</p>
-      <h1 class="per-hero-title">{{ event()!.title }}</h1>
-
-      @if (event()!.verse) {
-      <blockquote class="per-hero-verse">
-        <span class="per-hero-verse-mark" aria-hidden="true">&ldquo;</span>
-        <p>{{ event()!.verse }}</p>
-        @if (event()!.verseReference) {
-        {{ event()!.verseReference }}
-        }
-      </blockquote>
-      }
-
-      <div class="per-hero-pills">
-        <span class="per-pill per-pill--period">
-          <span class="per-pill-icon" aria-hidden="true">📅</span>
-          <span class="per-pill-content">
-            <span class="per-pill-label">Période</span>
-            <span class="per-pill-value">
-              {{ event()!.startDate | date:'dd MMMM yyyy' }}
-              @if (event()!.endDate) { – {{ event()!.endDate | date:'dd MMMM yyyy' }} }
-            </span>
-          </span>
-        </span>
-
-        @if (event()!.location) {
-        <span class="per-pill per-pill--location">
-          <span class="per-pill-icon" aria-hidden="true">📍</span>
-          <span class="per-pill-content">
-            <span class="per-pill-label">Lieu</span>
-            <span class="per-pill-value">{{ event()!.location }}</span>
-          </span>
-        </span>
-        }
-
-        <span class="per-pill" [class.per-pill--warn]="event()!.isFull">
-          <span class="per-pill-icon" aria-hidden="true">🎟️</span>
-          @if (event()!.isFull) { Complet } @else { {{ event()!.availableSpots }} places disponibles }
-        </span>
+        <!-- Note de bas -->
+        <p class="per-maint-note">
+          L’équipe technique travaille avec diligence pour vous servir.
+          Merci de votre patience.
+        </p>
       </div>
     </div>
-  </header>
+  }
 
-  <!-- ══ CORPS ═════════════════════════════════════════════════ -->
-  <main class="per-main">
+  <!-- ═══ PAGE NORMALE (si pas de maintenance) ═══ -->
+  @if (!maintenanceMode()) {
 
-    @if (!event()!.registrationOpen || event()!.isFull) {
-    <div class="per-closed-card">
-      <div class="per-status-icon per-status-icon--warn" aria-hidden="true">⏳</div>
-      <h2>{{ event()!.isFull ? 'Événement complet' : 'Inscriptions fermées' }}</h2>
-      <p>
-        @if (event()!.isFull) {
-        Toutes les places disponibles pour cet événement ont été réservées.
-        } @else {
-        Les inscriptions pour cet événement ne sont plus ouvertes actuellement.
-        }
-      </p>
+    @if (loading()) {
+    <div class="per-status-screen">
+      <div class="per-spinner" aria-hidden="true"></div>
+      <p>Chargement de l'événement…</p>
     </div>
     }
 
-    @if (event()!.registrationOpen && !event()!.isFull) {
-    <div class="per-ticket">
+    @if (error() && !loading() && !event()) {
+    <div class="per-status-screen per-status-screen--error">
+      <div class="per-status-icon per-status-icon--error" aria-hidden="true">✕</div>
+      <p>{{ error() }}</p>
+    </div>
+    }
 
-      <!-- ── Talon du billet ── -->
-      <aside class="per-ticket-stub">
-        <p class="per-stub-label">Votre billet</p>
-        <div class="per-stub-row">
-          <span class="per-stub-key">Événement</span>
-          <span class="per-stub-value">{{ event()!.title }}</span>
+    @if (!loading() && event() && !registrationResult()) {
+
+    <!-- ══ HERO ══════════════════════════════════════════════════ -->
+    <header class="per-hero">
+      <div class="per-hero-glow" aria-hidden="true"></div>
+      <div class="per-hero-inner">
+
+        <div class="per-hero-logo-row">
+          <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" class="per-hero-logo">
         </div>
-        @if (event()!.theme) {
-        <div class="per-stub-row">
-          <span class="per-stub-key">Thème</span>
-          <span class="per-stub-value">{{ event()!.theme }}</span>
+
+        <div class="per-hero-banner">
+          <p class="per-hero-banner-text">Soit fidèle jusqu'à la mort en faisant plus pour Dieu</p>
+          <span class="per-hero-banner-ref">Romains 2:17</span>
         </div>
+
+        <p class="per-hero-eyebrow">MIAV &middot; Inscription à l'événement</p>
+        <h1 class="per-hero-title">{{ event()!.title }}</h1>
+
+        @if (event()!.verse) {
+        <blockquote class="per-hero-verse">
+          <span class="per-hero-verse-mark" aria-hidden="true">&ldquo;</span>
+          <p>{{ event()!.verse }}</p>
+          @if (event()!.verseReference) {
+          {{ event()!.verseReference }}
+          }
+        </blockquote>
         }
-        <div class="per-stub-row">
-          <span class="per-stub-key">Période</span>
-          <span class="per-stub-value">
-            {{ event()!.startDate | date:'dd MMM yyyy' }}
-            @if (event()!.endDate) { <br>→ {{ event()!.endDate | date:'dd MMM yyyy' }} }
+
+        <div class="per-hero-pills">
+          <span class="per-pill per-pill--period">
+            <span class="per-pill-icon" aria-hidden="true">📅</span>
+            <span class="per-pill-content">
+              <span class="per-pill-label">Période</span>
+              <span class="per-pill-value">
+                {{ event()!.startDate | date:'dd MMMM yyyy' }}
+                @if (event()!.endDate) { – {{ event()!.endDate | date:'dd MMMM yyyy' }} }
+              </span>
+            </span>
+          </span>
+
+          @if (event()!.location) {
+          <span class="per-pill per-pill--location">
+            <span class="per-pill-icon" aria-hidden="true">📍</span>
+            <span class="per-pill-content">
+              <span class="per-pill-label">Lieu</span>
+              <span class="per-pill-value">{{ event()!.location }}</span>
+            </span>
+          </span>
+          }
+
+          <span class="per-pill" [class.per-pill--warn]="event()!.isFull">
+            <span class="per-pill-icon" aria-hidden="true">🎟️</span>
+            @if (event()!.isFull) { Complet } @else { {{ event()!.availableSpots }} places disponibles }
           </span>
         </div>
-        @if (event()!.location) {
-        <div class="per-stub-row">
-          <span class="per-stub-key">Lieu</span>
-          <span class="per-stub-value">{{ event()!.location }}</span>
-        </div>
-        }
-        <div class="per-stub-row">
-          <span class="per-stub-key">Places restantes</span>
-          <span class="per-stub-value">{{ event()!.availableSpots }}</span>
-        </div>
+      </div>
+    </header>
 
-        @if (availableFormulas().length > 0) {
-        <div class="per-stub-formulas">
-          <p class="per-stub-label">Formules proposées</p>
-          @for (f of availableFormulas(); track f.id) {
-          <div class="per-formula-chip">
-            <span class="per-formula-name">{{ f.name }}</span>
-            <span class="per-formula-price">{{ f.price | number }} {{ f.currency }}</span>
+    <!-- ══ CORPS ═════════════════════════════════════════════════ -->
+    <main class="per-main">
+
+      @if (!event()!.registrationOpen || event()!.isFull) {
+      <div class="per-closed-card">
+        <div class="per-status-icon per-status-icon--warn" aria-hidden="true">⏳</div>
+        <h2>{{ event()!.isFull ? 'Événement complet' : 'Inscriptions fermées' }}</h2>
+        <p>
+          @if (event()!.isFull) {
+          Toutes les places disponibles pour cet événement ont été réservées.
+          } @else {
+          Les inscriptions pour cet événement ne sont plus ouvertes actuellement.
+          }
+        </p>
+      </div>
+      }
+
+      @if (event()!.registrationOpen && !event()!.isFull) {
+      <div class="per-ticket">
+
+        <!-- ── Talon du billet ── -->
+        <aside class="per-ticket-stub">
+          <p class="per-stub-label">Votre billet</p>
+          <div class="per-stub-row">
+            <span class="per-stub-key">Événement</span>
+            <span class="per-stub-value">{{ event()!.title }}</span>
+          </div>
+          @if (event()!.theme) {
+          <div class="per-stub-row">
+            <span class="per-stub-key">Thème</span>
+            <span class="per-stub-value">{{ event()!.theme }}</span>
           </div>
           }
-        </div>
-        }
-
-        @if (registeredCount() > 0) {
-        <div class="per-stub-counter">
-          <span class="per-stub-counter-value">{{ registeredCount() }}</span>
-          <span class="per-stub-counter-label">
-            personne{{ registeredCount() > 1 ? 's' : '' }} inscrite{{ registeredCount() > 1 ? 's' : '' }}
-          </span>
-        </div>
-        }
-      </aside>
-
-      <!-- ── Formulaire ── -->
-      <div class="per-form-panel">
-        <h2 class="per-form-title">Informations du participant</h2>
-
-        @if (error()) {
-        <div class="per-form-error">{{ error() }}</div>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="submit()" class="per-form">
-
-          <div class="per-row">
-            <div class="per-field">
-              <label for="firstName">Prénom *</label>
-              <input id="firstName" type="text" formControlName="firstName" placeholder="Prénom du participant">
-              <p class="per-field-error" *ngIf="isFieldInvalid('firstName')">Champ requis (2 caractères minimum).</p>
-            </div>
-            <div class="per-field">
-              <label for="lastName">Nom *</label>
-              <input id="lastName" type="text" formControlName="lastName" placeholder="Nom du participant">
-              <p class="per-field-error" *ngIf="isFieldInvalid('lastName')">Champ requis (2 caractères minimum).</p>
-            </div>
+          <div class="per-stub-row">
+            <span class="per-stub-key">Période</span>
+            <span class="per-stub-value">
+              {{ event()!.startDate | date:'dd MMM yyyy' }}
+              @if (event()!.endDate) { <br>→ {{ event()!.endDate | date:'dd MMM yyyy' }} }
+            </span>
+          </div>
+          @if (event()!.location) {
+          <div class="per-stub-row">
+            <span class="per-stub-key">Lieu</span>
+            <span class="per-stub-value">{{ event()!.location }}</span>
+          </div>
+          }
+          <div class="per-stub-row">
+            <span class="per-stub-key">Places restantes</span>
+            <span class="per-stub-value">{{ event()!.availableSpots }}</span>
           </div>
 
-          <div class="per-row">
-            <div class="per-field">
-              <label for="email">Email <span class="per-optional">(facultatif)</span></label>
-              <input id="email" type="email" formControlName="email" placeholder="participant@exemple.com">
-              <p class="per-field-hint">
-                Si le participant n'a pas d'email, laissez vide et renseignez celui de la personne qui paie.
-              </p>
-              <p class="per-field-error" *ngIf="isFieldInvalid('email')">Format d'email invalide.</p>
+          @if (availableFormulas().length > 0) {
+          <div class="per-stub-formulas">
+            <p class="per-stub-label">Formules proposées</p>
+            @for (f of availableFormulas(); track f.id) {
+            <div class="per-formula-chip">
+              <span class="per-formula-name">{{ f.name }}</span>
+              <span class="per-formula-price">{{ f.price | number }} {{ f.currency }}</span>
             </div>
-            <div class="per-field">
-              <label for="phone">Téléphone du participant *</label>
-              <input id="phone" type="text" formControlName="phone" placeholder="07 08 86 32 46">
-              <p class="per-field-error" *ngIf="isFieldInvalid('phone')">Champ requis.</p>
-            </div>
+            }
           </div>
+          }
 
-          <div class="per-row">
-            <div class="per-field">
-              <label for="gender">Sexe *</label>
-              <select id="gender" formControlName="gender">
-                <option value="">— Sélectionner —</option>
-                <option value="F">Femme</option>
-                <option value="M">Homme</option>
-              </select>
-              <p class="per-field-error" *ngIf="isFieldInvalid('gender')">Champ requis.</p>
-            </div>
-            <div class="per-field">
-              <label for="profileType">Profil *</label>
-              <select id="profileType" formControlName="profileType">
-                @for (opt of profileOptions; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
+          @if (registeredCount() > 0) {
+          <div class="per-stub-counter">
+            <span class="per-stub-counter-value">{{ registeredCount() }}</span>
+            <span class="per-stub-counter-label">
+              personne{{ registeredCount() > 1 ? 's' : '' }} inscrite{{ registeredCount() > 1 ? 's' : '' }}
+            </span>
           </div>
+          }
+        </aside>
 
-          <div class="per-row">
-            <div class="per-field">
-              <label for="churchId">Église <span class="per-optional">(facultatif)</span></label>
-              <select id="churchId" formControlName="churchId">
-                <option value="">— Pas rattaché(e) à une église —</option>
-                @if (loadingChurches()) {
-                <option disabled>Chargement…</option>
-                }
-                @for (c of churches(); track c.id) {
-                <option [value]="c.id">{{ c.name }}</option>
-                }
-              </select>
-            </div>
-            <div class="per-field">
-              <label for="siteId">Site <span class="per-optional">(facultatif)</span></label>
-              <select id="siteId" formControlName="siteId">
-                <option value="">— Église mère uniquement —</option>
-                @for (s of sites(); track s.id) {
-                <option [value]="s.id">{{ s.name }}</option>
-                }
-              </select>
-              @if (loadingSites()) {
-              <p class="per-field-hint">Chargement des sites…</p>
-              }
-            </div>
-          </div>
+        <!-- ── Formulaire ── -->
+        <div class="per-form-panel">
+          <h2 class="per-form-title">Informations du participant</h2>
 
-          <div class="per-field">
-            <label for="formulaId">Formule *</label>
-            <select id="formulaId" formControlName="formulaId">
-              <option value="">— Choisir une formule —</option>
-              @for (f of availableFormulas(); track f.id) {
-              <option [value]="f.id">
-                {{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }} places)
-              </option>
-              }
-            </select>
-            <p class="per-field-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
-          </div>
+          @if (error()) {
+          <div class="per-form-error">{{ error() }}</div>
+          }
 
-          <!-- ══ QUI PAIE ? ══════════════════════════════════════ -->
-          <div class="per-section-divider">Paiement</div>
-
-          <div class="per-field per-field--checkbox">
-            <label class="per-checkbox">
-              <input type="checkbox" formControlName="paidByThirdParty">
-              <span>Je paie pour quelqu'un d'autre</span>
-            </label>
-            <p class="per-field-hint">
-              Cochez si vous inscrivez une autre personne et que le paiement part de votre compte
-              mobile money. Vous pourrez ensuite inscrire d'autres personnes avec le même compte.
-            </p>
-          </div>
-
-          @if (isThirdPartyPayer) {
-          <div class="per-payer-block">
-            <p class="per-payer-title">Personne qui paie</p>
+          <form [formGroup]="form" (ngSubmit)="submit()" class="per-form">
 
             <div class="per-row">
               <div class="per-field">
-                <label for="payerName">Nom complet *</label>
-                <input id="payerName" type="text" formControlName="payerName" placeholder="Ex : CHABEHOU Jean">
-                <p class="per-field-error" *ngIf="isFieldInvalid('payerName')">Champ requis.</p>
+                <label for="firstName">Prénom *</label>
+                <input id="firstName" type="text" formControlName="firstName" placeholder="Prénom du participant">
+                <p class="per-field-error" *ngIf="isFieldInvalid('firstName')">Champ requis (2 caractères minimum).</p>
               </div>
               <div class="per-field">
-                <label for="payerPhone">Numéro mobile money *</label>
-                <input id="payerPhone" type="text" formControlName="payerPhone" placeholder="Numéro qui sera débité">
-                <p class="per-field-error" *ngIf="isFieldInvalid('payerPhone')">Champ requis.</p>
+                <label for="lastName">Nom *</label>
+                <input id="lastName" type="text" formControlName="lastName" placeholder="Nom du participant">
+                <p class="per-field-error" *ngIf="isFieldInvalid('lastName')">Champ requis (2 caractères minimum).</p>
+              </div>
+            </div>
+
+            <div class="per-row">
+              <div class="per-field">
+                <label for="email">Email <span class="per-optional">(facultatif)</span></label>
+                <input id="email" type="email" formControlName="email" placeholder="participant@exemple.com">
+                <p class="per-field-hint">
+                  Si le participant n'a pas d'email, laissez vide et renseignez celui de la personne qui paie.
+                </p>
+                <p class="per-field-error" *ngIf="isFieldInvalid('email')">Format d'email invalide.</p>
+              </div>
+              <div class="per-field">
+                <label for="phone">Téléphone du participant *</label>
+                <input id="phone" type="text" formControlName="phone" placeholder="07 08 86 32 46">
+                <p class="per-field-error" *ngIf="isFieldInvalid('phone')">Champ requis.</p>
+              </div>
+            </div>
+
+            <div class="per-row">
+              <div class="per-field">
+                <label for="gender">Sexe *</label>
+                <select id="gender" formControlName="gender">
+                  <option value="">— Sélectionner —</option>
+                  <option value="F">Femme</option>
+                  <option value="M">Homme</option>
+                </select>
+                <p class="per-field-error" *ngIf="isFieldInvalid('gender')">Champ requis.</p>
+              </div>
+              <div class="per-field">
+                <label for="profileType">Profil *</label>
+                <select id="profileType" formControlName="profileType">
+                  @for (opt of profileOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="per-row">
+              <div class="per-field">
+                <label for="churchId">Église <span class="per-optional">(facultatif)</span></label>
+                <select id="churchId" formControlName="churchId">
+                  <option value="">— Pas rattaché(e) à une église —</option>
+                  @if (loadingChurches()) {
+                  <option disabled>Chargement…</option>
+                  }
+                  @for (c of churches(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="per-field">
+                <label for="siteId">Site <span class="per-optional">(facultatif)</span></label>
+                <select id="siteId" formControlName="siteId">
+                  <option value="">— Église mère uniquement —</option>
+                  @for (s of sites(); track s.id) {
+                  <option [value]="s.id">{{ s.name }}</option>
+                  }
+                </select>
+                @if (loadingSites()) {
+                <p class="per-field-hint">Chargement des sites…</p>
+                }
               </div>
             </div>
 
             <div class="per-field">
-              <label for="payerEmail">Email pour recevoir le reçu</label>
-              <input id="payerEmail" type="email" formControlName="payerEmail" placeholder="votre@email.com">
-              <p class="per-field-hint">
-                Le reçu de ce paiement sera envoyé à cette adresse, au nom du participant.
-              </p>
-              <p class="per-field-error" *ngIf="isFieldInvalid('payerEmail')">Format d'email invalide.</p>
+              <label for="formulaId">Formule *</label>
+              <select id="formulaId" formControlName="formulaId">
+                <option value="">— Choisir une formule —</option>
+                @for (f of availableFormulas(); track f.id) {
+                <option [value]="f.id">
+                  {{ f.name }} — {{ f.price | number }} {{ f.currency }} ({{ f.availablePlaces }} places)
+                </option>
+                }
+              </select>
+              <p class="per-field-error" *ngIf="isFieldInvalid('formulaId')">Veuillez choisir une formule.</p>
             </div>
-          </div>
-          }
 
-          @if (missingEmailEverywhere) {
-          <p class="per-field-error per-field-error--block">
-            Une adresse email est nécessaire pour recevoir le reçu : celle du participant,
-            ou celle de la personne qui paie.
-          </p>
-          }
+            <!-- ══ QUI PAIE ? ══════════════════════════════════════ -->
+            <div class="per-section-divider">Paiement</div>
 
-          <div class="per-field">
-            <label for="paymentMethod">Moyen de paiement</label>
-            <select id="paymentMethod" formControlName="paymentMethod">
-              <option value="wave">Wave</option>
-              <option value="orange_money">Orange Money</option>
-              <option value="mtn_money">MTN Money</option>
-            </select>
-          </div>
+            <div class="per-field per-field--checkbox">
+              <label class="per-checkbox">
+                <input type="checkbox" formControlName="paidByThirdParty">
+                <span>Je paie pour quelqu'un d'autre</span>
+              </label>
+              <p class="per-field-hint">
+                Cochez si vous inscrivez une autre personne et que le paiement part de votre compte
+                mobile money. Vous pourrez ensuite inscrire d'autres personnes avec le même compte.
+              </p>
+            </div>
 
-          <button type="submit" class="per-btn-submit" [disabled]="submitting()">
-            @if (submitting()) {
-            <span class="per-btn-spinner" aria-hidden="true"></span> Envoi en cours…
-            } @else {
-            S'inscrire et payer
+            @if (isThirdPartyPayer) {
+            <div class="per-payer-block">
+              <p class="per-payer-title">Personne qui paie</p>
+
+              <div class="per-row">
+                <div class="per-field">
+                  <label for="payerName">Nom complet *</label>
+                  <input id="payerName" type="text" formControlName="payerName" placeholder="Ex : CHABEHOU Jean">
+                  <p class="per-field-error" *ngIf="isFieldInvalid('payerName')">Champ requis.</p>
+                </div>
+                <div class="per-field">
+                  <label for="payerPhone">Numéro mobile money *</label>
+                  <input id="payerPhone" type="text" formControlName="payerPhone" placeholder="Numéro qui sera débité">
+                  <p class="per-field-error" *ngIf="isFieldInvalid('payerPhone')">Champ requis.</p>
+                </div>
+              </div>
+
+              <div class="per-field">
+                <label for="payerEmail">Email pour recevoir le reçu</label>
+                <input id="payerEmail" type="email" formControlName="payerEmail" placeholder="votre@email.com">
+                <p class="per-field-hint">
+                  Le reçu de ce paiement sera envoyé à cette adresse, au nom du participant.
+                </p>
+                <p class="per-field-error" *ngIf="isFieldInvalid('payerEmail')">Format d'email invalide.</p>
+              </div>
+            </div>
             }
+
+            @if (missingEmailEverywhere) {
+            <p class="per-field-error per-field-error--block">
+              Une adresse email est nécessaire pour recevoir le reçu : celle du participant,
+              ou celle de la personne qui paie.
+            </p>
+            }
+
+            <div class="per-field">
+              <label for="paymentMethod">Moyen de paiement</label>
+              <select id="paymentMethod" formControlName="paymentMethod">
+                <option value="wave">Wave</option>
+                <option value="orange_money">Orange Money</option>
+                <option value="mtn_money">MTN Money</option>
+              </select>
+            </div>
+
+            <button type="submit" class="per-btn-submit" [disabled]="submitting()">
+              @if (submitting()) {
+              <span class="per-btn-spinner" aria-hidden="true"></span> Envoi en cours…
+              } @else {
+              S'inscrire et payer
+              }
+            </button>
+          </form>
+        </div>
+      </div>
+      }
+    </main>
+    }
+    }
+
+    <!-- ══ CONFIRMATION D'INSCRIPTION ═══════════════════════════ -->
+    @if (registrationResult(); as result) {
+    <div class="per-page per-page--centered">
+      <div class="per-boarding-pass">
+        <div class="per-check-badge" aria-hidden="true">✓</div>
+        <h2>Inscription enregistrée</h2>
+        <p class="per-participant-name">{{ result.participantName }}</p>
+
+        <p>
+          La place est réservée. <strong>Le paiement reste à effectuer</strong> pour
+          confirmer définitivement cette inscription.
+        </p>
+
+        <div class="per-ref-chip">Réf. {{ result.registrationId }}</div>
+
+        @if (result.qrCode) {
+        <img [src]="result.qrCode" alt="QR Code de paiement" class="per-qr">
+        }
+
+        <button type="button" class="per-btn-submit" (click)="goToPayment()">
+          Procéder au paiement
+        </button>
+
+        <!-- ✅ Enchaînement des inscriptions -->
+        <div class="per-next-block">
+          <p class="per-next-hint">
+            ⚠️ Payez d'abord cette inscription avant d'en créer une autre :
+            chaque participant a son propre paiement.
+          </p>
+          <button type="button" class="per-btn-secondary" (click)="registerAnotherPerson()">
+            Inscrire une autre personne
           </button>
-        </form>
+        </div>
       </div>
     </div>
     }
-  </main>
-  }
-
-  <!-- ══ CONFIRMATION D'INSCRIPTION ═══════════════════════════ -->
-  @if (registrationResult(); as result) {
-  <div class="per-page per-page--centered">
-    <div class="per-boarding-pass">
-      <div class="per-check-badge" aria-hidden="true">✓</div>
-      <h2>Inscription enregistrée</h2>
-      <p class="per-participant-name">{{ result.participantName }}</p>
-
-      <p>
-        La place est réservée. <strong>Le paiement reste à effectuer</strong> pour
-        confirmer définitivement cette inscription.
-      </p>
-
-      <div class="per-ref-chip">Réf. {{ result.registrationId }}</div>
-
-      @if (result.qrCode) {
-      <img [src]="result.qrCode" alt="QR Code de paiement" class="per-qr">
-      }
-
-      <button type="button" class="per-btn-submit" (click)="goToPayment()">
-        Procéder au paiement
-      </button>
-
-      <!-- ✅ Enchaînement des inscriptions -->
-      <div class="per-next-block">
-        <p class="per-next-hint">
-          ⚠️ Payez d'abord cette inscription avant d'en créer une autre :
-          chaque participant a son propre paiement.
-        </p>
-        <button type="button" class="per-btn-secondary" (click)="registerAnotherPerson()">
-          Inscrire une autre personne
-        </button>
-      </div>
-    </div>
-  </div>
-  }
 
 </div>
-
-
-
-

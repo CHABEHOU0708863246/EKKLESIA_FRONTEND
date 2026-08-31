@@ -1,3 +1,7 @@
+
+
+
+
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
@@ -47,15 +51,15 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private registrationService = inject(PublicRegistrationService);
   private churchService = inject(ChurchService);
 
-  // Compte à rebours
-  days = 0;
-  hours = 0;
-  minutes = 0;
-  seconds = 0;
-  private countdownInterval?: any;
+  maintenanceMode = signal(true); // à basculer à false quand la maintenance est terminée
+timeUntilTen = signal<string>('');
+
+
+
 
   // ── Synthèse vocale ──
   private synth = window.speechSynthesis;
+  private targetTime!: Date;
 
   eventId!: string;
   event = signal<PublicEventDetails | null>(null);
@@ -156,6 +160,10 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.maintenanceMode()) {
+    // Calcul du temps restant jusqu'à 10h00 (heure locale)
+    this.startCountdownToTen();
+  }
     const id = this.route.snapshot.paramMap.get('eventId');
     if (!id) {
       this.error.set("Lien d'inscription invalide.");
@@ -170,9 +178,35 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.countdownInterval) clearInterval(this.countdownInterval);
     this.synth?.cancel();
   }
+
+
+  private startCountdownToTen(): void {
+  const now = new Date();
+  this.targetTime = new Date(now);
+  this.targetTime.setHours(10, 0, 0, 0);
+  if (now >= this.targetTime) {
+    this.targetTime.setDate(this.targetTime.getDate() + 1); // demain si dépassé
+  }
+
+  this.updateCountdown();
+  setInterval(() => this.updateCountdown(), 1000);
+}
+
+private updateCountdown(): void {
+  const diff = this.targetTime.getTime() - Date.now();
+  if (diff <= 0) {
+    this.timeUntilTen.set('00:00:00');
+    return;
+  }
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  this.timeUntilTen.set(
+    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  );
+}
 
 
 
