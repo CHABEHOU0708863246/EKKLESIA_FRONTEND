@@ -23,9 +23,8 @@ const PROFILE_OPTIONS = [
 ];
 
 /**
- * ⚠️ Validateur de groupe : une adresse email doit exister quelque part
+ * Validateur de groupe : une adresse email doit exister quelque part
  * (participant OU payeur), sinon aucun reçu ne peut être envoyé.
- * Reproduit la règle du backend (EventPublicRegistrationDto.Validate).
  */
 function atLeastOneEmailValidator(group: AbstractControl): ValidationErrors | null {
   const email = (group.get('email')?.value ?? '').trim();
@@ -47,15 +46,13 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private registrationService = inject(PublicRegistrationService);
   private churchService = inject(ChurchService);
 
-  // Compte à rebours
-  days = 0;
-  hours = 0;
-  minutes = 0;
-  seconds = 0;
-  private countdownInterval?: any;
+  // ── Mode maintenance ──
+  maintenanceMode = signal(true); // à basculer à false pour réactiver
+  timeUntilTen = signal<string>('');
 
   // ── Synthèse vocale ──
   private synth = window.speechSynthesis;
+  private targetTime!: Date;
 
   eventId!: string;
   event = signal<PublicEventDetails | null>(null);
@@ -76,7 +73,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     participantName: string;
   } | null>(null);
 
-  /** ✅ Mémorise le payeur pour enchaîner les inscriptions sans le ressaisir. */
   private lastPayer: {
     paidByThirdParty: boolean;
     payerName: string;
@@ -84,7 +80,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     payerEmail: string;
   } | null = null;
 
-  /** Nombre de personnes inscrites lors de cette session. */
   registeredCount = signal(0);
 
   readonly profileOptions = PROFILE_OPTIONS;
@@ -96,12 +91,10 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     return ev?.formulas.filter(f => f.isAvailable) ?? [];
   });
 
-  /** Raccourci template : le bloc payeur est-il déplié ? */
   get isThirdPartyPayer(): boolean {
     return this.form.get('paidByThirdParty')?.value === true;
   }
 
-  /** Vrai si aucun email n'est renseigné nulle part et que le formulaire a été touché. */
   get missingEmailEverywhere(): boolean {
     return this.form.hasError('noEmailAnywhere')
         && (this.form.get('email')?.touched === true
@@ -113,10 +106,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     this.form = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
-
-      // ✅ Email optionnel : plus de Validators.required
       email: ['', [Validators.email]],
-
       phone: ['', Validators.required],
       gender: ['', Validators.required],
       profileType: [ParticipantProfileType.External, Validators.required],
@@ -124,8 +114,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       siteId: [{ value: '', disabled: true }],
       formulaId: ['', Validators.required],
       paymentMethod: ['wave'],
-
-      // ── Payeur ──
       paidByThirdParty: [false],
       payerName: [''],
       payerPhone: [''],
@@ -156,6 +144,10 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.maintenanceMode()) {
+      this.startCountdownToTen();
+    }
+
     const id = this.route.snapshot.paramMap.get('eventId');
     if (!id) {
       this.error.set("Lien d'inscription invalide.");
@@ -170,27 +162,45 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.countdownInterval) clearInterval(this.countdownInterval);
     this.synth?.cancel();
   }
 
+  // ── Compte à rebours pour la maintenance ──
+  private startCountdownToTen(): void {
+    const now = new Date();
+    this.targetTime = new Date(now);
+    this.targetTime.setHours(10, 0, 0, 0);
+    if (now >= this.targetTime) {
+      this.targetTime.setDate(this.targetTime.getDate() + 1);
+    }
+    this.updateCountdown();
+    setInterval(() => this.updateCountdown(), 1000);
+  }
 
+  private updateCountdown(): void {
+    const diff = this.targetTime.getTime() - Date.now();
+    if (diff <= 0) {
+      this.timeUntilTen.set('00:00:00');
+      return;
+    }
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    this.timeUntilTen.set(
+      `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    );
+  }
 
-
-  // ── Alerte vocale ──
+  // ── Alerte vocale ── (optionnel)
   speakAlert(): void {
     if (!this.synth) {
       alert('La synthèse vocale n’est pas supportée par votre navigateur.');
       return;
     }
-    // Annuler toute lecture en cours
     this.synth.cancel();
-
     const message =
-      'Attention. Les inscriptions en ligne seront fermées le dimanche 30 août 2026 à 23 heures 59. ' +
-      'Passé ce délai, aucune nouvelle inscription ne sera acceptée. ' +
-      'Merci de finaliser votre inscription avant cette date.';
-
+      'Attention. Les inscriptions en ligne sont suspendues pour des raisons de sécurité. ' +
+      'Le service sera rétabli à 10h00. Merci de votre patience.';
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.lang = 'fr-FR';
     utterance.rate = 0.95;
@@ -198,17 +208,10 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     this.synth.speak(utterance);
   }
 
-
-
   // ══════════════════════════════════════════════════════════
   // PAYEUR
   // ══════════════════════════════════════════════════════════
 
-  /**
-   * ⚠️ Les validateurs des champs payeur sont posés/retirés dynamiquement :
-   * un champ requis mais masqué bloquerait la soumission sans que
-   * l'utilisateur comprenne pourquoi.
-   */
   private applyPayerMode(isThirdParty: boolean): void {
     const nameCtrl = this.form.get('payerName');
     const phoneCtrl = this.form.get('payerPhone');
@@ -234,7 +237,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
 
   private loadChurches(): void {
     this.loadingChurches.set(true);
-
     this.churchService.getAllChurches()
       .pipe(finalize(() => this.loadingChurches.set(false)), takeUntil(this.destroy$))
       .subscribe({
@@ -249,7 +251,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
 
   private loadSitesForChurch(churchId: string): void {
     this.loadingSites.set(true);
-
     this.churchService.getSitesByChurchId(churchId)
       .pipe(finalize(() => this.loadingSites.set(false)), takeUntil(this.destroy$))
       .subscribe({
@@ -324,7 +325,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     const raw = this.form.getRawValue();
     const isThirdParty = raw.paidByThirdParty === true;
 
-    // ✅ Mémorise le payeur pour la prochaine inscription de la session
     this.lastPayer = {
       paidByThirdParty: isThirdParty,
       payerName: (raw.payerName ?? '').trim(),
@@ -338,7 +338,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       eventId: this.eventId,
       firstName: raw.firstName.trim(),
       lastName: raw.lastName.trim(),
-      email: (raw.email ?? '').trim() || undefined,   // ✅ undefined si vide
+      email: (raw.email ?? '').trim() || undefined,
       phone: raw.phone.trim(),
       gender: raw.gender,
       profileType: raw.profileType,
@@ -346,7 +346,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       siteId: raw.siteId || undefined,
       formulaId: raw.formulaId,
       paymentMethod: raw.paymentMethod,
-
       paidByThirdParty: isThirdParty,
       payerName: isThirdParty ? (raw.payerName ?? '').trim() : undefined,
       payerPhone: isThirdParty ? (raw.payerPhone ?? '').trim() : undefined,
@@ -385,14 +384,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     if (url) window.location.href = url;
   }
 
-  /**
-   * ✅ NOUVEAU — réinitialise le formulaire pour inscrire la personne suivante,
-   * en conservant les informations du payeur, la formule et le moyen de paiement.
-   *
-   * ⚠️ L'inscription précédente reste « en attente de paiement » tant que
-   * l'utilisateur n'a pas cliqué sur « Procéder au paiement ». Le message
-   * du template l'en avertit explicitement.
-   */
   registerAnotherPerson(): void {
     const previous = this.form.getRawValue();
 
@@ -406,24 +397,18 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
       phone: '',
       gender: '',
       profileType: ParticipantProfileType.External,
-
-      // On garde le contexte commun au groupe
       churchId: previous.churchId ?? '',
       siteId: previous.siteId ?? '',
       formulaId: previous.formulaId ?? '',
       paymentMethod: previous.paymentMethod ?? 'wave',
-
-      // On garde le payeur
       paidByThirdParty: this.lastPayer?.paidByThirdParty ?? false,
       payerName: this.lastPayer?.payerName ?? '',
       payerPhone: this.lastPayer?.payerPhone ?? '',
       payerEmail: this.lastPayer?.payerEmail ?? '',
     }, { emitEvent: false });
 
-    // Le reset a effacé les validateurs dynamiques : on les repose
     this.applyPayerMode(this.lastPayer?.paidByThirdParty ?? false);
 
-    // Le site reste actif si une église était sélectionnée
     if (previous.churchId) {
       this.form.get('siteId')?.enable({ emitEvent: false });
     }

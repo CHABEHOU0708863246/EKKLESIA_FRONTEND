@@ -1,10 +1,5 @@
-
-// src/app/features/public/public-event-registration/public-event-registration.scss
-//
+// public-event-registration.scss
 // ── Palette (cohérente avec le sidebar admin de l'app) ──
-// $gold #B8862E · $gold-light #D9AE5F · $teal #1F6F63 · $teal-dark #14504A
-// $ink #14110E (texte) · $cream #FBF7EF (fond) · $burgundy #7A2E3B (erreurs douces)
-
 $gold:        #B8862E;
 $gold-dark:   #8A6220;
 $gold-light:  #D9AE5F;
@@ -225,8 +220,7 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
     grid-template-columns: 1fr;
   }
 
-  // Encoches perforées (desktop uniquement — position fiable car la
-  // colonne stub a une largeur fixe de 280px)
+  // Encoches perforées (desktop uniquement)
   &::before,
   &::after {
     content: '';
@@ -508,8 +502,6 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   }
 }
 
-
-
 // ── Logo dans le hero ────────────────────────────────────────────
 .per-hero-logo-row {
   display: flex;
@@ -523,7 +515,6 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   object-fit: contain;
   filter: drop-shadow(0 4px 14px rgba($gold, 0.4));
 }
-
 
 // ── Bandeau thème (ruban/fanion) ──────────────────────────────────
 .per-hero-banner {
@@ -618,7 +609,7 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   margin-bottom: -0.5rem;
 }
 
-// ── Pills enrichies (période / lieu avec label + valeur) ─────────
+// ── Pills enrichies ─────────────────────────────────────────────
 .per-pill--period,
 .per-pill--location {
   align-items: flex-start;
@@ -643,8 +634,6 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   font-size: 0.85rem;
   font-weight: 600;
 }
-
-
 
 // ══ Bloc payeur ══════════════════════════════════════════════
 
@@ -792,11 +781,6 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
 
   &:hover { background: #f8fafc; }
 }
-
-
-
-
-
 
 // ── ALERTE DE FERMETURE 3D ──────────────────────────────────────
 .per-closure-alert {
@@ -1050,8 +1034,6 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   }
 }
 
-
-
 .per-modal-logo {
   display: block;
   width: 80px;
@@ -1061,7 +1043,124 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   filter: drop-shadow(0 4px 14px rgba($gold, 0.3));
 }
 
+// ── MAINTENANCE PAGE ──────────────────────────────
 
+.per-maintenance {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(165deg, $hero-bg 0%, lighten($teal-dark, 8%) 70%);
+  position: relative;
+  overflow: hidden;
+}
 
+.per-maint-inner {
+  max-width: 620px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  z-index: 2;
+  padding: 2.5rem 1.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  border-radius: 40px;
+  border: 1px solid rgba($gold-light, 0.15);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  animation: per-maint-float 3s ease-in-out infinite;
+}
 
+@keyframes per-maint-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
 
+.per-maint-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba($gold, 0.4));
+}
+
+.per-maint-title {
+  font-family: $font-display;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  margin: 0.5rem 0 1rem;
+  color: $gold-light;
+  text-shadow: 0 0 30px rgba($gold, 0.2);
+}
+
+.per-maint-message {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 2rem;
+
+  p { margin: 0.5rem 0; }
+  .per-maint-strong {
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+}
+
+.per-maint-timer {
+  margin: 2rem 0;
+  padding: 1.2rem 1.5rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 20px;
+  border: 1px solid rgba($gold, 0.2);
+
+  .per-maint-clock {
+    font-size: 2.8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: $gold-light;
+    display: block;
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba($gold, 0.3);
+  }
+  .per-maint-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.3rem;
+    display: inline-block;
+  }
+}
+
+.per-maint-note {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 1.5rem;
+  font-style: italic;
+}
+
+// ── ANGES ANIMÉS ─────────────────────────────────
+
+.per-angels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.per-angel {
+  position: absolute;
+  font-size: 2.8rem;
+  opacity: 0.6;
+  animation: per-angel-float 12s ease-in-out infinite;
+  animation-delay: var(--delay);
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 12px rgba($gold, 0.15));
+}
+
+@keyframes per-angel-float {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  25% { transform: translate(calc(-50% + 20px), calc(-50% - 20px)) scale(1.1) rotate(5deg); }
+  50% { transform: translate(calc(-50% - 20px), calc(-50% + 20px)) scale(0.95) rotate(-5deg); }
+  75% { transform: translate(calc(-50% + 10px), calc(-50% + 10px)) scale(1.05) rotate(3deg); }
+}
