@@ -55,7 +55,7 @@
           <span class="sd-label">Prédicateur</span>
           <span class="sd-value sd-preacher">
             @if (s.preacherPhotoUrl) {
-            <img class="sd-avatar" [src]="userService.getPhotoUrl(s.preacherPhotoUrl)" alt="{{ s.preacherName }}"
+            <img class="sd-avatar" [appAuthImage]="userService.getPhotoUrl(s.preacherPhotoUrl)" alt="{{ s.preacherName }}"
               (error)="onImageError($event)">
             } @else {
             <div class="sd-avatar sd-avatar-placeholder">

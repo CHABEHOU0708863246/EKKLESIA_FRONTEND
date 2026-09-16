@@ -6,11 +6,15 @@ import {
 } from '@angular/forms';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
-import { PublicEventDetails, ParticipantProfileType } from '../../models/Events/event.model';
+import {
+  PublicEventDetails,
+  ParticipantProfileType,
+  PublicChurchOption,
+  PublicSiteOption,
+  ReceiptIdentity,
+} from '../../models/Events/event.model';
 import { PublicRegistrationService } from '../../services/Event/public-registration-service';
-import { Church as ChurchService } from '../../services/Church/church';
-import { Church as ChurchModel } from '../../models/Church/church.model';
-import { Site } from '../../models/Church/site.model';
+import { saveReceiptIdentity } from '../../services/Event/receipt-identity.store';
 
 const PROFILE_OPTIONS = [
   { value: ParticipantProfileType.External, label: 'Personne extérieure' },
@@ -44,7 +48,6 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private registrationService = inject(PublicRegistrationService);
-  private churchService = inject(ChurchService);
 
   // ── Mode maintenance ──
   maintenanceMode = signal(true); // à basculer à false pour réactiver
@@ -60,8 +63,8 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   submitting = signal(false);
 
-  churches = signal<ChurchModel[]>([]);
-  sites = signal<Site[]>([]);
+  churches = signal<PublicChurchOption[]>([]);
+  sites = signal<PublicSiteOption[]>([]);
   loadingChurches = signal(false);
   loadingSites = signal(false);
 
@@ -237,25 +240,26 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
 
   private loadChurches(): void {
     this.loadingChurches.set(true);
-    this.churchService.getAllChurches()
+    this.registrationService.getPublicChurches()
       .pipe(finalize(() => this.loadingChurches.set(false)), takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            this.churches.set(response.data);
-          }
+        next: (churches) => {
+          this.churches.set(churches ?? []);
         },
-        error: (err) => console.error('❌ Chargement des églises', err?.status, err?.error),
+        error: (err) => {
+          console.error('❌ Chargement des églises', err?.status, err?.error);
+          this.churches.set([]);
+        },
       });
   }
 
   private loadSitesForChurch(churchId: string): void {
     this.loadingSites.set(true);
-    this.churchService.getSitesByChurchId(churchId)
+    this.registrationService.getPublicChurchSites(churchId)
       .pipe(finalize(() => this.loadingSites.set(false)), takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          this.sites.set(response.success && response.data ? response.data : []);
+        next: (sites) => {
+          this.sites.set(sites ?? []);
         },
         error: (err) => {
           console.error('❌ Chargement des sites', err?.status, err?.error);
@@ -360,6 +364,10 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
         }
 
         this.registeredCount.update((n) => n + 1);
+        this.storeReceiptIdentity(response.registrationId, {
+          email: (raw.email ?? '').trim() || (raw.payerEmail ?? '').trim() || undefined,
+          phone: raw.phone.trim() || undefined,
+        });
         this.registrationResult.set({
           checkoutUrl: response.checkoutUrl,
           paymentUrl: response.paymentUrl,
@@ -382,6 +390,14 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
     const result = this.registrationResult();
     const url = result?.checkoutUrl || result?.paymentUrl;
     if (url) window.location.href = url;
+  }
+
+  /**
+   * Mémorise la preuve d'identité du participant pour que la page de
+   * confirmation puisse charger le reçu (le backend l'exige désormais).
+   */
+  private storeReceiptIdentity(attendeeId: string, identity: ReceiptIdentity): void {
+    saveReceiptIdentity(attendeeId, identity);
   }
 
   registerAnotherPerson(): void {

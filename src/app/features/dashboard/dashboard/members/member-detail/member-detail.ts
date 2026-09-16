@@ -13,6 +13,7 @@ import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
 import { environment } from '../../../../../../environments/environment';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 // ── Libellés français pour les enums backend ──
 const STATUS_LABELS: Record<string, string> = {
@@ -59,7 +60,7 @@ const VISITOR_STAGE_LABELS: Record<VisitorStageKey, string> = {
 @Component({
   selector: 'app-member-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, AuthImageDirective],
   templateUrl: './member-detail.html',
   styleUrl: './member-detail.scss',
 })

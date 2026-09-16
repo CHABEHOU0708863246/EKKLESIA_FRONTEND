@@ -131,7 +131,7 @@
           <td>
             <div class="sl-preacher">
               @if (service.preacherId) {
-              <img class="sl-avatar" [src]="userService.getPhotoUrl(service.preacherPhotoUrl)"
+              <img class="sl-avatar" [appAuthImage]="userService.getPhotoUrl(service.preacherPhotoUrl)"
                 alt="{{ service.preacherName }}" (error)="onImageError($event)">
               } @else {
               <div class="sl-avatar sl-avatar-placeholder">{{ getInitials(service.preacherName || '?') }}</div>

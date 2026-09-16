@@ -1,1 +1,36 @@
-<p>unauthorized-component works!</p>
+<div class="ua-wrapper">
+  <div class="ua-card">
+    <div class="ua-icon" aria-hidden="true">
+      <i class="bx bx-lock-alt"></i>
+    </div>
+
+    <span class="ua-code">Erreur 403</span>
+    <h1>Accès refusé</h1>
+
+    @if (isLogged) {
+      <p>
+        Vous êtes bien connecté(e), mais votre compte ne dispose pas de la
+        permission nécessaire pour ouvrir cette page.
+      </p>
+      <p class="ua-hint">
+        Si vous pensez qu'il s'agit d'une erreur, contactez un administrateur
+        pour faire vérifier votre rôle et vos permissions.
+      </p>
+    } @else {
+      <p>
+        Vous devez être connecté(e) pour accéder à cette page.
+      </p>
+    }
+
+    <div class="ua-actions">
+      <a [routerLink]="['/dashboard']" class="ua-btn ua-btn--primary">
+        <i class="bx bx-home-alt"></i>
+        Tableau de bord
+      </a>
+      <button type="button" class="ua-btn ua-btn--ghost" (click)="goBack()">
+        <i class="bx bx-arrow-back"></i>
+        Page précédente
+      </button>
+    </div>
+  </div>
+</div>

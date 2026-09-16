@@ -8,6 +8,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Content, ContentType, ContentUtils } from '../../../../../core/models/Communication/content.model';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import { Contents } from '../../../../../core/services/Content/contents';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
   selector: 'app-content-detail',
@@ -32,6 +33,8 @@ export class ContentDetail implements OnInit, OnDestroy {
   togglingPublish = signal(false);
   fileObjectUrl = signal<string | null>(null);
   fileLoadFailed = signal(false);
+  /** Miniature chargée en blob (l'endpoint fichiers exige un token). */
+  thumbnailObjectUrl = signal<string | null>(null);
 
   // ── Helpers ──
   readonly ContentType = ContentType;
@@ -71,6 +74,9 @@ export class ContentDetail implements OnInit, OnDestroy {
     if (this.fileObjectUrl()) {
       URL.revokeObjectURL(this.fileObjectUrl()!);
     }
+    if (this.thumbnailObjectUrl()) {
+      URL.revokeObjectURL(this.thumbnailObjectUrl()!);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -101,6 +107,8 @@ export class ContentDetail implements OnInit, OnDestroy {
             if (data.url && data.type !== ContentType.Article) {
               this.loadFileContent(data.url);
             }
+            // Charger la miniature (protégée par token si hébergée sur l'API)
+            this.loadThumbnail(data.thumbnailUrl);
           } else {
             this.error.set('Impossible de charger ce contenu.');
           }
@@ -138,10 +146,46 @@ export class ContentDetail implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────
+  // MINIATURE (protégée par token)
+  // ──────────────────────────────────────────────────────────────
+
+  /**
+   * La miniature stockée pointe vers `/api/v1/Content/files/{id}`, qui exige
+   * un token : on la charge en blob. Une URL externe est posée telle quelle.
+   */
+  private loadThumbnail(thumbnailUrl: string | undefined): void {
+    if (!thumbnailUrl) {
+      this.thumbnailObjectUrl.set(null);
+      return;
+    }
+
+    const apiUrl = environment.apiUrl?.replace(/\/+$/, '') ?? '';
+    if (apiUrl && thumbnailUrl.startsWith(apiUrl)) {
+      const fileId = thumbnailUrl.split('/').pop();
+      if (fileId) {
+        this.contentService
+          .getFile(fileId)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (blob) => this.thumbnailObjectUrl.set(URL.createObjectURL(blob)),
+            error: () => this.thumbnailObjectUrl.set(null),
+          });
+        return;
+      }
+    }
+
+    this.thumbnailObjectUrl.set(thumbnailUrl);
+  }
+
+  // ──────────────────────────────────────────────────────────────
   // INCRÉMENTATION DES VUES
   // ──────────────────────────────────────────────────────────────
 
   private incrementView(id: string): void {
+    // ⚠️ `PUT /Content/{id}/view` exige CAN_UPDATE_CONTENT : inutile (et
+    // source d'un 403) pour un utilisateur en lecture seule.
+    if (!this.permissions.hasPermission('Content_Update')) return;
+
     this.contentService
       .incrementViews(id)
       .pipe(takeUntil(this.destroy$))

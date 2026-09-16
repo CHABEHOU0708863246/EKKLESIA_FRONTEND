@@ -143,31 +143,31 @@
                     <i class="bx bx-show"></i>
                   </button>
                   <!-- Modifier (uniquement si brouillon ou en attente) -->
-                  @if (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending) {
+                  @if (canUpdateExpense() && (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending)) {
                     <button class="el-icon-btn" (click)="editExpense(expense, $event)" title="Modifier">
                       <i class="bx bx-edit"></i>
                     </button>
                   }
                   <!-- Approuver (uniquement en attente) -->
-                  @if (expense.status === ExpenseStatus.Pending) {
+                  @if (canApproveExpense() && expense.status === ExpenseStatus.Pending) {
                     <button class="el-icon-btn el-icon-success" (click)="openActionModal(expense, 'approve', $event)" title="Approuver">
                       <i class="bx bx-check-circle"></i>
                     </button>
                   }
                   <!-- Payer (uniquement approuvée) -->
-                  @if (expense.status === ExpenseStatus.Approved) {
+                  @if (canUpdateExpense() && expense.status === ExpenseStatus.Approved) {
                     <button class="el-icon-btn el-icon-gold" (click)="openActionModal(expense, 'pay', $event)" title="Marquer comme payée">
                       <i class="bx bx-credit-card"></i>
                     </button>
                   }
                   <!-- Annuler (sauf si payée ou rejetée) -->
-                  @if (expense.status !== ExpenseStatus.Paid && expense.status !== ExpenseStatus.Rejected) {
+                  @if (canUpdateExpense() && expense.status !== ExpenseStatus.Paid && expense.status !== ExpenseStatus.Rejected) {
                     <button class="el-icon-btn el-icon-warning" (click)="openActionModal(expense, 'cancel', $event)" title="Annuler">
                       <i class="bx bx-x-circle"></i>
                     </button>
                   }
                   <!-- Supprimer (uniquement brouillon ou en attente) -->
-                  @if (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending) {
+                  @if (canUpdateExpense() && (expense.status === ExpenseStatus.Draft || expense.status === ExpenseStatus.Pending)) {
                     <button class="el-icon-btn el-icon-danger" (click)="openActionModal(expense, 'delete', $event)" title="Supprimer">
                       <i class="bx bx-trash"></i>
                     </button>

@@ -134,7 +134,7 @@
               />
 
               <div class="md-photo-preview" *ngIf="photoPreviewUrl() || member()?.photoUrl">
-                <img [src]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
+                <img [appAuthImage]="photoPreviewUrl() || getPhotoUrl(member()?.photoUrl)" alt="Photo de profil" />
 
                 <button
                   *ngIf="isEditMode()"

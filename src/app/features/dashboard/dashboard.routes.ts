@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { Dashboard } from './dashboard/dashboard';
+import { authGuard } from '../../core/guards/auth.guard';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -83,6 +84,9 @@ export const DASHBOARD_ROUTES: Routes = [
         path: 'ma-zone',
         loadComponent: () => import('./dashboard/zones/zone-list/zone-list').then((m) => m.ZoneList),
         title: 'Ma zone — MIAV',
+        canActivate: [authGuard],
+        // 🔒 Lecture : policy backend CAN_READ_ZONE
+        data: { permissions: ['Site_Manage', 'Church_Settings_Manage'] },
       },
     ],
   },

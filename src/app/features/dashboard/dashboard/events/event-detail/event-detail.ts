@@ -8,6 +8,7 @@ import { Event, EventStatus, EventFormula } from '../../../../../core/models/Eve
 import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { Church } from '../../../../../core/services/Church/church';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-event-detail',
@@ -22,8 +23,17 @@ export class EventDetail implements OnInit {
   private route = inject(ActivatedRoute);
   public router = inject(Router);
   private churchService = inject(Church);
+  private permissions = inject(Permissions);
   exporting = signal(false);
 exportingPdf = signal(false); // ✅ NOUVEAU
+
+  /**
+   * 🔒 Les exports d'inscrits (Excel/PDF) et les statistiques par église
+   * exigent `Event_Report_Generate` (policy backend CAN_READ_EVENT_REPORT).
+   */
+  canReadEventReport(): boolean {
+    return this.permissions.canReadEventReport();
+  }
 
   event = signal<Event | null>(null);
   loading = signal(false);
@@ -343,6 +353,8 @@ getPaymentMethodLabel(method: string): string {
   canCancel(): boolean {
     const ev = this.event();
     if (!ev) return false;
+    // 🔒 `cancel` exige CAN_DELETE_EVENT côté backend
+    if (!this.permissions.hasPermission('Event_Delete')) return false;
     return ev.status !== EventStatus.Completed && ev.status !== EventStatus.Cancelled;
   }
 
@@ -355,6 +367,8 @@ getPaymentMethodLabel(method: string): string {
   canDelete(): boolean {
     const ev = this.event();
     if (!ev) return false;
+    // 🔒 `DELETE` exige CAN_DELETE_EVENT côté backend
+    if (!this.permissions.hasPermission('Event_Delete')) return false;
     return ev.status === EventStatus.Cancelled || ev.status === EventStatus.Completed;
   }
 }

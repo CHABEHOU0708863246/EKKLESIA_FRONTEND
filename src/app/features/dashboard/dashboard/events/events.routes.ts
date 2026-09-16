@@ -41,14 +41,15 @@ export const EVENTS_ROUTES: Routes = [
     data: { permissions: ['Event_Checkin'] },
   },
 
-  // ✅ NOUVEAU — Statistiques de participation/paiement par église et site
+  // ✅ Statistiques de participation/paiement par église et site
+  // 🔒 Policy backend CAN_READ_EVENT_REPORT = Event_Report_Generate
   {
     path: ':id/statistiques-eglise',
     loadComponent: () =>
       import('./event-church-stats/event-church-stats').then((m) => m.EventChurchStats),
     title: 'Statistiques par église — MIAV',
     canActivate: [authGuard],
-    data: { permissions: ['Event_Read'] },
+    data: { permissions: ['Event_Report_Generate'] },
   },
 
   {

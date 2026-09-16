@@ -15,6 +15,11 @@ import { Church } from '../../../../../core/services/Church/church';
 import { Members } from '../../../../../core/services/Members/members';
 import { Member, MemberListResponse } from '../../../../../core/models/Members/member.model';
 import { Site } from '../../../../../core/models/Church/site.model';
+import {
+  PASSWORD_MIN_LENGTH,
+  passwordPolicyValidator,
+} from '../../../../../core/validators/password.validator';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 
 const AVAILABLE_ROLES = [
@@ -48,7 +53,7 @@ const MARITAL_STATUS_OPTIONS = [
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
   templateUrl: './user-form.html',
   styleUrl: './user-form.scss',
 })
@@ -159,8 +164,12 @@ export class UserForm implements OnInit, OnDestroy {
       this.form.get('confirmPassword')?.clearValidators();
       this.loadUser();
     } else {
-      // En création, mot de passe requis
-      this.form.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
+      // En création, mot de passe requis (politique backend : ≥8, maj, min, chiffre)
+      this.form.get('password')?.setValidators([
+        Validators.required,
+        Validators.minLength(PASSWORD_MIN_LENGTH),
+        passwordPolicyValidator,
+      ]);
       this.form.get('confirmPassword')?.setValidators([Validators.required]);
     }
     this.form.get('password')?.updateValueAndValidity();

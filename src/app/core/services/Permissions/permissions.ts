@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { Token } from '../Token/token';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -37,10 +38,20 @@ export class Permissions {
   public async refreshFromServer(): Promise<void> {
     try {
       const fresh = await firstValueFrom(
-        this.http.get<{ permissions: string[]; roles: string[] }>('/api/v1/me/permissions')
+        this.http.get<{ permissions?: string[]; roles?: string[] }>(
+          `${environment.apiUrl}/api/v1/Auth/me`
+        )
       );
-      this.userPermissions = fresh.permissions;
-      this.userRoles = fresh.roles;
+
+      // ✅ Fusion : le JWT porte les permissions issues des RÔLES, `/Auth/me`
+      // porte les permissions DIRECTES de l'utilisateur. L'interface doit
+      // refléter l'union des deux (même logique que les handlers backend).
+      const directPermissions = fresh?.permissions ?? [];
+      this.userPermissions = [...new Set([...this.userPermissions, ...directPermissions])];
+
+      if (fresh?.roles?.length) {
+        this.userRoles = [...new Set([...this.userRoles, ...fresh.roles])];
+      }
     } catch {
       // silencieux : on garde l'état issu du JWT en cas d'échec réseau
       // (ex: hors ligne) plutôt que de vider les permissions et casser l'UI.
@@ -173,6 +184,7 @@ export class Permissions {
     return this.hasAnyPermission(
       'Service_Read', 'Service_Create', 'Service_Update', 'Service_Attendance_Read', 'Service_Attendance_Record',
       'Event_Read', 'Event_Create', 'Event_Update', 'Event_Delete', 'Event_Register', 'Event_Registration_Manage',
+      'Event_Report_Generate',
       'Pastoral_Appointment_Manage'
     );
   }
@@ -183,7 +195,7 @@ export class Permissions {
   public canAccessEventModule(): boolean {
     return this.hasAnyPermission(
       'Event_Read', 'Event_Create', 'Event_Update', 'Event_Delete',
-      'Event_Register', 'Event_Registration_Manage'
+      'Event_Register', 'Event_Registration_Manage', 'Event_Report_Generate'
     );
   }
 
@@ -215,7 +227,7 @@ export class Permissions {
    */
   public canAccessCommunicationModule(): boolean {
     return this.hasAnyPermission(
-      'Content_Read', 'Content_Create', 'Content_Update', 'Content_Delete', 'Content_Publish',
+      'Content_Read', 'Content_Create', 'Content_Update', 'Content_Delete', 'Content_Publish', 'Content_Archive',
       'Communication_Broadcast', 'Communication_Newsletter'
     );
   }
@@ -243,23 +255,26 @@ export class Permissions {
     );
   }
 
+  // ⚠️ Alignement sur les policies backend : les endpoints Zone utilisent
+  // `Site_Manage` / `Church_Settings_Manage` (les permissions `Zone_*` existent
+  // dans l'enum mais ne sont seedées sur aucun rôle).
   public canViewZones(): boolean {
-    return this.hasPermission('Zone_Read');
+    return this.hasAnyPermission('Site_Manage', 'Church_Settings_Manage');
   }
   public canManageZones(): boolean {
-    return this.hasPermission('Zone_Manage');
+    return this.hasPermission('Site_Manage');
   }
   public canCreateZone(): boolean {
-    return this.hasPermission('Zone_Create');
+    return this.hasPermission('Site_Manage');
   }
   public canUpdateZone(): boolean {
-    return this.hasPermission('Zone_Update');
+    return this.hasPermission('Site_Manage');
   }
   public canDeleteZone(): boolean {
-    return this.hasPermission('Zone_Delete');
+    return this.hasPermission('Site_Manage');
   }
   public canAccessZoneModule(): boolean {
-    return this.hasAnyPermission('Zone_Read', 'Zone_Manage', 'Zone_Create', 'Zone_Update', 'Zone_Delete');
+    return this.canViewZones();
   }
 
   public isZoneManager(): boolean {
@@ -610,6 +625,14 @@ export class Permissions {
 
   public canManageEventPayments(): boolean {
     return this.hasPermission('Event_Payment_Manage');
+  }
+
+  /**
+   * Rapports d'événement (export Excel/PDF des inscrits, statistiques par
+   * église). Policy backend `CAN_READ_EVENT_REPORT` = `Event_Report_Generate`.
+   */
+  public canReadEventReport(): boolean {
+    return this.hasPermission('Event_Report_Generate');
   }
 
   // Cultes

@@ -41,6 +41,31 @@
       }
     }
 
+    <!-- ══ PREUVE D'IDENTITÉ (exigée par le backend pour servir le reçu) ══ -->
+
+    @if (needsIdentity() && status() !== 'checking') {
+      <section class="pc-identity">
+        <h3>Pour afficher votre reçu</h3>
+        <p>
+          Indiquez l'adresse email ou le numéro de téléphone utilisé lors de
+          l'inscription (celui du participant ou de la personne qui a payé).
+        </p>
+        <form [formGroup]="identityForm" (ngSubmit)="submitIdentity()">
+          <input
+            type="text"
+            formControlName="contact"
+            placeholder="Email ou téléphone"
+            autocomplete="email"
+            aria-label="Email ou téléphone utilisé lors de l'inscription"
+          />
+          <button type="submit" class="pc-btn pc-btn--primary">Afficher mon reçu</button>
+        </form>
+        @if (identityError()) {
+          <p class="pc-resend-msg">{{ identityError() }}</p>
+        }
+      </section>
+    }
+
     <!-- ══ REÇU DE PAIEMENT ══════════════════════════════════ -->
 
     @if (loadingReceipt()) {

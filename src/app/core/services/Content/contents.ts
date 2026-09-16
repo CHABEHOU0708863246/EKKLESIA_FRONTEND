@@ -161,8 +161,9 @@ export class Contents {
   }
 
   /**
-   * Retourne l'URL complète pour afficher/télécharger un fichier
-   * (à utiliser dans un [src] ou un lien <a href>)
+   * ⚠️ NE PAS utiliser dans un `[src]` / `href` brut : l'endpoint exige un
+   * token que le navigateur n'enverra pas. Préférer `getFile()` (blob) ou la
+   * directive `appAuthImage` pour les balises `<img>`.
    */
   getFileUrl(fileId: string): string {
     if (!fileId) return '';

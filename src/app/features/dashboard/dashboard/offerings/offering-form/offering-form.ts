@@ -30,6 +30,8 @@ import { Service as ServiceModel } from '../../../../../core/models/Events/servi
 import { Offerings } from '../../../../../core/services/Finances/offerings';
 import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
 import { Service } from '../../../../../core/services/Worship/service';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -46,7 +48,7 @@ const CATEGORY_OPTIONS = Object.values(OfferingCategory).map((value) => ({
 @Component({
   selector: 'app-offering-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective],
   templateUrl: './offering-form.html',
   styleUrls: ['./offering-form.scss'],
 })
@@ -60,6 +62,16 @@ export class OfferingForm implements OnInit, OnDestroy {
   private roleService = inject(Roles);
   private serviceService = inject(Service);
   private router = inject(Router);
+  private permissions = inject(Permissions);
+
+  /**
+   * 🔒 `POST /Offering/{id}/upload-validation-photo` exige
+   * CAN_VALIDATE_OFFERING : un créateur sans droit de validation ne doit pas
+   * pouvoir téléverser la pièce justificative.
+   */
+  canUploadValidationPhoto(): boolean {
+    return this.permissions.hasPermission('Finance_Offering_Validate');
+  }
 
   // ── Exposé des énumérations au template ──
   readonly OfferingType = OfferingType;
@@ -565,7 +577,8 @@ private searchMembers(term: string): void {
           const offeringId = response.data.id;
 
           // Si une photo a été sélectionnée, l'uploader
-          if (this.selectedPhotoFile) {
+          // 🔒 l'upload exige Finance_Offering_Validate côté backend
+          if (this.selectedPhotoFile && this.canUploadValidationPhoto()) {
             this.uploadPhoto(offeringId).pipe(takeUntil(this.destroy$)).subscribe({
               next: (uploadResponse) => {
                 this.success.set(true);

@@ -35,7 +35,9 @@
 
         <div class="cf-field">
           <label for="language">Langue</label>
-          <input id="language" type="text" formControlName="language" placeholder="Français, Anglais...">
+          <!-- ⚠️ `language` appartient au groupe imbriqué `metadata` : un
+               formControlName simple ici levait « Cannot find control ». -->
+          <input id="language" type="text" [formControl]="languageControl" placeholder="Français, Anglais...">
         </div>
 
         <div class="cf-field cf-field--span-2">

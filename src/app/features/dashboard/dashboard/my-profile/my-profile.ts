@@ -7,6 +7,11 @@ import { Subject, takeUntil } from 'rxjs';
 import { UserProfileCreate, UserProfileUtils } from '../../../../core/models/Users/user-profile.model';
 import { User } from '../../../../core/models/Users/user.model';
 import { Users } from '../../../../core/services/Users/users';
+import {
+  PASSWORD_MIN_LENGTH,
+  passwordPolicyValidator,
+} from '../../../../core/validators/password.validator';
+import { AuthImageDirective } from '../../../../core/directives/auth-image.directive';
 
 
 
@@ -25,7 +30,7 @@ const MARITAL_STATUS_OPTIONS = [
 @Component({
   selector: 'app-my-profile',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
   templateUrl: './my-profile.html',
   styleUrl: './my-profile.scss',
 })
@@ -84,7 +89,7 @@ export class MyProfile implements OnInit, OnDestroy {
 
     this.passwordForm = this.fb.group({
       currentPassword: ['', Validators.required],
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH), passwordPolicyValidator]],
       confirmPassword: ['', Validators.required],
     });
   }

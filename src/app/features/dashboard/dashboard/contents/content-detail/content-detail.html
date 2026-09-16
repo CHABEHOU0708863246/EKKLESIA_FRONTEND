@@ -60,11 +60,11 @@
           <div class="cd-card cd-player-card">
             <div class="cd-player-container">
               @if (isVideo(c.type) && fileObjectUrl()) {
-                <video controls class="cd-video" [src]="fileObjectUrl()" poster="{{ c.thumbnailUrl || '' }}"></video>
+                <video controls class="cd-video" [src]="fileObjectUrl()" [poster]="thumbnailObjectUrl() || ''"></video>
               } @else if (isAudio(c.type) && fileObjectUrl()) {
                 <audio controls class="cd-audio" [src]="fileObjectUrl()"></audio>
-                <div class="cd-audio-cover" *ngIf="c.thumbnailUrl">
-                  <img [src]="c.thumbnailUrl" alt="Cover">
+                <div class="cd-audio-cover" *ngIf="thumbnailObjectUrl()">
+                  <img [src]="thumbnailObjectUrl()" alt="Cover">
                 </div>
               } @else if (isImage(c.type) && fileObjectUrl()) {
                 <img [src]="fileObjectUrl()" alt="{{ c.title }}" class="cd-image">

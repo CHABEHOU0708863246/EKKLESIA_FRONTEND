@@ -40,7 +40,7 @@
       </div>
       <div class="uf-panel-body uf-photo-row">
         <div class="uf-photo-preview">
-          <img *ngIf="photoPreviewUrl()" [src]="photoPreviewUrl()" alt="Aperçu">
+          <img *ngIf="photoPreviewUrl()" [appAuthImage]="photoPreviewUrl()" alt="Aperçu">
           <span *ngIf="!photoPreviewUrl()">{{ getInitials() }}</span>
         </div>
         <div class="uf-photo-actions">
@@ -96,7 +96,9 @@
           <div class="uf-field">
             <label for="password">Mot de passe <span class="uf-required">*</span></label>
             <input id="password" type="password" formControlName="password" autocomplete="new-password">
-            <p class="uf-error" *ngIf="isFieldInvalid('password')">8 caractères minimum</p>
+            <p class="uf-error" *ngIf="isFieldInvalid('password')">
+              Au moins 8 caractères, dont une majuscule, une minuscule et un chiffre
+            </p>
           </div>
 
           <div class="uf-field">

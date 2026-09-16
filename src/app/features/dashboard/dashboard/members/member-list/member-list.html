@@ -103,7 +103,7 @@
     <div class="ml-avatar">
       <img
         *ngIf="member.photoUrl"
-        [src]="getPhotoUrl(member.photoUrl)"
+        [appAuthImage]="getPhotoUrl(member.photoUrl)"
         [alt]="getFullName(member)"
         class="ml-avatar-img"
         (error)="onAvatarError($event)"

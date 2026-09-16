@@ -9,12 +9,13 @@ import { Users } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 import { Church } from '../../../../../core/services/Church/church';
 import { environment } from '../../../../../../environments/environment.development';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 
 @Component({
   selector: 'app-service-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AuthImageDirective],
   templateUrl: './service-detail.html',
   styleUrls: ['./service-detail.scss'],
 })

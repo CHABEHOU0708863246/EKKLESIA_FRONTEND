@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/con
 import { User, UserFilter, DEFAULT_USER_FILTER, UserUtils } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 
 const ROLE_FILTER_OPTIONS = [
@@ -40,7 +41,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
 })

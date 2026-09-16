@@ -34,7 +34,7 @@
         <button class="obm-search-result" (click)="selectMember(member)">
           <div class="obm-mini-avatar">
             @if (member.photoUrl) {
-            <img [src]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}"
+            <img [appAuthImage]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}"
               (error)="onImageError($event)" />
             } @else {
             {{ getMemberInitials(member) }}
@@ -57,7 +57,7 @@
   <div class="obm-selected-member">
     <div class="obm-member-avatar">
       @if (member.photoUrl) {
-      <img [src]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}" (error)="onImageError($event)" />
+      <img [appAuthImage]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}" (error)="onImageError($event)" />
       } @else {
       <span>{{ getMemberInitials(member) }}</span>
       }

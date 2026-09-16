@@ -11,6 +11,7 @@ import { Event, EventStatus, PaymentStatus, EventAttendeeRegister, EventFormula 
 import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { Church } from '../../../../../core/services/Church/church';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-event-registrations',
@@ -26,6 +27,21 @@ export class EventRegistrations implements OnInit {
   public router = inject(Router);
   private fb = inject(FormBuilder);
   private churchService = inject(Church);
+  private permissions = inject(Permissions);
+
+  /**
+   * 🔒 `POST /Event/{id}/register` exige Event_Register, alors que la page
+   * n'est gardée que par Event_Registration_Manage : les deux droits sont
+   * distincts côté backend.
+   */
+  canRegisterAttendee(): boolean {
+    return this.permissions.hasPermission('Event_Register');
+  }
+
+  /** 🔒 `POST /Event/checkin` exige Event_Checkin. */
+  canCheckin(): boolean {
+    return this.permissions.hasPermission('Event_Checkin');
+  }
   churches = signal<{ id: string; name: string }[]>([]);          // ✅ NOUVEAU
   sites = signal<{ id: string; name: string; churchId: string }[]>([]); // ✅ NOUVEAU
   loadingSites = signal(false);

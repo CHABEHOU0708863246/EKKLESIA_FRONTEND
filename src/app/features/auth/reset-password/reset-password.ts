@@ -5,6 +5,11 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Notification } from '../../../core/services/Notification/notification';
 import { Token } from '../../../core/services/Token/token';
 import { Auth } from '../../../core/services/Auth/auth';
+import {
+  PASSWORD_MIN_LENGTH,
+  passwordPolicyValidator,
+  passwordStrength,
+} from '../../../core/validators/password.validator';
 
 @Component({
   selector: 'app-reset-password',
@@ -79,8 +84,8 @@ export class ResetPasswordComponent implements OnInit {
     this.resetPasswordForm = this.fb.group({
       newPassword: ['', [
         Validators.required,
-        Validators.minLength(6),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
+        Validators.minLength(PASSWORD_MIN_LENGTH),
+        passwordPolicyValidator
       ]],
       confirmPassword: ['', [Validators.required]]
     }, {
@@ -224,12 +229,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   getPasswordStrengthClass(): string {
-    const password = this.newPassword?.value || '';
-    let strength = 0;
-    if (password.length >= 6) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
+    const strength = passwordStrength(this.newPassword?.value || '');
 
     if (strength === 0 || strength === 1) return 'strength-1';
     if (strength === 2) return 'strength-2';
@@ -238,12 +238,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   getPasswordStrengthColor(): string {
-    const password = this.newPassword?.value || '';
-    let strength = 0;
-    if (password.length >= 6) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
+    const strength = passwordStrength(this.newPassword?.value || '');
 
     if (strength === 0 || strength === 1) return '#E17055';
     if (strength === 2) return '#FDCB6E';
@@ -252,12 +247,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   getPasswordStrengthLabel(): string {
-    const password = this.newPassword?.value || '';
-    let strength = 0;
-    if (password.length >= 6) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
+    const strength = passwordStrength(this.newPassword?.value || '');
 
     if (strength === 0 || strength === 1) return 'Faible';
     if (strength === 2) return 'Moyen';

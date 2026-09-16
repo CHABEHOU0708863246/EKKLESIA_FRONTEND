@@ -112,9 +112,9 @@
         <td class="ul-col-user">
           <div class="ul-user-cell">
             <div class="ul-avatar">
-              <!-- ✅ Utiliser getUserPhotoUrl() pour l'URL -->
+              <!-- ✅ Chargement authentifié de la photo (blob + token) -->
               <img *ngIf="user.photoUrl && user.photoUrl !== 'default-profile-photo'"
-                   [src]="getUserPhotoUrl(user)"
+                   [appAuthImage]="getUserPhotoUrl(user)"
                    [alt]="getFullName(user)"
                    (error)="onImageError(user)" />
               <span *ngIf="!user.photoUrl || user.photoUrl === 'default-profile-photo'">

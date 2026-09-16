@@ -1,5 +1,5 @@
 // src/app/features/dashboard/dashboard/pastoral-acts/pastoral-act-detail/pastoral-act-detail.ts
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +9,7 @@ import { PastoralActType, PastoralActTypeLabels, PastoralActTypeIcons } from '..
 import { PASTORAL_ACT_ROLES, PastoralActUtils } from '../../../../../core/models/PastoralAct/pastoral-act.models';
 import { PastoralActResponseDto, PastoralActUpdateDto } from '../../../../../core/models/PastoralAct/pastoral-act.dtos';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 import { Member } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
@@ -36,6 +37,7 @@ const TYPE_OPTIONS = Object.values(PastoralActType).map((value) => ({
 export class PastoralActDetail implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private actId = '';
+  private permissions = inject(Permissions);
 
   readonly typeOptions = TYPE_OPTIONS;
   readonly PastoralActType = PastoralActType;
@@ -571,6 +573,8 @@ export class PastoralActDetail implements OnInit, OnDestroy {
 
   canGenerateCertificate(): boolean {
     const a = this.act();
+    // 🔒 `certificate` exige CAN_GENERATE_PASTORAL_ACT_CERTIFICATE
+    if (!this.permissions.hasPermission('PastoralAct_Certificate_Generate')) return false;
     return !!a && !a.certificateGenerated && a.type !== PastoralActType.Funeral;
   }
 

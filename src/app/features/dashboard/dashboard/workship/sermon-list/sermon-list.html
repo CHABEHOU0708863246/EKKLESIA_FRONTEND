@@ -137,7 +137,7 @@
 
           <!-- ══════════════ ACTIONS ══════════════ -->
           <div class="sl-card-footer" (click)="$event.stopPropagation()">
-            @if (canPublish(sermon)) {
+            @if (canPublish(sermon) && canPublishContent()) {
               <button type="button" class="sl-icon-btn sl-icon-btn--publish"
                 (click)="publishSermon(sermon, $event)"
                 [disabled]="publishing() === sermon.id"
@@ -149,7 +149,7 @@
                 }
               </button>
             }
-            @if (sermon.status === 'Published') {
+            @if (sermon.status === 'Published' && canArchiveContent()) {
               <button type="button" class="sl-icon-btn sl-icon-btn--archive"
                 (click)="archiveSermon(sermon, $event)"
                 [disabled]="archiving() === sermon.id"

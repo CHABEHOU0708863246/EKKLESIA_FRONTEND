@@ -141,27 +141,31 @@
                   <button class="ol-icon-btn" (click)="viewOffering(offering)" title="Voir">
                     <i class="bx bx-show"></i>
                   </button>
-                  <button class="ol-icon-btn" (click)="editOffering(offering, $event)" title="Modifier">
-                    <i class="bx bx-edit"></i>
-                  </button>
-                  @if (offering.status !== OfferingStatus.Validated && offering.status !== OfferingStatus.Cancelled) {
+                  @if (canUpdateOffering()) {
+                    <button class="ol-icon-btn" (click)="editOffering(offering, $event)" title="Modifier">
+                      <i class="bx bx-edit"></i>
+                    </button>
+                  }
+                  @if (canValidateOffering() && offering.status !== OfferingStatus.Validated && offering.status !== OfferingStatus.Cancelled) {
                     <button class="ol-icon-btn ol-icon-btn-success" (click)="validateOffering(offering, $event)" title="Valider">
                       <i class="bx bx-check"></i>
                     </button>
                   }
-                  @if (offering.status === OfferingStatus.Validated && !offering.receiptGenerated) {
+                  @if (canGenerateReceipt() && offering.status === OfferingStatus.Validated && !offering.receiptGenerated) {
                     <button class="ol-icon-btn ol-icon-btn-gold" (click)="generateReceipt(offering, $event)" title="Générer reçu">
                       <i class="bx bx-receipt"></i>
                   </button>
                   }
-                  @if (offering.receiptGenerated && offering.receiptNumber) {
+                  @if (canGenerateReceipt() && offering.receiptGenerated && offering.receiptNumber) {
                     <button class="ol-icon-btn ol-icon-btn-info" (click)="downloadReceipt(offering, $event)" title="Télécharger reçu PDF">
                       <i class="bx bx-download"></i>
                     </button>
                   }
-                  <button class="ol-icon-btn ol-icon-btn-danger" (click)="requestDelete(offering, $event)" title="Supprimer">
-                    <i class="bx bx-trash"></i>
-                  </button>
+                  @if (canDeleteOffering()) {
+                    <button class="ol-icon-btn ol-icon-btn-danger" (click)="requestDelete(offering, $event)" title="Supprimer">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>

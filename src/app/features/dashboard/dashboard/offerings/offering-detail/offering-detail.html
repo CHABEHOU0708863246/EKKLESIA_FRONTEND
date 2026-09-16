@@ -150,7 +150,7 @@
       <div class="od-card">
         <h3>Photo justificative</h3>
         <div class="od-photo-container">
-          <img [src]="getPhotoUrl(o.validationPhotoUrl)" alt="Photo justificative" class="od-photo-preview"
+          <img [appAuthImage]="getPhotoUrl(o.validationPhotoUrl)" alt="Photo justificative" class="od-photo-preview"
             (click)="viewPhoto(o.validationPhotoUrl)" />
           <div class="od-photo-actions">
             <button class="od-btn-icon" (click)="viewPhoto(o.validationPhotoUrl)" title="Agrandir">

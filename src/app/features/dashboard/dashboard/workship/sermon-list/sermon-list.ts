@@ -15,6 +15,7 @@ import {
   SermonUtils,
 } from '../../../../../core/models/Events/sermon.model';
 import { Sermons } from '../../../../../core/services/Sermon/sermons';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 const STATUS_FILTER_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
@@ -69,8 +70,21 @@ export class SermonList implements OnInit, OnDestroy {
 
   constructor(
     private sermonService: Sermons,
-    private router: Router
+    private router: Router,
+    private permissions: Permissions
   ) {}
+
+  /**
+   * 🔒 `publish` exige `Content_Publish`, `archive` exige `Content_Archive`
+   * (policy backend CAN_ARCHIVE_CONTENT) — les boutons sont masqués sans elles.
+   */
+  canPublishContent(): boolean {
+    return this.permissions.canPublishContent();
+  }
+
+  canArchiveContent(): boolean {
+    return this.permissions.canArchiveContent();
+  }
 
   ngOnInit(): void {
     this.loadSermons();

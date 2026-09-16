@@ -142,7 +142,7 @@
               <td>
                 <div class="cl-content-title">
                   @if (content.thumbnailUrl) {
-                    <img [src]="content.thumbnailUrl" alt="" class="cl-thumbnail" (error)="$event.target.style.display='none'">
+                    <img [appAuthImage]="content.thumbnailUrl" alt="" class="cl-thumbnail" (error)="$event.target.style.display='none'">
                   }
                   <span>{{ content.title }}</span>
                   @if (content.isFeatured) {

@@ -19,6 +19,7 @@ import {
   PaymentMethodLabels
 } from '../../../../../core/models/Finances/expense.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 const CATEGORY_OPTIONS = Object.values(ExpenseCategory).map((value) => ({
   value,
@@ -42,6 +43,17 @@ export class ExpenseList implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private expensesService = inject(Expenses);
   private router = inject(Router);
+  private permissions = inject(Permissions);
+
+  /** 🔒 `approve` exige Finance_Expense_Approve. */
+  canApproveExpense(): boolean {
+    return this.permissions.hasPermission('Finance_Expense_Approve');
+  }
+
+  /** 🔒 `pay`, `cancel`, `DELETE` exigent Finance_Expense_Update. */
+  canUpdateExpense(): boolean {
+    return this.permissions.hasPermission('Finance_Expense_Update');
+  }
 
   // ── État ──
   expenses = signal<Expense[]>([]);

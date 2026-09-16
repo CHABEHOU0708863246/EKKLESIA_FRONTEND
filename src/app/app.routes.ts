@@ -47,6 +47,16 @@ export const routes: Routes = [
     loadChildren: () => import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
     canActivate: [authGuard],
   },
+  // ✅ Route neutre ciblée par `accessGuard` quand une permission manque :
+  // sans elle, l'utilisateur authentifié atterrissait sur la page 404.
+  {
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('./core/components/unauthorized-component/unauthorized-component').then(
+        (m) => m.UnauthorizedComponent
+      ),
+    title: 'Accès refusé — MIAV',
+  },
   {
     path: '**',
     component: NotFound,

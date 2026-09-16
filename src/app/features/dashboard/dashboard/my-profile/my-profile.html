@@ -32,7 +32,7 @@
 
         <div class="mp-photo-wrap">
           <div class="mp-photo-preview">
-            <img *ngIf="photoPreviewUrl()" [src]="photoPreviewUrl()" alt="Photo de profil">
+            <img *ngIf="photoPreviewUrl()" [appAuthImage]="photoPreviewUrl()" alt="Photo de profil">
             <span *ngIf="!photoPreviewUrl()">{{ getInitials() }}</span>
             <div class="mp-photo-overlay" *ngIf="uploadingPhoto()">
               <span class="mp-spinner mp-spinner--light"></span>
@@ -262,7 +262,9 @@
         <div class="mp-field">
           <label for="newPassword">Nouveau mot de passe <span class="mp-required">*</span></label>
           <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password">
-          <p class="mp-error" *ngIf="isPasswordFieldInvalid('newPassword')">8 caractères minimum</p>
+          <p class="mp-error" *ngIf="isPasswordFieldInvalid('newPassword')">
+            Au moins 8 caractères, dont une majuscule, une minuscule et un chiffre
+          </p>
         </div>
 
         <div class="mp-field">

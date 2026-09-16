@@ -20,6 +20,7 @@ import {
   SermonUtils,
 } from '../../../../../core/models/Events/sermon.model';
 import { Sermons } from '../../../../../core/services/Sermon/sermons';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-sermon-edit',
@@ -77,9 +78,10 @@ export class SermonEdit implements OnInit, OnDestroy {
   canEdit = computed(() => !this.isArchived());
   canPublish = computed(() => {
     const s = this.sermon();
-    return !!s && s.status === SermonStatus.Draft && s.media.length > 0;
+    return this.permissions.canPublishContent()
+      && !!s && s.status === SermonStatus.Draft && s.media.length > 0;
   });
-  canArchive = computed(() => this.isPublished());
+  canArchive = computed(() => this.permissions.canArchiveContent() && this.isPublished());
   // ⚠️ Le backend n'a pas d'endpoint "unpublish" ni "unarchive" — un sermon
   // archivé est un état terminal. On l'affiche mais on ne prétend pas pouvoir
   // en sortir tant que ce n'est pas ajouté côté backend.
@@ -90,7 +92,8 @@ export class SermonEdit implements OnInit, OnDestroy {
     private churchService: ChurchService,
     private userService: Users,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private permissions: Permissions
   ) {
     this.form = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],

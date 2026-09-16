@@ -152,6 +152,10 @@ export class Auth {
         case 404:
           errorMessage = 'Ressource non trouvée';
           break;
+        case 429:
+          // Rate limiting (10 req/min sur l'auth) : ne PAS relancer en boucle.
+          errorMessage = 'Trop de tentatives. Merci de patienter une minute avant de réessayer.';
+          break;
         case 500:
           errorMessage = 'Erreur serveur interne';
           break;

@@ -3,7 +3,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
@@ -24,6 +24,15 @@ const TYPE_OPTIONS = Object.values(ContentType).map((value) => ({
   styleUrls: ['./content-form.scss'],
 })
 export class ContentForm implements OnInit, OnDestroy {
+  // ⚠️ Limites imposées par le backend : fichier principal ≤ 100 Mo avec une
+  // liste blanche de types ; miniature ≤ 5 Mo en image raster uniquement (SVG
+  // refusé — protection XSS stocké).
+  private static readonly MAX_FILE_SIZE = 100 * 1024 * 1024;
+  private static readonly MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024;
+  private static readonly ALLOWED_THUMBNAIL_TYPES = [
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  ];
+
   private destroy$ = new Subject<void>();
   private fb = inject(FormBuilder);
   private contentService = inject(Contents);
@@ -218,7 +227,14 @@ export class ContentForm implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
+      const file = input.files[0];
+      if (file.size > ContentForm.MAX_FILE_SIZE) {
+        this.error.set('Le fichier ne doit pas dépasser 100 Mo.');
+        input.value = '';
+        return;
+      }
+      this.error.set(null);
+      this.selectedFile = file;
       // Met à jour la taille et la durée (si possible)
       this.form.patchValue({ size: this.selectedFile.size });
       // Pour la durée, il faudrait analyser le fichier (ex: pour vidéo/audio)
@@ -229,7 +245,19 @@ export class ContentForm implements OnInit, OnDestroy {
   onThumbnailSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedThumbnail = input.files[0];
+      const file = input.files[0];
+      if (file.size > ContentForm.MAX_THUMBNAIL_SIZE) {
+        this.error.set('La miniature ne doit pas dépasser 5 Mo.');
+        input.value = '';
+        return;
+      }
+      if (!ContentForm.ALLOWED_THUMBNAIL_TYPES.includes(file.type)) {
+        this.error.set('Miniature invalide : formats acceptés JPEG, PNG, WEBP ou GIF.');
+        input.value = '';
+        return;
+      }
+      this.error.set(null);
+      this.selectedThumbnail = file;
     }
   }
 
@@ -240,6 +268,11 @@ export class ContentForm implements OnInit, OnDestroy {
   isFieldInvalid(field: string): boolean {
     const control = this.form.get(field);
     return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  /** Accès typé au contrôle imbriqué `metadata.language` (hors formGroupName). */
+  get languageControl(): FormControl {
+    return this.form.get('metadata.language') as FormControl;
   }
 
   submit(): void {

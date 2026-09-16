@@ -10,6 +10,7 @@ import { Offering, OfferingFilter, OfferingStatus, OfferingType, DEFAULT_OFFERIN
 import { OfferingUtils } from '../../../../../core/models/Finances/offering.model';
 import { OfferingTypeLabels, OfferingTypeIcons, OfferingTypeColors, OfferingStatusLabels, OfferingStatusColors } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -33,8 +34,32 @@ export class OfferingList implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private offeringsService = inject(Offerings);
   private router = inject(Router);
+  private permissions = inject(Permissions);
   readonly OfferingStatus = OfferingStatus;
   readonly OfferingType = OfferingType;
+
+  /**
+   * 🔒 `receipt` ET `receipt-pdf` exigent CAN_GENERATE_RECEIPT
+   * (Finance_Receipt_Generate) côté backend.
+   */
+  canGenerateReceipt(): boolean {
+    return this.permissions.hasPermission('Finance_Receipt_Generate');
+  }
+
+  /** 🔒 `validate` (et `cancel`) exigent Finance_Offering_Validate. */
+  canValidateOffering(): boolean {
+    return this.permissions.hasPermission('Finance_Offering_Validate');
+  }
+
+  /** 🔒 `PUT /Offering/{id}` exige Finance_Offering_Update. */
+  canUpdateOffering(): boolean {
+    return this.permissions.hasPermission('Finance_Offering_Update');
+  }
+
+  /** 🔒 `DELETE /Offering/{id}` exige Finance_Offering_Delete. */
+  canDeleteOffering(): boolean {
+    return this.permissions.hasPermission('Finance_Offering_Delete');
+  }
 
   // ── État ──
   offerings = signal<Offering[]>([]);

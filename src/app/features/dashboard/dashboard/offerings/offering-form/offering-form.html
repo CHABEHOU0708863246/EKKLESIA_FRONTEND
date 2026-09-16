@@ -180,7 +180,9 @@
         <span class="of-panel-hint">Obligatoire pour la validation de l'offrande</span>
       </div>
       <div class="of-panel-body">
-        <div class="of-upload-area" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+        <!-- 🔒 Le téléversement exige Finance_Offering_Validate côté backend -->
+        <div class="of-upload-area" *ngIf="canUploadValidationPhoto(); else photoReadOnly"
+             (dragover)="onDragOver($event)" (drop)="onDrop($event)">
           <input type="file" (change)="onPhotoSelected($event)" accept="image/*" #fileInput hidden>
           <div class="of-upload-content" *ngIf="!photoPreview() && !form.get('validationPhotoUrl')?.value">
             <i class="bx bx-cloud-upload"></i>
@@ -188,10 +190,16 @@
             <span class="of-hint">JPEG, PNG, WEBP – Max 5 Mo</span>
           </div>
           <div class="of-upload-preview" *ngIf="photoPreview() || form.get('validationPhotoUrl')?.value">
-            <img [src]="photoPreview() || getPhotoUrl(form.get('validationPhotoUrl')?.value)" alt="Photo justificative" />
+            <img [appAuthImage]="photoPreview() || getPhotoUrl(form.get('validationPhotoUrl')?.value)" alt="Photo justificative" />
             <button type="button" class="of-remove-photo" (click)="removePhoto()">✕</button>
           </div>
         </div>
+        <ng-template #photoReadOnly>
+          <div class="of-upload-preview" *ngIf="form.get('validationPhotoUrl')?.value">
+            <img [appAuthImage]="getPhotoUrl(form.get('validationPhotoUrl')?.value)" alt="Photo justificative" />
+          </div>
+          <p class="of-hint">Seul un utilisateur habilité à valider les offrandes peut joindre la photo justificative.</p>
+        </ng-template>
         <p class="of-error" *ngIf="isFieldInvalid('validationPhotoUrl')">Une photo est requise</p>
       </div>
     </section>

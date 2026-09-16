@@ -18,6 +18,7 @@ import {
 } from '../../../../../core/models/Finances/expense.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
 import { FormsModule } from '@angular/forms';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-expense-detail',
@@ -28,9 +29,10 @@ import { FormsModule } from '@angular/forms';
 })
 export class ExpenseDetail implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private expensesService = inject(Expenses);
+private route = inject(ActivatedRoute);
+private router = inject(Router);
+private expensesService = inject(Expenses);
+private permissions = inject(Permissions);
 
   // ── État ──
   expense = signal<Expense | null>(null);
@@ -55,40 +57,46 @@ export class ExpenseDetail implements OnInit, OnDestroy {
   getFormattedDateTime = ExpenseUtils.getFormattedDateTime;
   getFormattedCurrency = ExpenseUtils.getFormattedCurrency;
 
-  // ── Calculs dérivés pour les actions ──
+  // ── Calculs dérivés pour les actions ── (droits alignés sur les policies)
   canEdit = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Update')) return false;
     return e.status === ExpenseStatus.Draft || e.status === ExpenseStatus.Pending;
   });
 
   canApprove = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Approve')) return false;
     return e.status === ExpenseStatus.Pending;
   });
 
   canReject = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Approve')) return false;
     return e.status === ExpenseStatus.Pending;
   });
 
   canMarkPaid = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Update')) return false;
     return e.status === ExpenseStatus.Approved;
   });
 
   canCancel = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Update')) return false;
     return e.status !== ExpenseStatus.Paid && e.status !== ExpenseStatus.Rejected && e.status !== ExpenseStatus.Cancelled;
   });
 
   canDelete = computed(() => {
     const e = this.expense();
     if (!e) return false;
+    if (!this.permissions.hasPermission('Finance_Expense_Update')) return false;
     return e.status === ExpenseStatus.Draft || e.status === ExpenseStatus.Pending;
   });
 

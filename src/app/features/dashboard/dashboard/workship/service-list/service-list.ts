@@ -18,6 +18,7 @@ import { User } from '../../../../../core/models/Users/user.model';
 import { Users } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -27,7 +28,7 @@ const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
 @Component({
   selector: 'app-service-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
   templateUrl: './service-list.html',
   styleUrls: ['./service-list.scss'],
 })

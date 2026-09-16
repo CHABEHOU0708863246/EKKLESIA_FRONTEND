@@ -8,6 +8,7 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { BudgetStatus, BudgetUtils, BudgetStatusLabels, BudgetStatusColors } from '../../../../../core/models/Finances/budget.model';
 import { BudgetResponseDto } from '../../../../../core/models/Finances/budget-statistics.model';
 import { BudgetService } from '../../../../../core/services/Finances/budjets';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-budget-detail',
@@ -18,9 +19,10 @@ import { BudgetService } from '../../../../../core/services/Finances/budjets';
 })
 export class BudgetDetail implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private budgetService = inject(BudgetService);
+private route = inject(ActivatedRoute);
+private router = inject(Router);
+private budgetService = inject(BudgetService);
+private permissions = inject(Permissions);
 
   // ── État ──
   budget = signal<BudgetResponseDto | null>(null);
@@ -38,34 +40,39 @@ export class BudgetDetail implements OnInit, OnDestroy {
   getFormattedDateTime = BudgetUtils.getFormattedDateTime;
   getFormattedCurrency = BudgetUtils.getFormattedCurrency;
 
-  // ── Calculs dérivés ──
+  // ── Calculs dérivés ── (droits alignés sur les policies backend)
   canEdit = computed(() => {
     const b = this.budget();
     if (!b) return false;
+    if (!this.permissions.hasPermission('Finance_Budget_Update')) return false;
     return b.status === BudgetStatus.Draft || b.status === BudgetStatus.Pending;
   });
 
   canApprove = computed(() => {
     const b = this.budget();
     if (!b) return false;
+    if (!this.permissions.hasPermission('Finance_Budget_Approve')) return false;
     return b.status === BudgetStatus.Draft || b.status === BudgetStatus.Pending;
   });
 
   canReject = computed(() => {
     const b = this.budget();
     if (!b) return false;
+    if (!this.permissions.hasPermission('Finance_Budget_Approve')) return false;
     return b.status === BudgetStatus.Pending;
   });
 
   canClose = computed(() => {
     const b = this.budget();
     if (!b) return false;
+    if (!this.permissions.hasPermission('Finance_Budget_Approve')) return false;
     return b.status === BudgetStatus.Approved;
   });
 
   canDelete = computed(() => {
     const b = this.budget();
     if (!b) return false;
+    if (!this.permissions.hasPermission('Finance_Budget_Delete')) return false;
     return b.status === BudgetStatus.Draft;
   });
 

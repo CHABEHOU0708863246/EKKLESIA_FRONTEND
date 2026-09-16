@@ -18,11 +18,12 @@ import {
   ContentTypeLabels,
 } from '../../../../../core/models/Communication/content.model';
 import { Contents } from '../../../../../core/services/Content/contents';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 @Component({
   selector: 'app-content-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective],
   templateUrl: './content-list.html',
   styleUrls: ['./content-list.scss'],
 })

@@ -20,14 +20,16 @@
           Statistiques par église
         </a> -->
 
-        <!-- Bouton pour exporter les participants -->
-        <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0" class="ev-btn ev-btn--primary"
+        <!-- Bouton pour exporter les participants (exige Event_Report_Generate) -->
+        <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0 && canReadEventReport()"
+          class="ev-btn ev-btn--primary"
           (click)="exportAttendees()" [disabled]="exporting()">
           <span *ngIf="!exporting()">Exporter en Excel</span>
           <span class="ev-spinner ev-spinner--btn" *ngIf="exporting()"></span>
         </button>
 
-        <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0" class="ev-btn ev-btn--secondary"
+        <button *ngIf="event() && event()!.attendees && event()!.attendees.length > 0 && canReadEventReport()"
+          class="ev-btn ev-btn--secondary"
           (click)="exportAttendeesPdf()" [disabled]="exportingPdf()">
           <span *ngIf="!exportingPdf()">Exporter en PDF</span>
           <span class="ev-spinner ev-spinner--btn" *ngIf="exportingPdf()"></span>

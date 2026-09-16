@@ -124,6 +124,28 @@ export interface PaymentReceiptDto {
   downloadUrl: string;
 }
 
+/**
+ * Preuve d'identité exigée par le backend pour lire/renvoyer un reçu public
+ * (anti-IDOR). Au moins l'un des deux champs doit correspondre au participant
+ * ou au payeur tiers.
+ */
+export interface ReceiptIdentity {
+  email?: string;
+  phone?: string;
+}
+
+/** Église exposée par le référentiel public d'inscription (id + nom). */
+export interface PublicChurchOption {
+  id: string;
+  name: string;
+}
+
+/** Site exposé par le référentiel public d'inscription (id + nom). */
+export interface PublicSiteOption {
+  id: string;
+  name: string;
+}
+
 export interface EventChurchStatisticsResponse {
   isSuccess: boolean;
   errorMessage?: string;

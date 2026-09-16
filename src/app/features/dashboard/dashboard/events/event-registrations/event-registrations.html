@@ -76,7 +76,7 @@
     </section>
 
     <!-- Formulaire d'ajout -->
-    <section class="er-panel">
+    <section class="er-panel" *ngIf="canRegisterAttendee()">
       <div class="er-panel-header">
         <h2>Nouveau participant</h2>
         <button class="er-btn er-btn--small er-btn--ghost" (click)="toggleAddForm()">
@@ -230,13 +230,14 @@
               <td>{{ getFormulaName(a.formulaId) }}</td>
               <td>{{ formatDateTime(a.registrationDate) }}</td>
               <td>
-                <button class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn" (click)="toggleCheckIn(a)"
+                <button *ngIf="canCheckin()" class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn" (click)="toggleCheckIn(a)"
                   [disabled]="togglingCheckIn() === (a.memberId || a.email)">
                   <span *ngIf="togglingCheckIn() !== (a.memberId || a.email)">
                     {{ a.checkedIn ? '✅' : '⬜' }}
                   </span>
                   <span class="er-spinner er-spinner--btn" *ngIf="togglingCheckIn() === (a.memberId || a.email)"></span>
                 </button>
+                <span *ngIf="!canCheckin()" class="er-muted">{{ a.checkedIn ? 'Présent' : '—' }}</span>
               </td>
               <td>
                 <span class="er-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">

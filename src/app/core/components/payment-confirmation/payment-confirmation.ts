@@ -1,21 +1,30 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, interval, startWith, switchMap, takeUntil, take } from 'rxjs';
 import { PublicRegistrationService } from '../../services/Event/public-registration-service';
-import { PaymentReceiptDto } from '../../models/Events/event.model';
+import {
+  PaymentReceiptDto,
+  ReceiptIdentity,
+} from '../../models/Events/event.model';
+import {
+  loadReceiptIdentity,
+  saveReceiptIdentity,
+} from '../../services/Event/receipt-identity.store';
 
 type ConfirmationStatus = 'checking' | 'paid' | 'pending' | 'failed' | 'timeout';
 
 @Component({
   selector: 'app-payment-confirmation',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './payment-confirmation.html',
   styleUrl: './payment-confirmation.scss',
 })
 export class PaymentConfirmation implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private fb = inject(FormBuilder);
   private registrationService = inject(PublicRegistrationService);
 
   /**
@@ -35,6 +44,16 @@ export class PaymentConfirmation implements OnInit, OnDestroy {
   resending = signal(false);
   resendMessage = signal<string | null>(null);
 
+  // ── Preuve d'identité (exigée par le backend pour servir le reçu) ──
+  identity = signal<ReceiptIdentity | null>(null);
+  identityError = signal<string | null>(null);
+  readonly identityForm = this.fb.group({
+    contact: ['', [Validators.required, Validators.minLength(5)]],
+  });
+
+  /** Vrai quand le reçu ne peut pas être chargé faute de preuve d'identité. */
+  needsIdentity = computed(() => !this.identity());
+
   private pollCount = 0;
   private readonly MAX_POLLS = 40;   // 40 × 3 s = 2 minutes
 
@@ -45,6 +64,7 @@ export class PaymentConfirmation implements OnInit, OnDestroy {
       return;
     }
     this.attendeeId = id;
+    this.identity.set(loadReceiptIdentity(id));
     this.startPolling();
   }
 
@@ -112,17 +132,56 @@ export class PaymentConfirmation implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════════════════
+  // PREUVE D'IDENTITÉ
+  // ══════════════════════════════════════════════════════════
+
+  /**
+   * Le backend exige désormais `?email=` ou `?phone=` pour servir un reçu
+   * (anti-IDOR). Sans identité mémorisée, on la demande ici une seule fois.
+   */
+  submitIdentity(): void {
+    if (this.identityForm.invalid) {
+      this.identityForm.markAllAsTouched();
+      return;
+    }
+
+    const contact = (this.identityForm.value.contact ?? '').trim();
+    if (!contact) return;
+
+    if (contact.includes('@') && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact)) {
+      this.identityError.set('Adresse email invalide.');
+      return;
+    }
+
+    const identity: ReceiptIdentity = contact.includes('@')
+      ? { email: contact }
+      : { phone: contact };
+
+    this.identityError.set(null);
+    this.identity.set(identity);
+    saveReceiptIdentity(this.attendeeId, identity);
+    this.loadReceipt();
+  }
+
+  // ══════════════════════════════════════════════════════════
   // REÇU
   // ══════════════════════════════════════════════════════════
 
   /**
-   * Un 404 signifie simplement « pas encore de reçu » — ce n'est pas une erreur
-   * à afficher. Le participant recevra le sien par email dans tous les cas.
+   * Un 404 signifie « pas encore de reçu » OU « identité non reconnue » —
+   * le backend renvoie volontairement le même statut dans les deux cas
+   * (anti-énumération). Ce n'est pas une erreur à afficher comme telle.
    */
   private loadReceipt(): void {
+    const identity = this.identity();
+    if (!identity) {
+      // Le formulaire d'identité est affiché par le template.
+      return;
+    }
+
     this.loadingReceipt.set(true);
 
-    this.registrationService.getReceipt(this.attendeeId)
+    this.registrationService.getReceipt(this.attendeeId, identity)
       .pipe(take(1), takeUntil(this.destroy$))
       .subscribe({
         next: (r) => {
@@ -131,9 +190,16 @@ export class PaymentConfirmation implements OnInit, OnDestroy {
           // Un reçu existe → le paiement est bel et bien confirmé
           if (this.status() !== 'paid') this.status.set('paid');
         },
-        error: () => {
+        error: (err) => {
           this.receipt.set(null);
           this.loadingReceipt.set(false);
+
+          if (err?.status === 404) {
+            this.resendMessage.set(
+              "Aucun reçu disponible pour le moment. Vérifiez l'adresse email ou le téléphone " +
+              "indiqué lors de l'inscription, ou réessayez dans quelques instants."
+            );
+          }
         },
       });
   }
@@ -144,12 +210,17 @@ export class PaymentConfirmation implements OnInit, OnDestroy {
   }
 
   resendReceipt(): void {
+    const identity = this.identity();
+    if (!identity) {
+      this.identityError.set('Indiquez votre email ou votre téléphone pour recevoir le reçu.');
+      return;
+    }
     if (this.resending()) return;
 
     this.resending.set(true);
     this.resendMessage.set(null);
 
-    this.registrationService.resendReceipt(this.attendeeId)
+    this.registrationService.resendReceipt(this.attendeeId, identity)
       .pipe(take(1), takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {

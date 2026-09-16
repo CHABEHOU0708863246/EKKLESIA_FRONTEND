@@ -16,11 +16,13 @@ import { OfferingUtils } from '../../../../../core/models/Finances/offering.mode
 import { OfferingStatusLabels, OfferingStatusColors, OfferingTypeLabels, OfferingTypeIcons } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
 import { PaymentMethod } from '../../../../../core/models/Finances/expense.model';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { Permissions } from '../../../../../core/services/Permissions/permissions';
 
 @Component({
   selector: 'app-offering-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AuthImageDirective],
   templateUrl: './offering-detail.html',
   styleUrls: ['./offering-detail.scss'],
 })
@@ -29,6 +31,7 @@ export class OfferingDetail implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private offeringsService = inject(Offerings);
+  private permissions = inject(Permissions);
 
   // ── État ──
   offering = signal<Offering | null>(null);
@@ -57,22 +60,25 @@ export class OfferingDetail implements OnInit, OnDestroy {
   getCategoryLabel = OfferingUtils.getCategoryLabel;
   getCategoryColor = OfferingUtils.getCategoryColor;
 
-  // ── Calculs dérivés ──
+  // ── Calculs dérivés ── (droits alignés sur les policies backend)
   canEdit = computed(() => {
     const o = this.offering();
     if (!o) return false;
+    if (!this.permissions.hasPermission('Finance_Offering_Update')) return false;
     return o.status !== OfferingStatus.Validated && o.status !== OfferingStatus.Cancelled;
   });
 
   canValidate = computed(() => {
     const o = this.offering();
     if (!o) return false;
+    if (!this.permissions.hasPermission('Finance_Offering_Validate')) return false;
     return o.status === OfferingStatus.Pending || o.status === OfferingStatus.Verified;
   });
 
   canGenerateReceipt = computed(() => {
     const o = this.offering();
     if (!o) return false;
+    if (!this.permissions.hasPermission('Finance_Receipt_Generate')) return false;
     return o.status === OfferingStatus.Validated && !o.receiptGenerated;
   });
 
@@ -85,12 +91,15 @@ export class OfferingDetail implements OnInit, OnDestroy {
   canCancel = computed(() => {
     const o = this.offering();
     if (!o) return false;
+    // 🔒 `POST /Offering/{id}/cancel` exige CAN_VALIDATE_OFFERING
+    if (!this.permissions.hasPermission('Finance_Offering_Validate')) return false;
     return o.status !== OfferingStatus.Validated && o.status !== OfferingStatus.Cancelled;
   });
 
   canDelete = computed(() => {
     const o = this.offering();
     if (!o) return false;
+    if (!this.permissions.hasPermission('Finance_Offering_Delete')) return false;
     return o.status !== OfferingStatus.Validated;
   });
 
@@ -127,8 +136,22 @@ export class OfferingDetail implements OnInit, OnDestroy {
 }
 
   viewPhoto(photoId: string): void {
-    const url = this.getPhotoUrl(photoId);
-    window.open(url, '_blank');
+    if (!photoId) return;
+
+    // ⚠️ La photo exige désormais un token : un `window.open(url)` nu
+    // renverrait 401. On charge le blob (le token est posé par l'intercepteur)
+    // puis on l'ouvre dans un nouvel onglet.
+    this.offeringsService.getValidationPhoto(photoId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+      },
+      error: (err) => {
+        console.error('❌ Erreur ouverture photo:', err);
+        this.error.set('Impossible de charger la photo (permission ou fichier indisponible).');
+      },
+    });
   }
 
   downloadPhoto(photoId: string): void {

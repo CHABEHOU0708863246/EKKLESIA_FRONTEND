@@ -10,12 +10,12 @@ import { Member } from '../../../../../core/models/Members/member.model';
 import { Offering, OfferingSummaryDto, OfferingUtils } from '../../../../../core/models/Finances/offering.model';
 import { OfferingTypeLabels, OfferingTypeIcons, OfferingTypeColors } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
-import { Users } from '../../../../../core/services/Users/users';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 @Component({
   selector: 'app-offering-by-member',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
   templateUrl: './offering-by-member.html',
   styleUrls: ['./offering-by-member.scss'],
 })
@@ -24,7 +24,6 @@ export class OfferingByMember implements OnInit, OnDestroy {
   private offeringsService = inject(Offerings);
   private memberService = inject(Members);
   private router = inject(Router);
-
   // ── État ──
   selectedMember = signal<Member | null>(null);
   summary = signal<OfferingSummaryDto | null>(null);
@@ -58,7 +57,6 @@ export class OfferingByMember implements OnInit, OnDestroy {
   // ── Types d'offrande pour l'affichage ──
   typeKeys = Object.keys(OfferingTypeLabels) as Array<keyof typeof OfferingTypeLabels>;
   readonly Object = Object;
-  private userService = inject(Users);
 
   // ── Couleurs pour les types ──
   getTypeColorClass(type: string): string {
@@ -93,8 +91,9 @@ export class OfferingByMember implements OnInit, OnDestroy {
   }
 
   getMemberPhotoUrl(member: Member): string {
-  return this.userService.getPhotoUrl(member.photoUrl);
-}
+    // ⚠️ Photo de MEMBRE → endpoint `/Member/photo/{id}` (et non `/User/photo`).
+    return this.memberService.getMemberPhotoUrl(member.photoUrl);
+  }
 
 onImageError(event: Event): void {
   (event.target as HTMLImageElement).style.display = 'none';
