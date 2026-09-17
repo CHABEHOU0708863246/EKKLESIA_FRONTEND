@@ -350,6 +350,14 @@
               <span class="nav-text">Toutes les offrandes</span>
             </a>
           </li>
+          @if (permission.canViewOfferings()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/offrandes/tableau-de-bord']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-pie-chart-alt-2"></i>
+              <span class="nav-text">Tableau de bord</span>
+            </a>
+          </li>
+          }
           @if (permission.canCreateOffering()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/offrandes/new']" class="nav-link" (click)="closeMobileSidebar()">

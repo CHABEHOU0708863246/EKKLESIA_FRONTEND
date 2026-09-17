@@ -132,6 +132,10 @@ export class OfferingList implements OnInit, OnDestroy {
         .subscribe(() => {
           this.currentPage.set(1);
           this.loadOfferings();
+          // Les totaux doivent suivre les dates sélectionnées.
+          if (control === this.dateFromControl || control === this.dateToControl) {
+            this.loadStats();
+          }
         });
     });
   }
@@ -183,9 +187,18 @@ export class OfferingList implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Les statistiques suivent désormais les filtres de date de l'écran :
+   * avant, elles étaient chargées sans paramètres et ne correspondaient donc
+   * jamais à la liste affichée (totaux faux).
+   */
   loadStats(): void {
     this.statsLoading.set(true);
-    this.offeringsService.getStatistics().subscribe({
+
+    const from = this.dateFromControl.value || undefined;
+    const to = this.dateToControl.value || undefined;
+
+    this.offeringsService.getStatistics(undefined, from, to).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.stats.set(response.data);

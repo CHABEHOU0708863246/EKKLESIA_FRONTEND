@@ -590,3 +590,93 @@ export class DashboardUtils {
     return offerings.items.reduce((a, b) => a.amount > b.amount ? a : b);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// RÉPARTITION DES MEMBRES PAR ÉGLISE (dashboard général)
+// ═══════════════════════════════════════════════════════════════════════
+
+/** Périmètre résolu côté serveur selon le rôle. */
+export type DashboardScopeLevel = 'church' | 'national' | 'international' | 'global' | 'none';
+
+export interface MemberChurchRowDto {
+  churchId: string;
+  churchName: string;
+  country?: string;
+  isHeadquarters: boolean;
+  isActive: boolean;
+  male: number;
+  female: number;
+  other: number;
+  unknown: number;
+  total: number;
+  visitors: number;
+  active: number;
+
+  /** Répartition par site (« Église Mère » + sites secondaires). */
+  sites: MemberSiteRowDto[];
+
+  /** Nombre de sites réels de l'église. */
+  siteCount: number;
+}
+
+export interface MemberSiteRowDto {
+  siteId: string;
+  siteName: string;
+  isMotherChurch: boolean;
+  isActive: boolean;
+  realSiteId?: string;
+  male: number;
+  female: number;
+  other: number;
+  unknown: number;
+  total: number;
+  visitors: number;
+  active: number;
+}
+
+export interface MembersByChurchResponseDto {
+  scopeLevel: DashboardScopeLevel;
+  scopeLabel: string;
+  includeInactive: boolean;
+  churches: MemberChurchRowDto[];
+  totals: MemberChurchRowDto;
+  generatedAt: string;
+}
+
+export interface ChurchMemberItemDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  gender?: string;
+  status: string;
+  isActive: boolean;
+  phone?: string;
+  registrationDate?: string;
+  siteId?: string;
+  siteName?: string;
+}
+
+export interface ChurchMembersListDto {
+  churchId: string;
+  churchName: string;
+  total: number;
+  returned: number;
+  members: ChurchMemberItemDto[];
+}
+
+export const EMPTY_MEMBER_CHURCH_ROW: MemberChurchRowDto = {
+  churchId: '',
+  churchName: '',
+  isHeadquarters: false,
+  isActive: true,
+  male: 0,
+  female: 0,
+  other: 0,
+  unknown: 0,
+  total: 0,
+  visitors: 0,
+  active: 0,
+  sites: [],
+  siteCount: 0
+};

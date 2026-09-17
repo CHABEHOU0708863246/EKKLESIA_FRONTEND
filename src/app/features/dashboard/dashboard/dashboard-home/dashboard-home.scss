@@ -1600,6 +1600,143 @@ $touch-size:     44px;
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// RÉPARTITION DES MEMBRES PAR ÉGLISE
+// ══════════════════════════════════════════════════════════════════════
+
+.members-church-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(108, 92, 231, 0.06);
+  }
+
+  &--active {
+    background: rgba(108, 92, 231, 0.1);
+
+    .cell-name {
+      color: $purple;
+      font-weight: 600;
+    }
+  }
+
+  .cell-name i {
+    margin-right: 4px;
+    color: $purple;
+  }
+}
+
+.members-church-totals {
+  background: rgba(108, 92, 231, 0.08);
+  border-top: 2px solid rgba(108, 92, 231, 0.25);
+}
+
+.church-members-panel {
+  margin-top: 14px;
+  padding: 4px 4px 12px;
+  border-top: 1px dashed $border;
+}
+
+// ── Répartition par site (Église Mère + sites secondaires) ──
+.church-sites-block {
+  margin-bottom: 14px;
+
+  .data-table {
+    background: #fff;
+
+    tbody tr {
+      cursor: default;
+    }
+  }
+}
+
+.church-sites-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: $text-3;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-mother {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(108, 92, 231, 0.12);
+  color: $purple;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-inactive {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.06);
+  color: $text-3;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.church-members-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(108, 92, 231, 0.08);
+  color: $text-1;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(108, 92, 231, 0.18);
+
+  i {
+    color: $purple;
+    font-size: 14px;
+  }
+
+  &-status {
+    color: $text-3;
+    font-size: 11px;
+    font-weight: 400;
+    padding-left: 4px;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+  }
+}
+
+.export-column-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: $text-2;
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 15px;
+    height: 15px;
+    accent-color: $purple;
+    cursor: pointer;
+  }
+}
+
 
 
 

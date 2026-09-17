@@ -1,0 +1,238 @@
+<!-- src/app/features/dashboard/dashboard/offerings/offering-dashboard/offering-dashboard.html -->
+<div class="od-page">
+
+  <!-- ══ EN-TÊTE ══ -->
+  <header class="od-header">
+    <div>
+      <h1>Tableau de bord des offrandes</h1>
+      <p class="od-subtitle">
+        Totaux consolidés, répartition par église et par type, dimanche sélectionné.
+      </p>
+    </div>
+    <span class="od-scope-badge" *ngIf="dashboard">{{ getScopeBadge() }}</span>
+  </header>
+
+  <!-- ══ FILTRES ══ -->
+  <div class="od-filters">
+    <div class="od-field">
+      <label for="odFrom">Du</label>
+      <input id="odFrom" type="date" [(ngModel)]="filter.from" name="odFrom" />
+    </div>
+    <div class="od-field">
+      <label for="odTo">Au</label>
+      <input id="odTo" type="date" [(ngModel)]="filter.to" name="odTo" />
+    </div>
+    <div class="od-field">
+      <label for="odDay">Dimanche / jour</label>
+      <input id="odDay" type="date" [(ngModel)]="filter.day" name="odDay" />
+    </div>
+    <div class="od-field" *ngIf="showChurchFilter">
+      <label for="odChurch">Église</label>
+      <select id="odChurch" [(ngModel)]="filter.churchId" name="odChurch">
+        <option value="">Toutes les églises</option>
+        <option *ngFor="let c of churches" [value]="c.id">{{ c.name }}</option>
+      </select>
+    </div>
+    <div class="od-actions">
+      <button type="button" class="od-btn od-btn--primary" (click)="loadDashboard()" [disabled]="loading">
+        <i class="bx bx-refresh"></i> Actualiser
+      </button>
+      <button type="button" class="od-btn od-btn--ghost" (click)="resetToCurrentPeriod(); loadDashboard()">
+        Mois en cours
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ ÉTATS ══ -->
+  <div *ngIf="loading" class="od-state">
+    <div class="od-spinner"></div>
+    <p>Chargement des statistiques…</p>
+  </div>
+
+  <div *ngIf="!loading && error" class="od-state od-state--error">
+    <i class="bx bx-error-circle"></i>
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="!loading && dashboard">
+
+    <!-- ══ CARTES KPI ══ -->
+    <div class="od-kpi-grid">
+      <div class="od-kpi">
+        <span class="od-kpi-label">Total période</span>
+        <span class="od-kpi-value">{{ formatAmount(dashboard.totalAmount) }}</span>
+        <span class="od-kpi-sub">{{ dashboard.totalCount }} offrande(s) — {{ dashboard.churchCount }} église(s)</span>
+      </div>
+      <div class="od-kpi od-kpi--highlight">
+        <span class="od-kpi-label">
+          <i class="bx bx-calendar-star"></i>
+          {{ dashboard.selectedDay?.isSunday ? 'Dimanche sélectionné' : 'Jour sélectionné' }}
+        </span>
+        <span class="od-kpi-value" *ngIf="dashboard.selectedDay">
+          {{ formatAmount(dashboard.selectedDay.totalAmount) }}
+        </span>
+        <span class="od-kpi-value" *ngIf="!dashboard.selectedDay">—</span>
+        <span class="od-kpi-sub" *ngIf="dashboard.selectedDay">
+          {{ formatLongDate(dashboard.selectedDay.date) }}
+        </span>
+      </div>
+      <div class="od-kpi">
+        <span class="od-kpi-label">Offrande moyenne</span>
+        <span class="od-kpi-value">{{ formatAmount(dashboard.averageAmount) }}</span>
+        <span class="od-kpi-sub">par offrande enregistrée</span>
+      </div>
+      <div class="od-kpi">
+        <span class="od-kpi-label">Jours avec offrandes</span>
+        <span class="od-kpi-value">{{ dashboard.byDay.length }}</span>
+        <span class="od-kpi-sub">
+          dont {{ countSundays(dashboard.byDay) }} dimanche(s)
+        </span>
+      </div>
+    </div>
+
+    <!-- ══ GRAPHIQUES ══ -->
+    <div class="od-charts-grid">
+      <div class="od-card">
+        <div class="od-card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition par type</div>
+        <div class="od-chart"><canvas id="offeringTypeChart"></canvas></div>
+      </div>
+      <div class="od-card">
+        <div class="od-card-title"><i class="bx bx-buildings"></i> Répartition par église</div>
+        <div class="od-chart"><canvas id="offeringChurchChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="od-card" style="margin-top: 16px;">
+      <div class="od-card-title"><i class="bx bx-line-chart"></i> Évolution journalière (dimanches en évidence)</div>
+      <div class="od-chart od-chart--tall"><canvas id="offeringDayChart"></canvas></div>
+    </div>
+
+    <!-- ══ DÉTAIL DU JOUR SÉLECTIONNÉ ══ -->
+    <div class="od-card" style="margin-top: 16px;" *ngIf="dashboard.selectedDay">
+      <div class="od-card-title">
+        <i class="bx bx-detail"></i>
+        Détail du {{ formatLongDate(dashboard.selectedDay.date) }}
+      </div>
+      <div class="od-day-grid">
+        <div class="od-day-block">
+          <h4>Par église</h4>
+          <table class="od-table">
+            <thead>
+              <tr><th>Église</th><th class="od-right">Montant</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of dashboard.selectedDay.byChurch">
+                <td>{{ row.churchName || row.churchId }}</td>
+                <td class="od-right">{{ formatAmount(row.amount) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>Total</strong></td>
+                <td class="od-right"><strong>{{ formatAmount(dashboard.selectedDay.totalAmount) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="od-day-block">
+          <h4>Par type</h4>
+          <table class="od-table">
+            <thead>
+              <tr><th>Type</th><th class="od-right">Montant</th><th class="od-right">%</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of dashboard.selectedDay.byType">
+                <td>{{ t.label }}</td>
+                <td class="od-right">{{ formatAmount(t.amount) }}</td>
+                <td class="od-right">{{ t.percentage }} %</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>Total</strong></td>
+                <td class="od-right"><strong>{{ formatAmount(dashboard.selectedDay.totalAmount) }}</strong></td>
+                <td class="od-right"><strong>100 %</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TABLEAU PAR ÉGLISE (toutes périodes) ══ -->
+    <div class="od-card" style="margin-top: 16px;">
+      <div class="od-card-title"><i class="bx bx-table"></i> Répartition par église — période complète</div>
+      <div class="od-table-scroll">
+        <table class="od-table">
+          <thead>
+            <tr>
+              <th>Église</th>
+              <th class="od-right">Montant</th>
+              <th class="od-right">Offrandes</th>
+              <th class="od-right">Part</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of dashboard.byChurch">
+              <td>
+                {{ row.churchName || row.churchId }}
+                <small class="od-muted" *ngIf="row.isHeadquarters"> • Siège</small>
+              </td>
+              <td class="od-right">{{ formatAmount(row.amount) }}</td>
+              <td class="od-right">{{ row.count }}</td>
+              <td class="od-right">
+                {{ dashboard.totalAmount > 0 ? ((row.amount / dashboard.totalAmount) * 100 | number:'1.0-1') : 0 }} %
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Total général</strong></td>
+              <td class="od-right"><strong>{{ formatAmount(dashboard.totalAmount) }}</strong></td>
+              <td class="od-right"><strong>{{ dashboard.totalCount }}</strong></td>
+              <td class="od-right"><strong>100 %</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ TABLEAU PAR TYPE ══ -->
+    <div class="od-card" style="margin-top: 16px;">
+      <div class="od-card-title"><i class="bx bx-category"></i> Répartition par type — période complète</div>
+      <div class="od-table-scroll">
+        <table class="od-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th class="od-right">Montant</th>
+              <th class="od-right">Offrandes</th>
+              <th class="od-right">Part</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of dashboard.byType">
+              <td>{{ t.label }}</td>
+              <td class="od-right">{{ formatAmount(t.amount) }}</td>
+              <td class="od-right">{{ t.count }}</td>
+              <td class="od-right">{{ t.percentage }} %</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Total général</strong></td>
+              <td class="od-right"><strong>{{ formatAmount(dashboard.totalAmount) }}</strong></td>
+              <td class="od-right"><strong>{{ dashboard.totalCount }}</strong></td>
+              <td class="od-right"><strong>100 %</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <p class="od-footnote">
+      <i class="bx bx-info-circle"></i>
+      Seules les offrandes non annulées sont comptées. Le périmètre affiché est celui autorisé par votre rôle.
+    </p>
+  </ng-container>
+</div>

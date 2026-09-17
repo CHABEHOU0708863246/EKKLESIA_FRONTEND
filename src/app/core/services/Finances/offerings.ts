@@ -17,6 +17,8 @@ import {
   OfferingValidate,
   OfferingStatisticsDto,
   OfferingSummaryDto,
+  OfferingDashboardDto,
+  OfferingDashboardFilter,
   DEFAULT_OFFERING_FILTER,
   OfferingUtils,
   OfferingStatus,
@@ -272,6 +274,24 @@ getValidationPhotoUrl(photoId: string): string {
         }),
         catchError(this.handleError<OfferingStatisticsDto>('getStatistics'))
       );
+  }
+
+  /**
+   * Tableau de bord des offrandes : totaux de la période, répartition par
+   * église, par type et par jour, plus la synthèse d'un jour précis (dimanche).
+   * Le périmètre (église / national / international / global) est appliqué par
+   * le serveur selon le rôle.
+   * GET /api/v1/Offering/dashboard
+   */
+  getOfferingDashboard(filter: OfferingDashboardFilter = {}): Observable<ApiResponse<OfferingDashboardDto>> {
+    let params = new HttpParams();
+    if (filter.from) params = params.set('from', filter.from);
+    if (filter.to) params = params.set('to', filter.to);
+    if (filter.churchId) params = params.set('churchId', filter.churchId);
+    if (filter.day) params = params.set('day', filter.day);
+
+    return this.http.get<ApiResponse<OfferingDashboardDto>>(`${this.baseUrl}/dashboard`, { params })
+      .pipe(catchError(this.handleError<OfferingDashboardDto>('getOfferingDashboard')));
   }
 
   /**

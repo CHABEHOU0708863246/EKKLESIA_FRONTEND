@@ -1,0 +1,240 @@
+// src/app/features/dashboard/dashboard/audit/audit-log-list/audit-log-list.scss
+
+$purple: #6c5ce7;
+$text-1: #1f2333;
+$text-2: #4b5163;
+$text-3: #8d93a8;
+$border: #e8eaf1;
+$surface: #fff;
+$bg: #f4f5fa;
+
+:host { display: block; }
+
+.al-page {
+  padding: 22px 26px 40px;
+  background: $bg;
+  min-height: 100%;
+}
+
+.al-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+
+  h1 { margin: 0; font-size: 22px; font-weight: 700; color: $text-1; }
+}
+
+.al-subtitle { margin: 4px 0 0; color: $text-3; font-size: 13.5px; }
+
+.al-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 16px; border-radius: 9px; border: none;
+  font-size: 13.5px; font-weight: 600; cursor: pointer;
+
+  &--primary { background: $purple; color: #fff; &:hover { background: darken($purple, 6%); } }
+  &--ghost { background: transparent; border: 1px solid $border; color: $text-1; &:hover { background: rgba(0,0,0,0.03); } }
+  &--sm { height: 32px; padding: 0 12px; font-size: 12.5px; }
+}
+
+.al-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.al-kpi {
+  background: $surface; border: 1px solid $border; border-radius: 14px;
+  padding: 14px 18px; display: flex; flex-direction: column; gap: 4px;
+
+  &--warning { border-left: 4px solid #fdcb6e; }
+  &--critical { border-left: 4px solid #d63031; }
+}
+
+.al-kpi-label { font-size: 12px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.03em; }
+.al-kpi-value { font-size: 22px; font-weight: 700; color: $text-1; }
+
+.al-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.al-card {
+  background: $surface; border: 1px solid $border; border-radius: 14px;
+  padding: 16px 18px 18px; margin-bottom: 16px;
+}
+
+.al-card-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: $text-1; margin-bottom: 12px;
+  i { color: $purple; }
+
+  .al-count { margin-left: auto; font-size: 12.5px; font-weight: 600; color: $text-3; }
+}
+
+.al-chart {
+  position: relative; height: 260px;
+  canvas { width: 100% !important; height: 100% !important; }
+}
+
+.al-top-users { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.al-top-user {
+  display: inline-flex; flex-direction: column;
+  padding: 8px 14px; border-radius: 12px; background: rgba(108, 92, 231, 0.08);
+
+  strong { font-size: 13px; color: $text-1; }
+  small { font-size: 11.5px; color: $text-3; }
+}
+
+.al-filters {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;
+  background: $surface; border: 1px solid $border; border-radius: 14px;
+  padding: 14px 18px; margin-bottom: 16px;
+}
+
+.al-field {
+  display: flex; flex-direction: column; gap: 5px;
+  &--grow { flex: 1; min-width: 200px; }
+
+  label { font-size: 12px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  input, select {
+    height: 38px; padding: 0 12px; border: 1px solid $border; border-radius: 9px;
+    background: #fff; font-size: 13.5px; color: $text-1; outline: none;
+
+    &:focus { border-color: $purple; box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12); }
+  }
+}
+
+.al-filter-actions { display: flex; gap: 10px; margin-left: auto; }
+
+.al-table-scroll { overflow-x: auto; }
+
+.al-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+
+  th, td { padding: 10px 12px; border-bottom: 1px solid $border; text-align: left; vertical-align: top; }
+
+  th {
+    font-size: 11.5px; font-weight: 700; color: $text-3; text-transform: uppercase;
+    letter-spacing: 0.03em; background: rgba(108, 92, 231, 0.04);
+  }
+
+  tbody tr { cursor: pointer; &:hover { background: rgba(108, 92, 231, 0.04); } }
+
+  &--diff td { font-size: 12.5px; }
+}
+
+.al-mono { font-family: Consolas, 'Courier New', monospace; font-size: 12px; color: $text-2; }
+.al-muted { display: block; font-size: 11.5px; color: $text-3; }
+.al-user { font-weight: 600; color: $text-1; }
+.al-target { font-weight: 600; color: $text-1; }
+.al-action { display: inline-flex; align-items: center; gap: 6px; i { color: $purple; } }
+.al-desc { max-width: 320px; color: $text-2; }
+.al-old { color: #c0392b; }
+.al-new { color: #00845e; }
+
+.al-sev {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 11.5px; font-weight: 700;
+
+  &--info { background: rgba(9, 132, 227, 0.12); color: #0984e3; }
+  &--warning { background: rgba(253, 203, 110, 0.25); color: #b8860b; }
+  &--error { background: rgba(225, 112, 85, 0.15); color: #c0392b; }
+  &--critical { background: rgba(214, 48, 49, 0.15); color: #d63031; }
+}
+
+.al-icon-btn {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid $border;
+  background: #fff; color: $text-1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+
+  &:hover { background: rgba(0,0,0,0.03); }
+}
+
+.al-state {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 40px 20px; color: $text-3;
+  i { font-size: 28px; }
+
+  &--error { color: #e17055; }
+}
+
+.al-spinner {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 3px solid rgba(108, 92, 231, 0.2); border-top-color: $purple;
+  animation: al-spin 0.8s linear infinite;
+}
+
+@keyframes al-spin { to { transform: rotate(360deg); } }
+
+.al-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 14px; font-size: 13px; color: $text-3;
+}
+
+// ── Modale détail ──
+.al-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 1040;
+}
+
+.al-modal {
+  position: fixed; top: 6vh; left: 50%; transform: translateX(-50%);
+  width: 780px; max-width: 94vw; max-height: 86vh; overflow-y: auto;
+  background: #fff; border-radius: 16px; z-index: 1050;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+
+.al-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid $border;
+}
+
+.al-modal-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: $text-1;
+  i { color: $purple; }
+}
+
+.al-modal-body { padding: 16px 18px; }
+
+.al-detail-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px 20px; margin: 0;
+
+  dt { font-size: 11.5px; font-weight: 700; color: $text-3; text-transform: uppercase; }
+  dd { margin: 2px 0 0; font-size: 13.5px; color: $text-1; }
+}
+
+.al-detail-section {
+  margin: 18px 0 8px; font-size: 13px; font-weight: 700; color: $text-3;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+
+.al-snapshots {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+
+  pre {
+    margin: 6px 0 0; padding: 10px 12px; background: $bg; border: 1px solid $border;
+    border-radius: 10px; font-size: 11.5px; max-height: 260px; overflow: auto;
+  }
+}
+
+.al-snapshot-label { font-size: 11.5px; font-weight: 700; color: $text-3; text-transform: uppercase; }
+
+.al-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 12px 18px; border-top: 1px solid $border;
+}
+
+@media (max-width: 768px) {
+  .al-page { padding: 14px 12px 32px; }
+  .al-filter-actions { margin-left: 0; }
+  .al-chart { height: 210px; }
+}

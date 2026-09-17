@@ -12,6 +12,8 @@ import {
   DashboardDto,
   DashboardKpiDto,
   DashboardChartsDto,
+  MembersByChurchResponseDto,
+  ChurchMembersListDto,
   DEFAULT_DASHBOARD,
   DashboardUtils
 } from '../../models/Dashboard/dashboard.model';
@@ -98,6 +100,42 @@ export class Dashboards {
         }),
         catchError(this.handleError<DashboardChartsDto>('getChartData'))
       );
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 👥 RÉPARTITION DES MEMBRES PAR ÉGLISE
+  // ──────────────────────────────────────────────────────────────
+
+  /**
+   * Répartition des membres par église et par genre (avec totaux).
+   * Le périmètre (église / national / international / global) est appliqué
+   * par le serveur selon le rôle : le client ne peut pas l'élargir.
+   * GET /api/v1/Dashboard/members-by-church
+   */
+  getMembersByChurch(includeInactive = false): Observable<ApiResponse<MembersByChurchResponseDto>> {
+    const params = new HttpParams().set('includeInactive', includeInactive.toString());
+
+    return this.http
+      .get<ApiResponse<MembersByChurchResponseDto>>(`${this.baseUrl}/members-by-church`, { params })
+      .pipe(catchError(this.handleError<MembersByChurchResponseDto>('getMembersByChurch')));
+  }
+
+  /**
+   * Membres d'une église (affichage dynamique au clic sur une ligne).
+   * GET /api/v1/Dashboard/members-by-church/{churchId}
+   */
+  getChurchMembers(
+    churchId: string,
+    limit = 50,
+    includeInactive = false
+  ): Observable<ApiResponse<ChurchMembersListDto>> {
+    const params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('includeInactive', includeInactive.toString());
+
+    return this.http
+      .get<ApiResponse<ChurchMembersListDto>>(`${this.baseUrl}/members-by-church/${churchId}`, { params })
+      .pipe(catchError(this.handleError<ChurchMembersListDto>('getChurchMembers')));
   }
 
   // ──────────────────────────────────────────────────────────────

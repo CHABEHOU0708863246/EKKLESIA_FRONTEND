@@ -4,15 +4,23 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 
 import { Auth } from '../../../../core/services/Auth/auth';
 import { Token } from '../../../../core/services/Token/token';
 import { User } from '../../../../core/models/Users/user.model';
-import { DashboardDto, RecentMemberDto, RecentOfferingDto } from '../../../../core/models/Dashboard/dashboard.model';
+import {
+  DashboardDto,
+  RecentMemberDto,
+  RecentOfferingDto,
+  MembersByChurchResponseDto,
+  MemberChurchRowDto,
+  ChurchMembersListDto
+} from '../../../../core/models/Dashboard/dashboard.model';
 import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
+import { Permissions } from '../../../../core/services/Permissions/permissions';
 
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables);
@@ -32,6 +40,18 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private genderChart: Chart | null = null;
   private offeringsChart: Chart | null = null;
   private attendanceChart: Chart | null = null;
+  private membersByChurchChart: Chart | null = null;
+
+  // ─── Répartition des membres par église (rôle : lecture membres) ─────
+  membersByChurch: MembersByChurchResponseDto | null = null;
+  loadingMembersByChurch = false;
+  includeInactiveMembers = false;
+
+  /** Église sélectionnée dans le tableau : ses membres s'affichent dessous. */
+  selectedChurch: MemberChurchRowDto | null = null;
+  selectedChurchMembers: ChurchMembersListDto | null = null;
+  loadingChurchMembers = false;
+  churchMembersError: string | null = null;
 
   // ─── Utilisateur ──────────────────────────────────────────────
   userName: string = 'Utilisateur';
@@ -72,6 +92,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     private authService: Auth,
     private tokenService: Token,
     private dashboardService: Dashboards,
+    public permissions: Permissions,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -138,16 +159,26 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     this.loading = true;
     this.error = null;
 
-    // Récupérer toutes les données en parallèle (dashboard complet, KPI, charts)
+    // La répartition des membres n'est chargée que pour les rôles autorisés à
+    // lire les membres (le serveur applique en plus son propre périmètre).
+    const canViewMembers = this.permissions.canViewMembers();
+    this.loadingMembersByChurch = canViewMembers;
+
+    // Récupérer toutes les données en parallèle (dashboard complet, KPI,
+    // charts, membres par église) — une seule vague de requêtes.
     forkJoin({
       dashboard: this.dashboardService.getDashboardData(),
       kpi: this.dashboardService.getKpiData(),
-      charts: this.dashboardService.getChartData()
+      charts: this.dashboardService.getChartData(),
+      membersByChurch: canViewMembers
+        ? this.dashboardService.getMembersByChurch(false)
+        : of(null)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ dashboard, kpi, charts }) => {
+        next: ({ dashboard, kpi, charts, membersByChurch }) => {
           this.loading = false;
+          this.loadingMembersByChurch = false;
 
           // 1. Dashboard principal
           if (dashboard.success && dashboard.data) {
@@ -186,15 +217,98 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
             }
           }
 
+          // 4. Répartition des membres par église
+          if (membersByChurch?.success && membersByChurch.data) {
+            this.membersByChurch = membersByChurch.data;
+          }
+
           // Créer les graphiques après que le DOM soit prêt
-          setTimeout(() => this.createCharts(), 200);
+          this.renderChartsWithRetry();
         },
         error: (err) => {
           console.error('❌ Erreur chargement dashboard:', err);
           this.loading = false;
+          this.loadingMembersByChurch = false;
           this.error = 'Erreur lors du chargement du tableau de bord.';
         }
       });
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // MEMBRES PAR ÉGLISE (tableau, graphique, liste dynamique)
+  // ──────────────────────────────────────────────────────────────
+
+  /** Recharge la répartition (avec ou sans les membres inactifs). */
+  reloadMembersByChurch(): void {
+    if (!this.permissions.canViewMembers()) return;
+
+    this.loadingMembersByChurch = true;
+    this.dashboardService
+      .getMembersByChurch(this.includeInactiveMembers)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.loadingMembersByChurch = false;
+          if (response.success && response.data) {
+            this.membersByChurch = response.data;
+            // Le graphique suit la nouvelle répartition sans recharger la page.
+            requestAnimationFrame(() => this.createMembersByChurchChart());
+          } else {
+            this.membersByChurch = null;
+          }
+        },
+        error: () => {
+          this.loadingMembersByChurch = false;
+        }
+      });
+  }
+
+  /** Affiche dynamiquement les membres de l'église cliquée. */
+  selectChurch(row: MemberChurchRowDto): void {
+    if (this.selectedChurch?.churchId === row.churchId) {
+      // Second clic : replier la liste.
+      this.selectedChurch = null;
+      this.selectedChurchMembers = null;
+      return;
+    }
+
+    this.selectedChurch = row;
+    this.selectedChurchMembers = null;
+    this.churchMembersError = null;
+    this.loadingChurchMembers = true;
+
+    this.dashboardService
+      .getChurchMembers(row.churchId, 50, this.includeInactiveMembers)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.loadingChurchMembers = false;
+          if (response.success && response.data) {
+            this.selectedChurchMembers = response.data;
+          } else {
+            this.churchMembersError = response.message || 'Impossible de charger les membres de cette église.';
+          }
+        },
+        error: () => {
+          this.loadingChurchMembers = false;
+          this.churchMembersError = 'Impossible de charger les membres de cette église.';
+        }
+      });
+  }
+
+  /** Libellé du genre d'un membre (normalisé côté serveur). */
+  getMemberGenderLabel(gender?: string): string {
+    const value = (gender ?? '').trim().toLowerCase();
+    if (!value) return 'Non renseigné';
+    if (['m', 'male', 'homme', 'h', 'masculin', 'garcon', 'garçon'].includes(value)) return 'Homme';
+    if (['f', 'female', 'femme', 'féminin', 'feminin', 'fille'].includes(value)) return 'Femme';
+    return 'Autre';
+  }
+
+  /** Pourcentage d'une ligne par rapport au total (tableau). */
+  getChurchShare(row: MemberChurchRowDto): number {
+    const total = this.membersByChurch?.totals?.total ?? 0;
+    return total > 0 ? Math.round((row.total / total) * 100) : 0;
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -269,6 +383,27 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
 
     // 3. Évolution des présences (line)
     this.createAttendanceChart();
+
+    // 4. Membres par église (barres empilées H/F)
+    this.createMembersByChurchChart();
+  }
+
+  /**
+   * Les canvas sont dans des blocs *ngIf dépendants des données : on attend la
+   * frame suivant le rendu, avec repli borné si le DOM n'est pas encore prêt
+   * (remplace l'ancien setTimeout fixe de 200 ms).
+   */
+  private renderChartsWithRetry(attempt = 0): void {
+    if (!this.isBrowser) return;
+
+    requestAnimationFrame(() => {
+      const canvasReady = !!document.getElementById('genderChart');
+      if (!canvasReady && attempt < 3) {
+        setTimeout(() => this.renderChartsWithRetry(attempt + 1), 100);
+        return;
+      }
+      this.createCharts();
+    });
   }
 
   private createGenderChart(): void {
@@ -385,6 +520,90 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  // ──────────────────────────────────────────────────────────────
+  // GRAPHIQUE : MEMBRES PAR ÉGLISE (barres empilées Hommes/Femmes)
+  // ──────────────────────────────────────────────────────────────
+
+  private createMembersByChurchChart(): void {
+    if (!this.isBrowser) return;
+
+    const canvas = document.getElementById('membersByChurchChart') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Détruire l'ancienne instance avant de recréer (rechargement live).
+    if (this.membersByChurchChart) {
+      this.membersByChurchChart.destroy();
+      this.membersByChurchChart = null;
+    }
+
+    const rows = this.membersByChurch?.churches ?? [];
+    if (!rows.length) return;
+
+    this.membersByChurchChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.churchName || r.churchId),
+        datasets: [
+          {
+            label: 'Hommes',
+            data: rows.map(r => r.male),
+            backgroundColor: '#6C5CE7',
+            borderRadius: 6,
+            stack: 'membres'
+          },
+          {
+            label: 'Femmes',
+            data: rows.map(r => r.female),
+            backgroundColor: '#00B894',
+            borderRadius: 6,
+            stack: 'membres'
+          },
+          {
+            label: 'Autres / non renseigné',
+            data: rows.map(r => r.other + r.unknown),
+            backgroundColor: '#FDCB6E',
+            borderRadius: 6,
+            stack: 'membres'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { padding: 18, usePointStyle: true, font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              footer: (items) => {
+                const index = items[0]?.dataIndex ?? 0;
+                const row = rows[index];
+                return row ? `Total : ${row.total} membre(s)` : '';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { maxRotation: 45, minRotation: 0 }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  }
+
   private destroyCharts(): void {
     if (this.genderChart) {
       this.genderChart.destroy();
@@ -397,6 +616,10 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     if (this.attendanceChart) {
       this.attendanceChart.destroy();
       this.attendanceChart = null;
+    }
+    if (this.membersByChurchChart) {
+      this.membersByChurchChart.destroy();
+      this.membersByChurchChart = null;
     }
   }
 

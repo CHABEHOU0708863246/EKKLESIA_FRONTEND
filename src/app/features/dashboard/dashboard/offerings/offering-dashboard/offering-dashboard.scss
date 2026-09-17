@@ -1,0 +1,345 @@
+// src/app/features/dashboard/dashboard/offerings/offering-dashboard/offering-dashboard.scss
+
+$purple: #6c5ce7;
+$purple-soft: rgba(108, 92, 231, 0.08);
+$green: #00b894;
+$orange: #e17055;
+$text-1: #1f2333;
+$text-3: #8d93a8;
+$border: #e8eaf1;
+$surface: #ffffff;
+$bg: #f4f5fa;
+
+:host {
+  display: block;
+}
+
+.od-page {
+  padding: 22px 26px 40px;
+  background: $bg;
+  min-height: 100%;
+}
+
+// ── En-tête ──────────────────────────────────────────────────────────
+.od-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: $text-1;
+  }
+}
+
+.od-subtitle {
+  margin: 4px 0 0;
+  color: $text-3;
+  font-size: 13.5px;
+}
+
+.od-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: $purple-soft;
+  color: $purple;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// ── Filtres ──────────────────────────────────────────────────────────
+.od-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.od-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-3;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  input,
+  select {
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid $border;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 13.5px;
+    color: $text-1;
+    outline: none;
+
+    &:focus {
+      border-color: $purple;
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12);
+    }
+  }
+}
+
+.od-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.od-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &--primary {
+    background: $purple;
+    color: #fff;
+
+    &:hover { background: darken($purple, 6%); }
+    &:disabled { opacity: 0.6; cursor: wait; }
+  }
+
+  &--ghost {
+    background: transparent;
+    border: 1px solid $border;
+    color: $text-1;
+
+    &:hover { background: rgba(0, 0, 0, 0.03); }
+  }
+}
+
+// ── États ────────────────────────────────────────────────────────────
+.od-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: $text-3;
+
+  i { font-size: 30px; }
+
+  &--error { color: $orange; }
+}
+
+.od-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(108, 92, 231, 0.2);
+  border-top-color: $purple;
+  border-radius: 50%;
+  animation: od-spin 0.8s linear infinite;
+}
+
+@keyframes od-spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── KPI ──────────────────────────────────────────────────────────────
+.od-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.od-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 16px 18px;
+
+  &--highlight {
+    background: linear-gradient(135deg, $purple 0%, #8b7ee8 100%);
+    border-color: transparent;
+
+    .od-kpi-label,
+    .od-kpi-sub { color: rgba(255, 255, 255, 0.85); }
+
+    .od-kpi-value { color: #fff; }
+  }
+}
+
+.od-kpi-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: $text-3;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.od-kpi-value {
+  font-size: 21px;
+  font-weight: 700;
+  color: $text-1;
+}
+
+.od-kpi-sub {
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+// ── Cartes / graphiques ──────────────────────────────────────────────
+.od-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 16px 18px 20px;
+}
+
+.od-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: $text-1;
+  margin-bottom: 12px;
+
+  i { color: $purple; }
+}
+
+.od-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.od-chart {
+  position: relative;
+  height: 280px;
+
+  &--tall { height: 300px; }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+// ── Détail du jour ───────────────────────────────────────────────────
+.od-day-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.od-day-block h4 {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: $text-3;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+// ── Tableaux ─────────────────────────────────────────────────────────
+.od-table-scroll {
+  overflow-x: auto;
+}
+
+.od-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+
+  th,
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid $border;
+    text-align: left;
+    color: $text-1;
+  }
+
+  th {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-3;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(108, 92, 231, 0.04);
+  }
+
+  tbody tr:hover {
+    background: rgba(108, 92, 231, 0.04);
+  }
+
+  tfoot td {
+    background: $purple-soft;
+    border-top: 2px solid rgba(108, 92, 231, 0.25);
+    border-bottom: none;
+  }
+
+  .od-right {
+    text-align: right;
+  }
+}
+
+.od-muted {
+  color: $text-3;
+  font-size: 12px;
+}
+
+.od-footnote {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: $text-3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// ── Mobile ───────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .od-page { padding: 14px 12px 32px; }
+
+  .od-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .od-filters {
+    flex-direction: column;
+    align-items: stretch;
+
+    .od-field input,
+    .od-field select { width: 100%; }
+  }
+
+  .od-actions {
+    margin-left: 0;
+    flex-direction: column;
+
+    .od-btn { justify-content: center; }
+  }
+
+  .od-chart { height: 220px; }
+}

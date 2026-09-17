@@ -1,0 +1,249 @@
+<!-- src/app/features/dashboard/dashboard/notifications/my-notifications/my-notifications.html -->
+<div class="mn-page">
+
+  <header class="mn-header">
+    <div>
+      <h1>Mes notifications</h1>
+      <p class="mn-subtitle">
+        Alertes, rappels et informations — {{ unreadCount() }} non lue(s) sur {{ totalCount() }}.
+      </p>
+    </div>
+    <div class="mn-actions">
+      <button type="button" class="mn-btn mn-btn--ghost" (click)="togglePreferences()">
+        <i class="bx bx-cog"></i> Préférences
+      </button>
+      @if (permissions.canSendNotifications()) {
+        <button type="button" class="mn-btn mn-btn--primary" (click)="toggleSendForm()">
+          <i class="bx bx-send"></i> Envoyer une notification
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- ══ Préférences (canaux) ══ -->
+  @if (showPreferences() && preferences) {
+    <section class="mn-card">
+      <div class="mn-card-title"><i class="bx bx-slider-alt"></i> Canaux et catégories</div>
+      <div class="mn-prefs">
+        <label class="mn-check">
+          <input type="checkbox" [(ngModel)]="preferences.emailEnabled" name="prefEmail" />
+          Recevoir les notifications par email
+        </label>
+        <label class="mn-check">
+          <input type="checkbox" [(ngModel)]="preferences.eventReminders" name="prefEvents" />
+          Rappels d’événements et de cultes
+        </label>
+        <label class="mn-check">
+          <input type="checkbox" [(ngModel)]="preferences.systemAlerts" name="prefSystem" />
+          Alertes système et sécurité
+        </label>
+        <label class="mn-check">
+          <input type="checkbox" [(ngModel)]="preferences.pastoralUpdates" name="prefPastoral" />
+          Informations pastorales
+        </label>
+        <label class="mn-check">
+          <input type="checkbox" [(ngModel)]="preferences.newsletter" name="prefNewsletter" />
+          Newsletter
+        </label>
+        <label class="mn-check mn-check--disabled">
+          <input type="checkbox" [(ngModel)]="preferences.smsEnabled" name="prefSms" disabled />
+          SMS (bientôt disponible)
+        </label>
+        <label class="mn-check mn-check--disabled">
+          <input type="checkbox" [(ngModel)]="preferences.pushEnabled" name="prefPush" disabled />
+          Notifications push (bientôt disponible)
+        </label>
+      </div>
+      <div class="mn-card-footer">
+        <button type="button" class="mn-btn mn-btn--primary" [disabled]="savingPreferences()" (click)="savePreferences()">
+          {{ savingPreferences() ? 'Enregistrement…' : 'Enregistrer mes préférences' }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- ══ Envoi ciblé ══ -->
+  @if (showSendForm() && permissions.canSendNotifications()) {
+    <section class="mn-card">
+      <div class="mn-card-title"><i class="bx bx-send"></i> Nouvelle notification</div>
+
+      <div class="mn-form-grid">
+        <div class="mn-field mn-field--span">
+          <label for="mnTitle">Titre *</label>
+          <input id="mnTitle" type="text" [(ngModel)]="sendForm.title" name="mnTitle" maxlength="150" />
+        </div>
+
+        <div class="mn-field mn-field--span">
+          <label for="mnMessage">Message *</label>
+          <textarea id="mnMessage" rows="3" [(ngModel)]="sendForm.message" name="mnMessage" maxlength="1200"></textarea>
+        </div>
+
+        <div class="mn-field">
+          <label for="mnType">Type</label>
+          <select id="mnType" [(ngModel)]="sendForm.type" name="mnType">
+            @for (t of typeOptions; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mn-field">
+          <label for="mnCategory">Catégorie</label>
+          <select id="mnCategory" [(ngModel)]="sendForm.category" name="mnCategory">
+            @for (c of categoryOptions; track c.value) {
+              <option [value]="c.value">{{ c.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mn-field">
+          <label for="mnTarget">Destinataires</label>
+          <select id="mnTarget" [(ngModel)]="sendForm.targetType" name="mnTarget"
+                  (ngModelChange)="sendForm.targetId = ''">
+            @for (t of targetOptions; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+
+        @if (sendForm.targetType === 'Role') {
+          <div class="mn-field">
+            <label for="mnRoleId">Rôle</label>
+            <select id="mnRoleId" [(ngModel)]="sendForm.targetId" name="mnRoleId">
+              <option value="">— Choisir un rôle —</option>
+              @for (r of roles; track r.value) {
+                <option [value]="r.value">{{ r.label }}</option>
+              }
+            </select>
+          </div>
+        } @else if (sendForm.targetType === 'Church') {
+          <div class="mn-field">
+            <label for="mnChurchId">Église</label>
+            <select id="mnChurchId" [(ngModel)]="sendForm.targetId" name="mnChurchId">
+              <option value="">— Choisir une église —</option>
+              @for (c of churches; track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+        } @else if (sendForm.targetType !== 'Global') {
+          <div class="mn-field">
+            <label for="mnTargetId">
+              {{ sendForm.targetType === 'Site' ? 'Identifiant du site' : 'Identifiant de l’utilisateur' }}
+            </label>
+            <input id="mnTargetId" type="text" [(ngModel)]="sendForm.targetId" name="mnTargetId" />
+          </div>
+        }
+
+        <div class="mn-field">
+          <label for="mnLink">Lien interne (optionnel)</label>
+          <input id="mnLink" type="text" [(ngModel)]="sendForm.link" name="mnLink"
+                 placeholder="/dashboard/evenements/..." />
+        </div>
+
+        <div class="mn-field">
+          <label for="mnScheduled">Programmer l’email (optionnel)</label>
+          <input id="mnScheduled" type="datetime-local" [(ngModel)]="sendForm.scheduledAt" name="mnScheduled" />
+        </div>
+
+        <label class="mn-check mn-field--span">
+          <input type="checkbox" [(ngModel)]="sendForm.emailEnabled" name="mnEmail" />
+          Envoyer aussi par email (en file pour le worker de dispatch)
+        </label>
+      </div>
+
+      <div class="mn-card-footer">
+        <button type="button" class="mn-btn mn-btn--ghost" (click)="toggleSendForm()">Annuler</button>
+        <button type="button" class="mn-btn mn-btn--primary" [disabled]="sending()" (click)="send()">
+          {{ sending() ? 'Envoi en cours…' : 'Envoyer' }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- ══ Filtres ══ -->
+  <div class="mn-filters">
+    <button type="button" class="mn-chip" [class.mn-chip--active]="!unreadOnly" (click)="setFilter(false)">
+      Toutes ({{ totalCount() }})
+    </button>
+    <button type="button" class="mn-chip" [class.mn-chip--active]="unreadOnly" (click)="setFilter(true)">
+      Non lues ({{ unreadCount() }})
+    </button>
+    <button type="button" class="mn-btn mn-btn--ghost mn-btn--sm" (click)="markAllRead()"
+            [disabled]="unreadCount() === 0">
+      <i class="bx bx-check-double"></i> Tout marquer comme lu
+    </button>
+  </div>
+
+  <!-- ══ Liste ══ -->
+  @if (loading()) {
+    <div class="mn-state"><div class="mn-spinner"></div><p>Chargement…</p></div>
+  } @else if (notifications().length === 0) {
+    <div class="mn-state">
+      <i class="bx bx-bell-off"></i>
+      <p>Aucune notification{{ unreadOnly ? ' non lue' : '' }}.</p>
+    </div>
+  } @else {
+    <div class="mn-list">
+      @for (n of notifications(); track n.id) {
+        <article class="mn-item" [class.mn-item--unread]="!n.isRead"
+                 [style.border-left-color]="getTypeColor(n.type)">
+          <div class="mn-item-icon" [style.background]="getTypeColor(n.type) + '1A'"
+               [style.color]="getTypeColor(n.type)">
+            <i class="bx" [ngClass]="getTypeIcon(n.type)"></i>
+          </div>
+
+          <div class="mn-item-body">
+            <div class="mn-item-head">
+              <strong>{{ n.title }}</strong>
+              <span class="mn-badge" [style.background]="getTypeColor(n.type) + '1A'"
+                    [style.color]="getTypeColor(n.type)">{{ getTypeLabel(n.type) }}</span>
+              <span class="mn-badge mn-badge--neutral">{{ n.categoryLabel }}</span>
+              @if (n.emailEnabled) {
+                <span class="mn-badge mn-badge--neutral" title="Copie email">
+                  <i class="bx bx-envelope"></i>
+                  {{ n.emailSentAt ? 'envoyé' : 'en file' }}
+                </span>
+              }
+            </div>
+
+            <p class="mn-item-message">{{ n.message }}</p>
+
+            <div class="mn-item-meta">
+              <span><i class="bx bx-time"></i> {{ formatDateTime(n.createdAt) }}</span>
+              @if (n.createdByName) {
+                <span><i class="bx bx-user"></i> {{ n.createdByName }}</span>
+              }
+              @if (n.link) {
+                <a [routerLink]="n.link" (click)="open(n)">Ouvrir <i class="bx bx-right-arrow-alt"></i></a>
+              }
+            </div>
+          </div>
+
+          <div class="mn-item-actions">
+            @if (!n.isRead) {
+              <button type="button" class="mn-icon-btn" title="Marquer comme lue"
+                      (click)="markRead(n, $event)">
+                <i class="bx bx-check"></i>
+              </button>
+            }
+            <button type="button" class="mn-icon-btn mn-icon-btn--danger" title="Supprimer"
+                    (click)="remove(n, $event)">
+              <i class="bx bx-trash"></i>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="mn-pagination">
+        <button type="button" class="mn-btn mn-btn--ghost mn-btn--sm" [disabled]="currentPage() === 1"
+                (click)="goToPage(currentPage() - 1)">Précédent</button>
+        <span>Page {{ currentPage() }} / {{ totalPages() }}</span>
+        <button type="button" class="mn-btn mn-btn--ghost mn-btn--sm" [disabled]="currentPage() === totalPages()"
+                (click)="goToPage(currentPage() + 1)">Suivant</button>
+      </div>
+    }
+  }
+</div>

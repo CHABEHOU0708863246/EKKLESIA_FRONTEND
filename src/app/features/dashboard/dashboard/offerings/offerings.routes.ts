@@ -22,6 +22,17 @@ export const OFFERINGS_ROUTES: Routes = [
     data: { permissions: ['Finance_Offering_Create'] },
   },
 
+  // ─── Tableau de bord des offrandes (graphiques) ───
+  // ⚠️ Placé AVANT ':id' pour éviter qu'il soit interprété comme un ID
+  {
+    path: 'tableau-de-bord',
+    loadComponent: () =>
+      import('./offering-dashboard/offering-dashboard').then((m) => m.OfferingDashboard),
+    title: 'Tableau de bord des offrandes — MIAV',
+    canActivate: [authGuard],
+    data: { permissions: ['Finance_Offering_Read'] },
+  },
+
   // ─── Offrandes par membre ───
   // ⚠️ Placé AVANT ':id' pour éviter qu'il soit interprété comme un ID
   {

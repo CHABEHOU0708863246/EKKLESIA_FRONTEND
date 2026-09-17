@@ -88,6 +88,28 @@ export const DASHBOARD_ROUTES: Routes = [
         // 🔒 Lecture : policy backend CAN_READ_ZONE
         data: { permissions: ['Site_Manage', 'Church_Settings_Manage'] },
       },
+      {
+        path: 'mes-notifications',
+        loadComponent: () =>
+          import('./dashboard/notifications/my-notifications/my-notifications').then(
+            (m) => m.MyNotifications
+          ),
+        title: 'Mes notifications — MIAV',
+        canActivate: [authGuard],
+        // 🔒 Le backend accepte aussi Notification_Send / Configure.
+        data: { permissions: ['Notification_Read', 'Notification_Send', 'Notification_Configure'] },
+      },
+      {
+        path: 'admin/audit',
+        loadComponent: () =>
+          import('./dashboard/audit/audit-log-list/audit-log-list').then(
+            (m) => m.AuditLogList
+          ),
+        title: 'Journal d’audit — MIAV',
+        canActivate: [authGuard],
+        // 🔒 Policy backend CAN_READ_AUDIT = Audit_Read
+        data: { permissions: ['Audit_Read'] },
+      },
     ],
   },
 ];

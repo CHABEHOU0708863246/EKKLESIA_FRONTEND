@@ -572,3 +572,64 @@ export class OfferingStatisticsUtils {
     }));
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// TABLEAU DE BORD DES OFFRANDES (graphiques + totaux)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface OfferingByChurchRowDto {
+  churchId: string;
+  churchName: string;
+  country?: string;
+  isHeadquarters: boolean;
+  amount: number;
+  count: number;
+  amountByType: Record<string, number>;
+}
+
+export interface OfferingTypeTotalDto {
+  type: string;
+  label: string;
+  amount: number;
+  count: number;
+  percentage: number;
+}
+
+export interface OfferingByDayDto {
+  date: string; // yyyy-MM-dd
+  amount: number;
+  count: number;
+  isSunday: boolean;
+}
+
+export interface OfferingDaySummaryDto {
+  date: string;
+  isSunday: boolean;
+  totalAmount: number;
+  totalCount: number;
+  byChurch: OfferingByChurchRowDto[];
+  byType: OfferingTypeTotalDto[];
+}
+
+export interface OfferingDashboardDto {
+  scopeLevel: 'church' | 'national' | 'international' | 'global' | 'none';
+  scopeLabel: string;
+  from: string;
+  to: string;
+  totalAmount: number;
+  totalCount: number;
+  averageAmount: number;
+  churchCount: number;
+  byChurch: OfferingByChurchRowDto[];
+  byType: OfferingTypeTotalDto[];
+  byDay: OfferingByDayDto[];
+  selectedDay?: OfferingDaySummaryDto;
+}
+
+/** Filtres du tableau de bord des offrandes. */
+export interface OfferingDashboardFilter {
+  from?: string;
+  to?: string;
+  churchId?: string;
+  day?: string;
+}

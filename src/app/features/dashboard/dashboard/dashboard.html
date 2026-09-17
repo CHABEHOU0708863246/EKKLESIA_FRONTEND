@@ -29,10 +29,48 @@
           Connecté · {{ currentUser?.roles?.[0] || 'Membre' }}
         </div>
 
-        <button class="topbar-icon-btn">
-          <i class="bx bx-bell"></i>
-          <span class="notif-dot"></span>
-        </button>
+        <!-- 🔔 Notifications -->
+        <div class="topbar-notif" *ngIf="permission.canViewNotifications()">
+          <button class="topbar-icon-btn" (click)="toggleNotifications($event)" title="Notifications">
+            <i class="bx bx-bell"></i>
+            <span class="notif-badge" *ngIf="unreadNotifications > 0">{{ unreadNotifications > 99 ? '99+' : unreadNotifications }}</span>
+          </button>
+
+          <div class="notif-dropdown" *ngIf="notificationsOpen" (click)="$event.stopPropagation()">
+            <div class="notif-dropdown-header">
+              <strong>Notifications</strong>
+              <button type="button" class="notif-link" *ngIf="unreadNotifications > 0"
+                      (click)="markAllNotificationsRead($event)">Tout marquer lu</button>
+            </div>
+
+            <div class="notif-dropdown-body">
+              <div *ngIf="notificationsLoading" class="notif-empty">Chargement…</div>
+
+              <div *ngIf="!notificationsLoading && recentNotifications.length === 0" class="notif-empty">
+                Aucune notification.
+              </div>
+
+              <button type="button" class="notif-row"
+                      *ngFor="let n of recentNotifications"
+                      [class.notif-row--unread]="!n.isRead"
+                      (click)="openNotification(n, $event)">
+                <span class="notif-row-icon" [style.color]="getNotificationColor(n.type)">
+                  <i class="bx" [ngClass]="getNotificationIcon(n.type)"></i>
+                </span>
+                <span class="notif-row-body">
+                  <span class="notif-row-title">{{ n.title }}</span>
+                  <span class="notif-row-message">{{ n.message }}</span>
+                  <span class="notif-row-date">{{ formatNotificationDate(n.createdAt) }}</span>
+                </span>
+              </button>
+            </div>
+
+            <a class="notif-dropdown-footer" [routerLink]="['/dashboard/mes-notifications']"
+               (click)="notificationsOpen = false">
+              Voir toutes mes notifications
+            </a>
+          </div>
+        </div>
         <button class="topbar-icon-btn">
           <i class="bx bx-refresh"></i>
         </button>

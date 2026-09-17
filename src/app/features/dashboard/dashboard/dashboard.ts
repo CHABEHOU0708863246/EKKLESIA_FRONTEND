@@ -19,6 +19,8 @@ import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
 import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core/models/Dashboard/dashboard.model';
 import { Dashboards } from '../../../core/services/Dashboard/dashboards';
+import { AppNotifications } from '../../../core/services/Notifications/notifications-app';
+import { AppNotification } from '../../../core/models/Notifications/app-notification.model';
 
 
 
@@ -124,6 +126,7 @@ export class Dashboard implements OnInit, OnDestroy {
     private router: Router,
     public permission: Permissions,
     private dashboardApi: Dashboards,
+    private notificationsApi: AppNotifications,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -140,10 +143,130 @@ export class Dashboard implements OnInit, OnDestroy {
 
     this.loadCurrentUser();
     this.loadDashboardData();
+    this.startNotificationsPolling();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    if (this.notificationsTimer) {
+      clearInterval(this.notificationsTimer);
+      this.notificationsTimer = null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // 🔔 NOTIFICATIONS (cloche du topbar)
+  // ──────────────────────────────────────────────────────────────────
+
+  unreadNotifications = 0;
+  notificationsOpen = false;
+  notificationsLoading = false;
+  recentNotifications: AppNotification[] = [];
+  private notificationsTimer: ReturnType<typeof setInterval> | null = null;
+
+  /** Sondage léger du compteur (60 s) : une seule requête count. */
+  private startNotificationsPolling(): void {
+    if (!this.permission.canViewNotifications()) return;
+
+    this.loadUnreadNotifications();
+    this.notificationsTimer = setInterval(() => this.loadUnreadNotifications(), 60_000);
+  }
+
+  loadUnreadNotifications(): void {
+    this.subscriptions.add(
+      this.notificationsApi.getUnreadCount().subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            this.unreadNotifications = response.data.unread ?? 0;
+          }
+        },
+        error: () => { /* silencieux : la cloche ne doit jamais gêner la navigation */ }
+      })
+    );
+  }
+
+  toggleNotifications(event?: Event): void {
+    event?.stopPropagation();
+    this.notificationsOpen = !this.notificationsOpen;
+
+    if (this.notificationsOpen) {
+      this.notificationsLoading = true;
+      this.subscriptions.add(
+        this.notificationsApi.getMine(false, 1, 8).subscribe({
+          next: (response) => {
+            this.notificationsLoading = false;
+            if (response.success && response.data) {
+              this.recentNotifications = response.data.items ?? [];
+              this.unreadNotifications = response.data.unreadCount ?? this.unreadNotifications;
+            }
+          },
+          error: () => (this.notificationsLoading = false)
+        })
+      );
+    }
+  }
+
+  /** Ouvre une notification : marque lue puis suit son lien interne. */
+  openNotification(notification: AppNotification, event?: Event): void {
+    event?.stopPropagation();
+    this.notificationsOpen = false;
+
+    if (!notification.isRead) {
+      this.subscriptions.add(
+        this.notificationsApi.markRead(notification.id).subscribe({
+          next: () => {
+            notification.isRead = true;
+            this.unreadNotifications = Math.max(0, this.unreadNotifications - 1);
+          }
+        })
+      );
+    }
+
+    if (notification.link) {
+      this.router.navigateByUrl(notification.link);
+    }
+  }
+
+  markAllNotificationsRead(event?: Event): void {
+    event?.stopPropagation();
+    this.subscriptions.add(
+      this.notificationsApi.markAllRead().subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.unreadNotifications = 0;
+            this.recentNotifications = this.recentNotifications.map((n) => ({ ...n, isRead: true }));
+          }
+        }
+      })
+    );
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'Success': return 'bx-check-circle';
+      case 'Warning': return 'bx-error';
+      case 'Error': return 'bx-x-circle';
+      case 'Reminder': return 'bx-time-five';
+      case 'Alert': return 'bx-bell';
+      default: return 'bx-info-circle';
+    }
+  }
+
+  getNotificationColor(type: string): string {
+    switch (type) {
+      case 'Success': return '#00B894';
+      case 'Warning': return '#FDCB6E';
+      case 'Error': return '#E17055';
+      case 'Reminder': return '#0984E3';
+      case 'Alert': return '#E17055';
+      default: return '#6C5CE7';
+    }
+  }
+
+  formatNotificationDate(value: string): string {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -400,6 +523,11 @@ export class Dashboard implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.topbar-user') && !target.closest('.dropdown-menu')) {
       this.showUserMenu = false;
+    }
+
+    // Ferme aussi la cloche des notifications au clic extérieur.
+    if (!target.closest('.topbar-notif')) {
+      this.notificationsOpen = false;
     }
   }
 

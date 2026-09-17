@@ -242,6 +242,184 @@
     </div>
   </div>
 
+  <!-- ══ RÉPARTITION DES MEMBRES PAR ÉGLISE (rôles autorisés) ══ -->
+  @if (permissions.canViewMembers()) {
+    <div class="card" style="margin-top: 18px;" id="membersByChurchSection">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="bx bx-buildings"></i> Répartition des membres par église
+          @if (membersByChurch) {
+            <span class="cell-ref" style="margin-left: 8px;">— {{ membersByChurch.scopeLabel }}</span>
+          }
+        </div>
+        <div class="card-header-actions">
+          <label class="export-column-option" style="margin-right: 10px;">
+            <input type="checkbox" [(ngModel)]="includeInactiveMembers"
+              (change)="reloadMembersByChurch()" />
+            Inclure les inactifs
+          </label>
+          <span class="result-count" *ngIf="membersByChurch">
+            <strong>{{ membersByChurch.totals.total }}</strong> membre(s)
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Chargement -->
+        <div *ngIf="loadingMembersByChurch" class="state-placeholder">
+          <div class="spinner"></div>
+          <p class="state-placeholder-text">Chargement de la répartition…</p>
+        </div>
+
+        <ng-container *ngIf="!loadingMembersByChurch && membersByChurch">
+          <!-- Graphique -->
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="membersByChurchChart"></canvas>
+          </div>
+
+          <!-- Tableau récapitulatif -->
+          <div class="table-scroll" style="margin-top: 14px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Église</th>
+                  <th class="th-center">Hommes</th>
+                  <th class="th-center">Femmes</th>
+                  <th class="th-center">Autres</th>
+                  <th class="th-center">Inconnu</th>
+                  <th class="th-center">Total</th>
+                  <th class="th-center">Part</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of membersByChurch.churches"
+                    class="members-church-row"
+                    [class.members-church-row--active]="selectedChurch?.churchId === row.churchId"
+                    (click)="selectChurch(row)">
+                  <td>
+                    <span class="cell-name">
+                      <i class="bx bx-chevron-right" *ngIf="selectedChurch?.churchId !== row.churchId"></i>
+                      <i class="bx bx-chevron-down" *ngIf="selectedChurch?.churchId === row.churchId"></i>
+                      {{ row.churchName || row.churchId }}
+                    </span>
+                    <small class="cell-ref" *ngIf="row.country || row.isHeadquarters">
+                      {{ row.isHeadquarters ? 'Siège' : '' }}{{ row.country ? (row.isHeadquarters ? ' • ' : '') + row.country : '' }}
+                    </small>
+                  </td>
+                  <td class="th-center">{{ row.male }}</td>
+                  <td class="th-center">{{ row.female }}</td>
+                  <td class="th-center">{{ row.other }}</td>
+                  <td class="th-center">{{ row.unknown }}</td>
+                  <td class="th-center"><strong>{{ row.total }}</strong></td>
+                  <td class="th-center">{{ getChurchShare(row) }} %</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="members-church-totals">
+                  <td><strong>{{ membersByChurch.totals.churchName || 'Total' }}</strong></td>
+                  <td class="th-center"><strong>{{ membersByChurch.totals.male }}</strong></td>
+                  <td class="th-center"><strong>{{ membersByChurch.totals.female }}</strong></td>
+                  <td class="th-center"><strong>{{ membersByChurch.totals.other }}</strong></td>
+                  <td class="th-center"><strong>{{ membersByChurch.totals.unknown }}</strong></td>
+                  <td class="th-center"><strong>{{ membersByChurch.totals.total }}</strong></td>
+                  <td class="th-center"><strong>100 %</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <p class="state-placeholder-text" style="margin-top: 8px;">
+            <i class="bx bx-info-circle"></i>
+            Cliquez sur une église pour afficher automatiquement la liste de ses membres.
+          </p>
+
+          <!-- Affichage dynamique des membres de l'église sélectionnée -->
+          <div class="church-members-panel" *ngIf="selectedChurch">
+            <div class="card-header" style="padding: 12px 0;">
+              <div class="card-title">
+                <i class="bx bx-group"></i>
+                {{ selectedChurch.churchName }}
+                <span class="cell-ref" *ngIf="selectedChurchMembers">
+                  — {{ selectedChurchMembers.returned }}/{{ selectedChurchMembers.total }} membre(s)
+                </span>
+              </div>
+            </div>
+
+            <!-- Répartition par site : Église Mère + sites secondaires -->
+            <div class="church-sites-block" *ngIf="selectedChurch.sites.length > 0">
+              <h5 class="church-sites-title">
+                <i class="bx bx-sitemap"></i>
+                Église Mère et sites ({{ selectedChurch.sites.length }})
+              </h5>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Site</th>
+                    <th class="th-center">Hommes</th>
+                    <th class="th-center">Femmes</th>
+                    <th class="th-center">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let site of selectedChurch.sites"
+                      [class.members-church-row--active]="site.isMotherChurch">
+                    <td>
+                      <span class="cell-name">
+                        <i class="bx" [class.bx-home]="site.isMotherChurch" [class.bx-map-pin]="!site.isMotherChurch"></i>
+                        {{ site.siteName }}
+                        <span class="badge-mother" *ngIf="site.isMotherChurch">Église Mère</span>
+                        <span class="badge-inactive" *ngIf="!site.isActive">inactif</span>
+                      </span>
+                    </td>
+                    <td class="th-center">{{ site.male }}</td>
+                    <td class="th-center">{{ site.female }}</td>
+                    <td class="th-center"><strong>{{ site.total }}</strong></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="members-church-totals">
+                    <td><strong>Total {{ selectedChurch.churchName }}</strong></td>
+                    <td class="th-center"><strong>{{ selectedChurch.male }}</strong></td>
+                    <td class="th-center"><strong>{{ selectedChurch.female }}</strong></td>
+                    <td class="th-center"><strong>{{ selectedChurch.total }}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div *ngIf="loadingChurchMembers" class="state-placeholder">
+              <div class="spinner"></div>
+            </div>
+
+            <div *ngIf="churchMembersError" class="empty-state">{{ churchMembersError }}</div>
+
+            <div class="church-members-chips" *ngIf="!loadingChurchMembers && selectedChurchMembers">
+              <span class="member-chip" *ngFor="let m of selectedChurchMembers.members"
+                    [title]="getMemberGenderLabel(m.gender) + ' • ' + m.status + ' • ' + (m.siteName || 'Église Mère')">
+                <i class="bx"
+                   [class.bx-male]="getMemberGenderLabel(m.gender) === 'Homme'"
+                   [class.bx-female]="getMemberGenderLabel(m.gender) === 'Femme'"
+                   [class.bx-user]="getMemberGenderLabel(m.gender) === 'Autre' || getMemberGenderLabel(m.gender) === 'Non renseigné'"></i>
+                {{ m.fullName }}
+                <small class="member-chip-status">{{ m.status }} • {{ m.siteName || 'Église Mère' }}</small>
+              </span>
+              <span *ngIf="selectedChurchMembers.members.length === 0" class="empty-state">
+                Aucun membre à afficher pour cette église.
+              </span>
+              <span *ngIf="selectedChurchMembers.total > selectedChurchMembers.returned" class="cell-ref">
+                … et {{ selectedChurchMembers.total - selectedChurchMembers.returned }} autre(s).
+              </span>
+            </div>
+          </div>
+        </ng-container>
+
+        <div *ngIf="!loadingMembersByChurch && !membersByChurch" class="empty-state">
+          Répartition non disponible.
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- ══ FOOTER ══ -->
   <footer class="content-footer">
     <div class="footer-text">

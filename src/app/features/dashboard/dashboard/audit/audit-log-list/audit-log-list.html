@@ -1,0 +1,253 @@
+<!-- src/app/features/dashboard/dashboard/audit/audit-log-list/audit-log-list.html -->
+<div class="al-page">
+
+  <header class="al-header">
+    <div>
+      <h1>Journal d’audit</h1>
+      <p class="al-subtitle">
+        Traçabilité complète : connexions, modifications, exports et alertes de sécurité.
+      </p>
+    </div>
+    <div class="al-actions">
+      <button type="button" class="al-btn al-btn--ghost" (click)="loadStatistics(); loadLogs()">
+        <i class="bx bx-refresh"></i> Actualiser
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ KPI + graphiques ══ -->
+  @if (statistics(); as stats) {
+    <div class="al-kpi-grid">
+      <div class="al-kpi">
+        <span class="al-kpi-label">Total des événements</span>
+        <span class="al-kpi-value">{{ stats.totalLogs }}</span>
+      </div>
+      <div class="al-kpi">
+        <span class="al-kpi-label">Dernières 24 h</span>
+        <span class="al-kpi-value">{{ stats.logsLast24h }}</span>
+      </div>
+      <div class="al-kpi al-kpi--warning">
+        <span class="al-kpi-label">Avertissements</span>
+        <span class="al-kpi-value">{{ stats.warningAlerts }}</span>
+      </div>
+      <div class="al-kpi al-kpi--critical">
+        <span class="al-kpi-label">Alertes critiques</span>
+        <span class="al-kpi-value">{{ stats.criticalAlerts }}</span>
+      </div>
+    </div>
+
+    <div class="al-charts-grid">
+      <div class="al-card">
+        <div class="al-card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition par sévérité</div>
+        <div class="al-chart"><canvas id="auditSeverityChart"></canvas></div>
+      </div>
+      <div class="al-card">
+        <div class="al-card-title"><i class="bx bx-line-chart"></i> Activité des 30 derniers jours</div>
+        <div class="al-chart"><canvas id="auditDailyChart"></canvas></div>
+      </div>
+    </div>
+
+    @if (stats.topActiveUsers?.length) {
+      <div class="al-card">
+        <div class="al-card-title"><i class="bx bx-user-check"></i> Utilisateurs les plus actifs</div>
+        <div class="al-top-users">
+          @for (user of stats.topActiveUsers; track user.userId) {
+            <span class="al-top-user">
+              <strong>{{ user.userFullName || user.userEmail }}</strong>
+              <small>{{ user.actionCount }} action(s)</small>
+            </span>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ══ Filtres ══ -->
+  <div class="al-filters">
+    <div class="al-field">
+      <label for="alFrom">Du</label>
+      <input id="alFrom" type="date" [(ngModel)]="filter.startDate" name="alFrom" />
+    </div>
+    <div class="al-field">
+      <label for="alTo">Au</label>
+      <input id="alTo" type="date" [(ngModel)]="filter.endDate" name="alTo" />
+    </div>
+    <div class="al-field">
+      <label for="alCategory">Catégorie</label>
+      <select id="alCategory" [(ngModel)]="filter.category" name="alCategory">
+        <option value="">Toutes</option>
+        @for (c of categoryOptions; track c.value) {
+          <option [value]="c.value">{{ c.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="al-field">
+      <label for="alSeverity">Sévérité</label>
+      <select id="alSeverity" [(ngModel)]="filter.severity" name="alSeverity">
+        <option value="">Toutes</option>
+        @for (s of severityOptions; track s.value) {
+          <option [value]="s.value">{{ s.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="al-field">
+      <label for="alAction">Action</label>
+      <select id="alAction" [(ngModel)]="filter.action" name="alAction">
+        <option value="">Toutes</option>
+        @for (a of actionOptions; track a.value) {
+          <option [value]="a.value">{{ a.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="al-field al-field--grow">
+      <label for="alSearch">Recherche</label>
+      <input id="alSearch" type="text" placeholder="Utilisateur, description, cible…"
+             [(ngModel)]="filter.searchTerm" name="alSearch" (keyup.enter)="applyFilters()" />
+    </div>
+    <div class="al-filter-actions">
+      <button type="button" class="al-btn al-btn--primary" (click)="applyFilters()">
+        <i class="bx bx-filter-alt"></i> Filtrer
+      </button>
+      <button type="button" class="al-btn al-btn--ghost" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- ══ Tableau ══ -->
+  <div class="al-card">
+    <div class="al-card-title">
+      <i class="bx bx-list-ul"></i> Événements
+      <span class="al-count">{{ totalCount() }} résultat(s)</span>
+    </div>
+
+    @if (loading()) {
+      <div class="al-state"><div class="al-spinner"></div><p>Chargement…</p></div>
+    } @else if (error()) {
+      <div class="al-state al-state--error"><i class="bx bx-error-circle"></i><p>{{ error() }}</p></div>
+    } @else if (logs().length === 0) {
+      <div class="al-state"><i class="bx bx-inbox"></i><p>Aucun événement sur la période.</p></div>
+    } @else {
+      <div class="al-table-scroll">
+        <table class="al-table">
+          <thead>
+            <tr>
+              <th>Horodatage</th>
+              <th>Utilisateur</th>
+              <th>Action</th>
+              <th>Catégorie</th>
+              <th>Cible</th>
+              <th>Description</th>
+              <th>Sévérité</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of logs(); track entry.id) {
+              <tr (click)="openDetail(entry)">
+                <td>
+                  <span class="al-mono">{{ entry.formattedTimestamp }}</span>
+                  <small class="al-muted">{{ entry.relativeTime }}</small>
+                </td>
+                <td>
+                  <span class="al-user">{{ entry.userFullName || entry.userEmail }}</span>
+                  <small class="al-muted">{{ entry.userEmail }}</small>
+                </td>
+                <td>
+                  <span class="al-action"><i class="bx" [ngClass]="entry.actionIcon"></i> {{ entry.actionLabel }}</span>
+                </td>
+                <td>{{ entry.categoryLabel }}</td>
+                <td>
+                  <span class="al-target">{{ entry.entityIdentifier || entry.entityType }}</span>
+                  <small class="al-muted">{{ entry.entityType }}</small>
+                </td>
+                <td class="al-desc">{{ entry.description || '—' }}</td>
+                <td>
+                  <span class="al-sev" [ngClass]="getSeverityClass(entry.severity)">{{ entry.severityLabel }}</span>
+                </td>
+                <td>
+                  <button type="button" class="al-icon-btn" title="Détail" (click)="openDetail(entry); $event.stopPropagation()">
+                    <i class="bx bx-show"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="al-pagination">
+          <button type="button" class="al-btn al-btn--ghost al-btn--sm" [disabled]="currentPage() === 1"
+                  (click)="goToPage(currentPage() - 1)">Précédent</button>
+          <span>Page {{ currentPage() }} / {{ totalPages() }}</span>
+          <button type="button" class="al-btn al-btn--ghost al-btn--sm" [disabled]="currentPage() === totalPages()"
+                  (click)="goToPage(currentPage() + 1)">Suivant</button>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- ══ Détail ══ -->
+  @if (detailLoading) {
+    <div class="al-modal-backdrop"></div>
+    <div class="al-modal"><div class="al-state"><div class="al-spinner"></div></div></div>
+  }
+
+  @if (detail; as d) {
+    <div class="al-modal-backdrop" (click)="closeDetail()"></div>
+    <div class="al-modal" (click)="$event.stopPropagation()">
+      <div class="al-modal-header">
+        <div class="al-modal-title">
+          <i class="bx" [ngClass]="d.actionIcon"></i> {{ d.actionLabel }}
+          <span class="al-sev" [ngClass]="getSeverityClass(d.severity)">{{ d.severityLabel }}</span>
+        </div>
+        <button type="button" class="al-icon-btn" (click)="closeDetail()"><i class="bx bx-x"></i></button>
+      </div>
+
+      <div class="al-modal-body">
+        <dl class="al-detail-list">
+          <div><dt>Horodatage</dt><dd>{{ d.formattedTimestamp }} ({{ d.relativeTime }})</dd></div>
+          <div><dt>Utilisateur</dt><dd>{{ d.userFullName }} — {{ d.userEmail }}</dd></div>
+          <div><dt>Catégorie</dt><dd>{{ d.categoryLabel }}</dd></div>
+          <div><dt>Cible</dt><dd>{{ d.entityIdentifier || '—' }} ({{ d.entityType }} · {{ d.entityId }})</dd></div>
+          <div><dt>Description</dt><dd>{{ d.description || '—' }}</dd></div>
+          @if (d.ipAddress) { <div><dt>Adresse IP</dt><dd class="al-mono">{{ d.ipAddress }}</dd></div> }
+          @if (d.endpoint) { <div><dt>Endpoint</dt><dd class="al-mono">{{ d.httpMethod }} {{ d.endpoint }}</dd></div> }
+        </dl>
+
+        @if (getFieldChanges().length) {
+          <h4 class="al-detail-section">Modifications</h4>
+          <table class="al-table al-table--diff">
+            <thead><tr><th>Champ</th><th>Avant</th><th>Après</th></tr></thead>
+            <tbody>
+              @for (change of getFieldChanges(); track change.fieldName) {
+                <tr>
+                  <td class="al-mono">{{ change.fieldName }}</td>
+                  <td class="al-old">{{ change.oldValue || '—' }}</td>
+                  <td class="al-new">{{ change.newValue || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        @if (d.oldSnapshot || d.newSnapshot) {
+          <h4 class="al-detail-section">Instantanés</h4>
+          <div class="al-snapshots">
+            <div>
+              <span class="al-snapshot-label">Avant</span>
+              <pre>{{ d.oldSnapshot | json }}</pre>
+            </div>
+            <div>
+              <span class="al-snapshot-label">Après</span>
+              <pre>{{ d.newSnapshot | json }}</pre>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="al-modal-footer">
+        <button type="button" class="al-btn al-btn--ghost" (click)="closeDetail()">Fermer</button>
+      </div>
+    </div>
+  }
+</div>
