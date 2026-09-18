@@ -127,6 +127,9 @@ export class AgentWidget implements OnInit, OnDestroy {
   private voiceNoticeTimer: ReturnType<typeof setTimeout> | null = null;
   private autoOpenTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /** Préchargement de l'historique dès l'arrivée sur le dashboard (évite l'attente au 1er clic). */
+  private prefetchTimer: ReturnType<typeof setTimeout> | null = null;
+
   private readonly isBrowser: boolean;
   private readonly soundStorageKey = 'ekklesia_agent_sound';
   private readonly seenStorageKey = 'ekklesia_agent_seen';
@@ -147,6 +150,7 @@ export class AgentWidget implements OnInit, OnDestroy {
     this.speechSupported = this.getSpeechRecognitionCtor() !== null;
     this.loadCurrentUserName();
     this.maybeAutoOpen();
+    this.prefetchHistorySoon();
   }
 
   ngOnDestroy(): void {
@@ -154,6 +158,7 @@ export class AgentWidget implements OnInit, OnDestroy {
     this.stopSpeaking();
     if (this.voiceNoticeTimer) clearTimeout(this.voiceNoticeTimer);
     if (this.autoOpenTimer) clearTimeout(this.autoOpenTimer);
+    if (this.prefetchTimer) clearTimeout(this.prefetchTimer);
     this.subscriptions.unsubscribe();
   }
 
@@ -173,8 +178,15 @@ export class AgentWidget implements OnInit, OnDestroy {
     if (this.isOpen) return;
     this.isOpen = true;
     this.focusInputSoon();
+
+    // Ouverture perçue comme instantanée : l'accueil local s'affiche tout de suite,
+    // l'historique éventuel le remplacera discrètement une fois chargé.
+    if (this.messages.length === 0) {
+      this.showWelcome();
+    }
+
     if (!this.historyLoaded) {
-      this.loadHistory();
+      this.loadHistory(true);
     }
   }
 
@@ -219,9 +231,27 @@ export class AgentWidget implements OnInit, OnDestroy {
   // HISTORIQUE
   // ────────────────────────────────────────────────────────────────────
 
-  private loadHistory(): void {
+  /**
+   * Précharge l'historique pendant que l'utilisateur consulte la page.
+   * Objectif : quand il clique, la conversation est déjà là — et si le backend
+   * est en veille (cold start), l'attente se fait en arrière-plan, pas au clic.
+   */
+  private prefetchHistorySoon(): void {
+    if (this.historyLoaded) return;
+
+    this.prefetchTimer = setTimeout(() => {
+      this.prefetchTimer = null;
+      if (!this.historyLoaded) {
+        this.loadHistory(true);
+      }
+    }, 1200);
+  }
+
+  private loadHistory(silent = false): void {
     this.historyLoaded = true;
-    this.isLoadingConversation = true;
+    if (!silent) {
+      this.isLoadingConversation = true;
+    }
 
     this.subscriptions.add(
       this.agentApi.getConversations().subscribe({
@@ -233,21 +263,35 @@ export class AgentWidget implements OnInit, OnDestroy {
             return;
           }
 
+          // L'utilisateur a déjà écrit ou envoyé : ne jamais écraser sa conversation.
+          if (this.hasUserActivity()) {
+            return;
+          }
+
           this.conversations = [...response.data].sort(
             (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
           );
-          this.loadConversation(this.conversations[0].id);
+          this.loadConversation(this.conversations[0].id, silent);
         },
         error: () => {
           this.isLoadingConversation = false;
+          // Backend en veille ou réseau : on autorise une nouvelle tentative au prochain clic.
+          this.historyLoaded = false;
           this.showWelcome();
         }
       })
     );
   }
 
-  private loadConversation(id: string): void {
-    this.isLoadingConversation = true;
+  /** Vrai dès que l'utilisateur a un message réel (en cours d'envoi ou affiché). */
+  private hasUserActivity(): boolean {
+    return this.isSending || this.messages.some(m => !m.isLocal && m.role === 'user');
+  }
+
+  private loadConversation(id: string, silent = false): void {
+    if (!silent) {
+      this.isLoadingConversation = true;
+    }
 
     this.subscriptions.add(
       this.agentApi.getConversation(id).subscribe({
@@ -255,6 +299,11 @@ export class AgentWidget implements OnInit, OnDestroy {
           this.isLoadingConversation = false;
 
           if (response.success && response.data) {
+            // Ne pas écraser la conversation si l'utilisateur a commencé à écrire.
+            if (this.hasUserActivity()) {
+              return;
+            }
+
             this.conversationId = response.data.id;
             this.messages = response.data.messages ?? [];
             if (this.messages.length === 0) {
@@ -393,15 +442,28 @@ export class AgentWidget implements OnInit, OnDestroy {
 
           if (response.success && response.data) {
             this.conversationId = response.data.conversationId;
+
+            // Le backend renvoie 'reply' ; tolérance transitoire sur 'message'
+            // pour éviter une bulle vide si le déploiement est désynchronisé.
+            const reply = (response.data.reply
+              ?? (response.data as { message?: string }).message
+              ?? '').trim();
+
+            if (!reply) {
+              this.agentState = 'idle';
+              this.pushErrorMessage("L'assistant n'a pas renvoyé de réponse. Reformulez votre demande.");
+              return;
+            }
+
             this.messages = [...this.messages, {
               id: `local-assistant-${Date.now()}`,
               role: 'assistant',
-              content: response.data.reply,
+              content: reply,
               toolsUsed: response.data.toolsUsed ?? [],
               createdAt: response.data.createdAt || new Date().toISOString()
             }];
             this.agentState = 'idle';
-            this.speak(response.data.reply);
+            this.speak(reply);
             this.scrollToBottomSoon();
           } else {
             this.agentState = 'idle';
