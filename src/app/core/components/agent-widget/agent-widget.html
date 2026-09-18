@@ -1,0 +1,143 @@
+<!-- src/app/core/components/agent-widget/agent-widget.html -->
+
+<!-- Bouton flottant -->
+<button type="button"
+        class="agent-fab"
+        [class.agent-fab--open]="isOpen"
+        [class.agent-fab--listening]="agentState === 'listening'"
+        [class.agent-fab--thinking]="agentState === 'thinking'"
+        [class.agent-fab--speaking]="agentState === 'speaking'"
+        (click)="togglePanel()"
+        [attr.aria-label]="isOpen ? 'Fermer l\'assistant MIAV' : 'Ouvrir l\'assistant MIAV'"
+        [attr.aria-expanded]="isOpen">
+  <span class="agent-fab-ring" aria-hidden="true"></span>
+  <i class="bx" [ngClass]="isOpen ? 'bx-x' : 'bx-message-square-dots'" aria-hidden="true"></i>
+  <span class="agent-fab-badge" *ngIf="!isOpen" aria-hidden="true"></span>
+</button>
+
+<!-- Voile mobile : un clic ferme le panneau -->
+<div class="agent-backdrop" *ngIf="isOpen" (click)="closePanel()" aria-hidden="true"></div>
+
+<!-- Panneau de conversation -->
+<section class="agent-panel" *ngIf="isOpen" role="dialog" aria-label="Assistant MIAV">
+
+  <header class="agent-header">
+    <div class="agent-header-info">
+      <span class="agent-avatar" [ngClass]="'agent-state--' + agentState" aria-hidden="true">
+        <i class="bx bx-bot"></i>
+      </span>
+      <div class="agent-header-text">
+        <strong>Assistant MIAV</strong>
+        <span class="agent-state" [ngClass]="'agent-state--' + agentState">
+          <span class="agent-state-dot" aria-hidden="true"></span>{{ stateLabel }}
+        </span>
+      </div>
+    </div>
+
+    <div class="agent-header-actions">
+      <button type="button"
+              class="agent-icon-btn"
+              (click)="toggleSound()"
+              [attr.aria-label]="soundEnabled ? 'Couper la voix' : 'Activer la voix'"
+              [title]="soundEnabled ? 'Couper la voix' : 'Activer la voix'">
+        <i class="bx" [ngClass]="soundEnabled ? 'bx-volume-full' : 'bx-volume-mute'"></i>
+      </button>
+      <button type="button"
+              class="agent-icon-btn"
+              (click)="newConversation()"
+              aria-label="Nouvelle conversation"
+              title="Nouvelle conversation">
+        <i class="bx bx-edit-alt"></i>
+      </button>
+      <button type="button"
+              class="agent-icon-btn"
+              (click)="closePanel()"
+              aria-label="Fermer l'assistant"
+              title="Fermer">
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="agent-messages" #messagesContainer>
+
+    <div class="agent-loading" *ngIf="isLoadingConversation">Chargement de la conversation…</div>
+
+    <div class="agent-message"
+         *ngFor="let message of messages; trackBy: trackByMessage"
+         [class.agent-message--user]="message.role === 'user'"
+         [class.agent-message--assistant]="message.role === 'assistant'"
+         [class.agent-message--error]="message.isError">
+      <div class="agent-bubble">
+        <p class="agent-bubble-text">{{ message.content }}</p>
+        <div class="agent-bubble-meta">
+          <span class="agent-bubble-time">{{ formatTime(message.createdAt) }}</span>
+          <span class="agent-bubble-tools"
+                *ngIf="message.role === 'assistant' && (message.toolsUsed?.length || 0) > 0">
+            Données : {{ formatToolList(message.toolsUsed) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggestions d'accueil -->
+    <div class="agent-suggestions" *ngIf="showSuggestions">
+      <button type="button"
+              class="agent-suggestion"
+              *ngFor="let suggestion of suggestions"
+              (click)="sendMessage(suggestion)">
+        {{ suggestion }}
+      </button>
+    </div>
+
+    <!-- Indicateur de réflexion -->
+    <div class="agent-typing" *ngIf="agentState === 'thinking'" aria-label="L'assistant rédige sa réponse">
+      <span class="agent-typing-dot" aria-hidden="true"></span>
+      <span class="agent-typing-dot" aria-hidden="true"></span>
+      <span class="agent-typing-dot" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="agent-voice-notice" *ngIf="voiceNotice" role="status">
+    <i class="bx bx-info-circle" aria-hidden="true"></i>
+    <span>{{ voiceNotice }}</span>
+  </div>
+
+  <footer class="agent-input-row">
+    <div class="agent-input-wrap">
+      <textarea #messageInput
+                class="agent-input"
+                rows="1"
+                [ngModel]="inputText"
+                (ngModelChange)="onInputChange($event)"
+                (keydown)="onInputKeydown($event)"
+                [maxlength]="maxLength"
+                [placeholder]="isListening ? 'Parlez maintenant…' : 'Écrivez votre message…'"
+                aria-label="Message pour l'assistant"></textarea>
+      <span class="agent-counter" [class.agent-counter--warn]="inputText.length > maxLength - 100">
+        {{ inputText.length }}/{{ maxLength }}
+      </span>
+    </div>
+
+    <button type="button"
+            class="agent-mic"
+            [class.agent-mic--listening]="isListening"
+            [disabled]="!speechSupported"
+            (click)="toggleListening()"
+            [attr.aria-label]="isListening ? 'Arrêter l\'écoute' : 'Dicter un message'"
+            [title]="speechSupported
+              ? (isListening ? 'Arrêter l\'écoute' : 'Dicter un message')
+              : 'La saisie vocale n\'est pas prise en charge par ce navigateur'">
+      <i class="bx" [ngClass]="isListening ? 'bx-microphone-off' : 'bx-microphone'"></i>
+    </button>
+
+    <button type="button"
+            class="agent-send"
+            [disabled]="!canSend"
+            (click)="sendMessage()"
+            aria-label="Envoyer le message"
+            title="Envoyer">
+      <i class="bx bx-send"></i>
+    </button>
+  </footer>
+</section>

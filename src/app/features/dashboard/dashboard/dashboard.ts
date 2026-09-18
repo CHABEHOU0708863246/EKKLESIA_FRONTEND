@@ -15,6 +15,8 @@ import { Token } from '../../../core/services/Token/token';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { SidebarComponent } from "../../../core/components/sidebar-component/sidebar-component";
+import { AgentWidget } from "../../../core/components/agent-widget/agent-widget";
+import { NotificationComponent } from "../../../core/components/notification-component/notification-component";
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
 import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core/models/Dashboard/dashboard.model';
@@ -56,7 +58,7 @@ export enum OfferingStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
