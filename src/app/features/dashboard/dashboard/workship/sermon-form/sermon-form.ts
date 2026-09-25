@@ -8,7 +8,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { SermonMediaType, SermonMediaTypeLabels, Sermon, SermonCreate } from '../../../../../core/models/Events/sermon.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Sermons } from '../../../../../core/services/Sermon/sermons';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Church } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 
@@ -120,18 +120,14 @@ export class SermonForm implements OnInit, OnDestroy {
 
   private loadPreachers(): void {
     this.loadingPreachers.set(true);
+    // Endpoint dédié, déjà filtré sur les rôles pastoraux et accessible aux
+    // non-administrateurs (l'ancien getUsers() renvoyait 403 au pasteur de site).
     this.userService
-      .getUsers({ page: 1, pageSize: 100 })
+      .getPastors('', 1, 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
-          const items = response?.data?.items ?? [];
-          // Filtrer les pasteurs (PASTOR_PRINCIPAL ou PASTEUR_SITE)
-          const pastors = items.filter((u: any) => {
-            const roles = this.extractRoles(u);
-            return roles.some(r => r.includes('PASTOR') || r.includes('PASTEUR'));
-          });
-          this.allPreachers.set(pastors);
+        next: (response) => {
+          this.allPreachers.set((response?.data?.items ?? []).map(pastorToUser));
           this.loadingPreachers.set(false);
         },
         error: () => {
@@ -189,13 +185,10 @@ export class SermonForm implements OnInit, OnDestroy {
   }
 
   private searchPreachers(term: string): void {
-    this.userService.getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+    this.userService.getPastors(term, 1, 20)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
-          const data = response?.success && response?.data ? response.data : response;
-          this.preachers.set(data?.items ?? []);
-        },
+        next: (response) => this.preachers.set((response?.data?.items ?? []).map(pastorToUser)),
         error: () => this.preachers.set([]),
       });
   }

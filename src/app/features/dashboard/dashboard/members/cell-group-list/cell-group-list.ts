@@ -163,44 +163,29 @@ responsibles = signal<ResponsibleOption[]>([]);
 private loadResponsibles(): void {
   this.loadingResponsibles.set(true);
 
-  const responsibleRoles = [
-    'Responsable de Cellule',
-    'Pasteur de Site',
-    'Pasteur Principal',
-    'Ancien / Diacre',
-    'Responsable de Département'
-  ];
-
+  // Annuaire minimal filtré par rôles « responsables » (endpoint accessible
+  // aux non-administrateurs, scopé à l'église de l'utilisateur).
   this.userService
-    .getUsers({ page: 1, pageSize: 100 })
+    .getDirectory(
+      ['CELL_LEADER', 'PASTEUR_SITE', 'PASTOR_PRINCIPAL', 'ELDER', 'DEPARTMENT_HEAD'],
+      '',
+      1,
+      100
+    )
     .pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.loadingResponsibles.set(false)), // 🔥 toujours exécuté
-      tap((response) => {
-        if (response.data?.items) {
-          console.log('🔍 Exemple de rôles :', response.data.items[0]?.roles);
-        }
-      }),
-      map((userResponse) => {
-        if (!userResponse.success || !userResponse.data) return [];
-
-        return userResponse.data.items
-          .filter((user) =>
-            (user.roles ?? []).some((r) =>
-              responsibleRoles.some((allowed) => allowed === r)
-            )
-          )
-          .map((user) => ({
-            id: user.id,
-            fullName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-            phone: user.phone || '',
-            email: user.email || '',
-          }));
-      })
+      finalize(() => this.loadingResponsibles.set(false)),
+      map((response) =>
+        (response?.data?.items ?? []).map((u) => ({
+          id: u.id,
+          fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+          phone: u.phone || '',
+          email: u.email || '',
+        }))
+      )
     )
     .subscribe({
       next: (results) => {
-        console.log('✅ Responsables filtrés :', results);
         this.responsibles.set(results);
       },
       error: (err) => {

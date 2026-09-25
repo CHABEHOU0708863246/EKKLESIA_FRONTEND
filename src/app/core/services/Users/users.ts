@@ -29,6 +29,7 @@ export interface PastorOption {
   email?: string;
   churchId?: string;
   siteId?: string;
+  roleLabel?: string;
 }
 
 export interface PastorListResponse {
@@ -37,6 +38,61 @@ export interface PastorListResponse {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+}
+
+/** Entrée d'annuaire minimale renvoyée par /api/v1/User/directory. */
+export interface DirectoryUser {
+  id: string;
+  fullName: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  roleLabel?: string;
+  churchId?: string;
+  siteId?: string;
+}
+
+export interface DirectoryListResponse {
+  items: DirectoryUser[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+/** Convertit une entrée d'annuaire vers la forme `User` des formulaires. */
+export function directoryToUser(d: DirectoryUser): any {
+  const fullName = d.fullName || `${d.firstName ?? ''} ${d.lastName ?? ''}`.trim();
+  return {
+    id: d.id,
+    memberId: d.id,
+    firstName: d.firstName ?? '',
+    lastName: d.lastName ?? '',
+    fullName,
+    email: d.email,
+    phone: d.phone,
+    roles: d.roleLabel ? [d.roleLabel] : [],
+  };
+}
+
+/**
+ * Convertit un pasteur allégé (endpoint /pastors) vers la forme `User`
+ * attendue par les formulaires (sélecteur de prédicateur/officiant).
+ * Évite d'appeler l'endpoint d'administration (réservé aux gestionnaires).
+ */
+export function pastorToUser(p: PastorOption): any {
+  const fullName = p.fullName || `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim();
+  return {
+    id: p.id,
+    memberId: p.id,
+    firstName: p.firstName ?? '',
+    lastName: p.lastName ?? '',
+    fullName,
+    email: p.email,
+    phone: p.phone,
+    roles: p.roleLabel ? [p.roleLabel] : [],
+  };
 }
 
 @Injectable({
@@ -350,6 +406,36 @@ updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> 
         data: response
       } as ApiResponse<PastorListResponse>)),
       catchError(this.handleError<PastorListResponse>('getPastors'))
+    );
+  }
+
+  /**
+   * Annuaire minimal pour les sélecteurs opérationnels (organisateur, demandeur,
+   * responsable…). Accessible aux rôles non-administrateurs et scopé par le
+   * serveur à l'église de l'utilisateur. Remplace getAllUsers()/getUsers() qui
+   * renvoyaient 403 pour un pasteur de site.
+   * GET /api/v1/User/directory?roles=&search=&page=&pageSize=
+   */
+  getDirectory(
+    roles: string[] = [],
+    search: string = '',
+    page: number = 1,
+    pageSize: number = 50
+  ): Observable<ApiResponse<DirectoryListResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (roles.length) params = params.set('roles', roles.join(','));
+    if (search && search.trim()) params = params.set('search', search.trim());
+
+    return this.http.get<DirectoryListResponse>(`${this.baseUrl}/directory`, { params }).pipe(
+      map(response => ({
+        success: true,
+        message: 'Annuaire chargé avec succès',
+        data: response
+      } as ApiResponse<DirectoryListResponse>)),
+      catchError(this.handleError<DirectoryListResponse>('getDirectory'))
     );
   }
 

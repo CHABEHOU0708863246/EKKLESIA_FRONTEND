@@ -83,11 +83,12 @@ export class ZoneEdit implements OnInit {
   }
 
   private loadUsers(): void {
-  this.usersService.getUsers({ page: 1, pageSize: 100 }).subscribe((res) => {
+  // Annuaire minimal (accessible aux non-administrateurs, scopé à l'église).
+  this.usersService.getDirectory([], '', 1, 100).subscribe((res) => {
     if (res.success && res.data) {
-      this.users.set(res.data.items.map((u: any) => ({
+      this.users.set(res.data.items.map((u) => ({
         id: u.id,
-        fullName: u.fullName || u.username || u.email
+        fullName: u.fullName || u.email || ''
       })));
     }
   });

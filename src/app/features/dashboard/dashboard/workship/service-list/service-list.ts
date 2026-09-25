@@ -15,7 +15,7 @@ import {
   ServiceAttendance
 } from '../../../../../core/models/Events/service.model';
 import { User } from '../../../../../core/models/Users/user.model';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
@@ -149,17 +149,13 @@ photoUrl: SafeUrl | null = null;
 
   private loadPreachers(): void {
     this.loadingPreachers.set(true);
+    // Endpoint dédié, accessible aux non-administrateurs (pasteur de site…).
     this.userService
-      .getUsers({ page: 1, pageSize: 100, roles: ['PASTEUR_SITE', 'PASTOR_PRINCIPAL'] } as any)
+      .getPastors('', 1, 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            const items = (response.data as any).items ?? response.data ?? [];
-            this.preachers.set(items);
-          } else {
-            this.preachers.set([]);
-          }
+          this.preachers.set((response?.data?.items ?? []).map(pastorToUser));
           this.loadingPreachers.set(false);
         },
         error: () => {

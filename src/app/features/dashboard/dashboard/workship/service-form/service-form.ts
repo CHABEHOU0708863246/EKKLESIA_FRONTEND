@@ -16,7 +16,7 @@ import {
 } from '../../../../../core/models/Events/service.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
@@ -312,40 +312,27 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   /**
-   * ⚠️ Pas de paramètre `roles` : le backend renvoie HTTP 400 sur
-   * ?roles=A,B (model binding). On charge tous les utilisateurs
-   * actifs et on filtre côté client.
+   * Charge les pasteurs via l'endpoint dédié `/User/pastors` (accessible aux
+   * non-administrateurs : pasteur de site, secrétaire…). L'ancien appel
+   * `getUsers()` exigeait User_Create et renvoyait un 403 « Accès refusé »,
+   * ce qui vidait le sélecteur de pasteur et bloquait la création de culte.
    */
   private loadPreachers(): void {
-   this.loadingPreachers.set(true);
-  this.userService
-    .getUsers({ page: 1, pageSize: 100 } as any)   // ⚠️ maximum autorisé par l'API
-    .pipe(takeUntil(this.destroy$))
+    this.loadingPreachers.set(true);
+    this.userService
+      .getPastors('', 1, 50)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          const items = (response?.data?.items ?? []) as User[];
-          const pastors = items.filter(isPastor);
-
-          console.log(
-            `👉 ${items.length} utilisateur(s) reçu(s), ${pastors.length} pasteur(s) retenu(s)`,
-            items.map((u: any) => ({
-              nom: this.getUserFullName(u),
-              rolesBruts: u.roles,
-              rolesNormalises: extractRoles(u),
-              retenu: isPastor(u),
-            }))
-          );
-
-          this.allPreachers.set(pastors);
+          const pastors = (response?.data?.items ?? []).map(pastorToUser);
+          this.allPreachers.set(pastors as User[]);
           this.loadingPreachers.set(false);
         },
         error: (err) => {
           console.error('❌ Échec chargement pasteurs', err?.status, err?.error);
           this.allPreachers.set([]);
           this.loadingPreachers.set(false);
-          this.error.set(
-            `Impossible de charger la liste des pasteurs (HTTP ${err?.status ?? '?'}).`
-          );
+          this.error.set('Impossible de charger la liste des pasteurs.');
         },
       });
   }

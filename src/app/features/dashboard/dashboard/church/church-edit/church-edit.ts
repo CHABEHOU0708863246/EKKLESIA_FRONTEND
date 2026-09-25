@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Notification } from '../../../../../core/services/Notification/notification';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { User } from '../../../../../core/models/Users/user.model';
 
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
@@ -220,13 +220,14 @@ export class ChurchEdit implements OnInit, OnDestroy {
 
   private loadPastors(): void {
   this.loadingPastors.set(true);
+  // Endpoint dédié (accessible aux non-administrateurs, déjà filtré sur les
+  // rôles pastoraux). L'ancien getUsers() exigeait User_Create → 403.
   this.userService
-    .getUsers({ page: 1, pageSize: 100 } as any)   // ⚠️ 200 → HTTP 400
+    .getPastors('', 1, 100)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
-        const items = (response?.data?.items ?? []) as User[];
-        this.pastors.set(items.filter(isPastor));
+        this.pastors.set((response?.data?.items ?? []).map(pastorToUser) as User[]);
         this.loadingPastors.set(false);
       },
       error: (err) => {
@@ -241,24 +242,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
   // dans la liste du select, même s'il n'a pas été renvoyé par loadPastors()
   // (rôle différent, compte désactivé, etc.)
   private ensurePastorInList(pastorId: string): void {
+    // Les pasteurs sont désormais tous chargés via getPastors() (endpoint non
+    // administrateur). On n'appelle plus getUserById(), réservé à User_Create,
+    // qui renvoyait un 403 au gestionnaire d'église.
     if (!pastorId) return;
-    if (this.pastors().some((p) => p.id === pastorId)) return;
-    const alreadyThere = this.pastors().some((p) => p.id === pastorId);
-    if (alreadyThere) return;
-
-    this.userService
-      .getUserById(pastorId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: ApiResponse<User>) => {
-          if (response.success && response.data) {
-            this.pastors.update((list) => [response.data as User, ...list]);
-          }
-        },
-        error: () => {
-          // silencieux : si le pasteur n'existe plus, le select affichera juste "Aucun responsable"
-        },
-      });
   }
 
   // ─── FORMULAIRE ──────────────────────────────────────────────────────

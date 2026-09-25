@@ -18,7 +18,7 @@ import { PASTORAL_ACT_ROLES } from '../../../../../core/models/PastoralAct/pasto
 import { User } from '../../../../../core/models/Users/user.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
 
 /**
@@ -342,20 +342,11 @@ private loadOfficiant(act: PastoralActResponseDto): void {
     this.showOfficiantResults.set(true);
 
     this.userService
-      .getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+      .getPastors(term, 1, 20)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            const allowedNames = this.officiantRoleNames();
-            const items = (response.data.items ?? []) as User[];
-            const filtered = allowedNames.length > 0
-              ? items.filter((u) => (u.roles ?? []).some((r) => allowedNames.includes(r)))
-              : items;
-            this.officiantResults.set(filtered);
-          } else {
-            this.officiantResults.set([]);
-          }
+          this.officiantResults.set((response?.data?.items ?? []).map(pastorToUser) as User[]);
           this.searchingOfficiant.set(false);
         },
         error: () => {

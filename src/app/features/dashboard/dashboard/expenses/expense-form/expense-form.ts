@@ -7,7 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 
 import {
   ExpenseCategory,
@@ -198,13 +198,13 @@ export class ExpenseForm implements OnInit, OnDestroy {
 
   private loadUsers(): void {
     this.loadingUsers.set(true);
+    // Annuaire minimal (non-admins autorisés, scopé à l'église).
     this.userService
-      .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+      .getDirectory([], '', 1, 100)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
-          const users = this.extractItems<User>(response);
-          this.allUsers.set(users);
+        next: (response) => {
+          this.allUsers.set((response?.data?.items ?? []).map(directoryToUser) as User[]);
           this.loadingUsers.set(false);
         },
         error: (err) => {
@@ -316,11 +316,11 @@ export class ExpenseForm implements OnInit, OnDestroy {
           }
           // Sinon, chercher dans les utilisateurs
           this.userService
-            .getUsers({ page: 1, pageSize: 8, fullName: term } as any)
+            .getDirectory([], term, 1, 8)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (userResponse) => {
-                const users = (userResponse as any)?.items || [];
+                const users = (userResponse?.data?.items ?? []).map(directoryToUser);
                 this.requesterResults.set(users);
                 this.searchingRequester.set(false);
               },

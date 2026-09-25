@@ -7,7 +7,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { User } from '../../../../../core/models/Users/user.model';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Site } from '../../../../../core/models/Church/site.model';
@@ -167,14 +167,13 @@ loadingUsers = signal(false);
 
   private loadAllUsers(): void {
   this.loadingUsers.set(true);
+  // Annuaire minimal (accessibles aux non-administrateurs, scopé à l'église).
   this.userService
-    .getUsers({ page: 1, pageSize: 100 })
+    .getDirectory([], '', 1, 100)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
-        if (response.success && response.data) {
-          this.allUsers.set(response.data.items as User[]);
-        }
+        this.allUsers.set((response?.data?.items ?? []).map(directoryToUser) as User[]);
         this.loadingUsers.set(false);
       },
       error: () => this.loadingUsers.set(false),
@@ -305,15 +304,11 @@ loadingUsers = signal(false);
     this.showOrganizerResults.set(true);
 
     this.userService
-      .getUsers({ fullName: term, page: 1, pageSize: 15 } as any)
+      .getDirectory([], term, 1, 15)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            this.organizerResults.set((response.data.items ?? []) as User[]);
-          } else {
-            this.organizerResults.set([]);
-          }
+          this.organizerResults.set((response?.data?.items ?? []).map(directoryToUser) as User[]);
           this.searchingOrganizer.set(false);
         },
         error: () => {

@@ -7,7 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Appointment, AppointmentCreate, AppointmentUpdate, AppointmentUtils, AppointmentStatus } from '../../../../../core/models/Pastor/appointment.model';
 import { PastorAppointmentService } from '../../../../../core/services/PastortRvd/pastort-appointment';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
@@ -238,27 +238,14 @@ export class AppointmentForm implements OnInit, OnDestroy {
 
 private loadPastors(): void {
   this.loadingPastors.set(true);
+  // Endpoint dédié, accessible aux non-administrateurs (pasteur de site…).
   this.userService
-    .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+    .getPastors('', 1, 50)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (response: any) => {
-        const users = this.extractItems<User>(response);
-        const pastorRoleIdentifiers = [
-          'PASTEUR_SITE', 'PASTOR_PRINCIPAL',
-          'Pasteur de Site', 'Pasteur Principal',
-          'PASTEUR SITE', 'PASTOR PRINCIPAL'
-        ];
-        const pastors = users.filter((user: any) => {
-          const roles = user.roles ?? user.roleNames ?? user.Roles ?? [];
-          const roleList = Array.isArray(roles) ? roles : [roles];
-          return roleList.some((r: string) =>
-            pastorRoleIdentifiers.some(id => r.toUpperCase().includes(id.toUpperCase()))
-          );
-        });
-        this.pastors.set(pastors);
+      next: (response) => {
+        this.pastors.set((response?.data?.items ?? []).map(pastorToUser) as User[]);
         this.loadingPastors.set(false);
-        console.log('✅ Pasteurs chargés:', pastors.length);
       },
       error: (err) => {
         console.error('❌ Erreur chargement pasteurs:', err);

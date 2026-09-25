@@ -9,7 +9,7 @@ import { Church as ChurchService } from '../../../../../core/services/Church/chu
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import {
   Sermon,
   SermonUpdate,
@@ -223,13 +223,10 @@ export class SermonEdit implements OnInit, OnDestroy {
   }
 
   private searchPreachers(term: string): void {
-    this.userService.getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+    this.userService.getPastors(term, 1, 20)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
-          const data = response?.success && response?.data ? response.data : response;
-          this.preachers.set(data?.items ?? []);
-        },
+        next: (response) => this.preachers.set((response?.data?.items ?? []).map(pastorToUser)),
         error: () => this.preachers.set([]),
       });
   }
