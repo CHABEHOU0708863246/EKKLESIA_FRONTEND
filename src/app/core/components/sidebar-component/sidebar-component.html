@@ -273,56 +273,9 @@
       </li>
       }
 
-      <!-- ──────────────────────────────────────────────────────────── -->
-      <!-- 6️⃣ RESSOURCES HUMAINES — employés, bénévoles              -->
-      <!-- ──────────────────────────────────────────────────────────── -->
-      @if (permission.canAccessHRModule()) {
-      <div class="nav-section-label">Ressources Humaines</div>
-
-      @if (permission.canViewEmployees()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
-          <i class="nav-icon bx bx-id-card"></i>
-          <span class="nav-text">Employés</span>
-          <i class="nav-chevron bx bx-chevron-down"></i>
-        </a>
-        <ul class="nav-sub">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/employes']" class="nav-link">
-              <i class="nav-icon-sub bx bx-list-ul"></i>
-              <span class="nav-text">Tous les employés</span>
-            </a>
-          </li>
-          @if (permission.canCreateEmployee()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/employes/new']" class="nav-link">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Nouvel employé</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManagePayroll()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/paie']" class="nav-link">
-              <i class="nav-icon-sub bx bx-money"></i>
-              <span class="nav-text">Paie & salaires</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageLeave()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/rh/conges']" class="nav-link">
-              <i class="nav-icon-sub bx bx-calendar-check"></i>
-              <span class="nav-text">Congés</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
-
-      }
+      <!-- ⛔ RESSOURCES HUMAINES — masquée tant que les routes
+           /dashboard/rh/** n'existent pas (liens morts → 404). Le module
+           backend existe, l'UI sera réactivée avec ses écrans. -->
 
       <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 7️⃣ FINANCES — Offrandes, Dépenses, Budget                  -->
@@ -449,50 +402,8 @@
       @if (permission.canAccessPropertyModule() || permission.canAccessCommunicationModule()) {
       <div class="nav-section-label">Patrimoine & Communication</div>
 
-      @if (permission.canAccessPropertyModule()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
-          <i class="nav-icon bx bx-building-house"></i>
-          <span class="nav-text">Patrimoine</span>
-          <i class="nav-chevron bx bx-chevron-down"></i>
-        </a>
-        <ul class="nav-sub">
-          @if (permission.canViewProperties()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/patrimoine/biens']" class="nav-link">
-              <i class="nav-icon-sub bx bx-building"></i>
-              <span class="nav-text">Biens & locaux</span>
-            </a>
-          </li>
-          }
-          @if (permission.canCreateProperty()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/patrimoine/biens/new']" class="nav-link">
-              <i class="nav-icon-sub bx bx-plus-circle"></i>
-              <span class="nav-text">Ajouter un bien</span>
-              <span class="nav-badge badge-gold">+</span>
-            </a>
-          </li>
-          }
-          @if (permission.canViewContracts()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/patrimoine/contrats']" class="nav-link">
-              <i class="nav-icon-sub bx bx-file"></i>
-              <span class="nav-text">Contrats & baux</span>
-            </a>
-          </li>
-          }
-          @if (permission.canManageMaintenance() || permission.canReportMaintenance()) {
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard/patrimoine/maintenance']" class="nav-link">
-              <i class="nav-icon-sub bx bx-wrench"></i>
-              <span class="nav-text">Maintenance</span>
-            </a>
-          </li>
-          }
-        </ul>
-      </li>
-      }
+      <!-- ⛔ PATRIMOINE — masqué tant que les routes /dashboard/patrimoine/**
+           n'existent pas (liens morts → 404). -->
 
       @if (permission.canAccessCommunicationModule()) {
       <li class="nav-item" routerLinkActive="active open">
@@ -609,6 +520,7 @@
               <span class="nav-text">Églises & sites</span>
             </a>
           </li>
+          @if (permission.canManageChurchSettings()) {
           <li class="nav-item" routerLinkActive="active">
             <a [routerLink]="['/dashboard/admin/parametres/eglise/new']" class="nav-link"
               (click)="closeMobileSidebar()">
@@ -617,6 +529,7 @@
               <span class="nav-badge badge-gold">+</span>
             </a>
           </li>
+          }
 
           <!-- ✅ AJOUT : Gestion des zones -->
           @if (permission.canViewZones()) {
@@ -649,26 +562,8 @@
       </li>
       }
 
-      @if (permission.canViewSettings() || permission.canUpdateSettings() || permission.canConfigureNotifications()) {
-      <li class="nav-item" routerLinkActive="active open">
-        <a class="nav-link" (click)="toggleMenu($event)" title="Cliquer pour afficher les sous-menus">
-          <i class="nav-icon bx bx-cog"></i>
-          <span class="nav-text">Paramètres</span>
-          <i class="nav-chevron bx bx-chevron-down"></i>
-        </a>
-        <ul class="nav-sub">
-          <!-- Paramètres généraux — masqué, prêt pour activation -->
-          <!-- @if (permission.canViewSettings()) {
-          <li class="nav-item" routerLinkActive="active">
-            <a [routerLink]="['/dashboard/admin/parametres/generaux']" class="nav-link" (click)="closeMobileSidebar()">
-              <i class="nav-icon-sub bx bx-slider"></i>
-              <span class="nav-text">Paramètres généraux</span>
-            </a>
-          </li>
-          } -->
-        </ul>
-      </li>
-      }
+      <!-- ⛔ PARAMÈTRES — entrée vide (aucune route active) : non rendue
+           pour ne pas afficher un menu sans contenu. -->
 
 
 

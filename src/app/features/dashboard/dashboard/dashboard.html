@@ -114,7 +114,12 @@
 
   </div>
 
-  <!-- Assistant MIAV : widget flottant + toasts (403/429 de l'intercepteur) -->
-  <app-agent-widget></app-agent-widget>
+  <!-- Assistant MIAV : chargé de façon PARESSEUSE (chunk séparé) pour ne pas
+       alourdir le démarrage. Le déclencheur timer(0) affiche le bouton quasi
+       immédiatement ; prefetch on idle précharge le code pendant que
+       l'utilisateur consulte la page, pour une ouverture instantanée. -->
+  @defer (on timer(0); prefetch on idle) {
+    <app-agent-widget></app-agent-widget>
+  }
   <app-notification-component></app-notification-component>
 </div>

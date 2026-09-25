@@ -117,8 +117,6 @@ export class ChurchForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    this.loadPastorRoleNames();
-
 
     this.churchId = this.route.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.churchId);
@@ -141,41 +139,6 @@ export class ChurchForm implements OnInit, OnDestroy {
       });
   }
 
-  /**
- * Récupère les vrais libellés (roleName) des rôles pastoraux à partir
- * de leur code, car AddToRolesAsync stocke le Name/roleName sur
- * l'utilisateur — jamais le code.
- */
-  private loadPastorRoleNames(): void {
-  const pastorCodes = ['PASTOR_PRINCIPAL', 'PASTEUR_SITE'];
-  const names: string[] = [];
-  let remaining = pastorCodes.length;
-
-  for (const code of pastorCodes) {
-    this.roleService
-      .getRoleByCode(code)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log(`🔍 getRoleByCode(${code}):`, response); // ← debug
-          if (response.success && response.data) {
-            names.push(response.data.roleName);
-          }
-          remaining--;
-          if (remaining === 0) {
-            console.log('✅ pastorRoleNames final:', names); // ← debug
-            this.pastorRoleNames.set(names);
-          }
-        },
-        error: (err) => {
-          console.error(`❌ Erreur getRoleByCode(${code}):`, err); // ← debug
-          remaining--;
-          if (remaining === 0) this.pastorRoleNames.set(names);
-        },
-      });
-  }
-}
-
   getInitialsFromUser(user: User): string {
     const f = user.firstName?.charAt(0) || '?';
     const l = user.lastName?.charAt(0) || '?';
@@ -191,31 +154,27 @@ export class ChurchForm implements OnInit, OnDestroy {
   this.searchingPastor.set(true);
   this.showPastorResults.set(true);
 
+  // Recherche paginée côté serveur, déjà filtrée sur les rôles pastoraux et
+  // servie sous forme de DTO allégé (bien plus rapide que getAllUsers()).
   this.userService
-    .getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+    .getPastors(term, 1, 20)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
-        console.log('🔍 getUsers réponse brute:', response); // ← debug
-        if (response.success && response.data) {
-          const allowedNames = this.pastorRoleNames();
-          const items = (response.data.items ?? []) as User[];
-          console.log('🔍 items reçus AVANT filtre rôle:', items); // ← debug
-          console.log('🔍 allowedNames utilisés pour filtrer:', allowedNames); // ← debug
+        const items = (response.data?.items ?? []).map((p) => ({
+          id: p.id,
+          memberId: p.id,
+          firstName: p.firstName ?? '',
+          lastName: p.lastName ?? '',
+          fullName: p.fullName,
+          email: p.email,
+          phone: p.phone,
+        })) as unknown as User[];
 
-          const filtered = allowedNames.length > 0
-            ? items.filter((u) => (u.roles ?? []).some((r) => allowedNames.includes(r)))
-            : items;
-
-          console.log('🔍 items APRÈS filtre rôle:', filtered); // ← debug
-          this.pastorResults.set(filtered);
-        } else {
-          this.pastorResults.set([]);
-        }
+        this.pastorResults.set(items);
         this.searchingPastor.set(false);
       },
-      error: (err) => {
-        console.error('❌ Erreur getUsers:', err); // ← debug
+      error: () => {
         this.pastorResults.set([]);
         this.searchingPastor.set(false);
       },

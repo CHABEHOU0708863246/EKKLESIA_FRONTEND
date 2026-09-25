@@ -19,6 +19,26 @@ import { environment } from '../../../../environments/environment';
 import { Token } from '../Token/token';
 import { ApiResponse } from '../../models/Common/api-response.model';
 
+/** Pasteur allégé renvoyé par /api/v1/User/pastors (pagination serveur). */
+export interface PastorOption {
+  id: string;
+  fullName: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  churchId?: string;
+  siteId?: string;
+}
+
+export interface PastorListResponse {
+  items: PastorOption[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -309,6 +329,28 @@ updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> 
         }),
         catchError(this.handleError<UserListResponse>('getUsers'))
       );
+  }
+
+  /**
+   * Rechercher des pasteurs pour les listes déroulantes (pagination serveur).
+   * Ne renvoie qu'une page et un DTO allégé : bien plus rapide que getAllUsers().
+   * GET /api/v1/User/pastors?search=&page=&pageSize=
+   */
+  getPastors(search: string = '', page: number = 1, pageSize: number = 20): Observable<ApiResponse<PastorListResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (search && search.trim()) params = params.set('search', search.trim());
+
+    return this.http.get<PastorListResponse>(`${this.baseUrl}/pastors`, { params }).pipe(
+      map(response => ({
+        success: true,
+        message: 'Pasteurs chargés avec succès',
+        data: response
+      } as ApiResponse<PastorListResponse>)),
+      catchError(this.handleError<PastorListResponse>('getPastors'))
+    );
   }
 
   /**

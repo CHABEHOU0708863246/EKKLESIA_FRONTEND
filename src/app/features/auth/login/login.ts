@@ -106,6 +106,12 @@ isBlessed: any;
             // juste après qu'il ait été écrit en storage, avant toute navigation.
             this.permissionsService.reloadPermissions();
 
+            // Puis synchronise avec la source de vérité serveur (permissions
+            // effectives + rôles) sans bloquer la navigation.
+            this.permissionsService.refreshFromServer().catch(() => {
+              // silencieux : le JWT fournit déjà les permissions des rôles.
+            });
+
             if (response.refreshToken) {
               localStorage.setItem('refresh_token', response.refreshToken);
             }

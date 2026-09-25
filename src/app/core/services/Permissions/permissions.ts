@@ -13,6 +13,7 @@ export class Permissions {
 
   private userPermissions: string[] = [];
   private userRoles: string[] = [];
+  private loadedFromServer = false;
 
   // Constantes pour les modules
   private readonly MODULES = {
@@ -35,6 +36,15 @@ export class Permissions {
     this.loadUserPermissions();
   }
 
+  /**
+   * Charge les permissions EFFECTIVES depuis le serveur (`/Auth/me`), qui est
+   * désormais la source de vérité (permissions directes + rôles). On REMPLACE
+   * la liste courante au lieu de la fusionner : l'interface doit refléter
+   * exactement ce que le serveur autorise.
+   *
+   * Les RÔLES sont, eux, fusionnés (le JWT porte les codes, `/Auth/me` les
+   * libellés) afin que tous les contrôles par rôle continuent de fonctionner.
+   */
   public async refreshFromServer(): Promise<void> {
     try {
       const fresh = await firstValueFrom(
@@ -43,19 +53,22 @@ export class Permissions {
         )
       );
 
-      // ✅ Fusion : le JWT porte les permissions issues des RÔLES, `/Auth/me`
-      // porte les permissions DIRECTES de l'utilisateur. L'interface doit
-      // refléter l'union des deux (même logique que les handlers backend).
-      const directPermissions = fresh?.permissions ?? [];
-      this.userPermissions = [...new Set([...this.userPermissions, ...directPermissions])];
+      this.userPermissions = [...new Set(fresh?.permissions ?? [])];
 
       if (fresh?.roles?.length) {
         this.userRoles = [...new Set([...this.userRoles, ...fresh.roles])];
       }
+
+      this.loadedFromServer = true;
     } catch {
       // silencieux : on garde l'état issu du JWT en cas d'échec réseau
       // (ex: hors ligne) plutôt que de vider les permissions et casser l'UI.
     }
+  }
+
+  /** Indique si les permissions effectives ont bien été chargées depuis le serveur. */
+  public isLoadedFromServer(): boolean {
+    return this.loadedFromServer;
   }
 
   /**
@@ -587,6 +600,22 @@ export class Permissions {
     return this.hasPermission('Finance_Transfer_Make');
   }
 
+  /**
+   * Capacité transversale « accès aux données financières ».
+   * Alignée sur la politique backend HAS_FINANCE_ACCESS : doit être vraie pour
+   * afficher le moindre montant (offrandes, dépenses, budgets, consolidation).
+   * Les rôles sans accès finance (Responsable de Département, Secrétaire
+   * Pastorale, Chef de Mission Nationale) doivent obtenir `false`.
+   */
+  public hasFinanceAccess(): boolean {
+    return this.hasAnyPermission(
+      'Finance_Offering_Read', 'Finance_Offering_Create', 'Finance_Offering_Validate',
+      'Finance_Expense_Read', 'Finance_Expense_Create', 'Finance_Expense_Validate',
+      'Finance_Budget_Read', 'Finance_Budget_Create', 'Finance_Budget_Update',
+      'Finance_Consolidated_View'
+    );
+  }
+
   // ───────────────────────────────────────────────────────────────
   // 📅 MODULE : ÉVÉNEMENTS & CULTES
   // ───────────────────────────────────────────────────────────────
@@ -1037,6 +1066,7 @@ export class Permissions {
   public clearPermissions(): void {
     this.userPermissions = [];
     this.userRoles = [];
+    this.loadedFromServer = false;
   }
 
   /**
@@ -1076,9 +1106,15 @@ export class Permissions {
       this.hasRole('Pasteur de Site');
   }
 
+  /**
+   * « Admin ou plus » — aligné sur la politique backend ADMIN_OR_ABOVE, qui
+   * accepte SUPER_ADMIN, PASTOR_PRINCIPAL et PASTEUR_SITE. Sans PASTEUR_SITE ici,
+   * le Pasteur de Site était bloqué sur les routes protégées par `admin`.
+   */
   public isAdminOrAbove(): boolean {
     return this.isSuperAdmin() ||
       this.isPastorPrincipal() ||
+      this.isPasteurSite() ||
       this.hasRole('ADMIN') ||
       this.hasRole('Administrateur');
   }

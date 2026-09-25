@@ -134,7 +134,6 @@ loadingPastors = signal(false);
      this.loadPastors();
 
     this.loadChurches();
-    this.loadOfficiantRoleNames();
     this.addParticipant(); // au moins un participant par défaut
 
     this.form.get('churchId')?.valueChanges
@@ -188,25 +187,13 @@ loadingPastors = signal(false);
 
   private loadPastors(): void {
   this.loadingPastors.set(true);
+  // Première page de pasteurs (déjà filtrée côté serveur sur les rôles pastoraux).
   this.userService
-    .getUsers({ page: 1, pageSize: 100, isActive: true } as any)
+    .getPastors('', 1, 50)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (response: any) => {
-        const users = this.extractItems<User>(response);
-        const pastorRoleIdentifiers = [
-          'PASTEUR_SITE', 'PASTOR_PRINCIPAL',
-          'Pasteur de Site', 'Pasteur Principal',
-          'PASTEUR SITE', 'PASTOR PRINCIPAL'
-        ];
-        const pastors = users.filter((user: any) => {
-          const roles = user.roles ?? user.roleNames ?? user.Roles ?? [];
-          const roleList = Array.isArray(roles) ? roles : [roles];
-          return roleList.some((r: string) =>
-            pastorRoleIdentifiers.some(id => r.toUpperCase().includes(id.toUpperCase()))
-          );
-        });
-        this.allPastors.set(pastors);
+      next: (response) => {
+        this.allPastors.set(this.toUsers(response.data?.items ?? []));
         this.loadingPastors.set(false);
       },
       error: (err) => {
@@ -215,6 +202,19 @@ loadingPastors = signal(false);
         this.loadingPastors.set(false);
       },
     });
+}
+
+/** Mappe les pasteurs allégés (DTO) vers la forme User attendue par le template. */
+private toUsers(items: { id: string; fullName: string; firstName?: string; lastName?: string; email?: string; phone?: string }[]): User[] {
+  return items.map((p) => ({
+    id: p.id,
+    memberId: p.id,
+    firstName: p.firstName ?? '',
+    lastName: p.lastName ?? '',
+    fullName: p.fullName,
+    email: p.email,
+    phone: p.phone,
+  })) as unknown as User[];
 }
 
   private loadChurches(): void {
@@ -253,48 +253,17 @@ loadingPastors = signal(false);
   // RECHERCHE DE L'OFFICIANT (pasteur)
   // ───────────────────────────────────────────────────────────────
 
-  private loadOfficiantRoleNames(): void {
-    const codes = ['PASTOR_PRINCIPAL', 'PASTEUR_SITE'];
-    const names: string[] = [];
-    let remaining = codes.length;
-
-    for (const code of codes) {
-      this.roleService
-        .getRoleByCode(code)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            if (response.success && response.data) names.push(response.data.roleName);
-            remaining--;
-            if (remaining === 0) this.officiantRoleNames.set(names);
-          },
-          error: () => {
-            remaining--;
-            if (remaining === 0) this.officiantRoleNames.set(names);
-          },
-        });
-    }
-  }
-
   private performOfficiantSearch(term: string): void {
     this.searchingOfficiant.set(true);
     this.showOfficiantResults.set(true);
 
+    // Recherche paginée côté serveur (rôles pastoraux appliqués par l'API).
     this.userService
-      .getUsers({ fullName: term, page: 1, pageSize: 20 } as any)
+      .getPastors(term, 1, 20)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            const allowedNames = this.officiantRoleNames();
-            const items = (response.data.items ?? []) as User[];
-            const filtered = allowedNames.length > 0
-              ? items.filter((u) => (u.roles ?? []).some((r) => allowedNames.includes(r)))
-              : items;
-            this.officiantResults.set(filtered);
-          } else {
-            this.officiantResults.set([]);
-          }
+          this.officiantResults.set(this.toUsers(response.data?.items ?? []));
           this.searchingOfficiant.set(false);
         },
         error: () => {
