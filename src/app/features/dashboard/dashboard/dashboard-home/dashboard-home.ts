@@ -22,6 +22,7 @@ import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/o
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 import { Permissions } from '../../../../core/services/Permissions/permissions';
 import { Service as WorshipService, AttendanceSummary, AttendanceByChurch } from '../../../../core/services/Worship/service';
+import { ConsolidatedDashboardService, ConsolidatedDashboard } from '../../../../core/services/Dashboard/consolidated-dashboard';
 
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables);
@@ -51,6 +52,12 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   // ─── Effectifs par église (Total hors/avec enfants) — Pasteur Principal / Admin ───
   attendanceByChurch: AttendanceByChurch[] = [];
   loadingAttendanceByChurch = false;
+
+  // ── Tableaux consolidés (National / International / Synthèse) — direction ──
+  consolidated: ConsolidatedDashboard | null = null;
+  consolidatedTab: 'National' | 'International' | 'Synthese' = 'National';
+  get showConsolidated(): boolean { return this.canSelectScope(); }
+  setConsolidatedTab(tab: 'National' | 'International' | 'Synthese'): void { this.consolidatedTab = tab; }
 
   // ─── Périmètre consolidé (Lot 6) : National / International / Tous ───
   selectedScope = 'Tous';
@@ -106,6 +113,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     private tokenService: Token,
     private dashboardService: Dashboards,
     private worshipService: WorshipService,
+    private consolidatedService: ConsolidatedDashboardService,
     public permissions: Permissions,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -188,13 +196,16 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       attendanceByChurch: this.canSelectScope()
         ? this.worshipService.getAttendanceByChurch(undefined, undefined)
         : of(null),
+      consolidated: this.canSelectScope()
+        ? this.consolidatedService.getConsolidated()
+        : of(null),
       membersByChurch: canViewMembers
         ? this.dashboardService.getMembersByChurch(false)
         : of(null)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ dashboard, kpi, charts, breakdown, attendanceByChurch, membersByChurch }) => {
+        next: ({ dashboard, kpi, charts, breakdown, attendanceByChurch, consolidated, membersByChurch }) => {
           this.loading = false;
           this.loadingMembersByChurch = false;
 
@@ -248,6 +259,11 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
           // 5bis. Effectifs par église (hors/avec enfants)
           if (attendanceByChurch?.success && attendanceByChurch.data) {
             this.attendanceByChurch = attendanceByChurch.data;
+          }
+
+          // 5ter. Tableaux consolidés (National / International / Synthèse)
+          if (consolidated?.success && consolidated.data) {
+            this.consolidated = consolidated.data;
           }
 
           // Créer les graphiques après que le DOM soit prêt

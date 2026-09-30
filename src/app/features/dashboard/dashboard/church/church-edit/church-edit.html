@@ -50,7 +50,7 @@
         <div class="ce-row">
           <div class="ce-col">
             <label for="ce-phone">Téléphone *</label>
-            <input id="ce-phone" formControlName="phone" type="tel" placeholder="+225..." />
+            <app-phone-input formControlName="phone"></app-phone-input>
             <span class="ce-error"
               *ngIf="churchForm.get('phone')?.invalid && churchForm.get('phone')?.touched">Requis</span>
           </div>
@@ -275,7 +275,7 @@
           <div class="ce-row">
             <div class="ce-col">
               <label for="ce-site-phone">Téléphone</label>
-              <input id="ce-site-phone" formControlName="phone" type="tel" />
+              <app-phone-input formControlName="phone"></app-phone-input>
             </div>
             <div class="ce-col">
               <label for="ce-site-email">Email</label>

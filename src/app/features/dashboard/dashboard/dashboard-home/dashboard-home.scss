@@ -1814,6 +1814,103 @@ $touch-size:     44px;
   color: $text-3;
 }
 
+// ── Vue consolidée (National / International / Synthèse) ──
+.consolidated-card {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+}
+
+.consolidated-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.consolidated-tabs {
+  display: flex;
+  gap: 8px;
+
+  button {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-weight: 600;
+    color: $text-2;
+    cursor: pointer;
+
+    &.is-active {
+      background: $purple;
+      color: #fff;
+      border-color: $purple;
+    }
+  }
+}
+
+.cons-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.cons-kpi-item {
+  background: #f6f7fb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &--accent {
+    background: rgba(108, 92, 231, 0.12);
+  }
+}
+
+.cons-label {
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+.cons-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-1;
+}
+
+.cons-sub {
+  font-size: 12px;
+  color: $text-3;
+}
+
+.graph-info {
+  color: #94a3b8;
+  margin-left: 6px;
+  cursor: help;
+  font-size: 14px;
+}
+
+.cons-note {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: $text-3;
+
+  i { margin-right: 5px; color: $purple; }
+}
+
+.cons-rates {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 12.5px;
+  color: $text-2;
+
+  li { padding: 2px 0; }
+  span { color: $text-3; }
+}
+
 
 
 

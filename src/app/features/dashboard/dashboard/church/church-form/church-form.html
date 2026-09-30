@@ -76,8 +76,8 @@
 
         <div class="cf-field">
           <label for="phone">Téléphone <span class="cf-required">*</span></label>
-          <input id="phone" type="tel" formControlName="phone" placeholder="+225 27 20 21 34 56">
-          <p class="cf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide</p>
+          <app-phone-input formControlName="phone"></app-phone-input>
+          <p class="cf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide pour le pays choisi</p>
         </div>
 
         <div class="cf-field">
@@ -380,7 +380,7 @@
             <!-- ✅ Téléphone et email du site -->
             <div class="cf-field">
               <label>Téléphone du site</label>
-              <input type="tel" formControlName="phone" placeholder="+225 07 08 12 34 56">
+              <app-phone-input formControlName="phone"></app-phone-input>
             </div>
 
             <div class="cf-field">

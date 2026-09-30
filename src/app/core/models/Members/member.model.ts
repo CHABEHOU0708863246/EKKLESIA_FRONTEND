@@ -5,7 +5,12 @@ export enum MemberStatus {
   Adherent = 'Adherent',
   Active = 'Active',
   Inactive = 'Inactive',
-  ExMember = 'ExMember'
+  ExMember = 'ExMember',
+  // Fonctions/statuts configurables (RG-02)
+  FraternityLeader = 'FraternityLeader',
+  Shepherd = 'Shepherd',
+  MinisterShepherd = 'MinisterShepherd',
+  Pastor = 'Pastor'
 }
 
 export enum VisitorStage {
@@ -298,7 +303,11 @@ export const MemberStatusLabels: Record<MemberStatus, string> = {
   [MemberStatus.Adherent]: 'Béréen',
   [MemberStatus.Active]: 'Actif',
   [MemberStatus.Inactive]: 'Inactif',
-  [MemberStatus.ExMember]: 'Ancien membre'
+  [MemberStatus.ExMember]: 'Ancien membre',
+  [MemberStatus.FraternityLeader]: 'Leader de fraternité',
+  [MemberStatus.Shepherd]: 'Berger',
+  [MemberStatus.MinisterShepherd]: 'Ministre berger',
+  [MemberStatus.Pastor]: 'Pasteur'
 };
 
 // ✅ MIS À JOUR - "Adhésion" → "Béréhin"
@@ -337,7 +346,11 @@ export const MemberStatusColors: Record<MemberStatus, string> = {
   [MemberStatus.Adherent]: 'info',
   [MemberStatus.Active]: 'success',
   [MemberStatus.Inactive]: 'secondary',
-  [MemberStatus.ExMember]: 'danger'
+  [MemberStatus.ExMember]: 'danger',
+  [MemberStatus.FraternityLeader]: 'primary',
+  [MemberStatus.Shepherd]: 'primary',
+  [MemberStatus.MinisterShepherd]: 'primary',
+  [MemberStatus.Pastor]: 'primary'
 };
 
 export const SpiritualStatusColors: Record<SpiritualStatus, string> = {

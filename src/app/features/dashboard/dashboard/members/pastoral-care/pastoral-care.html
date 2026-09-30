@@ -15,26 +15,7 @@
   <!-- ══════════════ SÉLECTION DU MEMBRE ══════════════ -->
   @if (!selectedMember()) {
     <div class="pc-member-select">
-      <label>Rechercher un membre</label>
-      <div class="pc-search-wrap">
-        <input type="text" [formControl]="memberSearchControl" placeholder="Nom du membre…" autocomplete="off">
-        @if (searchingMember()) {
-          <span class="pc-spinner pc-spinner--sm pc-search-spinner"></span>
-        }
-        @if (memberResults().length > 0) {
-          <div class="pc-search-dropdown">
-            @for (member of memberResults(); track member.id) {
-              <button type="button" class="pc-search-result" (click)="selectMember(member)">
-                <div class="pc-mini-avatar">{{ getMemberInitials(member) }}</div>
-                <div class="pc-mini-info">
-                  <strong>{{ getMemberFullName(member) }}</strong>
-                  <span>{{ member.phone }}</span>
-                </div>
-              </button>
-            }
-          </div>
-        }
-      </div>
+      <app-member-select [formControl]="memberSelectControl" label="Rechercher un membre"></app-member-select>
       <p class="pc-hint">Recherchez un membre pour consulter ou créer ses notes de suivi pastoral.</p>
     </div>
   } @else {

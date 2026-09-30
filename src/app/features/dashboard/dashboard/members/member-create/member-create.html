@@ -61,15 +61,15 @@
         <div class="mc-field mc-field--span-2">
           <label>Photo de profil</label>
           <div class="mc-photo-upload">
-            <div class="mc-photo-preview" *ngIf="photoPreviewUrl()">
-              <img [src]="photoPreviewUrl()" alt="Photo de profil" />
-              <button type="button" class="mc-photo-remove" (click)="removePhoto()">×</button>
-            </div>
-            <div class="mc-photo-dropzone" *ngIf="!photoPreviewUrl()">
-              <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
-              <span>Cliquez pour choisir une photo</span>
-              <small>JPG, PNG, GIF – Max 5 Mo</small>
-            </div>
+            <app-upload-field
+              label=""
+              accept="image/jpeg,image/png,image/webp"
+              [limits]="imageLimits"
+              hint="JPG, PNG ou WEBP — 12 Mo max."
+              [previewUrl]="photoPreviewUrl()"
+              (fileSelected)="onPhotoFile($event)"
+              (cleared)="removePhoto()">
+            </app-upload-field>
           </div>
         </div>
 

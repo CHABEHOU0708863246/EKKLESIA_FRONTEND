@@ -1,6 +1,78 @@
 <!-- ══ CONTENT AREA ══ -->
 <main class="content-area">
 
+  <!-- ══ TABLEAUX CONSOLIDÉS : National / International / Synthèse (direction) ══ -->
+  @if (showConsolidated) {
+  <section class="card consolidated-card">
+    <div class="consolidated-head">
+      <div class="card-title"><i class="bx bx-world"></i> Vue consolidée — direction</div>
+      <div class="consolidated-tabs">
+        <button type="button" [class.is-active]="consolidatedTab === 'National'" (click)="setConsolidatedTab('National')">National (CI)</button>
+        <button type="button" [class.is-active]="consolidatedTab === 'International'" (click)="setConsolidatedTab('International')">International</button>
+        <button type="button" [class.is-active]="consolidatedTab === 'Synthese'" (click)="setConsolidatedTab('Synthese')">Synthèse</button>
+      </div>
+    </div>
+
+    @if (!consolidated) {
+      <p class="cons-note">Consolidation en cours…</p>
+    } @else {
+      @if (consolidatedTab === 'National') {
+        <div class="cons-kpi">
+          <div class="cons-kpi-item"><span class="cons-label">Membres</span><strong class="cons-value">{{ consolidated.national.membersCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Églises</span><strong class="cons-value">{{ consolidated.national.churchesCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Cultes</span><strong class="cons-value">{{ consolidated.national.servicesCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Présences</span><strong class="cons-value">{{ consolidated.national.attendancePresent | number }}</strong></div>
+          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Offrandes (XOF)</span><strong class="cons-value">{{ consolidated.national.offerings | number:'1.0-0' }}</strong></div>
+          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Dépenses (XOF)</span><strong class="cons-value">{{ consolidated.national.expenses | number:'1.0-0' }}</strong></div>
+        </div>
+        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.nationalNote }}</p>
+      }
+
+      @if (consolidatedTab === 'International') {
+        @if (consolidated.international.length === 0) {
+          <p class="cons-note">Aucune donnée internationale sur la période.</p>
+        } @else {
+          <div class="cons-kpi">
+            @for (c of consolidated.international; track c.currency) {
+              <div class="cons-kpi-item">
+                <span class="cons-label">{{ c.currency }} — {{ c.churchesCount }} église(s)</span>
+                <strong class="cons-value">{{ c.offerings | number:'1.0-3' }} {{ c.currency }}</strong>
+                <span class="cons-sub">Dépenses : {{ c.expenses | number:'1.0-3' }} {{ c.currency }}</span>
+              </div>
+            }
+          </div>
+          <div class="cons-kpi" style="margin-top:12px">
+            <div class="cons-kpi-item"><span class="cons-label">Membres (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.membersCount | number }}</strong></div>
+            <div class="cons-kpi-item"><span class="cons-label">Églises (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.churchesCount | number }}</strong></div>
+            <div class="cons-kpi-item"><span class="cons-label">Cultes (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.servicesCount | number }}</strong></div>
+            <div class="cons-kpi-item"><span class="cons-label">Présences (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.attendancePresent | number }}</strong></div>
+          </div>
+        }
+        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.internationalNote }}</p>
+      }
+
+      @if (consolidatedTab === 'Synthese') {
+        <div class="cons-kpi">
+          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Offrandes ({{ consolidated.referenceCurrency }})</span><strong class="cons-value">{{ consolidated.synthese.offerings | number:'1.0-0' }}</strong></div>
+          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Dépenses ({{ consolidated.referenceCurrency }})</span><strong class="cons-value">{{ consolidated.synthese.expenses | number:'1.0-0' }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Membres</span><strong class="cons-value">{{ consolidated.synthese.membersCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Églises</span><strong class="cons-value">{{ consolidated.synthese.churchesCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Cultes</span><strong class="cons-value">{{ consolidated.synthese.servicesCount | number }}</strong></div>
+          <div class="cons-kpi-item"><span class="cons-label">Présences</span><strong class="cons-value">{{ consolidated.synthese.attendancePresent | number }}</strong></div>
+        </div>
+        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.syntheseNote }} {{ consolidated.conversionNote }}</p>
+        @if (consolidated.rates.length) {
+          <ul class="cons-rates">
+            @for (r of consolidated.rates; track r.from) {
+              <li>1 {{ r.from }} = {{ r.rate | number:'1.0-6' }} {{ r.to }} <span>(taux au {{ r.rateDate | date:'dd/MM/yyyy' }})</span></li>
+            }
+          </ul>
+        }
+      }
+    }
+  </section>
+  }
+
   <!-- ══ HERO BANNER ══ -->
   <div class="hero-banner">
     <div class="hero-deco"><i class="bx bx-church"></i></div>
@@ -117,7 +189,9 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des Membres</div>
+          <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des Membres
+          <i class="bx bx-info-circle graph-info" title="Ce graphique montre la part des hommes et des femmes parmi vos membres. Il aide à équilibrer les activités."></i>
+        </div>
         </div>
       </div>
       <div class="card-body">
@@ -130,7 +204,9 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title"><i class="bx bx-pie-chart-alt"></i> Offrandes par Type</div>
+          <div class="card-title"><i class="bx bx-pie-chart-alt"></i> Offrandes par Type
+          <i class="bx bx-info-circle graph-info" title="Ce graphique montre le total reçu pour chaque type d'offrande. Il aide à suivre les dîmes et les dons."></i>
+        </div>
         </div>
       </div>
       <div class="card-body">
@@ -146,7 +222,9 @@
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title"><i class="bx bx-line-chart"></i> Évolution des Présences</div>
+          <div class="card-title"><i class="bx bx-line-chart"></i> Évolution des Présences
+          <i class="bx bx-info-circle graph-info" title="Ce graphique montre combien de personnes viennent à l'église semaine après semaine. La courbe monte ou descend selon la fréquentation."></i>
+        </div>
         </div>
       </div>
       <div class="card-body">
@@ -158,7 +236,9 @@
 
     <div class="card">
       <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-        <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des effectifs</div>
+        <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des effectifs
+          <i class="bx bx-info-circle graph-info" title="Ce graphique montre la répartition des personnes présentes aux cultes : hommes, femmes, enfants, nouveaux, accepté et non accepté. Il aide à suivre les effectifs."></i>
+        </div>
         <div style="display:flex;gap:8px;align-items:center">
           @if (canSelectScope()) {
             <select [(ngModel)]="selectedScope" (change)="onScopeChange()"
@@ -196,7 +276,9 @@
     @if (canSelectScope()) {
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><i class="bx bx-bar-chart-alt-2"></i> Effectifs par église — hors / avec enfants</div>
+        <div class="card-title"><i class="bx bx-bar-chart-alt-2"></i> Effectifs par église — hors / avec enfants
+          <i class="bx bx-info-circle graph-info" title="Ce tableau montre, pour chaque église, le total sans les enfants puis avec les enfants. Il permet de comparer vos églises."></i>
+        </div>
       </div>
       <div class="card-body">
         @if (loadingAttendanceByChurch) {

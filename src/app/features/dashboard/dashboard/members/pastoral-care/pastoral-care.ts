@@ -16,13 +16,14 @@ import {
   PastoralNoteUtils,
 } from '../../../../../core/models/Members/pastoral-note.model';
 import { Users } from '../../../../../core/services/Users/users';
+import { MemberSelect } from '../../../../../core/components/member-select/member-select';
 
 type ViewMode = 'timeline' | 'planning';
 
 @Component({
   selector: 'app-pastoral-care',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, MemberSelect],
   templateUrl: './pastoral-care.html',
   styleUrl: './pastoral-care.scss',
 })
@@ -33,10 +34,8 @@ export class PastoralCare implements OnInit, OnDestroy {
 
   readonly interactionTypes = INTERACTION_TYPES;
 
-  // ── Sélection du membre ──
-  memberSearchControl = new FormControl<string>('');
-  memberResults = signal<Member[]>([]);
-  searchingMember = signal(false);
+  // ── Sélection du membre (select autocomplété — RG-09) ──
+  memberSelectControl = new FormControl<string>('');
   selectedMember = signal<Member | null>(null);
 
   // ── Notes du membre sélectionné ──
@@ -92,14 +91,19 @@ export class PastoralCare implements OnInit, OnDestroy {
 
   ngOnInit(): void {
      this.loadCurrentUser();
-    this.memberSearchControl.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term) => {
-        if (term && term.trim().length >= 2) {
-          this.searchMembers(term.trim());
-        } else {
-          this.memberResults.set([]);
-        }
+
+    // Sélection d'un membre via le select autocomplété : on résout l'objet puis
+    // on charge ses notes pastorales.
+    this.memberSelectControl.valueChanges
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((memberId) => {
+        if (!memberId) { this.selectedMember.set(null); this.notes.set([]); return; }
+        this.memberService.getMemberById(memberId).pipe(takeUntil(this.destroy$)).subscribe({
+          next: (m: any) => {
+            const member = m && m.data && m.data.id ? m.data : m;
+            if (member && member.id) { this.selectedMember.set(member); this.showForm.set(false); this.loadNotes(); }
+          },
+        });
       });
   }
 
@@ -133,32 +137,14 @@ export class PastoralCare implements OnInit, OnDestroy {
   // ───────────────────────────────────────────────────────────────
 
   private searchMembers(term: string): void {
-    this.searchingMember.set(true);
     this.memberService
       .getMembers({ ...DEFAULT_MEMBER_FILTER, fullName: term, pageSize: 8 })
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          const items = response?.items ?? [];
-          this.memberResults.set(items);
-          this.searchingMember.set(false);
-        },
-        error: () => {
-          this.memberResults.set([]);
-          this.searchingMember.set(false);
-        },
-      });
-  }
-
-  selectMember(member: Member): void {
-    this.selectedMember.set(member);
-    this.memberResults.set([]);
-    this.memberSearchControl.setValue('', { emitEvent: false });
-    this.showForm.set(false);
-    this.loadNotes();
+      .subscribe({ next: () => {}, error: () => {} });
   }
 
   changeMember(): void {
+    this.memberSelectControl.setValue('', { emitEvent: false });
     this.selectedMember.set(null);
     this.notes.set([]);
     this.showForm.set(false);

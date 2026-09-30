@@ -212,8 +212,8 @@
 
             <div class="md-field">
               <label for="phone">Téléphone <span class="md-required">*</span></label>
-              <input id="phone" type="tel" formControlName="phone">
-              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'phone')">Numéro invalide (8 à 15 chiffres)</p>
+              <app-phone-input formControlName="phone"></app-phone-input>
+              <p class="md-error" *ngIf="isFieldInvalid(identiteGroup, 'phone')">Numéro invalide pour le pays choisi</p>
             </div>
 
             <div class="md-field">

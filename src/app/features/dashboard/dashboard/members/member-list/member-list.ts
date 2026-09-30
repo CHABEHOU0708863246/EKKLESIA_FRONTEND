@@ -43,6 +43,10 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'Active', label: 'Actif' },
   { value: 'Inactive', label: 'Inactif' },
   { value: 'ExMember', label: 'Ancien membre' },
+  { value: 'FraternityLeader', label: 'Leader de fraternité' },
+  { value: 'Shepherd', label: 'Berger' },
+  { value: 'MinisterShepherd', label: 'Ministre berger' },
+  { value: 'Pastor', label: 'Pasteur' },
 ];
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];

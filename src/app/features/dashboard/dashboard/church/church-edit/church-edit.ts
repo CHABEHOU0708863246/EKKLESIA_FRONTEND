@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Notification } from '../../../../../core/services/Notification/notification';
+import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { User } from '../../../../../core/models/Users/user.model';
 
@@ -52,7 +53,7 @@ function unwrapUser(response: any): User | null {
 
 @Component({
   selector: 'app-church-edit',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PhoneInput],
   templateUrl: './church-edit.html',
   styleUrl: './church-edit.scss',
 })

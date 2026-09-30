@@ -21,11 +21,12 @@ import { Member } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
 
 @Component({
   selector: 'app-church-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide, PhoneInput],
   templateUrl: './church-form.html',
   styleUrl: './church-form.scss',
 })

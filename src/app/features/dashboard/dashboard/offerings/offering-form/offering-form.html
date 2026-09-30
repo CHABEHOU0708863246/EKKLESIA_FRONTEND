@@ -120,30 +120,7 @@
         </div>
 
         <div class="of-field of-field--span-2">
-          <label>Membre (facultatif)</label>
-          <div class="of-search-wrap">
-            <ng-container *ngIf="selectedMember() as member">
-              <div class="of-selected-row">
-                <div class="of-mini-avatar">{{ getMemberInitials(member) }}</div>
-                <div class="of-mini-info">{{ getMemberFullName(member) }}</div>
-                <button type="button" class="of-icon-btn" (click)="clearMember()">✕</button>
-              </div>
-            </ng-container>
-
-            <input *ngIf="!selectedMember()" type="text" formControlName="memberSearch"
-              placeholder="Rechercher un membre…" (focus)="showMemberResults.set(true)">
-
-            <div class="of-search-dropdown" *ngIf="showMemberResults() && !selectedMember()">
-              <p class="of-search-status" *ngIf="searchingMember()">Recherche en cours…</p>
-              <p class="of-search-status" *ngIf="!searchingMember() && memberResults().length === 0">Aucun membre trouvé</p>
-              @for (m of memberResults(); track m.id) {
-              <button type="button" class="of-search-result" (click)="selectMember(m)">
-                <div class="of-mini-avatar">{{ getMemberInitials(m) }}</div>
-                <div class="of-mini-info">{{ getMemberFullName(m) }}</div>
-              </button>
-              }
-            </div>
-          </div>
+          <app-member-select formControlName="memberId" label="Membre (facultatif)"></app-member-select>
         </div>
 
         <div class="of-field">

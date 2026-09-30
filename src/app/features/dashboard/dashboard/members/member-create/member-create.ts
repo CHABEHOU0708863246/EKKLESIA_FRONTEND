@@ -17,6 +17,8 @@ import { ApiResponse } from '../../../../../core/models/Common/api-response.mode
 import { Auth } from '../../../../../core/services/Auth/auth';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
+import { UploadField } from '../../../../../core/components/upload-field/upload-field';
+import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
 
 interface WizardStep {
   id: 'identite' | 'statut' | 'affectation' | 'recap';
@@ -32,6 +34,10 @@ const STATUS_OPTIONS = [
   { value: 'Active', label: 'Actif' },
   { value: 'Inactive', label: 'Inactif' },
   { value: 'ExMember', label: 'Ancien membre' },
+  { value: 'FraternityLeader', label: 'Leader de fraternité' },
+  { value: 'Shepherd', label: 'Berger' },
+  { value: 'MinisterShepherd', label: 'Ministre berger' },
+  { value: 'Pastor', label: 'Pasteur' },
 ];
 
 const SPIRITUAL_STATUS_OPTIONS = [
@@ -51,7 +57,7 @@ const GENDER_OPTIONS = [
 @Component({
   selector: 'app-member-create',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide, PhoneInput],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide, PhoneInput, UploadField],
   templateUrl: './member-create.html',
   styleUrl: './member-create.scss',
 })
@@ -207,6 +213,16 @@ export class MemberCreate implements OnInit, OnDestroy {
       return;
     }
 
+    this.photoFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => this.photoPreviewUrl.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  /** Reçoit le fichier (déjà validé) du champ d'upload réutilisable. */
+  readonly imageLimits = IMAGE_FILE_LIMITS;
+  onPhotoFile(file: File): void {
+    this.submitError.set(null);
     this.photoFile.set(file);
     const reader = new FileReader();
     reader.onload = () => this.photoPreviewUrl.set(reader.result as string);

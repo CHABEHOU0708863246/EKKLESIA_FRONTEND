@@ -12,6 +12,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
+import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
 import { environment } from '../../../../../../environments/environment';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
@@ -39,6 +40,10 @@ const STATUS_OPTIONS = [
   { value: 'Active', label: 'Actif' },
   { value: 'Inactive', label: 'Inactif' },
   { value: 'ExMember', label: 'Ancien membre' },
+  { value: 'FraternityLeader', label: 'Leader de fraternité' },
+  { value: 'Shepherd', label: 'Berger' },
+  { value: 'MinisterShepherd', label: 'Ministre berger' },
+  { value: 'Pastor', label: 'Pasteur' },
 ];
 
 const GENDER_OPTIONS = [
@@ -60,7 +65,7 @@ const VISITOR_STAGE_LABELS: Record<VisitorStageKey, string> = {
 @Component({
   selector: 'app-member-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, AuthImageDirective, PhoneInput],
   templateUrl: './member-detail.html',
   styleUrl: './member-detail.scss',
 })

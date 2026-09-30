@@ -4,16 +4,21 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../models/Common/api-response.model';
 
-export interface ScopeFinancialTotal {
-  amount: number;
+export interface ScopeTotals {
+  offerings: number;
+  expenses: number;
   currency: string;
   churchesCount: number;
+  membersCount: number;
+  servicesCount: number;
+  attendancePresent: number;
   offeringsCount: number;
 }
 
-export interface InternationalCurrencyTotal {
+export interface CurrencyTotals {
   currency: string;
-  amount: number;
+  offerings: number;
+  expenses: number;
   churchesCount: number;
   offeringsCount: number;
 }
@@ -31,10 +36,14 @@ export interface ConsolidatedDashboard {
   from: string;
   to: string;
   referenceCurrency: string;
-  national: ScopeFinancialTotal;
-  international: InternationalCurrencyTotal[];
-  synthese: ScopeFinancialTotal;
+  national: ScopeTotals;
+  international: CurrencyTotals[];
+  internationalCounts: ScopeTotals;
+  synthese: ScopeTotals;
   rates: ConsolidationRate[];
+  nationalNote: string;
+  internationalNote: string;
+  syntheseNote: string;
   conversionNote: string;
 }
 
