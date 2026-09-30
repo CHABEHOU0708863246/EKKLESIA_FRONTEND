@@ -3,7 +3,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { compressedFormData } from '../../utils/upload.helper';
+import { UploadProgressService } from '../Uploads/upload-progress.service';
 
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../models/Common/api-response.model';
@@ -26,6 +28,14 @@ import {
   OfferingCategory,
 } from '../../models/Finances/offering.model';
 
+/** Catégorie d'offrande configurable (Paramètres). */
+export interface OfferingCategoryOption {
+  code: string;
+  label: string;
+  description?: string;
+  sortOrder?: number;
+}
+
 /**
  * Service de gestion des offrandes (dîmes, offrandes, collectes).
  * Correspond au backend OfferingController.
@@ -37,7 +47,10 @@ export class Offerings {
 
   private readonly baseUrl: string;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private uploadProgress: UploadProgressService
+  ) {
     this.baseUrl = `${environment.apiUrl}/api/v1/Offering`;
   }
 
@@ -147,17 +160,28 @@ getValidationPhotoUrl(photoId: string): string {
    * Upload la photo justificative (avec signatures) pour une offrande.
    * POST /api/v1/Offering/{id}/upload-validation-photo
    */
-  uploadValidationPhoto(offeringId: string, photoFile: File): Observable<ApiResponse<Offering>> {
-    const formData = new FormData();
-    formData.append('photo', photoFile);
+  /**
+   * Catégories d'offrandes actives (Paramètres), pour le détail par catégorie.
+   * GET /api/v1/Offering/categories
+   */
+  getCategories(): Observable<ApiResponse<OfferingCategoryOption[]>> {
+    return this.http.get<ApiResponse<OfferingCategoryOption[]>>(`${this.baseUrl}/categories`)
+      .pipe(catchError(this.handleError<OfferingCategoryOption[]>('getCategories')));
+  }
 
-    return this.http.post<ApiResponse<Offering>>(
-      `${this.baseUrl}/${offeringId}/upload-validation-photo`,
-      formData
-    ).pipe(
+  uploadValidationPhoto(offeringId: string, photoFile: File): Observable<ApiResponse<Offering>> {
+    return compressedFormData('photo', photoFile).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(
+          this.http.post<ApiResponse<Offering>>(
+            `${this.baseUrl}/${offeringId}/upload-validation-photo`,
+            formData
+          )
+        )
+      ),
       tap(response => {
         if (response.success) {
-          console.log('📸 Photo justificative uploadée pour l\'offrande:', offeringId);
+          console.log('Photo justificative uploadée pour l\'offrande:', offeringId);
         }
       }),
       catchError(this.handleError<Offering>('uploadValidationPhoto'))

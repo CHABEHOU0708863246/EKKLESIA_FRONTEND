@@ -7,7 +7,7 @@
 // near-black, monospace console type against a humanist body face.
 
 // ── Variables ──────────────────────────────────────────────
-$bg:            #07080D;
+$bg: var(--color-bg);
 $bg-2:          #0D0F1A;
 $panel:         rgba(255, 255, 255, 0.03);
 $panel-border:  rgba(255, 255, 255, 0.09);
@@ -21,9 +21,9 @@ $amber-dark:    #B8791A;
 
 $ok:            #35D07F;
 
-$text-1:        #F5F6FA;
-$text-2:        #9AA0B4;
-$text-3:        #5B6178;
+$text-1: var(--color-text);
+$text-2: var(--color-muted);
+$text-3: var(--color-muted);
 
 $shadow-lg:     0 40px 90px rgba(0, 0, 0, 0.55);
 $transition:    all 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);

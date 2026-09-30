@@ -214,7 +214,7 @@ $transition: 0.2s ease-in-out;
 // ─── CARTES ──────────────────────────────────────────────────
 
 .od-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 1.5rem 1.8rem;

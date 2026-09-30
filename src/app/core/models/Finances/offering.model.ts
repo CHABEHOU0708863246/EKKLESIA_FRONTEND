@@ -85,6 +85,15 @@ export interface Offering {
 // 4. DTOs POUR LES REQUÊTES
 // ============================================================
 
+/** Ligne d'offrande par catégorie (montant + devise). */
+export interface OfferingLinePayload {
+  categoryId: string;
+  amount: number;
+  currencyCode?: string;
+  exchangeRate?: number;
+  note?: string;
+}
+
 export interface OfferingCreate {
   type: OfferingType;
   amount: number;
@@ -101,6 +110,8 @@ export interface OfferingCreate {
   // ✅ Nouveaux champs
   categories?: OfferingCategory[];
   validationPhotoUrl?: string;
+  /** Détail par catégorie : le montant global est alors calculé côté serveur. */
+  lines?: OfferingLinePayload[];
 }
 
 export interface OfferingUpdate {
@@ -118,6 +129,7 @@ export interface OfferingUpdate {
   // ✅ Nouveaux champs
   categories?: OfferingCategory[];
   validationPhotoUrl?: string;
+  lines?: OfferingLinePayload[];
 }
 
 export interface OfferingFilter {

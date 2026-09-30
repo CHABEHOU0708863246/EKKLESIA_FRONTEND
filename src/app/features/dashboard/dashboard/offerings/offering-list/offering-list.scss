@@ -110,7 +110,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .ol-stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: $border-radius;
   padding: 0.8rem 1rem;
   text-align: center;
@@ -165,7 +165,7 @@ $transition: 0.2s ease-in-out;
     border: 1px solid $gray-300;
     border-radius: 4px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--color-surface);
     transition: border-color $transition;
     &:focus {
       outline: none;
@@ -345,7 +345,7 @@ $transition: 0.2s ease-in-out;
 .ol-page-btn {
   padding: 0.2rem 0.6rem;
   border: 1px solid $gray-300;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s;
@@ -368,7 +368,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .ol-modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 2rem 2.5rem;
   max-width: 480px;

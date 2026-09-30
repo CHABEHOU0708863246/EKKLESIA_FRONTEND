@@ -4,25 +4,25 @@
 // + Amélioration UX : chevrons dépliables plus visibles et explicites
 // ══════════════════════════════════════════════════════════════════════
 
-// ── Variables ────────────────────────────────────────────────────────
-$gold:            #B8862E;
-$gold-dark:       #8A6220;
-$gold-light:      #D9AE5F;
-$gold-glow:       rgba(184, 134, 46, 0.18);
+// ── Variables — palette exacte du logo MIAV ──────────────────────────
+$gold:            #F0B429; // or (arbre MIAV)
+$gold-dark:       #B8862E;
+$gold-light:      #F5C64F;
+$gold-glow:       rgba(240, 180, 41, 0.18);
 
-$teal:            #1F6F63;
-$teal-dark:       #14504A;
-$teal-light:      #4C9A8C;
+$teal:            #5C8D3F; // vert du logo
+$teal-dark:       #446A2C;
+$teal-light:      #7BB058;
 
 $burgundy:        #7A2E3B;
 $danger:          #A63A3A;
 
 $sidebar-w:       272px;
-$sidebar-bg:      #10121C;
+$sidebar-bg:      #1B2A4A; // bleu nuit du logo
 $sidebar-border:  rgba(255, 255, 255, 0.07);
 $sidebar-text:    rgba(255, 255, 255, 0.56);
-$sidebar-hover:   rgba(184, 134, 46, 0.14);
-$sidebar-active:  rgba(184, 134, 46, 0.20);
+$sidebar-hover:   rgba(240, 180, 41, 0.14);
+$sidebar-active:  rgba(240, 180, 41, 0.20);
 
 $font:            'Inter', sans-serif;
 $font-display:    'Fraunces', serif;
@@ -87,8 +87,8 @@ $touch-size:      44px;
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 10%, rgba(184, 134, 46, 0.16) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 90%, rgba(31, 111, 99, 0.12) 0%, transparent 50%);
+      radial-gradient(ellipse at 20% 10%, rgba(240, 180, 41, 0.16) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 90%, rgba(92, 141, 63, 0.12) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
   }
@@ -108,7 +108,7 @@ $touch-size:      44px;
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(184, 134, 46, 0.25);
+    background: rgba(240, 180, 41, 0.25);
     border-radius: 10px;
     &:hover { background: $gold; }
   }
@@ -189,7 +189,7 @@ $touch-size:      44px;
   justify-content: center;
   font-size: 18px;
   color: #1A140A;
-  box-shadow: 0 4px 18px rgba(184, 134, 46, 0.45);
+  box-shadow: 0 4px 18px rgba(240, 180, 41, 0.45);
   flex-shrink: 0;
 
   @media (min-width: 577px) {
@@ -468,7 +468,7 @@ $touch-size:      44px;
   &:hover {
     color: rgba(255, 255, 255, 0.92);
     background: $sidebar-hover;
-    border-left-color: rgba(184, 134, 46, 0.55);
+    border-left-color: rgba(240, 180, 41, 0.55);
     text-decoration: none;
 
     .nav-icon { opacity: 1; }
@@ -476,7 +476,7 @@ $touch-size:      44px;
 
   &:active {
     transform: scale(0.98);
-    background: rgba(184, 134, 46, 0.10);
+    background: rgba(240, 180, 41, 0.10);
   }
 
   &:focus-visible {
@@ -515,7 +515,7 @@ $touch-size:      44px;
   }
 
   &:hover::after {
-    background: rgba(184, 134, 46, 0.14);
+    background: rgba(240, 180, 41, 0.14);
   }
 }
 
@@ -668,7 +668,7 @@ $touch-size:      44px;
   }
 
   .nav-item.active > .nav-link {
-    background: rgba(184, 134, 46, 0.14);
+    background: rgba(240, 180, 41, 0.14);
     color: rgba(255, 255, 255, 0.9);
     border-left: none;
 

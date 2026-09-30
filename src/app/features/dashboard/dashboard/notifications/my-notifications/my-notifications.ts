@@ -11,6 +11,7 @@ import { Permissions } from '../../../../../core/services/Permissions/permission
 import { Notification as Toast } from '../../../../../core/services/Notification/notification';
 import { Roles } from '../../../../../core/services/Roles/roles';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { Users } from '../../../../../core/services/Users/users';
 import {
   AppNotification,
   AppNotificationCreate,
@@ -56,6 +57,8 @@ export class MyNotifications implements OnInit, OnDestroy {
   sending = signal(false);
   roles: { value: string; label: string }[] = [];
   churches: { id: string; name: string }[] = [];
+  users: { id: string; name: string }[] = [];
+  sites: { id: string; name: string }[] = [];
 
   sendForm = {
     title: '',
@@ -75,6 +78,7 @@ export class MyNotifications implements OnInit, OnDestroy {
     private toast: Toast,
     private rolesService: Roles,
     private churchService: ChurchService,
+    private usersService: Users,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowserLike(this.platformId);
@@ -239,9 +243,25 @@ export class MyNotifications implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success && response.data) {
             this.churches = response.data.map((c) => ({ id: c.id, name: c.name }));
+            this.sites = response.data.flatMap((c) =>
+              (c.sites ?? []).map((s) => ({ id: s.id, name: `${s.name} — ${c.name}` }))
+            );
           }
         },
         error: () => (this.churches = [])
+      });
+    }
+
+    if (this.showSendForm() && this.users.length === 0) {
+      this.usersService.getDirectory([], '', 1, 200).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          const items = response?.data?.items ?? [];
+          this.users = items.map((u) => ({
+            id: u.id,
+            name: u.fullName || `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+          }));
+        },
+        error: () => (this.users = [])
       });
     }
   }

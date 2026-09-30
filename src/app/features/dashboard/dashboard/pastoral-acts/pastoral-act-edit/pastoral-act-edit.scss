@@ -150,7 +150,7 @@ $transition: 0.2s ease-in-out;
 // ── PANELS ──
 
 .pac-panel {
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
@@ -224,7 +224,7 @@ $transition: 0.2s ease-in-out;
     font-size: 0.95rem;
     font-family: $font-family;
     transition: border-color $transition, box-shadow $transition;
-    background: #fff;
+    background: var(--color-surface);
     width: 100%;
 
     &:focus {
@@ -355,7 +355,7 @@ $transition: 0.2s ease-in-out;
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid $gray-300;
     border-radius: 6px;
     max-height: 220px;

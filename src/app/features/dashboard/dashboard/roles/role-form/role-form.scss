@@ -163,7 +163,7 @@
     background: var(--ekk-violet-600); border-color: var(--ekk-violet-600);
     &::after {
       content: ''; position: absolute; left: 3px; top: 7px; width: 10px; height: 2px;
-      background: #fff; transform: none; border: none;
+      background: var(--color-surface); transform: none; border: none;
     }
   }
 

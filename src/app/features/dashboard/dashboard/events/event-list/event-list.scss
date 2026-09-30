@@ -302,7 +302,7 @@
   }
   &--secondary {
     background: #e5e7eb;
-    color: #374151;
+    color: var(--color-text);
   }
 }
 
@@ -353,7 +353,7 @@
   }
   &--secondary {
     background: #e5e7eb;
-    color: #374151;
+    color: var(--color-text);
   }
 }
 

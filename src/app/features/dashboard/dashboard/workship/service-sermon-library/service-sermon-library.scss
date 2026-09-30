@@ -54,7 +54,7 @@
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--color-surface);
     transition: border-color 0.2s;
 
     &:focus {
@@ -105,7 +105,7 @@
 }
 
 .ssl-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #e9ecef;
   border-radius: 12px;
   padding: 1.2rem 1.5rem 1rem;
@@ -238,7 +238,7 @@
   .ssl-page-btn {
     padding: 0.2rem 0.6rem;
     border: 1px solid #dee2e6;
-    background: #fff;
+    background: var(--color-surface);
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;

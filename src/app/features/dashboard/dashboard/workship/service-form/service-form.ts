@@ -138,10 +138,17 @@ export class ServiceForm implements OnInit, OnDestroy {
       attendance: this.fb.group({
         men: [0, [Validators.min(0)]],
         women: [0, [Validators.min(0)]],
+        boys: [0, [Validators.min(0)]],
+        girls: [0, [Validators.min(0)]],
+        teenBoys: [0, [Validators.min(0)]],
+        teenGirls: [0, [Validators.min(0)]],
         visitors: [0, [Validators.min(0)]],
         children: [0, [Validators.min(0)]],
         acceptedJesus: [0, [Validators.min(0)]],
         notAcceptedJesus: [0, [Validators.min(0)]],
+        newConverts: [0, [Validators.min(0)]],
+        youth: [0, [Validators.min(0)]],
+        unallocated: [0, [Validators.min(0)]],
         observation: [''],
         photoUrl: [''],
         visitorNames: [[]],
@@ -181,6 +188,13 @@ export class ServiceForm implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /** Total des présents « membres » (hors visiteurs / nouveaux convertis). */
+  attendanceTotalPresent(): number {
+    const a = this.form.get('attendance')?.value || {};
+    return (a.men || 0) + (a.women || 0) + (a.boys || 0) + (a.girls || 0)
+      + (a.teenBoys || 0) + (a.teenGirls || 0) + (a.unallocated || 0);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -266,10 +280,17 @@ export class ServiceForm implements OnInit, OnDestroy {
       attendance: {
         men: service.attendance?.men || 0,
         women: service.attendance?.women || 0,
+        boys: service.attendance?.boys || 0,
+        girls: service.attendance?.girls || 0,
+        teenBoys: service.attendance?.teenBoys || 0,
+        teenGirls: service.attendance?.teenGirls || 0,
         visitors: service.attendance?.visitors || 0,
         children: service.attendance?.children || 0,
         acceptedJesus: service.attendance?.acceptedJesus || 0,
         notAcceptedJesus: service.attendance?.notAcceptedJesus || 0,
+        newConverts: service.attendance?.newConverts || 0,
+        youth: service.attendance?.youth || 0,
+        unallocated: service.attendance?.unallocated || 0,
         observation: service.attendance?.observation || '',
         photoUrl: service.attendance?.photoUrl || '',
         visitorNames: service.attendance?.visitorNames || [],
@@ -396,10 +417,17 @@ export class ServiceForm implements OnInit, OnDestroy {
       attendance: {
         men: rawValue.attendance?.men || 0,
         women: rawValue.attendance?.women || 0,
+        boys: rawValue.attendance?.boys || 0,
+        girls: rawValue.attendance?.girls || 0,
+        teenBoys: rawValue.attendance?.teenBoys || 0,
+        teenGirls: rawValue.attendance?.teenGirls || 0,
         visitors: rawValue.attendance?.visitors || 0,
         children: rawValue.attendance?.children || 0,
         acceptedJesus: rawValue.attendance?.acceptedJesus || 0,
         notAcceptedJesus: rawValue.attendance?.notAcceptedJesus || 0,
+        newConverts: rawValue.attendance?.newConverts || 0,
+        youth: rawValue.attendance?.youth || 0,
+        unallocated: rawValue.attendance?.unallocated || 0,
         observation: rawValue.attendance?.observation || '',
         photoUrl: photoUrl,
         visitorNames: rawValue.attendance?.visitorNames || [],
@@ -441,20 +469,10 @@ export class ServiceForm implements OnInit, OnDestroy {
     this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (uploadResponse) => {
-          if (uploadResponse.success && uploadResponse.photoId) {
-            const updatePayload: ServiceUpdate = {
-              attendance: { photoUrl: uploadResponse.photoId } as ServiceAttendance,
-            };
-            this.serviceService.update(serviceId, updatePayload)
-              .pipe(takeUntil(this.destroy$))
-              .subscribe({
-                next: () => this.router.navigate(['/dashboard/cultes']),
-                error: () => this.router.navigate(['/dashboard/cultes']),
-              });
-          } else {
-            this.router.navigate(['/dashboard/cultes']);
-          }
+        next: () => {
+          // L'endpoint d'upload enregistre déjà la photo côté serveur.
+          // On ne refait PAS de PUT (interdit si le culte est « Terminé »).
+          this.router.navigate(['/dashboard/cultes']);
         },
         error: () => this.router.navigate(['/dashboard/cultes']),
       });

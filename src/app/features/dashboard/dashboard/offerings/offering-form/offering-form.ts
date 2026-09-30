@@ -1,6 +1,6 @@
 // src/app/features/dashboard/finances/offerings/offering-form/offering-form.component.ts
 
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +18,7 @@ import {
   OfferingUpdate,
   OfferingCategory,
   OfferingCategoryLabels,
+  OfferingLinePayload,
   Offering,
 } from '../../../../../core/models/Finances/offering.model';
 import { OfferingTypeLabels, OfferingTypeIcons } from '../../../../../core/models/Finances/offering.model';
@@ -27,7 +28,7 @@ import { Member } from '../../../../../core/models/Members/member.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { PaymentMethod } from '../../../../../core/models/Finances/expense.model';
 import { Service as ServiceModel } from '../../../../../core/models/Events/service.model';
-import { Offerings } from '../../../../../core/services/Finances/offerings';
+import { Offerings, OfferingCategoryOption } from '../../../../../core/services/Finances/offerings';
 import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
 import { Service } from '../../../../../core/services/Worship/service';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
@@ -110,6 +111,14 @@ export class OfferingForm implements OnInit, OnDestroy {
   photoPreview = signal<string | null>(null);
   selectedPhotoFile: File | null = null;
 
+  // ── Offrande par catégorie (catégories issues des Paramètres) ──
+  offeringCategoryOptions = signal<OfferingCategoryOption[]>([]);
+  categoryLines = signal<{ code: string; label: string; amount: number }[]>([]);
+  /** Total calculé en direct — jamais saisi par l'utilisateur. */
+  linesTotal = computed(() =>
+    this.categoryLines().reduce((sum, l) => sum + (Number(l.amount) || 0), 0)
+  );
+
   form: FormGroup;
 
   // ── Helpers d'affichage ──
@@ -142,7 +151,8 @@ export class OfferingForm implements OnInit, OnDestroy {
   constructor() {
     this.form = this.fb.group({
       type: [OfferingType.Tithe, Validators.required],
-      amount: [0, [Validators.required, Validators.min(1)]],
+      // Le montant global est calculé à partir des lignes ; il n'est plus obligatoire.
+      amount: [0],
       currency: ['FCFA', Validators.required],
       date: ['', Validators.required],
       memberId: [''],
@@ -163,6 +173,7 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.loadCategories();
 
     // Détection du mode édition via l'URL
     const urlSegments = this.router.url.split('/');
@@ -212,6 +223,36 @@ export class OfferingForm implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // OFFRANDE PAR CATÉGORIE
+  // ──────────────────────────────────────────────────────────────
+
+  private loadCategories(): void {
+    this.offeringsService.getCategories().subscribe({
+      next: (res) => {
+        const options = res?.data ?? [];
+        this.offeringCategoryOptions.set(options);
+        const existing = this.categoryLines();
+        this.categoryLines.set(
+          options.map((o) => {
+            const found = existing.find((l) => l.code === o.code);
+            return { code: o.code, label: o.label, amount: found?.amount ?? 0 };
+          })
+        );
+      },
+      error: () => {
+        // Les catégories sont optionnelles ; en cas d'échec, la saisie globale reste possible.
+      },
+    });
+  }
+
+  updateLineAmount(code: string, value: string): void {
+    const amount = Number(value) || 0;
+    this.categoryLines.update((list) =>
+      list.map((l) => (l.code === code ? { ...l, amount } : l))
+    );
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -548,9 +589,24 @@ private searchMembers(term: string): void {
 
     const raw = this.form.value;
 
+    // Détail par catégorie : le montant global est la SOMME des lignes (jamais saisi).
+    const lines: OfferingLinePayload[] = this.categoryLines()
+      .filter((l) => Number(l.amount) > 0)
+      .map((l) => ({ categoryId: l.code, amount: Number(l.amount) }));
+
+    const computedAmount = lines.length > 0
+      ? lines.reduce((sum, l) => sum + l.amount, 0)
+      : Number(raw.amount) || 0;
+
+    if (computedAmount <= 0) {
+      this.saving.set(false);
+      this.error.set('Saisissez un montant (par catégorie, ou un montant global).');
+      return;
+    }
+
     const payload: OfferingCreate | OfferingUpdate = {
       type: raw.type,
-      amount: raw.amount,
+      amount: computedAmount,
       currency: raw.currency,
       date: raw.date,
       memberId: raw.memberId || undefined,
@@ -564,6 +620,7 @@ private searchMembers(term: string): void {
       // ✅ Nouveaux champs
       categories: raw.categories || [],
       validationPhotoUrl: raw.validationPhotoUrl || '',
+      lines,
     };
 
     const request$ = this.isEditMode() && this.offeringId

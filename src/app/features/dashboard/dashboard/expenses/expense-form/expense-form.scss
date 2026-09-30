@@ -79,7 +79,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .ef-panel {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
@@ -139,7 +139,7 @@ $transition: 0.2s ease-in-out;
     border-radius: 6px;
     font-size: 0.95rem;
     transition: border-color $transition, box-shadow $transition;
-    background: #fff;
+    background: var(--color-surface);
     width: 100%;
 
     &:focus {
@@ -237,7 +237,7 @@ $transition: 0.2s ease-in-out;
     top: 100%;
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: var(--color-surface);
     border: 1px solid $gray-300;
     border-radius: $border-radius;
     max-height: 280px; // ✅ Augmenté pour afficher plus de résultats
@@ -261,7 +261,7 @@ $transition: 0.2s ease-in-out;
     color: $gray-600;
     font-size: 0.9rem;
     text-align: center;
-    background: #fff;
+    background: var(--color-surface);
   }
 
   .ef-search-result {
@@ -422,7 +422,7 @@ $transition: 0.2s ease-in-out;
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: var(--color-surface);
     border: 1px solid $gray-300;
     border-radius: $border-radius;
     max-height: 240px;
@@ -440,7 +440,7 @@ $transition: 0.2s ease-in-out;
     color: $gray-600;
     font-size: 0.9rem;
     text-align: center;
-    background: #fff;
+    background: var(--color-surface);
   }
 
   .ef-search-result {

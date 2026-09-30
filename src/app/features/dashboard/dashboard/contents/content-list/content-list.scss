@@ -121,7 +121,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .cl-stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.8rem 0.5rem;
@@ -150,7 +150,7 @@ $transition: 0.2s ease-in-out;
 // ─── FILTRES ────────────────────────────────────────────────────
 
 .cl-filters {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 1rem 1.5rem;
@@ -178,7 +178,7 @@ $transition: 0.2s ease-in-out;
     font-size: 0.9rem;
     font-family: inherit;
     color: $gray-900;
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid $gray-300;
     border-radius: 6px;
     outline: none;
@@ -224,7 +224,7 @@ $transition: 0.2s ease-in-out;
 // ─── TABLEAU ────────────────────────────────────────────────────
 
 .cl-table-wrap {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   overflow: hidden;
@@ -442,7 +442,7 @@ $transition: 0.2s ease-in-out;
     border-radius: 4px;
     border: 1px solid $gray-300;
     font-size: 0.85rem;
-    background: #fff;
+    background: var(--color-surface);
   }
 }
 
@@ -454,7 +454,7 @@ $transition: 0.2s ease-in-out;
   height: 32px;
   border: 1px solid $gray-300;
   border-radius: 4px;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
   transition: background $transition, border-color $transition;
 
@@ -493,7 +493,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .cl-modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 2rem 2.5rem;
   max-width: 480px;

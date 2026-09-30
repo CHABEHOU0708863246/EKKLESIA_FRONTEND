@@ -21,6 +21,7 @@ import {
 import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 import { Permissions } from '../../../../core/services/Permissions/permissions';
+import { Service as WorshipService, AttendanceSummary } from '../../../../core/services/Worship/service';
 
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables);
@@ -41,6 +42,14 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private offeringsChart: Chart | null = null;
   private attendanceChart: Chart | null = null;
   private membersByChurchChart: Chart | null = null;
+  private attendanceBreakdownChart: Chart | null = null;
+
+  // ─── Répartition des effectifs (Lot 5) ───
+  attendanceBreakdown: AttendanceSummary | null = null;
+  loadingBreakdown = false;
+
+  // ─── Périmètre consolidé (Lot 6) : National / International / Tous ───
+  selectedScope = 'Tous';
 
   // ─── Répartition des membres par église (rôle : lecture membres) ─────
   membersByChurch: MembersByChurchResponseDto | null = null;
@@ -92,6 +101,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     private authService: Auth,
     private tokenService: Token,
     private dashboardService: Dashboards,
+    private worshipService: WorshipService,
     public permissions: Permissions,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -170,13 +180,14 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       dashboard: this.dashboardService.getDashboardData(),
       kpi: this.dashboardService.getKpiData(),
       charts: this.dashboardService.getChartData(),
+      breakdown: this.worshipService.getAttendanceSummary(undefined, undefined, this.scopeParam()),
       membersByChurch: canViewMembers
         ? this.dashboardService.getMembersByChurch(false)
         : of(null)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ dashboard, kpi, charts, membersByChurch }) => {
+        next: ({ dashboard, kpi, charts, breakdown, membersByChurch }) => {
           this.loading = false;
           this.loadingMembersByChurch = false;
 
@@ -220,6 +231,11 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
           // 4. Répartition des membres par église
           if (membersByChurch?.success && membersByChurch.data) {
             this.membersByChurch = membersByChurch.data;
+          }
+
+          // 5. Répartition des effectifs (Lot 5)
+          if (breakdown?.success && breakdown.data) {
+            this.attendanceBreakdown = breakdown.data;
           }
 
           // Créer les graphiques après que le DOM soit prêt
@@ -386,6 +402,84 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
 
     // 4. Membres par église (barres empilées H/F)
     this.createMembersByChurchChart();
+
+    // 5. Répartition des effectifs (barres par catégorie)
+    this.createBreakdownChart();
+  }
+
+  /** Graphique : répartition des effectifs par catégorie. */
+  private createBreakdownChart(): void {
+    if (!this.isBrowser) return;
+    const canvas = document.getElementById('attendanceBreakdownChart') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (this.attendanceBreakdownChart) {
+      this.attendanceBreakdownChart.destroy();
+      this.attendanceBreakdownChart = null;
+    }
+
+    const b = this.attendanceBreakdown;
+    if (!b) return;
+
+    this.attendanceBreakdownChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Hommes', 'Femmes', 'Garçons', 'Filles', 'Ados H.', 'Ados F.', 'Non réparti'],
+        datasets: [{
+          label: 'Effectif',
+          data: [b.men, b.women, b.boys, b.girls, b.teenBoys, b.teenGirls, b.unallocated],
+          backgroundColor: ['#6C5CE7', '#00B894', '#74B9FF', '#A29BFE', '#FDCB6E', '#E17055', '#B2BEC3'],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  /** Un utilisateur consolidé (super admin / pasteur principal) peut choisir le périmètre. */
+  canSelectScope(): boolean {
+    return this.permissions.isSuperAdmin() || this.permissions.isPastorPrincipal();
+  }
+
+  private scopeParam(): string | undefined {
+    return this.canSelectScope() && this.selectedScope !== 'Tous' ? this.selectedScope : undefined;
+  }
+
+  /** Change le périmètre consolidé et recharge la répartition des effectifs. */
+  onScopeChange(): void {
+    this.loadingBreakdown = true;
+    this.worshipService
+      .getAttendanceSummary(undefined, undefined, this.scopeParam())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.loadingBreakdown = false;
+          this.attendanceBreakdown = res?.success ? res.data : null;
+          requestAnimationFrame(() => this.createBreakdownChart());
+        },
+        error: () => { this.loadingBreakdown = false; },
+      });
+  }
+
+  /** Télécharge l'export de la répartition (Excel ou PDF). */
+  exportAttendance(format: 'xlsx' | 'pdf'): void {
+    this.worshipService.exportAttendanceSummary(format, undefined, undefined, this.scopeParam()).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `repartition_effectifs.${format}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+    });
   }
 
   /**
@@ -620,6 +714,10 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     if (this.membersByChurchChart) {
       this.membersByChurchChart.destroy();
       this.membersByChurchChart = null;
+    }
+    if (this.attendanceBreakdownChart) {
+      this.attendanceBreakdownChart.destroy();
+      this.attendanceBreakdownChart = null;
     }
   }
 

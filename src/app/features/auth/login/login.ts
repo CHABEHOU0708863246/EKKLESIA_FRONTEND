@@ -99,18 +99,16 @@ isBlessed: any;
             console.error('Erreur lors du décodage du token:', error);
           }
 
+          let refreshDone: Promise<void> = Promise.resolve();
           if (token) {
             this.tokenService.saveToken(token, userRole);
 
-            // ✅ AJOUT CRITIQUE — recharge les permissions avec le nouveau token
-            // juste après qu'il ait été écrit en storage, avant toute navigation.
+            // Recharge les permissions depuis le JWT puis synchronise avec la
+            // source de vérité serveur (permissions + rôles + mot de passe à
+            // changer). On attend la synchro avant de naviguer : le guard peut
+            // ainsi rediriger un compte importé vers le changement de mot de passe.
             this.permissionsService.reloadPermissions();
-
-            // Puis synchronise avec la source de vérité serveur (permissions
-            // effectives + rôles) sans bloquer la navigation.
-            this.permissionsService.refreshFromServer().catch(() => {
-              // silencieux : le JWT fournit déjà les permissions des rôles.
-            });
+            refreshDone = this.permissionsService.refreshFromServer();
 
             if (response.refreshToken) {
               localStorage.setItem('refresh_token', response.refreshToken);
@@ -126,12 +124,14 @@ isBlessed: any;
             'Bienvenue ! Redirection vers votre tableau de bord...'
           );
 
-          this.router.navigate(['/dashboard']).then((success) => {
-            if (!success) {
-              console.error('❌ Navigation vers /dashboard a échoué (success=false). Vérifiez les guards.');
-            }
-          }).catch((err) => {
-            console.error('❌ Erreur lors de la navigation vers /dashboard:', err);
+          refreshDone.finally(() => {
+            this.router.navigate(['/dashboard']).then((success) => {
+              if (!success) {
+                console.error('Navigation vers /dashboard a échoué (success=false). Vérifiez les guards.');
+              }
+            }).catch((err) => {
+              console.error('Erreur lors de la navigation vers /dashboard:', err);
+            });
           });
         } else {
           this.notificationService.error(

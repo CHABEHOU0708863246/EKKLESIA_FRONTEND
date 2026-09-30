@@ -40,10 +40,17 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     this.form = this.fb.group({
       men: [0, [Validators.min(0)]],
       women: [0, [Validators.min(0)]],
+      boys: [0, [Validators.min(0)]],
+      girls: [0, [Validators.min(0)]],
+      teenBoys: [0, [Validators.min(0)]],
+      teenGirls: [0, [Validators.min(0)]],
       visitors: [0, [Validators.min(0)]],
       children: [0, [Validators.min(0)]],
       acceptedJesus: [0, [Validators.min(0)]],
       notAcceptedJesus: [0, [Validators.min(0)]],
+      newConverts: [0, [Validators.min(0)]],
+      youth: [0, [Validators.min(0)]],
+      unallocated: [0, [Validators.min(0)]],
       observation: [''],
       photoUrl: ['', Validators.required], // ✅ Rendre obligatoire
       visitorNames: this.fb.array([]),
@@ -100,25 +107,35 @@ export class ServiceAttendance implements OnInit, OnDestroy {
       });
   }
 
+  /** Total des présents « membres » (hors visiteurs / nouveaux convertis). */
+  totalPresent(): number {
+    const v = this.form.value;
+    return (v.men || 0) + (v.women || 0) + (v.boys || 0) + (v.girls || 0)
+      + (v.teenBoys || 0) + (v.teenGirls || 0) + (v.unallocated || 0);
+  }
+
+  /** Total des moins de 18 ans (garçons + filles + adolescents). */
+  minors(): number {
+    const v = this.form.value;
+    return (v.boys || 0) + (v.girls || 0) + (v.teenBoys || 0) + (v.teenGirls || 0);
+  }
+
   private populateForm(service: any): void {
-    const attendance = service.attendance || {
-      men: 0,
-      women: 0,
-      visitors: 0,
-      children: 0,
-      acceptedJesus: 0,
-      notAcceptedJesus: 0,
-      observation: '',
-      photoUrl: '',
-      visitorNames: [],
-    };
+    const attendance = service.attendance || {};
     this.form.patchValue({
       men: attendance.men || 0,
       women: attendance.women || 0,
+      boys: attendance.boys || 0,
+      girls: attendance.girls || 0,
+      teenBoys: attendance.teenBoys || 0,
+      teenGirls: attendance.teenGirls || 0,
       visitors: attendance.visitors || 0,
       children: attendance.children || 0,
       acceptedJesus: attendance.acceptedJesus || 0,
       notAcceptedJesus: attendance.notAcceptedJesus || 0,
+      newConverts: attendance.newConverts || 0,
+      youth: attendance.youth || 0,
+      unallocated: attendance.unallocated || 0,
       observation: attendance.observation || '',
       photoUrl: attendance.photoUrl || '',
     });
@@ -251,10 +268,17 @@ export class ServiceAttendance implements OnInit, OnDestroy {
     const payload = {
       men: raw.men || 0,
       women: raw.women || 0,
+      boys: raw.boys || 0,
+      girls: raw.girls || 0,
+      teenBoys: raw.teenBoys || 0,
+      teenGirls: raw.teenGirls || 0,
       visitors: raw.visitors || 0,
       children: raw.children || 0,
       acceptedJesus: raw.acceptedJesus || 0,
       notAcceptedJesus: raw.notAcceptedJesus || 0,
+      newConverts: raw.newConverts || 0,
+      youth: raw.youth || 0,
+      unallocated: raw.unallocated || 0,
       observation: raw.observation || '',
       photoUrl: raw.photoUrl || '',
       visitorNames,

@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  background: #f1f5f9;
+  background: var(--color-bg);
 }
 
 .ua-wrapper {
@@ -15,8 +15,8 @@
 .ua-card {
   width: 100%;
   max-width: 520px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 40px 32px;
   text-align: center;
@@ -54,7 +54,7 @@ h1 {
   margin: 0 0 12px;
   font-size: 26px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 p {
@@ -66,7 +66,7 @@ p {
 
 .ua-hint {
   font-size: 13.5px;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .ua-actions {
@@ -106,6 +106,6 @@ p {
   border: 1px solid #cbd5e1;
 
   &:hover {
-    background: #f8fafc;
+    background: var(--color-bg);
   }
 }

@@ -110,6 +110,14 @@ export interface Member {
   isActive: boolean;
   isBaptized: boolean;
   isLeader: boolean;
+  // ── Fiche complète (Lot 8) ──
+  employer?: string;
+  educationLevel?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  consentGiven?: boolean;
+  consentDate?: string;
+  transferHistory?: MemberTransfer[];
   lastAttendance?: string;
   attendanceCount: number;
   createdAt: string;
@@ -124,6 +132,16 @@ export interface Member {
   // Propriétés de réponse
   isSuccess?: boolean;
   errorMessage?: string;
+}
+
+export interface MemberTransfer {
+  date: string;
+  fromChurchId?: string;
+  fromSiteId?: string;
+  toChurchId?: string;
+  toSiteId?: string;
+  reason?: string;
+  byUserId?: string;
 }
 
 export interface MemberCreate {
@@ -155,6 +173,12 @@ export interface MemberCreate {
   isActive?: boolean;
   isBaptized?: boolean;
   isLeader?: boolean;
+  employer?: string;
+  educationLevel?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  consentGiven?: boolean;
+  consentDate?: string;
 
   // ✅ NOUVEAU - Date d'enregistrement
   registrationDate?: string;

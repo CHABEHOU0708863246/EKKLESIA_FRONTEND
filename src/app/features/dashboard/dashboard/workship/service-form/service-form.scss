@@ -115,7 +115,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #d0d7de;
   border-radius: 6px;
   max-height: 200px;
@@ -187,7 +187,7 @@
   }
 
   .sf-team-member {
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid #e9ecef;
     border-radius: 6px;
     padding: 0.8rem;
@@ -316,7 +316,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #d0d7de;
   border-radius: 6px;
   max-height: 220px;

@@ -48,16 +48,50 @@
         <input type="number" formControlName="women" min="0">
       </div>
       <div class="sa-field">
-        <label>Enfants</label>
-        <input type="number" formControlName="children" min="0">
-      </div>
-    </div>
-
-    <div class="sa-grid-2">
-      <div class="sa-field">
         <label>Visiteurs</label>
         <input type="number" formControlName="visitors" min="0">
       </div>
+    </div>
+
+    <!-- Répartition détaillée des effectifs (Lot 5) -->
+    <h4 style="margin:14px 0 6px">Répartition détaillée</h4>
+    <p class="sa-field-hint">Tout être humain de moins de 18 ans est un « enfant ». Les « jeunes » sont indicatifs (jamais additionnés au total).</p>
+    <div class="sa-grid-3">
+      <div class="sa-field">
+        <label>Garçons (0–12)</label>
+        <input type="number" formControlName="boys" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Filles (0–12)</label>
+        <input type="number" formControlName="girls" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Adolescents H. (13–17)</label>
+        <input type="number" formControlName="teenBoys" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Adolescentes F. (13–17)</label>
+        <input type="number" formControlName="teenGirls" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Jeunes (18–35, indicatif)</label>
+        <input type="number" formControlName="youth" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Non réparti (ancien total)</label>
+        <input type="number" formControlName="unallocated" min="0">
+      </div>
+      <div class="sa-field">
+        <label>Nouveaux convertis (à part)</label>
+        <input type="number" formControlName="newConverts" min="0">
+      </div>
+    </div>
+    <p class="sa-field-hint" style="font-weight:600">
+      Total présents (membres) : {{ totalPresent() }} — dont moins de 18 ans : {{ minors() }}.
+      Les visiteurs et nouveaux convertis sont comptés à part.
+    </p>
+
+    <div class="sa-grid-2">
       <div class="sa-field">
         <label>Accepté Jésus</label>
         <input type="number" formControlName="acceptedJesus" min="0">

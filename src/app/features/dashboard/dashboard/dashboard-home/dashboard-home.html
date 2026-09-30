@@ -29,7 +29,7 @@
         <a [routerLink]="['/dashboard/membres/new']" class="hero-action-btn primary">
           <i class="bx bx-plus"></i> Nouveau Membre
         </a>
-        <a [routerLink]="['/dashboard/finances/offrandes/new']" class="hero-action-btn">
+        <a [routerLink]="['/dashboard/offrandes/new']" class="hero-action-btn">
           <i class="bx bx-donate-heart"></i> Enregistrer Offrande
         </a>
         <a [routerLink]="['/dashboard/evenements/new']" class="hero-action-btn">
@@ -153,6 +153,43 @@
         <div class="chart-container">
           <canvas id="attendanceChart" width="400" height="300"></canvas>
         </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <div class="card-title"><i class="bx bx-pie-chart-alt-2"></i> Répartition des effectifs</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          @if (canSelectScope()) {
+            <select [(ngModel)]="selectedScope" (change)="onScopeChange()"
+                    style="padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0">
+              <option value="Tous">Tous (consolidé)</option>
+              <option value="National">National</option>
+              <option value="International">International</option>
+            </select>
+          }
+          <button type="button" class="btn btn-sm" (click)="exportAttendance('xlsx')">
+            <i class="bx bx-spreadsheet"></i> Excel
+          </button>
+          <button type="button" class="btn btn-sm" (click)="exportAttendance('pdf')">
+            <i class="bx bx-file"></i> PDF
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        @if (attendanceBreakdown) {
+          <div class="chart-container">
+            <canvas id="attendanceBreakdownChart"></canvas>
+          </div>
+          <p style="margin-top:8px;color:#64748b">
+            Total présents (membres) : <strong>{{ attendanceBreakdown.totalPresent | number }}</strong>
+            — dont moins de 18 ans : <strong>{{ attendanceBreakdown.minors | number }}</strong>.
+            Visiteurs : {{ attendanceBreakdown.visitors | number }} ·
+            Nouveaux convertis : {{ attendanceBreakdown.newConverts | number }}.
+          </p>
+        } @else {
+          <p style="color:#64748b">Aucune donnée de présence pour l'instant.</p>
+        }
       </div>
     </div>
 

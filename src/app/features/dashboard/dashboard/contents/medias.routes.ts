@@ -52,6 +52,16 @@ export const MEDIAS_ROUTES: Routes = [
     data: { permissions: ['Communication_Broadcast'] },
   },
 
+  // ─── Vidéo (squelette — Lot 10) ───
+  {
+    path: 'video',
+    loadComponent: () =>
+      import('./video-access/video-access').then((m) => m.VideoAccessComponent),
+    title: 'Vidéo — MIAV',
+    canActivate: [authGuard],
+    data: { permissions: ['Content_Read'] },
+  },
+
   // ─── Newsletters ───
   {
     path: 'newsletter',

@@ -17,12 +17,12 @@ $teal-glow:       rgba(31, 111, 99, 0.15);
 $burgundy:        #7A2E3B;
 $burgundy-dark:   #5A1F2A;
 
-$surface:         #FFFFFF;
-$bg:              #F4F3FF;
-$border:          rgba(0, 0, 0, 0.06);
-$text-1:          #1A143A;
-$text-2:          #3D3566;
-$text-3:          #9590BB;
+$surface: var(--color-surface);
+$bg: var(--color-bg);
+$border: var(--color-border);
+$text-1: var(--color-text);
+$text-2: var(--color-muted);
+$text-3: var(--color-muted);
 
 $radius:          10px;
 $radius-lg:       16px;

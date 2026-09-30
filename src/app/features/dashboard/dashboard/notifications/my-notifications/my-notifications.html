@@ -126,12 +126,25 @@
               }
             </select>
           </div>
-        } @else if (sendForm.targetType !== 'Global') {
+        } @else if (sendForm.targetType === 'User') {
           <div class="mn-field">
-            <label for="mnTargetId">
-              {{ sendForm.targetType === 'Site' ? 'Identifiant du site' : 'Identifiant de l’utilisateur' }}
-            </label>
-            <input id="mnTargetId" type="text" [(ngModel)]="sendForm.targetId" name="mnTargetId" />
+            <label for="mnUserId">Utilisateur</label>
+            <select id="mnUserId" [(ngModel)]="sendForm.targetId" name="mnUserId">
+              <option value="">— Choisir un utilisateur —</option>
+              @for (u of users; track u.id) {
+                <option [value]="u.id">{{ u.name }}</option>
+              }
+            </select>
+          </div>
+        } @else if (sendForm.targetType === 'Site') {
+          <div class="mn-field">
+            <label for="mnSiteId">Site</label>
+            <select id="mnSiteId" [(ngModel)]="sendForm.targetId" name="mnSiteId">
+              <option value="">— Choisir un site —</option>
+              @for (s of sites; track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
           </div>
         }
 

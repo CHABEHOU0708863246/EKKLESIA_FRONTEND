@@ -18,6 +18,13 @@ export const USERS_ROUTES: Routes = [
     data: { permissions: ['User_Create'] },
   },
   {
+    path: 'import',
+    loadComponent: () => import('./user-import/user-import').then((m) => m.UserImportComponent),
+    title: 'Importer des utilisateurs — MIAV',
+    canActivate: [authGuard],
+    data: { permissions: ['User_Create'] },
+  },
+  {
     path: ':id',
     loadComponent: () => import('./user-detail/user-detail').then((m) => m.UserDetail),
     title: 'Fiche utilisateur — MIAV',

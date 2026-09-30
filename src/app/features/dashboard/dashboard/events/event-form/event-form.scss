@@ -229,7 +229,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 .ef-formula-item {
-  border: 1px solid var(--ef-border-color, #e5e7eb);
+  border: 1px solid var(--ef-border-color, var(--color-border));
   border-radius: 0.5rem;
   padding: 1rem;
   background: var(--ef-bg-panel, #fff);

@@ -14,6 +14,7 @@ export class Permissions {
   private userPermissions: string[] = [];
   private userRoles: string[] = [];
   private loadedFromServer = false;
+  private mustChange = false;
 
   // Constantes pour les modules
   private readonly MODULES = {
@@ -48,7 +49,7 @@ export class Permissions {
   public async refreshFromServer(): Promise<void> {
     try {
       const fresh = await firstValueFrom(
-        this.http.get<{ permissions?: string[]; roles?: string[] }>(
+        this.http.get<{ permissions?: string[]; roles?: string[]; mustChangePassword?: boolean }>(
           `${environment.apiUrl}/api/v1/Auth/me`
         )
       );
@@ -59,6 +60,7 @@ export class Permissions {
         this.userRoles = [...new Set([...this.userRoles, ...fresh.roles])];
       }
 
+      this.mustChange = !!fresh?.mustChangePassword;
       this.loadedFromServer = true;
     } catch {
       // silencieux : on garde l'état issu du JWT en cas d'échec réseau
@@ -69,6 +71,19 @@ export class Permissions {
   /** Indique si les permissions effectives ont bien été chargées depuis le serveur. */
   public isLoadedFromServer(): boolean {
     return this.loadedFromServer;
+  }
+
+  /**
+   * Compte importé dont le mot de passe temporaire doit être changé : tant que
+   * c'est vrai, l'utilisateur est redirigé vers son profil pour le changer.
+   */
+  public mustChangePassword(): boolean {
+    return this.mustChange;
+  }
+
+  /** Marque l'obligation de changement comme levée (après un changement réussi). */
+  public clearMustChangePassword(): void {
+    this.mustChange = false;
   }
 
   /**
@@ -1067,6 +1082,7 @@ export class Permissions {
     this.userPermissions = [];
     this.userRoles = [];
     this.loadedFromServer = false;
+    this.mustChange = false;
   }
 
   /**

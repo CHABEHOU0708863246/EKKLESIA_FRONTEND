@@ -1,6 +1,9 @@
 // src/app/core/services/api/service.service.ts
 
 import { Injectable } from '@angular/core';
+import { switchMap } from 'rxjs/operators';
+import { compressedFormData } from '../../utils/upload.helper';
+import { UploadProgressService } from '../Uploads/upload-progress.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -16,13 +19,35 @@ import {
   ServiceStatus
 } from '../../models/Events/service.model';
 
+/** Répartition agrégée des effectifs (API). */
+export interface AttendanceSummary {
+  servicesCount: number;
+  men: number;
+  women: number;
+  boys: number;
+  girls: number;
+  teenBoys: number;
+  teenGirls: number;
+  unallocated: number;
+  visitors: number;
+  newConverts: number;
+  youth: number;
+  adults: number;
+  minors: number;
+  totalPresent: number;
+  totalAll: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class Service {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Service`;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private uploadProgress: UploadProgressService
+  ) { }
 
   // ──────────────────────────────────────────────────────────────
   // 📝 CRUD
@@ -77,12 +102,34 @@ export class Service {
    * Upload une photo justificative pour un culte
    * POST /api/v1/Service/{id}/photo
    */
+  /** Répartition agrégée des effectifs (période, périmètre consolidé). */
+  getAttendanceSummary(from?: string, to?: string, scope?: string): Observable<ApiResponse<AttendanceSummary>> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    if (scope) params = params.set('scope', scope);
+    return this.http.get<ApiResponse<AttendanceSummary>>(`${this.baseUrl}/attendance/summary`, { params });
+  }
+
+  /** Export de la répartition (Excel/PDF) sous forme de fichier. */
+  exportAttendanceSummary(format: 'xlsx' | 'pdf', from?: string, to?: string, scope?: string): Observable<Blob> {
+    let params = new HttpParams().set('format', format);
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    if (scope) params = params.set('scope', scope);
+    return this.http.get(`${this.baseUrl}/attendance/summary/export`, { params, responseType: 'blob' });
+  }
+
   uploadPhoto(serviceId: string, photoFile: File): Observable<{ success: boolean; photoId?: string; message?: string }> {
-    const formData = new FormData();
-    formData.append('photoFile', photoFile);
-    return this.http.post<{ success: boolean; photoId?: string; message?: string }>(
-      `${this.baseUrl}/${serviceId}/photo`,
-      formData
+    return compressedFormData('photoFile', photoFile).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(
+          this.http.post<{ success: boolean; photoId?: string; message?: string }>(
+            `${this.baseUrl}/${serviceId}/photo`,
+            formData
+          )
+        )
+      )
     );
   }
 

@@ -62,7 +62,7 @@ function checkAuthenticated(
  *  - superAdmin?: boolean
  *  - admin?: boolean          -> "admin ou plus" (SUPER_ADMIN, PASTOR_PRINCIPAL, PASTEUR_SITE)
  */
-export const accessGuard: CanActivateFn = (route) => {
+export const accessGuard: CanActivateFn = (route, state) => {
   const platformId = inject(PLATFORM_ID);
   if (!isPlatformBrowser(platformId)) return true;
 
@@ -72,6 +72,13 @@ export const accessGuard: CanActivateFn = (route) => {
 
   const authResult = checkAuthenticated(tokenService, router, route, 'AccessGuard');
   if (authResult !== true) return authResult;
+
+  // Comptes importés : tant que le mot de passe temporaire n'a pas été changé,
+  // on force l'accès au profil (seul écran autorisé).
+  const targetUrl = (state?.url ?? '').toLowerCase();
+  if (permissions.mustChangePassword() && !targetUrl.includes('mon-profil')) {
+    return router.createUrlTree(['/dashboard/admin/mon-profil'], { queryParams: { forcePassword: '1' } });
+  }
 
   const requiredPermissions = (route.data?.['permissions'] as string[]) ?? [];
   const requiredAllPermissions = (route.data?.['allPermissions'] as string[]) ?? [];

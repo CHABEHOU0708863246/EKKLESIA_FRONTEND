@@ -129,6 +129,13 @@ export class MemberCreate implements OnInit, OnDestroy {
         ministryId: [''],
         godfatherId: [''],
       }),
+      fiche: this.fb.group({
+        employer: [''],
+        educationLevel: [''],
+        emergencyContactName: [''],
+        emergencyContactPhone: [''],
+        consentGiven: [false],
+      }),
       notes: [''],
     });
   }
@@ -313,6 +320,9 @@ export class MemberCreate implements OnInit, OnDestroy {
   get affectationGroup(): FormGroup {
     return this.form.get('affectation') as FormGroup;
   }
+  get ficheGroup(): FormGroup {
+    return this.form.get('fiche') as FormGroup;
+  }
 
   isFieldInvalid(group: FormGroup, field: string): boolean {
     const control = group.get(field);
@@ -444,6 +454,7 @@ export class MemberCreate implements OnInit, OnDestroy {
     const identite = this.identiteGroup.value;
     const statut = this.statutGroup.value;
     const affectation = this.affectationGroup.value;
+    const fiche = this.ficheGroup.value;
 
     return {
       firstName: identite.firstName,
@@ -462,6 +473,12 @@ export class MemberCreate implements OnInit, OnDestroy {
       cellGroupId: affectation.cellGroupId || undefined,
       ministryIds: affectation.ministryId ? [affectation.ministryId] : undefined,
       godfatherId: affectation.godfatherId || undefined,
+      employer: fiche.employer || undefined,
+      educationLevel: fiche.educationLevel || undefined,
+      emergencyContactName: fiche.emergencyContactName || undefined,
+      emergencyContactPhone: fiche.emergencyContactPhone || undefined,
+      consentGiven: fiche.consentGiven,
+      consentDate: fiche.consentGiven ? new Date().toISOString() : undefined,
     };
   }
 

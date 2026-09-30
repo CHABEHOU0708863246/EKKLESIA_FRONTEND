@@ -4,11 +4,11 @@ $purple: #6c5ce7;
 $purple-soft: rgba(108, 92, 231, 0.08);
 $green: #00b894;
 $orange: #e17055;
-$text-1: #1f2333;
-$text-3: #8d93a8;
+$text-1: var(--color-text);
+$text-3: var(--color-muted);
 $border: #e8eaf1;
-$surface: #ffffff;
-$bg: #f4f5fa;
+$surface: var(--color-surface);
+$bg: var(--color-bg);
 
 :host {
   display: block;
@@ -86,7 +86,7 @@ $bg: #f4f5fa;
     padding: 0 12px;
     border: 1px solid $border;
     border-radius: 9px;
-    background: #fff;
+    background: var(--color-surface);
     font-size: 13.5px;
     color: $text-1;
     outline: none;

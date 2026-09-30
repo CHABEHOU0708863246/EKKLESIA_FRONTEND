@@ -51,6 +51,28 @@
           <p class="of-error" *ngIf="isFieldInvalid('amount')">Montant supérieur à 0 requis</p>
         </div>
 
+        <div class="of-field" style="grid-column:1 / -1">
+          <label>
+            Détail par catégorie
+            <small>(optionnel — le total se calcule automatiquement)</small>
+          </label>
+          @if (categoryLines().length === 0) {
+            <p class="of-hint">Chargement des catégories…</p>
+          }
+          @for (line of categoryLines(); track line.code) {
+            <div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+              <span style="min-width:230px">{{ line.label }}</span>
+              <input type="number" min="0" step="1" placeholder="0"
+                     [value]="line.amount || ''"
+                     (input)="updateLineAmount(line.code, $any($event.target).value)">
+              <span>{{ form.get('currency')?.value || 'FCFA' }}</span>
+            </div>
+          }
+          <p style="font-weight:600;margin-top:10px">
+            Total calculé : {{ linesTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
+          </p>
+        </div>
+
         <div class="of-field">
           <label>Date <span class="of-required">*</span></label>
           <input type="date" formControlName="date">

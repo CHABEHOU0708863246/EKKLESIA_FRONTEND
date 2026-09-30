@@ -1,0 +1,55 @@
+.ui-page { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+.ui-header {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px;
+  h1 { margin: 0 0 4px; font-size: 24px; }
+}
+.ui-subtitle { margin: 0; color: var(--color-muted); }
+
+.ui-steps {
+  margin: 0 0 20px; padding-left: 20px; color: var(--color-text);
+  li { margin: 6px 0; }
+  .ui-step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; background: #6C5CE7; color: #fff;
+    font-size: 12px; margin-right: 6px;
+  }
+}
+
+.ui-card {
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; margin-bottom: 20px;
+}
+.ui-file { display: block; }
+.ui-file-label { display: block; font-weight: 600; margin-bottom: 8px; }
+.ui-file-name { margin: 8px 0 0; color: var(--color-text); }
+
+.ui-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+.ui-btn {
+  border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-weight: 600;
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+.ui-btn-primary { background: #6C5CE7; color: #fff; }
+.ui-btn-success { background: #00B894; color: #fff; }
+.ui-btn-ghost { background: transparent; color: #6C5CE7; text-decoration: none; padding: 10px 4px; }
+
+.ui-warn { color: #B7791F; background: #FEF3C7; padding: 10px 12px; border-radius: 8px; margin-top: 12px; }
+.ui-note { color: var(--color-text); background: #EEF2FF; padding: 10px 12px; border-radius: 8px; }
+
+.ui-summary { display: flex; gap: 24px; margin: 12px 0 20px; flex-wrap: wrap; }
+.ui-summary div { display: flex; flex-direction: column; align-items: center; }
+.ui-kpi { font-size: 22px; font-weight: 700; color: var(--color-text); }
+.ui-summary small { color: var(--color-muted); }
+
+.ui-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ui-table th, .ui-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+.ui-row-error { background: #FEF2F2; }
+
+.ui-badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.ui-badge-created { background: #DCFCE7; color: #166534; }
+.ui-badge-updated { background: #DBEAFE; color: #1E40AF; }
+.ui-badge-ignored { background: #E5E7EB; color: var(--color-text); }
+.ui-badge-error { background: #FEE2E2; color: #991B1B; }
+
+.ui-msg-error { color: #991B1B; }
+.ui-msg-warn { color: #B7791F; }

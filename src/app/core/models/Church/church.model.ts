@@ -43,6 +43,8 @@ export interface ChurchCreate {
   missionStatement?: string;
   visionStatement?: string;
   isHeadquarters?: boolean;
+  country?: string;
+  scope?: string;
   parentChurchId?: string;
   sites?: SiteCreate[];
   settings?: ChurchSettings;
@@ -63,6 +65,8 @@ export interface ChurchUpdate {
   missionStatement?: string;
   visionStatement?: string;
   isHeadquarters?: boolean;
+  country?: string;
+  scope?: string;
   parentChurchId?: string;
   isActive?: boolean;
   settings?: ChurchSettings;

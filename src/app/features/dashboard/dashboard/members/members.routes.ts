@@ -18,6 +18,14 @@ export const MEMBERS_ROUTES: Routes = [
     title: 'Nouveau membre — MIAV',
   },
 
+  // ─── Import (Excel/CSV) ───
+  {
+    path: 'import',
+    loadComponent: () =>
+      import('./member-import/member-import').then((m) => m.MemberImportComponent),
+    title: 'Importer des membres — MIAV',
+  },
+
   // ─── Pipeline visiteurs (Kanban FirstContact → Adhered) ───
   // ⚠️ Placé AVANT ':id' pour éviter que le routeur interprète
   // "pipeline-visiteurs" comme un ID de membre.

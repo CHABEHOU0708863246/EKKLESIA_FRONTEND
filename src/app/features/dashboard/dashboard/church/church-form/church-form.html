@@ -95,6 +95,21 @@
         </div>
 
         <div class="cf-field">
+          <label for="country">Pays (code ISO-2)</label>
+          <input id="country" type="text" formControlName="country" maxlength="2"
+                 placeholder="CI, GN, BF, KW…" style="text-transform:uppercase">
+          <small class="cf-hint">Détermine la devise et le fuseau des sites.</small>
+        </div>
+
+        <div class="cf-field">
+          <label for="scope">Périmètre</label>
+          <select id="scope" formControlName="scope">
+            <option value="National">National (Côte d'Ivoire)</option>
+            <option value="International">International</option>
+          </select>
+        </div>
+
+        <div class="cf-field">
           <label for="taxId">Numéro fiscal</label>
           <input id="taxId" type="text" formControlName="taxId">
         </div>
@@ -121,9 +136,12 @@
         </div>
 
         <div class="cf-field cf-field--span-2" *ngIf="!form.get('isHeadquarters')?.value">
-          <label for="parentChurchId">ID de l'église mère</label>
-          <input id="parentChurchId" type="text" formControlName="parentChurchId"
-            placeholder="Identifiant de l'église rattachée">
+          <label for="parentChurchId">Église mère</label>
+          <select id="parentChurchId" formControlName="parentChurchId">
+            <option value="">— Choisir l'église de rattachement —</option>
+            <option *ngFor="let c of parentChurches()" [value]="c.id">{{ c.name }}</option>
+          </select>
+          <small class="cf-hint">Sélectionnez l'église siège à laquelle cette filiale est rattachée.</small>
         </div>
 
       </div>

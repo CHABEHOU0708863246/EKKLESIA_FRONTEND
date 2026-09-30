@@ -87,7 +87,7 @@ $transition: 0.2s ease-in-out;
 .obm-search-input-wrap {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--color-surface);
   border: 2px solid $gray-300;
   border-radius: $border-radius;
   padding: 0.3rem 0.8rem;
@@ -131,7 +131,7 @@ $transition: 0.2s ease-in-out;
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-300;
   border-radius: $border-radius;
   max-height: 240px;
@@ -243,7 +243,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .obm-stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.8rem 1rem;
@@ -293,7 +293,7 @@ $transition: 0.2s ease-in-out;
   gap: 0.8rem;
   padding: 0.6rem 1rem;
   border-radius: $border-radius;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   box-shadow: $box-shadow;
 
@@ -329,7 +329,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .obm-month-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.4rem 0.8rem;

@@ -89,7 +89,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .of-panel {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
@@ -149,7 +149,7 @@ $transition: 0.2s ease-in-out;
     border-radius: 6px;
     font-size: 0.95rem;
     transition: border-color $transition, box-shadow $transition;
-    background: #fff;
+    background: var(--color-surface);
     width: 100%;
 
     &:focus {
@@ -218,7 +218,7 @@ $transition: 0.2s ease-in-out;
   padding: 0.6rem 0.3rem;
   border: 2px solid $gray-200;
   border-radius: $border-radius;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
   transition: border-color $transition, background $transition;
   font-family: inherit;
@@ -293,7 +293,7 @@ $transition: 0.2s ease-in-out;
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--color-surface);
     border: 1px solid $gray-300;
     border-radius: 6px;
     max-height: 200px;
@@ -438,7 +438,7 @@ $transition: 0.2s ease-in-out;
   padding: 0.4rem 0.8rem;
   border: 2px solid $gray-200;
   border-radius: 20px;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
   transition: border-color $transition, background $transition;
   user-select: none;

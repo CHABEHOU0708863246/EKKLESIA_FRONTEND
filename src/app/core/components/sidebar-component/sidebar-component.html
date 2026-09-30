@@ -100,6 +100,12 @@
               <span class="nav-badge badge-gold">+</span>
             </a>
           </li>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/membres/import']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-import"></i>
+              <span class="nav-text">Importer des membres</span>
+            </a>
+          </li>
           }
 
           @if (permission.canViewMembers()) {
@@ -126,6 +132,14 @@
             <a [routerLink]="['/dashboard/membres/cellules']" class="nav-link" (click)="closeMobileSidebar()">
               <i class="nav-icon-sub bx bx-home-heart"></i>
               <span class="nav-text">Cellules de maison</span>
+            </a>
+          </li>
+          }
+          @if (permission.canViewMembers()) {
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/departements']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-buildings"></i>
+              <span class="nav-text">Départements</span>
             </a>
           </li>
           }
@@ -438,6 +452,14 @@
             </a>
           </li>
           }
+          @if (permission.canViewContent()) {
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard/medias/video']" class="nav-link">
+              <i class="nav-icon-sub bx bx-video"></i>
+              <span class="nav-text">Vidéo</span>
+            </a>
+          </li>
+          }
           @if (permission.canManageNewsletter()) {
           <li class="nav-item">
             <a [routerLink]="['/dashboard/medias/newsletter']" class="nav-link">
@@ -480,6 +502,12 @@
               <i class="nav-icon-sub bx bx-user-plus"></i>
               <span class="nav-text">Ajouter un utilisateur</span>
               <span class="nav-badge badge-gold">+</span>
+            </a>
+          </li>
+          <li class="nav-item" routerLinkActive="active">
+            <a [routerLink]="['/dashboard/admin/users/import']" class="nav-link" (click)="closeMobileSidebar()">
+              <i class="nav-icon-sub bx bx-import"></i>
+              <span class="nav-text">Importer des utilisateurs</span>
             </a>
           </li>
           }

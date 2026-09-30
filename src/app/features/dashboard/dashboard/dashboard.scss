@@ -28,12 +28,14 @@ $purple-dark:     #4A3A9E;
 $purple-light:    #8B7EE8;
 $purple-glow:     rgba(108, 92, 231, 0.16);
 
-$surface:         #FFFFFF;
-$bg:              #F4F3FF;
-$border:          rgba(0, 0, 0, 0.06);
-$text-1:          #1A143A;
-$text-2:          #3D3566;
-$text-3:          #9590BB;
+// ⚠️ Ces variables pointent vers les DESIGN TOKENS (styles.scss) afin que la
+// coquille (topbar, contenu) suive automatiquement le thème clair/sombre.
+$surface:         var(--color-surface);
+$bg:              var(--color-bg);
+$border:          var(--color-border);
+$text-1:          var(--color-text);
+$text-2:          var(--color-muted);
+$text-3:          var(--color-muted);
 
 $radius:          10px;
 $radius-lg:       16px;
@@ -163,13 +165,13 @@ $touch-size:     44px;
     touch-action: manipulation;
 
     &:active {
-      background: #F6F5FC;
+      background: var(--color-surface-2);
       transform: scale(0.92);
     }
 
     @media (hover: hover) {
       &:hover {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
         color: $text-1;
       }
     }
@@ -300,13 +302,13 @@ $touch-size:     44px;
       touch-action: manipulation;
 
       &:active {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
         transform: scale(0.92);
       }
 
       @media (hover: hover) {
         &:hover {
-          background: #F6F5FC;
+          background: var(--color-surface-2);
           color: $text-1;
         }
       }
@@ -347,12 +349,12 @@ $touch-size:     44px;
       touch-action: manipulation;
 
       &:active {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
       }
 
       @media (hover: hover) {
         &:hover {
-          background: #F6F5FC;
+          background: var(--color-surface-2);
         }
       }
 
@@ -478,13 +480,13 @@ $touch-size:     44px;
           touch-action: manipulation;
 
           &:active {
-            background: #F6F5FC;
+            background: var(--color-surface-2);
             transform: scale(0.98);
           }
 
           @media (hover: hover) {
             &:hover {
-              background: #F6F5FC;
+              background: var(--color-surface-2);
               color: $text-1;
             }
           }
@@ -1621,7 +1623,7 @@ $touch-size:     44px;
   right: 0;
   width: 380px;
   max-width: 92vw;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #e8eaf1;
   border-radius: 14px;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
@@ -1669,7 +1671,7 @@ $touch-size:     44px;
   padding: 11px 16px;
   border: none;
   border-bottom: 1px solid #f1f2f7;
-  background: #fff;
+  background: var(--color-surface);
   text-align: left;
   cursor: pointer;
   transition: background 0.15s ease;

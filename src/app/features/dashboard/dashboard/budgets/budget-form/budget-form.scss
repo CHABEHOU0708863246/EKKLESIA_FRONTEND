@@ -79,7 +79,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .bf-panel {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
@@ -145,7 +145,7 @@ $transition: 0.2s ease-in-out;
     border-radius: 6px;
     font-size: 0.95rem;
     transition: border-color $transition, box-shadow $transition;
-    background: #fff;
+    background: var(--color-surface);
     width: 100%;
 
     &:focus {

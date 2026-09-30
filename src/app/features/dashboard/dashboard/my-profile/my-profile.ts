@@ -7,6 +7,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { UserProfileCreate, UserProfileUtils } from '../../../../core/models/Users/user-profile.model';
 import { User } from '../../../../core/models/Users/user.model';
 import { Users } from '../../../../core/services/Users/users';
+import { Permissions } from '../../../../core/services/Permissions/permissions';
 import {
   PASSWORD_MIN_LENGTH,
   passwordPolicyValidator,
@@ -63,11 +64,15 @@ export class MyProfile implements OnInit, OnDestroy {
   passwordSuccess = signal(false);
   passwordForm: FormGroup;
 
+  /** Compte importé : changement de mot de passe obligatoire. */
+  forcePasswordChange = signal(false);
+
   form: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private userService: Users,
+    private permissions: Permissions,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.form = this.fb.group({
@@ -96,6 +101,12 @@ export class MyProfile implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    // Compte importé avec mot de passe temporaire : on ouvre d'emblée la
+    // section de changement de mot de passe.
+    this.forcePasswordChange.set(this.permissions.mustChangePassword());
+    if (this.forcePasswordChange()) this.showPasswordSection.set(true);
+
     this.loadCurrentUser();
   }
 
@@ -317,6 +328,8 @@ export class MyProfile implements OnInit, OnDestroy {
           this.changingPassword.set(false);
           if (response.success) {
             this.passwordSuccess.set(true);
+            this.permissions.clearMustChangePassword();
+            this.forcePasswordChange.set(false);
             this.passwordForm.reset();
             setTimeout(() => {
               this.passwordSuccess.set(false);

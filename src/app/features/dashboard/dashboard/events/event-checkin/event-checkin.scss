@@ -180,7 +180,7 @@
   &--danger { background: #fee2e2; color: #991b1b; }
   &--warning { background: #fef3c7; color: #92400e; }
   &--info { background: #dbeafe; color: #1e40af; }
-  &--secondary { background: #e5e7eb; color: #374151; }
+  &--secondary { background: #e5e7eb; color: var(--color-text); }
 }
 .ec-type-badge {
   &--primary { background: #e0e7ff; color: #3730a3; }
@@ -194,7 +194,7 @@
   &--orange { background: #ffede0; color: #b45f06; }
   &--teal { background: #d5f5f0; color: #0e6655; }
   &--indigo { background: #e0e7ff; color: #3730a3; }
-  &--secondary { background: #e5e7eb; color: #374151; }
+  &--secondary { background: #e5e7eb; color: var(--color-text); }
 }
 
 // ── Check-in bouton ──

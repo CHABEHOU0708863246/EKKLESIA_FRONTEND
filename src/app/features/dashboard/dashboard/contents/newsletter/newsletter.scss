@@ -78,7 +78,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .nl-stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.6rem 0.4rem;
@@ -107,7 +107,7 @@ $transition: 0.2s ease-in-out;
 // ─── FILTRES ────────────────────────────────────────────────────
 
 .nl-filters {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.8rem 1.2rem;
@@ -138,7 +138,7 @@ $transition: 0.2s ease-in-out;
     border: 1px solid $gray-300;
     border-radius: 6px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--color-surface);
     min-width: 140px;
     &:focus {
       outline: none;
@@ -201,7 +201,7 @@ $transition: 0.2s ease-in-out;
 // ─── TABLEAU ────────────────────────────────────────────────────
 
 .nl-table-wrap {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   overflow: hidden;
@@ -343,7 +343,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .nl-modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: $border-radius;
   max-width: 640px;
   width: 100%;

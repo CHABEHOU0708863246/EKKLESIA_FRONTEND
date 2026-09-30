@@ -1,6 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap, catchError, of, map } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { compressedFormData } from '../../utils/upload.helper';
+import { UploadProgressService } from '../Uploads/upload-progress.service';
 import { environment } from '../../../../environments/environment';
 import {
   Church as ChurchModel,
@@ -20,7 +23,10 @@ import { ApiResponse } from '../../models/Common/api-response.model';
 export class Church {
   private readonly baseUrl: string;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private uploadProgress: UploadProgressService
+  ) {
     this.baseUrl = `${environment.apiUrl}/api/v1/Church`;
   }
 
@@ -88,23 +94,21 @@ export class Church {
  * POST /api/v1/Church avec multipart/form-data
  */
 createChurchWithLogo(churchData: ChurchCreate, logoFile: File): Observable<ApiResponse<ChurchModel>> {
-  const formData = new FormData();
-
-  // Ajouter les données JSON
-  formData.append('church', JSON.stringify(churchData));
-
-  // Ajouter le fichier logo
-  formData.append('logoFile', logoFile);
-
-  return this.http.post<ApiResponse<ChurchModel>>(`${this.baseUrl}/with-logo`, formData)
-    .pipe(
-      tap(response => {
-        if (response.success && response.data) {
-          console.log('✅ Église créée avec logo:', response.data.name);
-        }
-      }),
-      catchError(this.handleError<ChurchModel>('createChurchWithLogo'))
-    );
+  // Compression du logo (1600 px, JPEG) puis envoi multipart, avec progression.
+  return compressedFormData('logoFile', logoFile).pipe(
+    switchMap((formData) => {
+      formData.append('church', JSON.stringify(churchData));
+      return this.uploadProgress.wrap(
+        this.http.post<ApiResponse<ChurchModel>>(`${this.baseUrl}/with-logo`, formData)
+      );
+    }),
+    tap(response => {
+      if (response.success && response.data) {
+        console.log('Église créée avec logo:', response.data.name);
+      }
+    }),
+    catchError(this.handleError<ChurchModel>('createChurchWithLogo'))
+  );
 }
 
  getAllChurches(): Observable<ApiResponse<ChurchModel[]>> {

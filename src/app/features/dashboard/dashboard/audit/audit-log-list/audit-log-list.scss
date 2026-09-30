@@ -1,12 +1,12 @@
 // src/app/features/dashboard/dashboard/audit/audit-log-list/audit-log-list.scss
 
 $purple: #6c5ce7;
-$text-1: #1f2333;
-$text-2: #4b5163;
-$text-3: #8d93a8;
+$text-1: var(--color-text);
+$text-2: var(--color-muted);
+$text-3: var(--color-muted);
 $border: #e8eaf1;
-$surface: #fff;
-$bg: #f4f5fa;
+$surface: var(--color-surface);
+$bg: var(--color-bg);
 
 :host { display: block; }
 
@@ -106,7 +106,7 @@ $bg: #f4f5fa;
 
   input, select {
     height: 38px; padding: 0 12px; border: 1px solid $border; border-radius: 9px;
-    background: #fff; font-size: 13.5px; color: $text-1; outline: none;
+    background: var(--color-surface); font-size: 13.5px; color: $text-1; outline: none;
 
     &:focus { border-color: $purple; box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12); }
   }
@@ -152,7 +152,7 @@ $bg: #f4f5fa;
 
 .al-icon-btn {
   width: 30px; height: 30px; border-radius: 8px; border: 1px solid $border;
-  background: #fff; color: $text-1; cursor: pointer;
+  background: var(--color-surface); color: $text-1; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 
   &:hover { background: rgba(0,0,0,0.03); }
@@ -187,7 +187,7 @@ $bg: #f4f5fa;
 .al-modal {
   position: fixed; top: 6vh; left: 50%; transform: translateX(-50%);
   width: 780px; max-width: 94vw; max-height: 86vh; overflow-y: auto;
-  background: #fff; border-radius: 16px; z-index: 1050;
+  background: var(--color-surface); border-radius: 16px; z-index: 1050;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
 }
 

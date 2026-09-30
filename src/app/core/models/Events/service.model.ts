@@ -31,6 +31,14 @@ export interface Song {
 export interface ServiceAttendance {
   men: number;
   women: number;
+  // Répartition détaillée (Lot 5)
+  boys?: number;
+  girls?: number;
+  teenBoys?: number;
+  teenGirls?: number;
+  newConverts?: number;
+  youth?: number;
+  unallocated?: number;
   visitors: number;
   children: number;
   acceptedJesus: number;
@@ -204,6 +212,13 @@ export class ServiceUtils {
     return {
       men: 0,
       women: 0,
+      boys: 0,
+      girls: 0,
+      teenBoys: 0,
+      teenGirls: 0,
+      newConverts: 0,
+      youth: 0,
+      unallocated: 0,
       visitors: 0,
       children: 0,
       acceptedJesus: 0,

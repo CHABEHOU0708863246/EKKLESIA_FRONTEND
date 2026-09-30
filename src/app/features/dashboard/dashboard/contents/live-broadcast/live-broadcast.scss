@@ -140,7 +140,7 @@ $transition: 0.2s ease-in-out;
 .lb-empty {
   text-align: center;
   padding: 4rem 2rem;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: $border-radius;
   border: 1px solid $gray-200;
   box-shadow: $box-shadow;
@@ -166,7 +166,7 @@ $transition: 0.2s ease-in-out;
 // ─── Diffusion ──────────────────────────────────────────────────
 
 .lb-broadcast {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: $border-radius;
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -188,7 +188,7 @@ $transition: 0.2s ease-in-out;
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--color-surface);
     animation: pulse-dot 1.2s ease-in-out infinite;
   }
 

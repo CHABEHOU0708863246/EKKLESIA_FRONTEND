@@ -2,7 +2,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
-import { catchError, map, tap, retry } from 'rxjs/operators';
+import { catchError, map, tap, retry, switchMap } from 'rxjs/operators';
+import { compressedFormData } from '../../utils/upload.helper';
+import { UploadProgressService } from '../Uploads/upload-progress.service';
 import {
   User,
   UserCreate,
@@ -38,6 +40,28 @@ export interface PastorListResponse {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+}
+
+/** Rapport d'import utilisateurs (miroir du backend). */
+export interface UserImportRowResult {
+  row: number;
+  email: string;
+  status: 'created' | 'updated' | 'ignored' | 'error' | 'to_confirm' | string;
+  messages: string[];
+  warnings: string[];
+}
+
+export interface UserImportReport {
+  dryRun: boolean;
+  total: number;
+  toCreate: number;
+  toUpdate: number;
+  ignored: number;
+  errors: number;
+  toConfirm: number;
+  sitesToCreate: string[];
+  unknownRoles: string[];
+  rows: UserImportRowResult[];
 }
 
 /** Entrée d'annuaire minimale renvoyée par /api/v1/User/directory. */
@@ -105,7 +129,8 @@ export class Users {
 
   constructor(
     private http: HttpClient,
-    private tokenService: Token
+    private tokenService: Token,
+    private uploadProgress: UploadProgressService
   ) {
     this.baseUrl = `${environment.apiUrl}/api/v1/User`;
   }
@@ -169,18 +194,17 @@ export class Users {
    * PUT /api/v1/User/me/photo
    */
   updateProfilePhoto(photoFile: File): Observable<ApiResponse<User>> {
-    const formData = new FormData();
-    formData.append('photoFile', photoFile);
-
-    return this.http.put<ApiResponse<User>>(`${this.baseUrl}/me/photo`, formData)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            console.log('✅ Photo de profil mise à jour');
-          }
-        }),
-        catchError(this.handleError<User>('updateProfilePhoto'))
-      );
+    return compressedFormData('photoFile', photoFile).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(this.http.put<ApiResponse<User>>(`${this.baseUrl}/me/photo`, formData))
+      ),
+      tap(response => {
+        if (response.success) {
+          console.log('Photo de profil mise à jour');
+        }
+      }),
+      catchError(this.handleError<User>('updateProfilePhoto'))
+    );
   }
 
 
@@ -218,18 +242,17 @@ export class Users {
  * PUT /api/v1/User/{id}/photo
  */
 updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> {
-  const formData = new FormData();
-  formData.append('photoFile', photoFile);
-
-  return this.http.put<ApiResponse<User>>(`${this.baseUrl}/${id}/photo`, formData)
-    .pipe(
-      tap(response => {
-        if (response.success) {
-          console.log('✅ Photo utilisateur mise à jour (admin)');
-        }
-      }),
-      catchError(this.handleError<User>('updateUserPhotoById'))
-    );
+  return compressedFormData('photoFile', photoFile).pipe(
+    switchMap((formData) =>
+      this.uploadProgress.wrap(this.http.put<ApiResponse<User>>(`${this.baseUrl}/${id}/photo`, formData))
+    ),
+    tap(response => {
+      if (response.success) {
+        console.log('Photo utilisateur mise à jour (admin)');
+      }
+    }),
+    catchError(this.handleError<User>('updateUserPhotoById'))
+  );
 }
 
   /**
@@ -250,11 +273,16 @@ updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> 
 
 
   /**
-   * Changer le mot de passe
-   * POST /api/v1/User/change-password
+   * Changer le mot de passe de l'utilisateur connecté.
+   * Le endpoint est porté par l'AuthController → /api/v1/Auth/change-password.
    */
   changePassword(passwordData: UserChangePassword): Observable<ApiResponse<boolean>> {
-    return this.http.post<ApiResponse<boolean>>(`${this.baseUrl}/change-password`, passwordData)
+    // Le backend attend { oldPassword, newPassword } (cf. ChangePasswordDto).
+    const body = {
+      oldPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    };
+    return this.http.post<ApiResponse<boolean>>(`${environment.apiUrl}/api/v1/Auth/change-password`, body)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -437,6 +465,18 @@ updateUserPhotoById(id: string, photoFile: File): Observable<ApiResponse<User>> 
       } as ApiResponse<DirectoryListResponse>)),
       catchError(this.handleError<DirectoryListResponse>('getDirectory'))
     );
+  }
+
+  /**
+   * Importe des utilisateurs depuis le modèle Excel (.xlsx).
+   * dryRun=true : analyse sans écriture (rapport) ; false : applique l'import.
+   * POST /api/v1/User/import/xlsx?dryRun=
+   */
+  importUsersFromExcel(file: File, dryRun: boolean): Observable<UserImportReport> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const params = new HttpParams().set('dryRun', dryRun.toString());
+    return this.http.post<UserImportReport>(`${this.baseUrl}/import/xlsx`, formData, { params });
   }
 
   /**

@@ -60,6 +60,9 @@ export class ChurchForm implements OnInit, OnDestroy {
   showSitesSection = signal(true);
   pastorRoleNames = signal<string[]>([]);
 
+  // Églises mères proposées dans le sélecteur (filiales). Plus d'ID saisi en dur.
+  parentChurches = signal<{ id: string; name: string }[]>([]);
+
   form: FormGroup;
 
   constructor(
@@ -83,6 +86,8 @@ export class ChurchForm implements OnInit, OnDestroy {
       registrationNumber: [''],
       foundedDate: [''],
       denomination: [''],
+      country: ['CI', Validators.required],
+      scope: ['National', Validators.required],
       isHeadquarters: [true],
       parentChurchId: [''],
 
@@ -123,9 +128,9 @@ export class ChurchForm implements OnInit, OnDestroy {
 
     if (this.isEditMode()) {
       this.loadChurch();
-    } else {
-
     }
+
+    this.loadParentChurches();
 
     this.pastorSearchControl.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -143,6 +148,19 @@ export class ChurchForm implements OnInit, OnDestroy {
     const f = user.firstName?.charAt(0) || '?';
     const l = user.lastName?.charAt(0) || '?';
     return `${f}${l}`.toUpperCase();
+  }
+
+  private loadParentChurches(): void {
+    this.churchService
+      .getChurches({ isHeadquarters: true, page: 1, pageSize: 200, sortBy: 'name', sortOrder: 'asc' })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const items = response?.data?.items ?? [];
+          this.parentChurches.set(items.map((c: any) => ({ id: c.id, name: c.name })));
+        },
+        error: () => this.parentChurches.set([]),
+      });
   }
 
   ngOnDestroy(): void {
@@ -250,6 +268,8 @@ export class ChurchForm implements OnInit, OnDestroy {
       registrationNumber: church.registrationNumber ?? '',
       foundedDate: this.toDateInputValue(church.foundedDate),
       denomination: church.denomination ?? '',
+      country: (church as any).country ?? 'CI',
+      scope: (church as any).scope ?? 'National',
       isHeadquarters: church.isHeadquarters,
       parentChurchId: church.parentChurchId ?? '',
       missionStatement: church.missionStatement ?? '',
@@ -524,6 +544,8 @@ export class ChurchForm implements OnInit, OnDestroy {
       registrationNumber: value.registrationNumber || undefined,
       foundedDate: value.foundedDate || undefined,
       denomination: value.denomination || undefined,
+      country: value.country || 'CI',
+      scope: value.scope || 'National',
       missionStatement: value.missionStatement || undefined,
       visionStatement: value.visionStatement || undefined,
       isHeadquarters: value.isHeadquarters,
@@ -591,6 +613,8 @@ export class ChurchForm implements OnInit, OnDestroy {
       registrationNumber: value.registrationNumber || undefined,
       foundedDate: value.foundedDate || undefined,
       denomination: value.denomination || undefined,
+      country: value.country || 'CI',
+      scope: value.scope || 'National',
       missionStatement: value.missionStatement || undefined,
       visionStatement: value.visionStatement || undefined,
       isHeadquarters: value.isHeadquarters,

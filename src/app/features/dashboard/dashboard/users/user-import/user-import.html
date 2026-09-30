@@ -1,0 +1,82 @@
+<div class="ui-page">
+  <header class="ui-header">
+    <div>
+      <h1>Importer des utilisateurs</h1>
+      <p class="ui-subtitle">
+        Ajoutez plusieurs comptes en une seule fois à partir du modèle Excel.
+        Vous pouvez d'abord <strong>analyser</strong> le fichier sans rien enregistrer.
+      </p>
+    </div>
+    <a routerLink="/dashboard/admin/users" class="ui-btn ui-btn-ghost">Retour à la liste</a>
+  </header>
+
+  <ol class="ui-steps">
+    <li><span class="ui-step-num">1</span> Choisissez le fichier <strong>Excel</strong> (.xlsx) rempli.</li>
+    <li><span class="ui-step-num">2</span> Cliquez sur <strong>Analyser</strong> pour voir ce qui sera fait.</li>
+    <li><span class="ui-step-num">3</span> Si tout est correct, cliquez sur <strong>Confirmer l'import</strong>.</li>
+  </ol>
+
+  <section class="ui-card">
+    <label class="ui-file">
+      <span class="ui-file-label">Fichier Excel à importer</span>
+      <input type="file" accept=".xlsx" (change)="onFileSelected($event)" />
+    </label>
+    @if (selectedFile()) {
+      <p class="ui-file-name">Fichier sélectionné : <strong>{{ selectedFile()?.name }}</strong></p>
+    }
+
+    <div class="ui-actions">
+      <button class="ui-btn ui-btn-primary" (click)="analyze()" [disabled]="!selectedFile() || analyzing()">
+        {{ analyzing() ? 'Analyse en cours…' : 'Analyser le fichier' }}
+      </button>
+      <button class="ui-btn ui-btn-success" (click)="confirm()"
+              [disabled]="!report() || applied() || importing() || (report()?.errors ?? 0) > 0">
+        {{ importing() ? 'Import en cours…' : 'Confirmer l\'import' }}
+      </button>
+    </div>
+    @if (report() && (report()?.errors ?? 0) > 0) {
+      <p class="ui-warn">
+        Corrigez les lignes en rouge dans le fichier Excel puis relancez l'analyse.
+        L'import est bloqué tant qu'il reste des erreurs.
+      </p>
+    }
+  </section>
+
+  @if (report(); as r) {
+    <section class="ui-card">
+      <h2>{{ r.dryRun ? 'Résultat de l\'analyse (rien n\'a été enregistré)' : 'Import effectué' }}</h2>
+      <div class="ui-summary">
+        <div><span class="ui-kpi">{{ r.total }}</span><small>Lignes</small></div>
+        <div><span class="ui-kpi">{{ r.toCreate }}</span><small>À créer</small></div>
+        <div><span class="ui-kpi">{{ r.toUpdate }}</span><small>Mises à jour</small></div>
+        <div><span class="ui-kpi">{{ r.errors }}</span><small>Erreurs</small></div>
+        <div><span class="ui-kpi">{{ r.ignored }}</span><small>Ignorées</small></div>
+      </div>
+
+      @if (r.sitesToCreate.length > 0) {
+        <p class="ui-note">
+          <strong>Nouveaux sites qui seront créés :</strong> {{ r.sitesToCreate.join(', ') }}
+        </p>
+      }
+
+      <table class="ui-table">
+        <thead>
+          <tr><th>#</th><th>Email</th><th>Statut</th><th>Détail</th></tr>
+        </thead>
+        <tbody>
+          @for (row of r.rows; track row.row) {
+            <tr [class.ui-row-error]="row.status === 'error'">
+              <td>{{ row.row }}</td>
+              <td>{{ row.email }}</td>
+              <td><span class="ui-badge ui-badge-{{ row.status }}">{{ statusLabel(row.status) }}</span></td>
+              <td>
+                @for (m of row.messages; track m) { <div class="ui-msg-error">{{ m }}</div> }
+                @for (w of row.warnings; track w) { <div class="ui-msg-warn">{{ w }}</div> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</div>

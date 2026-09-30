@@ -11,6 +11,15 @@
     <h1>Mon profil</h1>
   </header>
 
+  @if (forcePasswordChange()) {
+    <div class="mp-force-password"
+         style="background:#FEF3C7;border:1px solid #FDE68A;color:#92400E;padding:12px 16px;border-radius:10px;margin-bottom:16px">
+      <strong>Changement de mot de passe obligatoire.</strong>
+      Votre compte a été créé avec un mot de passe temporaire. Choisissez un nouveau
+      mot de passe ci-dessous pour continuer à utiliser le logiciel.
+    </div>
+  }
+
   <!-- ══════════════ ÉTAT DE CHARGEMENT ══════════════ -->
   <div class="mp-loading-state" *ngIf="loading()">
     <span class="mp-spinner"></span> Chargement de votre profil…

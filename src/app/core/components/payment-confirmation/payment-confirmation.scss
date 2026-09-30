@@ -125,16 +125,16 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
 
 .pc-hint {
   font-size: .875rem;
-  color: #64748b;
+  color: var(--color-muted);
   margin-top: 1rem;
 }
 
 .pc-receipt {
   margin-top: 2rem;
   padding: 1.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--color-surface);
   text-align: left;
 
   // Encoche latérale évoquant un ticket
@@ -163,13 +163,13 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
   font-size: .7rem;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .pc-receipt-number {
   font-size: .95rem;
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .pc-receipt-amount {
@@ -210,8 +210,8 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
 
   &:last-child { border-bottom: none; }
 
-  dt { color: #64748b; margin: 0; flex-shrink: 0; }
-  dd { margin: 0; text-align: right; color: #0f172a; font-weight: 500; }
+  dt { color: var(--color-muted); margin: 0; flex-shrink: 0; }
+  dd { margin: 0; text-align: right; color: var(--color-text); font-weight: 500; }
 }
 
 .pc-mono {
@@ -250,11 +250,11 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
 }
 
 .pc-btn--ghost {
-  background: #ffffff;
-  color: #334155;
+  background: var(--color-surface);
+  color: var(--color-text);
   border-color: #cbd5e1;
 
-  &:hover:not(:disabled) { background: #f8fafc; }
+  &:hover:not(:disabled) { background: var(--color-bg); }
 }
 
 .pc-resend-msg {
@@ -267,7 +267,7 @@ $font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-seri
 .pc-receipt-foot {
   margin: 1.25rem 0 0;
   font-size: .75rem;
-  color: #94a3b8;
+  color: var(--color-muted);
   text-align: center;
   line-height: 1.5;
 }

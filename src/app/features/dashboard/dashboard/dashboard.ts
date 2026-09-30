@@ -5,7 +5,7 @@ import { RouterModule, RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subscription } from 'rxjs';
 import { Permissions } from '../../../core/services/Permissions/permissions';
 
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 import { User } from '../../../core/models/Users/user.model';
@@ -16,6 +16,7 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { SidebarComponent } from "../../../core/components/sidebar-component/sidebar-component";
 import { AgentWidget } from "../../../core/components/agent-widget/agent-widget";
+import { UploadProgressComponent } from "../../../core/components/upload-progress/upload-progress";
 import { NotificationComponent } from "../../../core/components/notification-component/notification-component";
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
@@ -23,6 +24,7 @@ import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core
 import { Dashboards } from '../../../core/services/Dashboard/dashboards';
 import { AppNotifications } from '../../../core/services/Notifications/notifications-app';
 import { AppNotification } from '../../../core/models/Notifications/app-notification.model';
+import { ThemeService } from '../../../core/services/Theme/theme.service';
 
 
 
@@ -58,7 +60,7 @@ export enum OfferingStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent],
+  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent, UploadProgressComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
@@ -66,6 +68,13 @@ export class Dashboard implements OnInit, OnDestroy {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild(SidebarComponent) sidebarComponent!: SidebarComponent;
+
+  // ─── Thème clair / sombre ─────────────────────────────────────
+  themeService = inject(ThemeService);
+
+  toggleTheme(): void {
+    this.themeService.toggle();
+  }
 
   // ─── Données du tableau de bord ──────────────────────────────
   dashboardData: DashboardDto | null = null;

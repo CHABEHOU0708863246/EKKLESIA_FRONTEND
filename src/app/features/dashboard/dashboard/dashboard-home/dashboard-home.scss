@@ -28,12 +28,13 @@ $purple-dark:     #4A3A9E;
 $purple-light:    #8B7EE8;
 $purple-glow:     rgba(108, 92, 231, 0.16);
 
-$surface:         #FFFFFF;
-$bg:              #F4F3FF;
-$border:          rgba(0, 0, 0, 0.06);
-$text-1:          #1A143A;
-$text-2:          #3D3566;
-$text-3:          #9590BB;
+// ⚠️ Tokens globaux : la page tableau de bord suit le thème clair/sombre.
+$surface:         var(--color-surface);
+$bg:              var(--color-bg);
+$border:          var(--color-border);
+$text-1:          var(--color-text);
+$text-2:          var(--color-muted);
+$text-3:          var(--color-muted);
 
 $radius:          10px;
 $radius-lg:       16px;
@@ -163,13 +164,13 @@ $touch-size:     44px;
     touch-action: manipulation;
 
     &:active {
-      background: #F6F5FC;
+      background: var(--color-surface-2);
       transform: scale(0.92);
     }
 
     @media (hover: hover) {
       &:hover {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
         color: $text-1;
       }
     }
@@ -300,13 +301,13 @@ $touch-size:     44px;
       touch-action: manipulation;
 
       &:active {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
         transform: scale(0.92);
       }
 
       @media (hover: hover) {
         &:hover {
-          background: #F6F5FC;
+          background: var(--color-surface-2);
           color: $text-1;
         }
       }
@@ -347,12 +348,12 @@ $touch-size:     44px;
       touch-action: manipulation;
 
       &:active {
-        background: #F6F5FC;
+        background: var(--color-surface-2);
       }
 
       @media (hover: hover) {
         &:hover {
-          background: #F6F5FC;
+          background: var(--color-surface-2);
         }
       }
 
@@ -478,13 +479,13 @@ $touch-size:     44px;
           touch-action: manipulation;
 
           &:active {
-            background: #F6F5FC;
+            background: var(--color-surface-2);
             transform: scale(0.98);
           }
 
           @media (hover: hover) {
             &:hover {
-              background: #F6F5FC;
+              background: var(--color-surface-2);
               color: $text-1;
             }
           }
@@ -1643,7 +1644,7 @@ $touch-size:     44px;
   margin-bottom: 14px;
 
   .data-table {
-    background: #fff;
+    background: var(--color-surface);
 
     tbody tr {
       cursor: default;

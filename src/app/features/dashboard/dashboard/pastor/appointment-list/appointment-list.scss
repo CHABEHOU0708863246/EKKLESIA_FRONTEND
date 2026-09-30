@@ -68,7 +68,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .al-stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 0.6rem 0.4rem;
@@ -97,7 +97,7 @@ $transition: 0.2s ease-in-out;
 // ─── FILTRES ────────────────────────────────────────────────────
 
 .al-filters {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   padding: 1rem 1.5rem;
@@ -131,7 +131,7 @@ $transition: 0.2s ease-in-out;
     border-radius: 6px;
     font-size: 0.9rem;
     transition: border-color $transition;
-    background: #fff;
+    background: var(--color-surface);
     width: 100%;
     &:focus {
       outline: none;
@@ -198,7 +198,7 @@ $transition: 0.2s ease-in-out;
 // ─── TABLEAU ────────────────────────────────────────────────────
 
 .al-table-wrap {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid $gray-200;
   border-radius: $border-radius;
   overflow: hidden;
@@ -319,7 +319,7 @@ $transition: 0.2s ease-in-out;
   padding: 0.3rem 0.7rem;
   border: 1px solid $gray-300;
   border-radius: 4px;
-  background: #fff;
+  background: var(--color-surface);
   cursor: pointer;
   transition: background $transition, border-color $transition;
   &:hover:not(:disabled) {
@@ -367,7 +367,7 @@ $transition: 0.2s ease-in-out;
 }
 
 .al-modal {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 2rem 2.5rem;
   max-width: 480px;

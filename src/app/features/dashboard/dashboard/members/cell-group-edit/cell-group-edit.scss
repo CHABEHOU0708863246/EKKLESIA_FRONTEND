@@ -109,7 +109,7 @@
 .cge-search-dropdown {
   position: absolute;
   top: 100%; left: 0; right: 0;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #dee2e6;
   border-radius: 6px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.1);

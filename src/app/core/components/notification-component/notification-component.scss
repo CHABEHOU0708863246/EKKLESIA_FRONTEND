@@ -18,7 +18,7 @@
     align-items: flex-start;
     padding: 14px 16px;
     border-radius: 8px;
-    background: #ffffff;
+    background: var(--color-surface);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-left: 4px solid #6C5CE7;
     animation: slideIn 0.3s ease-out;
@@ -53,7 +53,7 @@
 
       .notification-icon {
         background: #FDCB6E;
-        color: #1A143A;
+        color: var(--color-text);
       }
     }
 
@@ -88,13 +88,13 @@
       .notification-title {
         font-weight: 600;
         font-size: 14px;
-        color: #1A143A;
+        color: var(--color-text);
         margin-bottom: 2px;
       }
 
       .notification-message {
         font-size: 13px;
-        color: #3D3566;
+        color: var(--color-text);
         word-wrap: break-word;
       }
     }
@@ -103,7 +103,7 @@
       background: none;
       border: none;
       font-size: 16px;
-      color: #9590BB;
+      color: var(--color-muted);
       cursor: pointer;
       padding: 4px;
       margin-left: 8px;
@@ -111,7 +111,7 @@
       transition: color 0.2s;
 
       &:hover {
-        color: #1A143A;
+        color: var(--color-text);
       }
     }
 

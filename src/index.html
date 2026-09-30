@@ -34,9 +34,23 @@
   <!-- Pack d'icônes Boxicons (Idéal pour les menus de Sidebars et les boutons d'action) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/css/boxicons.min.css" />
   <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Applique le thème mémorisé AVANT le rendu (évite le flash clair/sombre). -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('ekklesia_theme'); // 'light' | 'dark' | 'system'
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var dark = stored === 'dark' || ((!stored || stored === 'system') && prefersDark);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      } catch (e) {
+        /* stockage indisponible : on laisse le thème par défaut */
+      }
+    })();
+  </script>
 </head>
 
-<body class="bg-slate-50 text-slate-900 antialiased">
+<body>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>

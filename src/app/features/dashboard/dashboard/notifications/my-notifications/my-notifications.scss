@@ -2,11 +2,11 @@
 
 $purple: #6c5ce7;
 $purple-soft: rgba(108, 92, 231, 0.08);
-$text-1: #1f2333;
-$text-3: #8d93a8;
+$text-1: var(--color-text);
+$text-3: var(--color-muted);
 $border: #e8eaf1;
-$surface: #fff;
-$bg: #f4f5fa;
+$surface: var(--color-surface);
+$bg: var(--color-bg);
 
 :host { display: block; }
 
@@ -97,7 +97,7 @@ $bg: #f4f5fa;
 
   input, textarea, select {
     border: 1px solid $border; border-radius: 9px; padding: 9px 12px;
-    font-size: 13.5px; color: $text-1; background: #fff; outline: none;
+    font-size: 13.5px; color: $text-1; background: var(--color-surface); outline: none;
     font-family: inherit;
 
     &:focus { border-color: $purple; box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12); }
@@ -161,7 +161,7 @@ $bg: #f4f5fa;
 
 .mn-icon-btn {
   width: 32px; height: 32px; border-radius: 8px; border: 1px solid $border;
-  background: #fff; color: $text-1; cursor: pointer;
+  background: var(--color-surface); color: $text-1; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 
   &:hover { background: rgba(0,0,0,0.03); }

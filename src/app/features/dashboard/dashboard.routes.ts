@@ -18,6 +18,16 @@ export const DASHBOARD_ROUTES: Routes = [
           import('./dashboard/members/members.routes').then((m) => m.MEMBERS_ROUTES),
       },
       {
+        path: 'departements',
+        loadComponent: () =>
+          import('./dashboard/departments/department-list/department-list').then(
+            (m) => m.DepartmentList
+          ),
+        title: 'Départements — MIAV',
+        canActivate: [authGuard],
+        data: { permissions: ['Member_Read'] },
+      },
+      {
         path: 'admin/users',
         loadChildren: () =>
           import('./dashboard/users/users.routes').then((m) => m.USERS_ROUTES),
@@ -86,6 +96,13 @@ export const DASHBOARD_ROUTES: Routes = [
         title: 'Ma zone — MIAV',
         canActivate: [authGuard],
         // 🔒 Lecture : policy backend CAN_READ_ZONE
+        data: { permissions: ['Site_Manage', 'Church_Settings_Manage'] },
+      },
+      {
+        path: 'ma-zone/aide',
+        loadComponent: () => import('./dashboard/zones/zone-help/zone-help').then((m) => m.ZoneHelp),
+        title: 'Aide — Mon rôle de chef de zone',
+        canActivate: [authGuard],
         data: { permissions: ['Site_Manage', 'Church_Settings_Manage'] },
       },
       {

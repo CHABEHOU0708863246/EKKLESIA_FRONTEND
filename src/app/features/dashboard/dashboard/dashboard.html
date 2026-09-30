@@ -12,6 +12,8 @@
         <button class="menu-toggle-btn" (click)="toggleSidebar()">
           <i class="bx bx-menu"></i>
         </button>
+        <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="MIAV"
+             style="height:30px;width:auto;margin-right:10px" />
         <div class="breadcrumb">
           <span class="breadcrumb-home"><i class="bx bx-home-alt-2"></i></span>
           <span class="breadcrumb-sep">/</span>
@@ -24,6 +26,12 @@
       </div>
 
       <div class="topbar-actions">
+        <!-- ☀️/🌙 Bascule thème clair / sombre -->
+        <button class="topbar-icon-btn" (click)="toggleTheme()"
+                [title]="themeService.isDark() ? 'Passer en mode clair' : 'Passer en mode sombre'">
+          <i class="bx" [ngClass]="themeService.isDark() ? 'bx-sun' : 'bx-moon'"></i>
+        </button>
+
         <div class="session-pill">
           <span class="session-dot"></span>
           Connecté · {{ currentUser?.roles?.[0] || 'Membre' }}
@@ -113,6 +121,9 @@
     </main>
 
   </div>
+
+  <!-- Barre d'envoi globale (photos, documents) -->
+  <app-upload-progress></app-upload-progress>
 
   <!-- Assistant MIAV : chargé de façon PARESSEUSE (chunk séparé) pour ne pas
        alourdir le démarrage. Le déclencheur timer(0) affiche le bouton quasi

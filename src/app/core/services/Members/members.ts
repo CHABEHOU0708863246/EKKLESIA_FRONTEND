@@ -1,5 +1,8 @@
 // src/app/core/services/Members/member.service.ts
 import { Injectable } from '@angular/core';
+import { switchMap } from 'rxjs/operators';
+import { compressedFormData } from '../../utils/upload.helper';
+import { UploadProgressService } from '../Uploads/upload-progress.service';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
@@ -32,13 +35,34 @@ import {
 } from '../../models/Members/pastoral-note.model';
 import { environment } from '../../../../environments/environment';
 
+/** Rapport d'import de membres (miroir backend). */
+export interface MemberImportRowResult {
+  row: number;
+  name: string;
+  status: string;
+  messages: string[];
+}
+
+export interface MemberImportReport {
+  dryRun: boolean;
+  total: number;
+  created: number;
+  updated: number;
+  ignored: number;
+  errors: number;
+  rows: MemberImportRowResult[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class Members {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Member`;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private uploadProgress: UploadProgressService
+  ) { }
 
   // ───────────────────────────────────────────────────────────────
   // MEMBRES
@@ -48,10 +72,33 @@ export class Members {
    * Met à jour la photo d'un membre existant
    * PUT /api/v1/Member/{id}/photo
    */
-  updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
+  /**
+   * Importe des membres depuis un fichier Excel (.xlsx) ou CSV.
+   * dryRun=true : analyse sans écriture.
+   */
+  importMembersFromFile(file: File, dryRun: boolean): Observable<MemberImportReport> {
+    const endpoint = file.name.toLowerCase().endsWith('.csv') ? 'import/csv' : 'import/xlsx';
     const formData = new FormData();
-    formData.append('photoFile', photoFile, photoFile.name);
-    return this.http.put<Member>(`${this.baseUrl}/${id}/photo`, formData);
+    formData.append('file', file, file.name);
+    const params = new HttpParams().set('dryRun', dryRun.toString());
+    return this.http.post<MemberImportReport>(`${this.baseUrl}/${endpoint}`, formData, { params });
+  }
+
+  /**
+   * Télécharge le modèle Excel (.xlsx) prêt à remplir pour l'import des membres.
+   * GET /api/v1/Member/import/template
+   */
+  downloadImportTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/import/template`, { responseType: 'blob' });
+  }
+
+  updateMemberPhoto(id: string, photoFile: File): Observable<Member> {
+    // Compression (1600 px, JPEG) puis envoi, avec indicateur de progression.
+    return compressedFormData('photoFile', photoFile).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(this.http.put<Member>(`${this.baseUrl}/${id}/photo`, formData))
+      )
+    );
   }
 
   /**

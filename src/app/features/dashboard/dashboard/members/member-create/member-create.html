@@ -350,6 +350,33 @@
             placeholder="Contexte, remarques utiles à l'équipe pastorale…"></textarea>
         </div>
 
+        <!-- ✅ Fiche complète (Lot 8) — optionnel -->
+        <div class="mc-panel-header" style="margin-top:8px">
+          <h2>Fiche complète <small style="font-weight:400">(optionnel)</small></h2>
+        </div>
+        <div class="mc-field">
+          <label for="employer">Employeur</label>
+          <input id="employer" type="text" [formControl]="$any(form.get('fiche.employer'))" placeholder="Nom de l'entreprise / employeur">
+        </div>
+        <div class="mc-field">
+          <label for="educationLevel">Niveau d'études</label>
+          <input id="educationLevel" type="text" [formControl]="$any(form.get('fiche.educationLevel'))" placeholder="Ex. Licence, BAC…">
+        </div>
+        <div class="mc-field">
+          <label for="emergencyContactName">Contact d'urgence (nom)</label>
+          <input id="emergencyContactName" type="text" [formControl]="$any(form.get('fiche.emergencyContactName'))">
+        </div>
+        <div class="mc-field">
+          <label for="emergencyContactPhone">Contact d'urgence (téléphone)</label>
+          <input id="emergencyContactPhone" type="text" [formControl]="$any(form.get('fiche.emergencyContactPhone'))">
+        </div>
+        <div class="mc-field mc-field--span-2">
+          <label class="mc-checkbox">
+            <input type="checkbox" [formControl]="$any(form.get('fiche.consentGiven'))">
+            J'accepte que ces données soient enregistrées et traitées dans le respect de la protection des données personnelles.
+          </label>
+        </div>
+
         <div class="mc-banner mc-banner--error" *ngIf="submitError()">
           <svg viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
