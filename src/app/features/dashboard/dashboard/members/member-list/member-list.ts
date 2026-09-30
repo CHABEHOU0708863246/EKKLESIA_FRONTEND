@@ -21,7 +21,7 @@ import { AuthImageDirective } from '../../../../../core/directives/auth-image.di
 // ── Libellés français pour les enums backend (clé anglaise -> libellé) ──
 const STATUS_LABELS: Record<string, string> = {
   Visitor: 'Visiteur',
-  Adherent: 'Adhérent',
+  Adherent: 'Béréen',
   Active: 'Actif',
   Inactive: 'Inactif',
   ExMember: 'Ancien membre',
@@ -39,7 +39,7 @@ const SPIRITUAL_STATUS_LABELS: Record<string, string> = {
 const STATUS_FILTER_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
   { value: 'Visitor', label: 'Visiteur' },
-  { value: 'Adherent', label: 'Adhérent' },
+  { value: 'Adherent', label: 'Béréen' },
   { value: 'Active', label: 'Actif' },
   { value: 'Inactive', label: 'Inactif' },
   { value: 'ExMember', label: 'Ancien membre' },

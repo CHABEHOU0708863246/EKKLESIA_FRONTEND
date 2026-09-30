@@ -462,7 +462,7 @@ export class Dashboard implements OnInit, OnDestroy {
   getMemberStatusText(status: MemberStatus): string {
     switch (status) {
       case MemberStatus.Visitor: return 'Visiteur';
-      case MemberStatus.Adherent: return 'Adhérent';
+      case MemberStatus.Adherent: return 'Béréen';
       case MemberStatus.Active: return 'Actif';
       case MemberStatus.Inactive: return 'Inactif';
       case MemberStatus.ExMember: return 'Ancien';

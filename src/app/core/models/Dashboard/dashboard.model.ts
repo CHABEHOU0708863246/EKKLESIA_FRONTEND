@@ -402,7 +402,7 @@ export class DashboardUtils {
   static getMemberStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       'Active': 'Actif',
-      'Adherent': 'Adhérent',
+      'Adherent': 'Béréen',
       'Visitor': 'Visiteur',
       'Inactive': 'Inactif',
       'ExMember': 'Ancien membre'

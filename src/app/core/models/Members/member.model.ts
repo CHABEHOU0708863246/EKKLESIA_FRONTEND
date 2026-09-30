@@ -295,7 +295,7 @@ export interface MemberExportFilter {
 // ✅ Labels
 export const MemberStatusLabels: Record<MemberStatus, string> = {
   [MemberStatus.Visitor]: 'Visiteur',
-  [MemberStatus.Adherent]: 'Adhérent',
+  [MemberStatus.Adherent]: 'Béréen',
   [MemberStatus.Active]: 'Actif',
   [MemberStatus.Inactive]: 'Inactif',
   [MemberStatus.ExMember]: 'Ancien membre'

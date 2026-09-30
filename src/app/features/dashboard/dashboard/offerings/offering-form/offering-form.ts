@@ -35,6 +35,8 @@ import { AuthImageDirective } from '../../../../../core/directives/auth-image.di
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import { Token } from '../../../../../core/services/Token/token';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { UploadField } from '../../../../../core/components/upload-field/upload-field';
+import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -51,7 +53,7 @@ const CATEGORY_OPTIONS = Object.values(OfferingCategory).map((value) => ({
 @Component({
   selector: 'app-offering-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide, UploadField],
   templateUrl: './offering-form.html',
   styleUrls: ['./offering-form.scss'],
 })
@@ -83,6 +85,13 @@ export class OfferingForm implements OnInit, OnDestroy {
    */
   canUploadValidationPhoto(): boolean {
     return this.permissions.hasPermission('Finance_Offering_Validate');
+  }
+
+  readonly imageLimits = IMAGE_FILE_LIMITS;
+
+  /** Reçoit le fichier validé par le champ d'upload réutilisable. */
+  onValidationPhotoFile(file: File): void {
+    this.handleFile(file);
   }
 
   // ── Exposé des énumérations au template ──

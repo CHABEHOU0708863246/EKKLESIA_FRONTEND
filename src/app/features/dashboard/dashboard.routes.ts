@@ -127,6 +127,15 @@ export const DASHBOARD_ROUTES: Routes = [
         // 🔒 Policy backend CAN_READ_AUDIT = Audit_Read
         data: { permissions: ['Audit_Read'] },
       },
+      {
+        path: 'parametres',
+        loadComponent: () =>
+          import('./dashboard/settings/settings-page').then((m) => m.SettingsPage),
+        title: 'Paramètres — MIAV',
+        canActivate: [authGuard],
+        // 🔒 Écriture : policy backend CAN_MANAGE_CHURCH = Church_Settings_Manage
+        data: { permissions: ['Church_Settings_Manage'] },
+      },
     ],
   },
 ];

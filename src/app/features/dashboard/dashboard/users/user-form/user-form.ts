@@ -21,6 +21,7 @@ import {
 } from '../../../../../core/validators/password.validator';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
 
 
 const AVAILABLE_ROLES = [
@@ -54,7 +55,7 @@ const MARITAL_STATUS_OPTIONS = [
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, FormGuide],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, FormGuide, PhoneInput],
   templateUrl: './user-form.html',
   styleUrl: './user-form.scss',
 })

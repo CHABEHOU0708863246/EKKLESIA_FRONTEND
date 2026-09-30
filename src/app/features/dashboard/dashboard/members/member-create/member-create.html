@@ -100,8 +100,8 @@
 
         <div class="mc-field">
           <label for="phone">Téléphone <span class="mc-required">*</span></label>
-          <input id="phone" type="tel" formControlName="phone" placeholder="07 00 00 00 00" autocomplete="tel">
-          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'phone')">Numéro invalide (8 à 15 chiffres)</p>
+          <app-phone-input formControlName="phone"></app-phone-input>
+          <p class="mc-error" *ngIf="isFieldInvalid(identiteGroup, 'phone')">Numéro invalide pour le pays choisi</p>
         </div>
 
         <div class="mc-field">

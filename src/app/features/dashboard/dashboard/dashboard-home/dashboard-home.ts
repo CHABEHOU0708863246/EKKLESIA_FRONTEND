@@ -741,7 +741,7 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   getMemberStatusText(status: string): string {
     const map: Record<string, string> = {
       'Visitor': 'Visiteur',
-      'Adherent': 'Adhérent',
+      'Adherent': 'Béréen',
       'Active': 'Actif',
       'Inactive': 'Inactif',
       'ExMember': 'Ancien'

@@ -133,6 +133,20 @@ function statusToCode(status: number): string {
 }
 
 /**
+ * Rejette les messages techniques (traces, exceptions, jargon serveur) et
+ * renvoie le libellé de repli prévu pour l'utilisateur. RG-P0-5 : plus jamais
+ * « Internal Server Error » ou une trace à l'écran.
+ */
+const TECHNICAL_MESSAGE = /(exception|stack\s*trace|internal server error|nullreference|system\.|microsoft\.|\bat\s+\w+\.[\w.]+\()/i;
+
+function pickMessage(raw: unknown, fallback: string): string {
+  if (typeof raw !== 'string') return fallback;
+  const m = raw.trim();
+  if (!m || m.length > 300 || TECHNICAL_MESSAGE.test(m)) return fallback;
+  return m;
+}
+
+/**
  * Traduit une erreur HTTP en message humain + action suggérée.
  * Priorité : le `code` renvoyé par le serveur ; sinon déduit du statut.
  */
@@ -147,10 +161,10 @@ export function describeError(error: HttpErrorResponse): DescribedError {
   return {
     code,
     title: template.title,
-    // Le message du serveur est plus précis quand il existe (ex. nom de l'église).
-    message: (body.message && body.message.trim()) || template.message,
+    // Le message du serveur est plus précis quand il existe ET reste lisible.
+    message: pickMessage(body.message, template.message),
     action: template.action,
-    reference: body.reference,
+    reference: typeof body.reference === 'string' ? body.reference : undefined,
     fields,
     status: error.status,
   };

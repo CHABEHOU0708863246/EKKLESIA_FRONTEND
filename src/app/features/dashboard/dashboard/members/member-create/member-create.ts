@@ -16,6 +16,7 @@ import { Members } from '../../../../../core/services/Members/members';
 import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
 import { Auth } from '../../../../../core/services/Auth/auth';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
 
 interface WizardStep {
   id: 'identite' | 'statut' | 'affectation' | 'recap';
@@ -27,7 +28,7 @@ interface WizardStep {
 
 const STATUS_OPTIONS = [
   { value: 'Visitor', label: 'Visiteur' },
-  { value: 'Adherent', label: 'Adhérent' },
+  { value: 'Adherent', label: 'Béréen' },
   { value: 'Active', label: 'Actif' },
   { value: 'Inactive', label: 'Inactif' },
   { value: 'ExMember', label: 'Ancien membre' },
@@ -50,7 +51,7 @@ const GENDER_OPTIONS = [
 @Component({
   selector: 'app-member-create',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide, PhoneInput],
   templateUrl: './member-create.html',
   styleUrl: './member-create.scss',
 })

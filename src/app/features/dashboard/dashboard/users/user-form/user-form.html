@@ -90,8 +90,8 @@
 
         <div class="uf-field">
           <label for="phone">Téléphone <span class="uf-required">*</span></label>
-          <input id="phone" type="tel" formControlName="phone" placeholder="07 00 00 00 00">
-          <p class="uf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide (8 à 15 chiffres)</p>
+          <app-phone-input formControlName="phone"></app-phone-input>
+          <p class="uf-error" *ngIf="isFieldInvalid('phone')">Numéro invalide pour le pays choisi</p>
         </div>
 
         <ng-container *ngIf="!isEditMode()">
@@ -152,12 +152,12 @@
           </div>
         </div>
 
-        <!-- Site -->
+        <!-- Site (facultatif : vide = Siège / église mère) -->
         <div class="uf-field">
-          <label for="siteId">Site</label>
+          <label for="siteId">Site <small>(facultatif — vide = Siège)</small></label>
           <div class="uf-select-wrap">
             <select id="siteId" formControlName="siteId" [disabled]="loadingSites()">
-              <option value="">— Sélectionner un site —</option>
+              <option value="">— Siège (église mère) / aucun site —</option>
               <option *ngFor="let site of sites()" [value]="site.id">{{ site.name }}</option>
             </select>
             <svg class="uf-select-caret" viewBox="0 0 24 24" fill="none">
