@@ -13,6 +13,8 @@
     <div class="cf-banner cf-banner--error">{{ error() }}</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="cf-form">
 
     <!-- ─── INFORMATIONS GÉNÉRALES ─── -->

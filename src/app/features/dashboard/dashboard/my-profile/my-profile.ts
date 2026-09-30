@@ -13,6 +13,7 @@ import {
   passwordPolicyValidator,
 } from '../../../../core/validators/password.validator';
 import { AuthImageDirective } from '../../../../core/directives/auth-image.directive';
+import { FormGuide, GuideStep } from '../../../../core/components/form-guide/form-guide';
 
 
 
@@ -31,7 +32,7 @@ const MARITAL_STATUS_OPTIONS = [
 @Component({
   selector: 'app-my-profile',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, FormGuide],
   templateUrl: './my-profile.html',
   styleUrl: './my-profile.scss',
 })
@@ -40,6 +41,14 @@ export class MyProfile implements OnInit, OnDestroy {
 
   readonly genderOptions = GENDER_OPTIONS;
   readonly maritalStatusOptions = MARITAL_STATUS_OPTIONS;
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-user', tone: 'info', text: 'Complétez vos informations personnelles (la plupart des champs sont facultatifs).' },
+    { icon: 'bx-image', tone: 'primary', text: 'Mettez à jour votre photo de profil si nécessaire.' },
+    { icon: 'bx-key', tone: 'warning', text: 'Pour changer de mot de passe, utilisez la section dédiée plus bas.' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Enregistrez vos modifications.' },
+  ];
 
   currentUser = signal<User | null>(null);
   loading = signal(true);

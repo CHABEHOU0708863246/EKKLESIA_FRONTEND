@@ -18,6 +18,7 @@ import { SidebarComponent } from "../../../core/components/sidebar-component/sid
 import { AgentWidget } from "../../../core/components/agent-widget/agent-widget";
 import { UploadProgressComponent } from "../../../core/components/upload-progress/upload-progress";
 import { NotificationComponent } from "../../../core/components/notification-component/notification-component";
+import { NotificationAlert } from "../../../core/components/notification-alert/notification-alert";
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
 import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core/models/Dashboard/dashboard.model';
@@ -60,7 +61,7 @@ export enum OfferingStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent, UploadProgressComponent],
+  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent, UploadProgressComponent, NotificationAlert],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })

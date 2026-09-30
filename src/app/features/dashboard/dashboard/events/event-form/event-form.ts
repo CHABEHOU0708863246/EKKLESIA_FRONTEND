@@ -14,6 +14,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { EventTypeLabels, EventStatus, EventCreate, EventUpdate, EventFormula } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { EventType } from '../../../../../core/models/Events/event.model';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const TYPE_OPTIONS = (Object.keys(EventType) as Array<keyof typeof EventType>).map((key) => ({
   value: EventType[key],
@@ -38,13 +39,21 @@ const CURRENCY_OPTIONS = ['FCFA', 'EUR', 'USD', 'GBP', 'CAD'];
 @Component({
   selector: 'app-event-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, FormGuide],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
 })
 export class EventForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private eventId: string | null = null;
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-category', tone: 'info', text: 'Choisissez le type d\'événement, un titre et les dates de début/fin (obligatoires).' },
+    { icon: 'bx-map', tone: 'primary', text: 'Renseignez le lieu, l\'église et le site ; ajoutez un organisateur si nécessaire.' },
+    { icon: 'bx-purchase-tag', tone: 'warning', text: 'Définissez les formules d\'inscription et leurs tarifs avant de publier.' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Vérifiez les champs obligatoires (*) puis enregistrez l\'événement.' },
+  ];
 
   readonly typeOptions = TYPE_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;

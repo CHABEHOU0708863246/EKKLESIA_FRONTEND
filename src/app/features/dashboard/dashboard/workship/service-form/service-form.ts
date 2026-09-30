@@ -18,6 +18,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -69,12 +70,20 @@ function isPastor(user: any): boolean {
 @Component({
   selector: 'app-service-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
   templateUrl: './service-form.html',
   styleUrls: ['./service-form.scss'],
 })
 export class ServiceForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-calendar-event', tone: 'info', text: 'Renseignez le titre et la date/heure du culte (obligatoires).' },
+    { icon: 'bx-user-voice', tone: 'primary', text: 'Sélectionnez le prédicateur et précisez le thème / texte biblique.' },
+    { icon: 'bx-group', tone: 'warning', text: 'Enregistrez les effectifs de présence (obligatoire pour valider).' },
+    { icon: 'bx-save', tone: 'success', text: 'Vérifiez les champs requis (*) puis enregistrez le culte.' },
+  ];
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly ServiceStatus = ServiceStatus;

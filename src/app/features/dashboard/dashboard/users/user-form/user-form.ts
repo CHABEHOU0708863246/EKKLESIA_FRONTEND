@@ -20,6 +20,7 @@ import {
   passwordPolicyValidator,
 } from '../../../../../core/validators/password.validator';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 
 const AVAILABLE_ROLES = [
@@ -53,7 +54,7 @@ const MARITAL_STATUS_OPTIONS = [
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, FormGuide],
   templateUrl: './user-form.html',
   styleUrl: './user-form.scss',
 })
@@ -61,6 +62,14 @@ export class UserForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private userId: string | null = null;
   private memberSearch$ = new Subject<string>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-user', tone: 'info', text: 'Renseignez l\'identité, l\'email et le rôle de l\'utilisateur (obligatoires).' },
+    { icon: 'bx-key', tone: 'primary', text: 'Définissez le mot de passe : 8+ caractères, 1 majuscule, 1 minuscule, 1 chiffre.' },
+    { icon: 'bx-church', tone: 'warning', text: 'Précisez l\'église et le site de rattachement.' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Activez le compte puis enregistrez pour permettre la connexion.' },
+  ];
 
   availableRoles = signal<RoleDropdownDto[]>([]);
   loadingRoles = signal(false);

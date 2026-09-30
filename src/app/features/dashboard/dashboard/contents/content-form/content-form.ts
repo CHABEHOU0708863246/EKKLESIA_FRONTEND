@@ -10,6 +10,7 @@ import { Church as ChurchModel } from '../../../../../core/models/Church/church.
 import { Site } from '../../../../../core/models/Church/site.model';
 import { ContentType, ContentTypeLabels, ContentCreate, ContentUpdate } from '../../../../../core/models/Communication/content.model';
 import { Contents } from '../../../../../core/services/Content/contents';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const TYPE_OPTIONS = Object.values(ContentType).map((value) => ({
   value,
@@ -19,7 +20,7 @@ const TYPE_OPTIONS = Object.values(ContentType).map((value) => ({
 @Component({
   selector: 'app-content-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, FormGuide],
   templateUrl: './content-form.html',
   styleUrls: ['./content-form.scss'],
 })
@@ -39,6 +40,14 @@ export class ContentForm implements OnInit, OnDestroy {
   private churchService = inject(ChurchService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-category', tone: 'info', text: 'Choisissez le type de contenu et saisissez un titre (obligatoires).' },
+    { icon: 'bx-buildings', tone: 'primary', text: 'Précisez l\'église / le site et la visibilité du contenu.' },
+    { icon: 'bx-cloud-upload', tone: 'warning', text: 'Ajoutez le fichier ou le lien du média (types et tailles contrôlés).' },
+    { icon: 'bx-send', tone: 'success', text: 'Enregistrez : la publication se fait ensuite depuis la liste des contenus.' },
+  ];
 
   // ── État ──
   isEditMode = signal(false);

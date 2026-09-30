@@ -14,6 +14,8 @@
   }
 
   <!-- FORMULAIRE -->
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="af-form">
 
     <!-- ─── PASTEUR & ÉGLISE ─── -->

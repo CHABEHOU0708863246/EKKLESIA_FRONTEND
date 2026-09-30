@@ -33,6 +33,8 @@ import { ApiResponse } from '../../../../../core/models/Common/api-response.mode
 import { Service } from '../../../../../core/services/Worship/service';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { Token } from '../../../../../core/services/Token/token';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -49,7 +51,7 @@ const CATEGORY_OPTIONS = Object.values(OfferingCategory).map((value) => ({
 @Component({
   selector: 'app-offering-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide],
   templateUrl: './offering-form.html',
   styleUrls: ['./offering-form.scss'],
 })
@@ -64,6 +66,15 @@ export class OfferingForm implements OnInit, OnDestroy {
   private serviceService = inject(Service);
   private router = inject(Router);
   private permissions = inject(Permissions);
+  private tokenService = inject(Token);
+
+  /** Guide d'utilisation affiché en tête de formulaire (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-list-check', tone: 'info', text: 'Choisissez le type d\'offrande, puis l\'église et le site concernés.' },
+    { icon: 'bx-calendar-event', tone: 'primary', text: 'Sélectionnez obligatoirement le culte associé (seuls les cultes que vous avez enregistrés sont proposés).' },
+    { icon: 'bx-coin-stack', tone: 'success', text: 'Renseignez le montant : soit le détail par catégorie (total calculé), soit un montant global.' },
+    { icon: 'bx-shield-quarter', tone: 'warning', text: 'Joignez la photo justificative si vous êtes habilité à valider les offrandes, puis enregistrez.' },
+  ];
 
   /**
    * 🔒 `POST /Offering/{id}/upload-validation-photo` exige
@@ -101,11 +112,9 @@ export class OfferingForm implements OnInit, OnDestroy {
   memberResults = signal<Member[]>([]);
   selectedMember = signal<Member | null>(null);
 
-  // ── Recherche de service (culte) ──
-  searchingService = signal(false);
-  showServiceResults = signal(false);
-  serviceResults = signal<ServiceModel[]>([]);
-  selectedService = signal<ServiceModel | null>(null);
+  // ── Liste des cultes (select box) — limitée aux cultes créés par l'utilisateur ──
+  services = signal<ServiceModel[]>([]);
+  loadingServices = signal(false);
 
   // ── Photo justificative ──
   photoPreview = signal<string | null>(null);
@@ -159,8 +168,7 @@ export class OfferingForm implements OnInit, OnDestroy {
       memberSearch: [''],
       churchId: ['', Validators.required],
       siteId: [''],
-      serviceId: [''],
-      serviceSearch: [''],
+      serviceId: ['', Validators.required],
       paymentMethod: [PaymentMethod.Cash, Validators.required],
       reference: [''],
       notes: [''],
@@ -174,6 +182,7 @@ export class OfferingForm implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadChurches();
     this.loadCategories();
+    this.loadUserServices();
 
     // Détection du mode édition via l'URL
     const urlSegments = this.router.url.split('/');
@@ -204,18 +213,6 @@ export class OfferingForm implements OnInit, OnDestroy {
         } else {
           this.memberResults.set([]);
           this.showMemberResults.set(false);
-        }
-      });
-
-    // ── Recherche de service (culte) ──
-    this.form.get('serviceSearch')?.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term: string) => {
-        if (term && term.trim().length >= 2) {
-          this.searchServices(term.trim());
-        } else {
-          this.serviceResults.set([]);
-          this.showServiceResults.set(false);
         }
       });
   }
@@ -284,7 +281,6 @@ export class OfferingForm implements OnInit, OnDestroy {
       churchId: offering.churchId,
       siteId: offering.siteId || '',
       serviceId: offering.serviceId || '',
-      serviceSearch: offering.serviceTitle || '',
       paymentMethod: offering.paymentMethod || PaymentMethod.Cash,
       reference: offering.reference || '',
       notes: offering.notes || '',
@@ -304,18 +300,14 @@ export class OfferingForm implements OnInit, OnDestroy {
       } as any as Member);
     }
 
-    // Si service existe, le sélectionner
-    if (offering.serviceId) {
-      this.selectedService.set({
-        id: offering.serviceId,
-        title: offering.serviceTitle || 'Culte',
-        formattedDate: offering.formattedDate || '',
-      } as any as ServiceModel);
-    }
-
     // Charger les sites pour l'église sélectionnée
     if (offering.churchId) {
       this.loadSites(offering.churchId);
+    }
+
+    // En édition, garantir que le culte de l'offrande figure bien dans la liste.
+    if (offering.serviceId) {
+      this.ensureServiceInList(offering.serviceId, offering.serviceTitle);
     }
 
     // Afficher l'aperçu de la photo si elle existe
@@ -417,60 +409,55 @@ private searchMembers(term: string): void {
     return `${f}${l}`.toUpperCase();
   }
 
-  // ─── RECHERCHE DE SERVICE (culte) ──────────────────────────
+  // ─── CULTES ENREGISTRÉS PAR L'UTILISATEUR (select box) ─────
 
-  private searchServices(term: string): void {
-    this.searchingService.set(true);
-    this.showServiceResults.set(true);
-
+  private loadUserServices(): void {
+    this.loadingServices.set(true);
+    const userId = this.tokenService.getUserId();
     this.serviceService
-      .getAll({ page: 1, pageSize: 8, title: term } as any)
+      .getAll({ page: 1, pageSize: 200, createdBy: userId ?? undefined, sortBy: 'date', sortOrder: 'desc' } as any)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          let items: ServiceModel[] = [];
-
-          // ✅ Vérifier que response est bien un ApiResponse
-          if (response && response.success && response.data) {
-            // Cas 1 : wrapper ApiResponse (structure attendue)
-            items = (response.data as any).items || [];
-          } else if (response && 'items' in response) {
-            // Cas 2 : réponse directe (fallback)
-            items = (response as any).items || [];
-          }
-
-          this.serviceResults.set(items);
-          this.searchingService.set(false);
+          const items = (response?.data?.items ?? (response as any)?.items ?? []) as ServiceModel[];
+          this.services.set(items);
+          this.loadingServices.set(false);
         },
         error: () => {
-          this.serviceResults.set([]);
-          this.searchingService.set(false);
+          this.services.set([]);
+          this.loadingServices.set(false);
         },
       });
   }
 
-  selectService(service: ServiceModel): void {
-    this.selectedService.set(service);
-    // ✅ Construction de l'affichage avec la date formatée
-    const displayDate = service.formattedDate ||
-      new Date(service.date).toLocaleString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    this.form.patchValue({
-      serviceId: service.id,
-      serviceSearch: `${service.title} (${displayDate})`,
+  /** Garantit la présence du culte de l'offrande dans la liste (mode édition). */
+  private ensureServiceInList(serviceId: string, fallbackTitle?: string): void {
+    if (this.services().some((s) => s.id === serviceId)) return;
+    this.serviceService.getById(serviceId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        const svc = response?.data as unknown as ServiceModel | undefined;
+        if (svc) this.services.update((list) => [svc, ...list]);
+      },
+      error: () => {
+        if (fallbackTitle) {
+          this.services.update((list) => [
+            { id: serviceId, title: fallbackTitle, formattedDate: '' } as any as ServiceModel,
+            ...list,
+          ]);
+        }
+      },
     });
-    this.showServiceResults.set(false);
-    this.serviceResults.set([]);
   }
 
-  clearService(): void {
-    this.selectedService.set(null);
-    this.form.patchValue({ serviceId: '', serviceSearch: '' });
+  /** Libellé lisible d'un culte dans le select : date · titre · site · statut. */
+  getServiceOptionLabel(s: ServiceModel): string {
+    const date = s.formattedDate ||
+      (s.date
+        ? new Date(s.date).toLocaleString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          })
+        : '');
+    return [date, s.title, s.siteName, s.statusLabel].filter(Boolean).join(' · ');
   }
 
   // ──────────────────────────────────────────────────────────────

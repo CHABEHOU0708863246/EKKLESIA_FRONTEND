@@ -26,6 +26,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { Member } from '../../../../../core/models/Members/member.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const CATEGORY_OPTIONS = Object.values(ExpenseCategory).map((value) => ({
   value,
@@ -46,7 +47,7 @@ const STATUS_OPTIONS = Object.values(ExpenseStatus).map((value) => ({
 @Component({
   selector: 'app-expense-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
   templateUrl: './expense-form.html',
   styleUrls: ['./expense-form.scss'],
 })
@@ -58,6 +59,14 @@ export class ExpenseForm implements OnInit, OnDestroy {
   private churchService = inject(ChurchService);
   private userService = inject(Users);
   private router = inject(Router);
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-category', tone: 'info', text: 'Choisissez la catégorie de dépense et son montant (obligatoires).' },
+    { icon: 'bx-calendar', tone: 'primary', text: 'Indiquez la date, l\'église/site et le bénéficiaire concernés.' },
+    { icon: 'bx-receipt', tone: 'warning', text: 'Joignez une pièce justificative le cas échéant.' },
+    { icon: 'bx-shield-quarter', tone: 'success', text: 'La dépense suit ensuite le circuit : saisie → validation → approbation → paiement.' },
+  ];
 
   getUserFullName(user: User): string {
   return user.fullName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Utilisateur';

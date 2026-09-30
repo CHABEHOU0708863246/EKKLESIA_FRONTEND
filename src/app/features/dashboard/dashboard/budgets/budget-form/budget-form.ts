@@ -16,6 +16,7 @@ import {
   BudgetUtils
 } from '../../../../../core/models/Finances/budget.model';
 import { BudgetService } from '../../../../../core/services/Finances/budjets';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
   value,
@@ -25,7 +26,7 @@ const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
 @Component({
   selector: 'app-budget-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
   templateUrl: './budget-form.html',
   styleUrls: ['./budget-form.scss'],
 })
@@ -35,6 +36,14 @@ export class BudgetForm implements OnInit, OnDestroy {
   private budgetService = inject(BudgetService);
   private churchService = inject(ChurchService);
   private router = inject(Router);
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-calendar', tone: 'info', text: 'Indiquez l\'exercice/la période et le nom du budget (obligatoires).' },
+    { icon: 'bx-list-ul', tone: 'primary', text: 'Choisissez l\'église/site, puis ajoutez une ou plusieurs lignes par catégorie.' },
+    { icon: 'bx-coin-stack', tone: 'warning', text: 'Saisissez les montants prévus : le total est calculé automatiquement.' },
+    { icon: 'bx-shield-quarter', tone: 'success', text: 'Le budget passe ensuite en approbation avant d\'être suivi.' },
+  ];
 
   // ── Exposé des énumérations ──
   readonly BudgetStatus = BudgetStatus;

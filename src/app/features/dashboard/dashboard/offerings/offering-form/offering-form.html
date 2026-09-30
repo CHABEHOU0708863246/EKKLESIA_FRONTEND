@@ -14,6 +14,8 @@
   <div class="of-banner of-banner--success">✅ Offrande enregistrée avec succès !</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="of-form">
 
     <!-- ─── TYPE D'OFFRANDE ─── -->
@@ -100,36 +102,21 @@
           </select>
         </div>
 
-        <!-- ✅ NOUVEAU : Lien vers un culte (collecte) -->
+        <!-- ✅ Culte associé : liste déroulante (cultes enregistrés par l'utilisateur) -->
         <div class="of-field of-field--span-2">
-          <label>Culte associé (collecte)</label>
-          <div class="of-search-wrap">
-            <ng-container *ngIf="selectedService() as service">
-              <div class="of-selected-row">
-                <div class="of-mini-info">
-                  <strong>{{ service.title }}</strong>
-                  <span class="of-mini-sub">{{ service.formattedDate }}</span>
-                </div>
-                <button type="button" class="of-icon-btn" (click)="clearService()">✕</button>
-              </div>
-            </ng-container>
-
-            <input *ngIf="!selectedService()" type="text" formControlName="serviceSearch"
-              placeholder="Rechercher un culte (date, titre)…" (focus)="showServiceResults.set(true)">
-
-            <div class="of-search-dropdown" *ngIf="showServiceResults() && !selectedService()">
-              <p class="of-search-status" *ngIf="searchingService()">Recherche en cours…</p>
-              <p class="of-search-status" *ngIf="!searchingService() && serviceResults().length === 0">Aucun culte trouvé</p>
-              @for (s of serviceResults(); track s.id) {
-              <button type="button" class="of-search-result" (click)="selectService(s)">
-                <div class="of-mini-info">
-                  <strong>{{ s.title }}</strong>
-                  <span class="of-mini-sub">{{ s.formattedDate }}</span>
-                </div>
-              </button>
-              }
-            </div>
-          </div>
+          <label>Culte associé (collecte) <span class="of-required">*</span></label>
+          <select formControlName="serviceId" [disabled]="loadingServices()">
+            <option value="">
+              @if (loadingServices()) { Chargement des cultes… }
+              @else if (services().length === 0) { — Aucun culte enregistré par vous — }
+              @else { — Sélectionner un culte — }
+            </option>
+            @for (s of services(); track s.id) {
+            <option [value]="s.id">{{ getServiceOptionLabel(s) }}</option>
+            }
+          </select>
+          <small class="of-hint">Seuls les cultes que vous avez enregistrés sont proposés.</small>
+          <p class="of-error" *ngIf="isFieldInvalid('serviceId')">Le culte associé est obligatoire</p>
         </div>
 
         <div class="of-field of-field--span-2">

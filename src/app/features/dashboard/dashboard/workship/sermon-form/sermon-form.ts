@@ -11,15 +11,24 @@ import { Sermons } from '../../../../../core/services/Sermon/sermons';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Church } from '../../../../../core/services/Church/church';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 @Component({
   selector: 'app-sermon-form',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, FormGuide],
   templateUrl: './sermon-form.html',
   styleUrl: './sermon-form.scss',
 })
 export class SermonForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-microphone', tone: 'info', text: 'Renseignez le titre, la date et l\'église du sermon (obligatoires).' },
+    { icon: 'bx-user-voice', tone: 'primary', text: 'Choisissez le prédicateur, le thème et le texte biblique.' },
+    { icon: 'bx-video', tone: 'warning', text: 'Enregistrez le sermon, puis ajoutez ses médias (audio, vidéo, document, lien).' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Vérifiez les champs requis (*) puis publiez le sermon.' },
+  ];
 
   allPreachers = signal<User[]>([]);
   loadingPreachers = signal(false);

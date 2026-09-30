@@ -127,6 +127,7 @@ export interface ServiceFilter {
   dateTo?: string;
   createdFrom?: string;
   createdTo?: string;
+  createdBy?: string;
   minVisitors?: number;
   maxVisitors?: number;
   page: number;

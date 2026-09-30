@@ -14,6 +14,8 @@
   <div class="ef-banner ef-banner--success">✅ Dépense enregistrée avec succès !</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="ef-form">
 
     <!-- ─── INFORMATIONS PRINCIPALES ─── -->

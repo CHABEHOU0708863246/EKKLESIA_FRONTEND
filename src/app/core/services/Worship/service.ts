@@ -206,6 +206,7 @@ export class Service {
     if (filter.dateTo) params = params.set('dateTo', filter.dateTo);
     if (filter.createdFrom) params = params.set('createdFrom', filter.createdFrom);
     if (filter.createdTo) params = params.set('createdTo', filter.createdTo);
+    if (filter.createdBy) params = params.set('createdBy', filter.createdBy);
 
     if (filter.minVisitors !== undefined) {
       params = params.set('minVisitors', filter.minVisitors.toString());

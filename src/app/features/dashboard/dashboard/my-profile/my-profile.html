@@ -111,6 +111,8 @@
         </div>
       </div>
 
+      <app-form-guide *ngIf="isEditMode()" [steps]="guideSteps" [form]="form"></app-form-guide>
+
       <form class="mp-panel-body mp-panel-body--grid" [formGroup]="form" *ngIf="isEditMode()">
 
         <div class="mp-field">

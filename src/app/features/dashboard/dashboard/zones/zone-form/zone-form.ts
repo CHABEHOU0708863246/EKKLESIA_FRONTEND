@@ -6,6 +6,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Users } from '../../../../../core/services/Users/users';
 import { ZoneService } from '../../../../../core/services/Zones/zone-service';
 import { Church } from '../../../../../core/services/Church/church';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 
 interface SiteOption { id: string; name: string; churchName: string; }
@@ -15,7 +16,7 @@ interface UserOption { id: string; fullName: string; }
 @Component({
   selector: 'app-zone-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormGuide],
   templateUrl: './zone-form.html',
   styleUrl: './zone-form.scss',
 })
@@ -23,6 +24,14 @@ export class ZoneForm implements OnInit {
   form: FormGroup;
   submitting = signal(false);
   error = signal<string | null>(null);
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-map', tone: 'info', text: 'Indiquez le nom de la zone (2 caractères minimum) — obligatoire.' },
+    { icon: 'bx-church', tone: 'primary', text: 'Choisissez l\'église de rattachement et le responsable (chef de zone).' },
+    { icon: 'bx-list-check', tone: 'warning', text: 'Sélectionnez un ou plusieurs sites couverts par la zone.' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Enregistrez : les sites et le responsable déterminent le périmètre de la zone.' },
+  ];
 
   churches = signal<ChurchOption[]>([]);
   sites = signal<SiteOption[]>([]);

@@ -8,6 +8,8 @@
   <div class="sf-error">{{ error() }}</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="sf-form">
 
     <!-- ─── CHAMPS PRINCIPAUX ─── -->

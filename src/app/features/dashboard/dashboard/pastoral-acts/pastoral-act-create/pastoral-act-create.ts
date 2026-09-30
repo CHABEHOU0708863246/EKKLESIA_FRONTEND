@@ -16,6 +16,7 @@ import { Roles } from '../../../../../core/services/Roles/roles';
 import { Users } from '../../../../../core/services/Users/users';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 
 const TYPE_OPTIONS = Object.values(PastoralActType).map((value) => ({
@@ -27,12 +28,20 @@ const TYPE_OPTIONS = Object.values(PastoralActType).map((value) => ({
 @Component({
   selector: 'app-pastoral-act-create',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide],
   templateUrl: './pastoral-act-create.html',
   styleUrl: './pastoral-act-create.scss',
 })
 export class PastoralActCreate implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-book-heart', tone: 'info', text: 'Choisissez le type d\'acte (baptême, mariage, funérailles, dédicace).' },
+    { icon: 'bx-calendar-event', tone: 'primary', text: 'Renseignez la date, l\'église / le site et l\'officiant.' },
+    { icon: 'bx-group', tone: 'warning', text: 'Ajoutez les participants concernés (un par ligne).' },
+    { icon: 'bx-certification', tone: 'success', text: 'Enregistrez pour pouvoir générer le certificat de l\'acte.' },
+  ];
 
   readonly typeOptions = TYPE_OPTIONS;
   readonly PastoralActType = PastoralActType;

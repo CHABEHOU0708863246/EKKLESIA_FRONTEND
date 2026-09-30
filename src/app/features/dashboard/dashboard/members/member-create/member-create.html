@@ -44,6 +44,8 @@
   </div>
 
   <!-- ══════════════ CONTENU ══════════════ -->
+  <app-form-guide [title]="'Instructions'" [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form class="mc-form" [formGroup]="form" (ngSubmit)="isLastStep() ? submit() : next()">
 
     <!-- ─────────── ÉTAPE 1 : IDENTITÉ & CONTACT ─────────── -->

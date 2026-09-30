@@ -15,11 +15,12 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Member } from '../../../../../core/models/Members/member.model';
 import { Roles } from '../../../../../core/services/Roles/roles';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 @Component({
   selector: 'app-appointment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
   templateUrl: './appointment-form.html',
   styleUrls: ['./appointment-form.scss'],
 })
@@ -32,6 +33,14 @@ export class AppointmentForm implements OnInit, OnDestroy {
   private userService = inject(Users);
   private churchService = inject(ChurchService);
   private memberService = inject(Members);
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-user', tone: 'info', text: 'Indiquez le demandeur (membre ou nom libre) et le pasteur concerné.' },
+    { icon: 'bx-calendar-check', tone: 'primary', text: 'Choisissez la date, l\'heure et le motif du rendez-vous.' },
+    { icon: 'bx-buildings', tone: 'warning', text: 'Précisez l\'église / le site et le statut souhaité.' },
+    { icon: 'bx-check-double', tone: 'success', text: 'Enregistrez : le rendez-vous suivra ensuite son cycle de confirmation.' },
+  ];
 
 
 

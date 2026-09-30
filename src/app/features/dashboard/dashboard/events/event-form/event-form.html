@@ -32,6 +32,8 @@
     <span>{{ error() }}</span>
   </div>
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form class="ef-form" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading()">
 
     <!-- ─────────── INFORMATIONS GÉNÉRALES ─────────── -->

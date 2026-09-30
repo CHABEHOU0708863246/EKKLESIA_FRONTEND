@@ -14,6 +14,8 @@
     <div class="bf-banner bf-banner--success">✅ Budget enregistré avec succès !</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="bf-form">
 
     <!-- ─── INFORMATIONS GÉNÉRALES ─── -->

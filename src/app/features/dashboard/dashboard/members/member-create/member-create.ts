@@ -15,6 +15,7 @@ import {
 import { Members } from '../../../../../core/services/Members/members';
 import { ApiResponse } from '../../../../../core/models/Common/api-response.model';
 import { Auth } from '../../../../../core/services/Auth/auth';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 interface WizardStep {
   id: 'identite' | 'statut' | 'affectation' | 'recap';
@@ -49,13 +50,21 @@ const GENDER_OPTIONS = [
 @Component({
   selector: 'app-member-create',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide],
   templateUrl: './member-create.html',
   styleUrl: './member-create.scss',
 })
 export class MemberCreate implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private godfatherSearch$ = new Subject<string>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-id-card', tone: 'info', text: 'Étape 1 — Renseignez l\'identité et le contact : prénom, nom et téléphone sont obligatoires.' },
+    { icon: 'bx-holy-bible', tone: 'primary', text: 'Étape 2 — Précisez le statut spirituel (visiteur, croyant, baptisé…).' },
+    { icon: 'bx-link', tone: 'success', text: 'Étape 3 — Choisissez l\'église, le site et la cellule (facultatif), puis vérifiez le récapitulatif.' },
+    { icon: 'bx-shield-quarter', tone: 'warning', text: 'Les champs marqués d\'un astérisque (*) sont obligatoires avant enregistrement.' },
+  ];
 
   readonly statusOptions = STATUS_OPTIONS;
   readonly spiritualStatusOptions = SPIRITUAL_STATUS_OPTIONS;

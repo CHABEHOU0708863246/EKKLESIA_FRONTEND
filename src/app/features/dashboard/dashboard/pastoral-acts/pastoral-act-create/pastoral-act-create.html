@@ -28,6 +28,8 @@
     <span>{{ error() }}</span>
   </div>
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form class="pac-form" [formGroup]="form" (ngSubmit)="submit()">
 
     <!-- ─────────── TYPE D'ACTE ─────────── -->

@@ -11,6 +11,8 @@
   <div class="sc-error">{{ error() }}</div>
   }
 
+  <app-form-guide [steps]="guideSteps" [form]="form"></app-form-guide>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="sc-form">
 
     <div class="sc-field">

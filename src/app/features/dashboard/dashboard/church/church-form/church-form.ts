@@ -20,11 +20,12 @@ import { ChurchCreate, ChurchUpdate, ChurchUtils } from '../../../../../core/mod
 import { Member } from '../../../../../core/models/Members/member.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
+import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
 @Component({
   selector: 'app-church-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormGuide],
   templateUrl: './church-form.html',
   styleUrl: './church-form.scss',
 })
@@ -32,6 +33,14 @@ export class ChurchForm implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private churchId: string | null = null;
   private siteDestroyMap = new Map<number, Subject<void>>();
+
+  /** Guide d'utilisation (instructions + progression). */
+  readonly guideSteps: GuideStep[] = [
+    { icon: 'bx-church', tone: 'info', text: 'Renseignez le nom, le téléphone et la dénomination de l\'église (obligatoires).' },
+    { icon: 'bx-map-pin', tone: 'primary', text: 'Complétez l\'adresse du siège : rue, ville et pays.' },
+    { icon: 'bx-cog', tone: 'warning', text: 'Ajustez les paramètres (langue, fuseau, devise) et les horaires de culte.' },
+    { icon: 'bx-buildings', tone: 'success', text: 'Ajoutez les sites, puis enregistrez. Une filiale doit être rattachée à une église mère.' },
+  ];
 
   pastorSearchControl = new FormControl('');
   searchingPastor = signal(false);
