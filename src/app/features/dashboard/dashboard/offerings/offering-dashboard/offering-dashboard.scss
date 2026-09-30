@@ -343,3 +343,54 @@ $bg: var(--color-bg);
 
   .od-chart { height: 220px; }
 }
+
+// ── Offrandes par site de l'église mère ──
+.ods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.ods-card {
+  border: 1px solid #e8eaf1;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #fff;
+
+  &--mere {
+    border-color: #6c5ce7;
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.12);
+  }
+}
+
+.ods-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ods-name { font-weight: 700; }
+
+.ods-amount { font-weight: 700; color: #6c5ce7; }
+
+.ods-count { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.ods-types {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 3px 0;
+    font-size: 13px;
+    border-top: 1px dashed #eef0f7;
+  }
+
+  li:first-child { border-top: none; }
+}
+
+.ods-empty { font-size: 12px; color: #94a3b8; margin: 10px 0 0; }

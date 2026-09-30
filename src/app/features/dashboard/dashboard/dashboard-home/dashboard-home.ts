@@ -21,7 +21,7 @@ import {
 import { OfferingType, OfferingStatus } from '../../../../core/models/Finances/offering.model';
 import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 import { Permissions } from '../../../../core/services/Permissions/permissions';
-import { Service as WorshipService, AttendanceSummary } from '../../../../core/services/Worship/service';
+import { Service as WorshipService, AttendanceSummary, AttendanceByChurch } from '../../../../core/services/Worship/service';
 
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables);
@@ -44,9 +44,13 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   private membersByChurchChart: Chart | null = null;
   private attendanceBreakdownChart: Chart | null = null;
 
-  // ─── Répartition des effectifs (Lot 5) ───
+  // ─── Répartition des effectifs (modèle simplifié) ───
   attendanceBreakdown: AttendanceSummary | null = null;
   loadingBreakdown = false;
+
+  // ─── Effectifs par église (Total hors/avec enfants) — Pasteur Principal / Admin ───
+  attendanceByChurch: AttendanceByChurch[] = [];
+  loadingAttendanceByChurch = false;
 
   // ─── Périmètre consolidé (Lot 6) : National / International / Tous ───
   selectedScope = 'Tous';
@@ -181,13 +185,16 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
       kpi: this.dashboardService.getKpiData(),
       charts: this.dashboardService.getChartData(),
       breakdown: this.worshipService.getAttendanceSummary(undefined, undefined, this.scopeParam()),
+      attendanceByChurch: this.canSelectScope()
+        ? this.worshipService.getAttendanceByChurch(undefined, undefined)
+        : of(null),
       membersByChurch: canViewMembers
         ? this.dashboardService.getMembersByChurch(false)
         : of(null)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ dashboard, kpi, charts, breakdown, membersByChurch }) => {
+        next: ({ dashboard, kpi, charts, breakdown, attendanceByChurch, membersByChurch }) => {
           this.loading = false;
           this.loadingMembersByChurch = false;
 
@@ -233,9 +240,14 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
             this.membersByChurch = membersByChurch.data;
           }
 
-          // 5. Répartition des effectifs (Lot 5)
+          // 5. Répartition des effectifs (modèle simplifié)
           if (breakdown?.success && breakdown.data) {
             this.attendanceBreakdown = breakdown.data;
+          }
+
+          // 5bis. Effectifs par église (hors/avec enfants)
+          if (attendanceByChurch?.success && attendanceByChurch.data) {
+            this.attendanceByChurch = attendanceByChurch.data;
           }
 
           // Créer les graphiques après que le DOM soit prêt
@@ -426,11 +438,11 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
     this.attendanceBreakdownChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Hommes', 'Femmes', 'Garçons', 'Filles', 'Ados H.', 'Ados F.', 'Non réparti'],
+        labels: ['Hommes', 'Femmes', 'Enfants', 'Nouveaux', 'Accepté Jésus', 'Non accepté'],
         datasets: [{
           label: 'Effectif',
-          data: [b.men, b.women, b.boys, b.girls, b.teenBoys, b.teenGirls, b.unallocated],
-          backgroundColor: ['#6C5CE7', '#00B894', '#74B9FF', '#A29BFE', '#FDCB6E', '#E17055', '#B2BEC3'],
+          data: [b.men, b.women, b.children, b.visitors, b.acceptedJesus, b.notAcceptedJesus],
+          backgroundColor: ['#6C5CE7', '#00B894', '#74B9FF', '#FDCB6E', '#00CEC9', '#E17055'],
           borderRadius: 6
         }]
       },

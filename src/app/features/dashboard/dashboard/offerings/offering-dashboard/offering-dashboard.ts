@@ -14,12 +14,13 @@ import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 
-import { Offerings } from '../../../../../core/services/Finances/offerings';
+import { Offerings, OfferingDashboardBySite } from '../../../../../core/services/Finances/offerings';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import {
   OfferingDashboardDto,
-  OfferingDashboardFilter
+  OfferingDashboardFilter,
+  OfferingTypeLabels
 } from '../../../../../core/models/Finances/offering.model';
 
 Chart.register(...registerables);
@@ -48,6 +49,10 @@ export class OfferingDashboard implements OnInit, OnDestroy {
   dashboard: OfferingDashboardDto | null = null;
   loading = false;
   error: string | null = null;
+
+  // ── Offrandes par type pour chaque site de l'église mère ──
+  bySite: OfferingDashboardBySite | null = null;
+  loadingBySite = false;
 
   churches: { id: string; name: string }[] = [];
 
@@ -126,6 +131,7 @@ export class OfferingDashboard implements OnInit, OnDestroy {
   loadDashboard(): void {
     this.loading = true;
     this.error = null;
+    this.loadBySite();
 
     this.offeringsService
       .getOfferingDashboard({
@@ -153,6 +159,42 @@ export class OfferingDashboard implements OnInit, OnDestroy {
           this.error = 'Impossible de charger le tableau de bord des offrandes.';
         }
       });
+  }
+
+  /** Offrandes par type pour chaque site de l'église mère. */
+  loadBySite(): void {
+    this.loadingBySite = true;
+    this.offeringsService
+      .getOfferingDashboardBySite(
+        this.filter.from || undefined,
+        this.filter.to || undefined,
+        this.filter.churchId || undefined
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (r) => {
+          this.loadingBySite = false;
+          this.bySite = r.success && r.data ? r.data : null;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loadingBySite = false;
+          this.bySite = null;
+        }
+      });
+  }
+
+  /** Libellé d'un type d'offrande à partir de sa clé d'enum. */
+  typeLabel(key: string): string {
+    return (OfferingTypeLabels as Record<string, string>)[key] ?? key;
+  }
+
+  /** Types d'offrande d'une ligne site, triés par montant décroissant. */
+  typeEntries(row: { amountByType: Record<string, number> }): { label: string; amount: number }[] {
+    return Object.entries(row.amountByType || {})
+      .map(([k, v]) => ({ label: this.typeLabel(k), amount: v }))
+      .filter((e) => e.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
   }
 
   /** Les églises ne sont affichées qu'aux périmètres globaux. */

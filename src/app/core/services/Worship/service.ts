@@ -24,18 +24,30 @@ export interface AttendanceSummary {
   servicesCount: number;
   men: number;
   women: number;
-  boys: number;
-  girls: number;
-  teenBoys: number;
-  teenGirls: number;
-  unallocated: number;
+  children: number;
   visitors: number;
-  newConverts: number;
-  youth: number;
-  adults: number;
-  minors: number;
-  totalPresent: number;
-  totalAll: number;
+  acceptedJesus: number;
+  notAcceptedJesus: number;
+  adults?: number;
+  minors?: number;
+  totalHorsEnfants?: number;
+  totalAvecEnfants?: number;
+  totalPresent?: number;
+  totalAll?: number;
+}
+
+/** Effectifs agrégés par église (Total hors/avec enfants). */
+export interface AttendanceByChurch {
+  churchId: string;
+  churchName: string;
+  isHeadquarters: boolean;
+  servicesCount: number;
+  men: number;
+  women: number;
+  children: number;
+  visitors: number;
+  totalHorsEnfants: number;
+  totalAvecEnfants: number;
 }
 
 @Injectable({
@@ -118,6 +130,14 @@ export class Service {
     if (to) params = params.set('to', to);
     if (scope) params = params.set('scope', scope);
     return this.http.get(`${this.baseUrl}/attendance/summary/export`, { params, responseType: 'blob' });
+  }
+
+  /** Effectifs agrégés par église (Total hors enfants / Total avec enfants). */
+  getAttendanceByChurch(from?: string, to?: string): Observable<ApiResponse<AttendanceByChurch[]>> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get<ApiResponse<AttendanceByChurch[]>>(`${this.baseUrl}/attendance/by-church`, { params });
   }
 
   uploadPhoto(serviceId: string, photoFile: File): Observable<{ success: boolean; photoId?: string; message?: string }> {

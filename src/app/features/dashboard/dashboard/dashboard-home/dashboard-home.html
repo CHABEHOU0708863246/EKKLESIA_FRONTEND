@@ -182,16 +182,56 @@
             <canvas id="attendanceBreakdownChart"></canvas>
           </div>
           <p style="margin-top:8px;color:#64748b">
-            Total présents (membres) : <strong>{{ attendanceBreakdown.totalPresent | number }}</strong>
-            — dont moins de 18 ans : <strong>{{ attendanceBreakdown.minors | number }}</strong>.
-            Visiteurs : {{ attendanceBreakdown.visitors | number }} ·
-            Nouveaux convertis : {{ attendanceBreakdown.newConverts | number }}.
+            Total hors enfants : <strong>{{ attendanceBreakdown.totalHorsEnfants | number }}</strong>
+            · Total avec enfants : <strong>{{ attendanceBreakdown.totalAvecEnfants | number }}</strong>
+            · Nouveaux (visiteurs) : {{ attendanceBreakdown.visitors | number }}.
           </p>
         } @else {
           <p style="color:#64748b">Aucune donnée de présence pour l'instant.</p>
         }
       </div>
     </div>
+
+    <!-- ══ Récapitulatif des effectifs par église (Pasteur Principal / Administrateur) ══ -->
+    @if (canSelectScope()) {
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bx bx-bar-chart-alt-2"></i> Effectifs par église — hors / avec enfants</div>
+      </div>
+      <div class="card-body">
+        @if (loadingAttendanceByChurch) {
+        <p style="color:#64748b">Chargement…</p>
+        } @else if (attendanceByChurch.length === 0) {
+        <p style="color:#64748b">Aucune donnée de présence pour l'instant.</p>
+        } @else {
+        <div class="recap-grid">
+          @for (row of attendanceByChurch; track row.churchId) {
+          <div class="recap-card" [class.recap-card--hq]="row.isHeadquarters">
+            <div class="recap-head">
+              <span class="recap-name">{{ row.churchName }}</span>
+              @if (row.isHeadquarters) { <span class="recap-tag">Siège</span> }
+            </div>
+            <div class="recap-totals">
+              <div class="recap-total">
+                <span class="recap-label">Total hors enfants</span>
+                <strong class="recap-value">{{ row.totalHorsEnfants | number }}</strong>
+              </div>
+              <div class="recap-total recap-total--accent">
+                <span class="recap-label">Total avec enfants</span>
+                <strong class="recap-value">{{ row.totalAvecEnfants | number }}</strong>
+              </div>
+            </div>
+            <div class="recap-detail">
+              Hommes {{ row.men | number }} · Femmes {{ row.women | number }} ·
+              Enfants {{ row.children | number }} · Nouveaux {{ row.visitors | number }}
+            </div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    }
 
     <div class="card">
       <div class="card-header">

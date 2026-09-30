@@ -36,6 +36,27 @@ export interface OfferingCategoryOption {
   sortOrder?: number;
 }
 
+/** Ligne « site » du tableau des offrandes par site (église mère incluse). */
+export interface OfferingSiteRow {
+  siteId?: string | null;
+  siteName: string;
+  amount: number;
+  count: number;
+  amountByType: Record<string, number>;
+}
+
+/** Offrandes par type pour chaque site de l'église mère. */
+export interface OfferingDashboardBySite {
+  churchId: string;
+  churchName: string;
+  isHeadquarters: boolean;
+  from: string;
+  to: string;
+  grandTotal: number;
+  totalCount: number;
+  rows: OfferingSiteRow[];
+}
+
 /**
  * Service de gestion des offrandes (dîmes, offrandes, collectes).
  * Correspond au backend OfferingController.
@@ -316,6 +337,21 @@ getValidationPhotoUrl(photoId: string): string {
 
     return this.http.get<ApiResponse<OfferingDashboardDto>>(`${this.baseUrl}/dashboard`, { params })
       .pipe(catchError(this.handleError<OfferingDashboardDto>('getOfferingDashboard')));
+  }
+
+  /**
+   * Offrandes par type pour chaque site de l'église mère (y compris l'église
+   * mère elle-même), sous forme de liste.
+   * GET /api/v1/Offering/dashboard/by-site
+   */
+  getOfferingDashboardBySite(from?: string, to?: string, churchId?: string): Observable<ApiResponse<OfferingDashboardBySite>> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    if (churchId) params = params.set('churchId', churchId);
+
+    return this.http.get<ApiResponse<OfferingDashboardBySite>>(`${this.baseUrl}/dashboard/by-site`, { params })
+      .pipe(catchError(this.handleError<OfferingDashboardBySite>('getOfferingDashboardBySite')));
   }
 
   /**

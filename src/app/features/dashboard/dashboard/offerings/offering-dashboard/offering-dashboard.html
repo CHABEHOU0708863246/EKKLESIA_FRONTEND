@@ -230,6 +230,36 @@
       </div>
     </div>
 
+    <!-- ══ OFFRANDES PAR SITE DE L'ÉGLISE MÈRE ══ -->
+    <div class="od-card" style="margin-top: 16px;" *ngIf="bySite">
+      <div class="od-card-title">
+        <i class="bx bx-buildings"></i> Offrandes par site — {{ bySite.churchName }}
+      </div>
+      <p style="color:#64748b;margin:0 0 12px">
+        Total église mère + sites : <strong>{{ formatAmount(bySite.grandTotal) }}</strong>
+        sur {{ bySite.totalCount }} offrande(s).
+      </p>
+      <div class="ods-grid">
+        <div class="ods-card" *ngFor="let row of bySite.rows" [class.ods-card--mere]="!row.siteId">
+          <div class="ods-head">
+            <span class="ods-name">{{ row.siteName }}</span>
+            <span class="ods-amount">{{ formatAmount(row.amount) }}</span>
+          </div>
+          <div class="ods-count">{{ row.count }} offrande(s)</div>
+          <ul class="ods-types" *ngIf="typeEntries(row).length">
+            <li *ngFor="let t of typeEntries(row)">
+              <span>{{ t.label }}</span>
+              <strong>{{ formatAmount(t.amount) }}</strong>
+            </li>
+          </ul>
+          <p class="ods-empty" *ngIf="!typeEntries(row).length">Aucune offrande sur la période.</p>
+        </div>
+      </div>
+    </div>
+    <div class="od-card" style="margin-top: 16px;" *ngIf="!bySite && loadingBySite">
+      <p style="color:#64748b">Chargement des offrandes par site…</p>
+    </div>
+
     <p class="od-footnote">
       <i class="bx bx-info-circle"></i>
       Seules les offrandes non annulées sont comptées. Le périmètre affiché est celui autorisé par votre rôle.

@@ -31,21 +31,22 @@ export interface Song {
 export interface ServiceAttendance {
   men: number;
   women: number;
-  // Répartition détaillée (Lot 5)
-  boys?: number;
-  girls?: number;
-  teenBoys?: number;
-  teenGirls?: number;
-  newConverts?: number;
-  youth?: number;
-  unallocated?: number;
-  visitors: number;
+  /** Enfants (toutes tranches confondues). */
   children: number;
+  /** « Nouveaux » = visiteurs / nouveaux venus. */
+  visitors: number;
   acceptedJesus: number;
   notAcceptedJesus: number;
   observation?: string;
   photoUrl?: string;
   visitorNames: string[];
+  // ── Calculés côté serveur (lecture seule) ──
+  adults?: number;
+  minors?: number;
+  totalHorsEnfants?: number;
+  totalAvecEnfants?: number;
+  totalPresent?: number;
+  totalAll?: number;
   totalWithChildren?: number;
   totalWithoutChildren?: number;
 }
@@ -198,11 +199,11 @@ export class ServiceUtils {
   // ─── Présences ─────────────────────────────────────────────
 
   static getTotalAttendance(attendance: ServiceAttendance): number {
-    return attendance.men + attendance.women + attendance.visitors + attendance.children;
+    return attendance.men + attendance.women + attendance.children;
   }
 
   static getTotalWithChildren(attendance: ServiceAttendance): number {
-    return attendance.totalWithChildren ?? this.getTotalAttendance(attendance);
+    return attendance.totalWithChildren ?? (attendance.men + attendance.women + attendance.visitors + attendance.children);
   }
 
   static getTotalWithoutChildren(attendance: ServiceAttendance): number {
@@ -213,15 +214,8 @@ export class ServiceUtils {
     return {
       men: 0,
       women: 0,
-      boys: 0,
-      girls: 0,
-      teenBoys: 0,
-      teenGirls: 0,
-      newConverts: 0,
-      youth: 0,
-      unallocated: 0,
-      visitors: 0,
       children: 0,
+      visitors: 0,
       acceptedJesus: 0,
       notAcceptedJesus: 0,
       observation: '',
