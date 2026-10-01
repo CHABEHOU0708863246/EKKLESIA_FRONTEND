@@ -372,10 +372,46 @@
                 <input type="text" formControlName="city">
               </div>
               <div class="cf-field">
-                <label>Pays</label>
-                <input type="text" formControlName="country">
+                <label>Ville (adresse)</label>
+                <input type="text" formControlName="city">
               </div>
             </ng-container>
+
+            <!-- ✅ Localisation & paramètres régionaux du site -->
+            <div class="cf-field">
+              <label>Pays du site <span class="cf-required">*</span></label>
+              <div class="cf-select-wrap">
+                <select formControlName="country">
+                  @for (c of siteCountryOptions; track c.code) {
+                    <option [value]="c.code">{{ c.label }} ({{ c.code }})</option>
+                  }
+                </select>
+              </div>
+              <small class="cf-hint">Le pays détermine le périmètre, la devise et le fuseau ci-dessous.</small>
+            </div>
+
+            <div class="cf-field">
+              <label>Périmètre</label>
+              <div class="cf-select-wrap">
+                <select formControlName="scope">
+                  @for (s of siteScopeOptions; track s) { <option [value]="s">{{ s }}</option> }
+                </select>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label>Devise</label>
+              <div class="cf-select-wrap">
+                <select formControlName="currencyCode">
+                  @for (c of siteCurrencyOptions; track c) { <option [value]="c">{{ c }}</option> }
+                </select>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label>Fuseau horaire</label>
+              <input type="text" formControlName="timezone" placeholder="Africa/Abidjan">
+            </div>
 
             <!-- ✅ Téléphone et email du site -->
             <div class="cf-field">

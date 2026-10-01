@@ -394,6 +394,11 @@ export class ChurchForm implements OnInit, OnDestroy {
       email: [value?.email ?? '', [Validators.email]],
       pastorId: [value?.pastorId ?? ''],
       isActive: [value?.isActive ?? true],
+      // Pays / périmètre / devise / fuseau du site (RG-P1 / RG-CURR).
+      country: [value?.country ?? 'CI'],
+      scope: [value?.scope ?? 'National'],
+      currencyCode: [value?.currencyCode ?? 'XOF'],
+      timezone: [value?.timezone ?? 'Africa/Abidjan'],
       address: this.fb.group({
         street: [value?.address?.street ?? ''],
         city: [value?.address?.city ?? '', Validators.required],
@@ -409,9 +414,69 @@ export class ChurchForm implements OnInit, OnDestroy {
         (value?.serviceTimes ?? []).map((st: any) => this.buildServiceTimeGroup(st))
       ),
     });
-    //group.addControl('pastorSearch', new FormControl(''));
+
+    // Auto-remplissage : le pays du site pilote périmètre, devise et fuseau.
+    group.get('country')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((c: string) => {
+      this.applySiteCountryDefaults(group, c);
+    });
     return group;
   }
+
+  /** Remplit périmètre/devise/fuseau selon le pays du site (RG-P1 / RG-CURR). */
+  private applySiteCountryDefaults(group: FormGroup, country: string): void {
+    const code = (country || 'CI').toUpperCase();
+    const preset = this.countryDefaults(code);
+    group.get('scope')?.setValue(preset.scope, { emitEvent: false });
+    group.get('currencyCode')?.setValue(preset.currency, { emitEvent: false });
+    group.get('timezone')?.setValue(preset.timezone, { emitEvent: false });
+  }
+
+  private countryDefaults(code: string): { scope: string; currency: string; timezone: string } {
+    const intl = code !== 'CI' ? 'International' : 'National';
+    const map: Record<string, { currency: string; timezone: string }> = {
+      CI: { currency: 'XOF', timezone: 'Africa/Abidjan' },
+      SN: { currency: 'XOF', timezone: 'Africa/Dakar' },
+      ML: { currency: 'XOF', timezone: 'Africa/Bamako' },
+      BF: { currency: 'XOF', timezone: 'Africa/Ouagadougou' },
+      TG: { currency: 'XOF', timezone: 'Africa/Lome' },
+      GN: { currency: 'GNF', timezone: 'Africa/Conakry' },
+      KW: { currency: 'KWD', timezone: 'Asia/Kuwait' },
+      JP: { currency: 'JPY', timezone: 'Asia/Tokyo' },
+      CA: { currency: 'CAD', timezone: 'America/Toronto' },
+      US: { currency: 'USD', timezone: 'America/New_York' },
+      GB: { currency: 'GBP', timezone: 'Europe/London' },
+      FR: { currency: 'EUR', timezone: 'Europe/Paris' },
+      DE: { currency: 'EUR', timezone: 'Europe/Berlin' },
+      BE: { currency: 'EUR', timezone: 'Europe/Brussels' },
+      ES: { currency: 'EUR', timezone: 'Europe/Madrid' },
+      IT: { currency: 'EUR', timezone: 'Europe/Rome' },
+    };
+    const d = map[code] ?? { currency: 'XOF', timezone: 'Africa/Abidjan' };
+    return { scope: intl, currency: d.currency, timezone: d.timezone };
+  }
+
+  /** Liste des pays proposés (ISO-2 + libellé). */
+  readonly siteCountryOptions = [
+    { code: 'CI', label: "Côte d'Ivoire" },
+    { code: 'SN', label: 'Sénégal' },
+    { code: 'ML', label: 'Mali' },
+    { code: 'BF', label: 'Burkina Faso' },
+    { code: 'TG', label: 'Togo' },
+    { code: 'GN', label: 'Guinée' },
+    { code: 'FR', label: 'France' },
+    { code: 'BE', label: 'Belgique' },
+    { code: 'DE', label: 'Allemagne' },
+    { code: 'ES', label: 'Espagne' },
+    { code: 'IT', label: 'Italie' },
+    { code: 'US', label: 'États-Unis' },
+    { code: 'CA', label: 'Canada' },
+    { code: 'GB', label: 'Royaume-Uni' },
+    { code: 'KW', label: 'Koweït' },
+    { code: 'JP', label: 'Japon' },
+  ];
+
+  readonly siteScopeOptions = ['National', 'International'];
+  readonly siteCurrencyOptions = ['XOF', 'GNF', 'EUR', 'USD', 'CAD', 'KWD', 'JPY', 'GBP'];
 
   addSite(): void {
     const group = this.buildSiteGroup();
@@ -513,11 +578,15 @@ export class ChurchForm implements OnInit, OnDestroy {
         email: site.email || undefined,
         pastorId: site.pastorId || undefined,
         isActive: site.isActive ?? true,
+        country: site.country || 'CI',
+        scope: site.scope || undefined,
+        currencyCode: site.currencyCode || undefined,
+        timezone: site.timezone || undefined,
         address: {
           street: site.address?.street || undefined,
           city: site.address?.city || undefined,
           state: site.address?.state || undefined,
-          country: site.address?.country || 'Côte d\'Ivoire',
+          country: site.address?.country || undefined,
           postalCode: site.address?.postalCode || undefined,
           latitude: site.address?.latitude || undefined,
           longitude: site.address?.longitude || undefined,

@@ -184,6 +184,14 @@ export interface Site {
   pastorId?: string;
   pastorName?: string;
   isActive: boolean;
+  /** Pays ISO-2 du site (RG-P1). */
+  country?: string;
+  /** Périmètre National/International. */
+  scope?: string;
+  /** Devise ISO du site. */
+  currencyCode?: string;
+  /** Fuseau horaire du site. */
+  timezone?: string;
   serviceTimes: ServiceTime[];
   formattedAddress: string;
   formattedServices: string;
@@ -196,6 +204,10 @@ export interface SiteCreate {
   email?: string;
   pastorId?: string;
   isActive?: boolean;
+  country?: string;
+  scope?: string;
+  currencyCode?: string;
+  timezone?: string;
   serviceTimes?: ServiceTime[];
 }
 
@@ -206,6 +218,10 @@ export interface SiteUpdate {
   email?: string;
   pastorId?: string;
   isActive?: boolean;
+  country?: string;
+  scope?: string;
+  currencyCode?: string;
+  timezone?: string;
   serviceTimes?: ServiceTime[];
 }
 
