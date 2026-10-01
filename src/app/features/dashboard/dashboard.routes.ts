@@ -13,6 +13,54 @@ export const DASHBOARD_ROUTES: Routes = [
           import('./dashboard/dashboard-home/dashboard-home').then((m) => m.DashboardHome),
       },
       {
+        path: 'consolidation/national',
+        loadComponent: () =>
+          import('./dashboard/consolidation/consolidated-scope-page').then((m) => m.ConsolidatedScopePage),
+        title: 'Vue Nationale — MIAV',
+        canActivate: [authGuard],
+        data: {
+          scope: 'National',
+          permissions: [
+            'Finance_Consolidated_View',
+            'Mission_National_Analytics_View',
+            'Mission_International_Analytics_View',
+            'Mission_International_Finance_View',
+          ],
+        },
+      },
+      {
+        path: 'consolidation/international',
+        loadComponent: () =>
+          import('./dashboard/consolidation/consolidated-scope-page').then((m) => m.ConsolidatedScopePage),
+        title: 'Vue Internationale — MIAV',
+        canActivate: [authGuard],
+        data: {
+          scope: 'International',
+          permissions: [
+            'Finance_Consolidated_View',
+            'Mission_National_Analytics_View',
+            'Mission_International_Analytics_View',
+            'Mission_International_Finance_View',
+          ],
+        },
+      },
+      {
+        path: 'consolidation/synthese',
+        loadComponent: () =>
+          import('./dashboard/consolidation/consolidated-scope-page').then((m) => m.ConsolidatedScopePage),
+        title: 'Synthèse consolidée — MIAV',
+        canActivate: [authGuard],
+        data: {
+          scope: 'Synthese',
+          permissions: [
+            'Finance_Consolidated_View',
+            'Mission_National_Analytics_View',
+            'Mission_International_Analytics_View',
+            'Mission_International_Finance_View',
+          ],
+        },
+      },
+      {
         path: 'membres',
         loadChildren: () =>
           import('./dashboard/members/members.routes').then((m) => m.MEMBERS_ROUTES),

@@ -12,11 +12,19 @@
     </div>
   }
 
-  <!-- ══════════════ SÉLECTION DU MEMBRE ══════════════ -->
+  <!-- ══════════════ SÉLECTION DU MEMBRE (liste déroulante) ══════════════ -->
   @if (!selectedMember()) {
     <div class="pc-member-select">
-      <app-member-select [formControl]="memberSelectControl" label="Rechercher un membre"></app-member-select>
-      <p class="pc-hint">Recherchez un membre pour consulter ou créer ses notes de suivi pastoral.</p>
+      <label for="pcMemberSelect">Choisir un membre</label>
+      <select id="pcMemberSelect" class="pc-member-dropdown" [formControl]="memberSelectControl" [disabled]="loadingMembers()">
+        <option value="">
+          {{ loadingMembers() ? 'Chargement des membres…' : '— Sélectionnez un membre —' }}
+        </option>
+        @for (m of availableMembers(); track m.id) {
+          <option [value]="m.id">{{ getMemberFullName(m) }}{{ m.phone ? ' — ' + m.phone : '' }}</option>
+        }
+      </select>
+      <p class="pc-hint">Sélectionnez un membre pour consulter ou créer ses notes de suivi pastoral.</p>
     </div>
   } @else {
 

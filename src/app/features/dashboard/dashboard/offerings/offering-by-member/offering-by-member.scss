@@ -84,6 +84,104 @@ $transition: 0.2s ease-in-out;
   max-width: 600px;
 }
 
+// ─── FILTRE MEMBRE ────────────────────────────────────────────
+.obm-member-filter {
+  display: flex;
+  align-items: center;
+  max-width: 620px;
+  margin-bottom: 0.7rem;
+  background: var(--color-surface);
+  border: 2px solid $gray-300;
+  border-radius: $border-radius;
+  padding: 0 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.15);
+  }
+
+  i { color: $gray-500; font-size: 1.1rem; margin-right: 0.55rem; flex-shrink: 0; }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0.7rem 0;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+
+  .obm-clear-btn {
+    background: none; border: none; font-size: 1.1rem;
+    color: $gray-500; cursor: pointer; padding: 0 0.2rem;
+    &:hover { color: $danger; }
+  }
+}
+
+.obm-hint-count { color: $primary; font-weight: 600; }
+
+// ─── LISTE DÉROULANTE DES MEMBRES ─────────────────────────────
+.obm-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 620px;
+  background: var(--color-surface);
+  border: 2px solid $gray-300;
+  border-radius: $border-radius;
+  padding: 0 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.15);
+  }
+
+  .obm-select-icon {
+    color: $primary;
+    font-size: 1.25rem;
+    margin-right: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .obm-select-caret {
+    color: $gray-500;
+    font-size: 1.3rem;
+    margin-left: 0.4rem;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+}
+
+.obm-member-select {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.85rem 0;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text, #1f2430);
+  cursor: pointer;
+
+  &:disabled { cursor: default; color: $gray-500; }
+
+  option { color: #1f2430; }
+}
+
+.obm-select-hint {
+  margin: 0.5rem 0 0;
+  max-width: 620px;
+  font-size: 0.82rem;
+  color: $gray-500;
+}
+
 .obm-search-input-wrap {
   display: flex;
   align-items: center;

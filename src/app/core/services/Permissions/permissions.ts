@@ -595,8 +595,14 @@ export class Permissions {
   }
 
   // Consolidation & Rapports
+  /** Accès aux vues consolidées (National / International / Synthèse). */
   public canViewConsolidated(): boolean {
-    return this.hasPermission('Finance_Consolidated_View');
+    return this.hasAnyPermission(
+      'Finance_Consolidated_View',
+      'Mission_National_Analytics_View',
+      'Mission_International_Analytics_View',
+      'Mission_International_Finance_View'
+    );
   }
 
   public canGenerateFinanceReport(): boolean {

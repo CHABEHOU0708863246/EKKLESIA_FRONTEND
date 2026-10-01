@@ -51,6 +51,24 @@ const CATEGORY_OPTIONS = Object.values(OfferingCategory).map((value) => ({
   label: OfferingCategoryLabels[value],
 }));
 
+/**
+ * Repli local si l'API des catégories est indisponible ou vide (paramètres non
+ * semés). Mêmes codes que la migration backend 011 → les lignes restent
+ * enregistrables et le total se calcule quand même.
+ */
+const DEFAULT_OFFERING_CATEGORIES: OfferingCategoryOption[] = [
+  { code: 'Tithe', label: 'Dîmes', sortOrder: 1 },
+  { code: 'SundayOffering', label: 'Offrandes ordinaires', sortOrder: 2 },
+  { code: 'SpecialOffering', label: 'Offrandes spéciales', sortOrder: 3 },
+  { code: 'Thanksgiving', label: 'Actions de grâce', sortOrder: 4 },
+  { code: 'Donation', label: 'Dons', sortOrder: 5 },
+  { code: 'Mission', label: 'Missions', sortOrder: 6 },
+  { code: 'BuildingFund', label: 'Construction', sortOrder: 7 },
+  { code: 'FirstFruits', label: 'Prémices', sortOrder: 8 },
+  { code: 'Vow', label: 'Vœux', sortOrder: 9 },
+  { code: 'Sacrifice', label: 'Sacrifice', sortOrder: 10 },
+];
+
 @Component({
   selector: 'app-offering-form',
   standalone: true,
@@ -132,11 +150,22 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   // ── Offrande par catégorie (catégories issues des Paramètres) ──
   offeringCategoryOptions = signal<OfferingCategoryOption[]>([]);
+  loadingCategories = signal(false);
   categoryLines = signal<{ code: string; label: string; amount: number }[]>([]);
-  /** Total calculé en direct — jamais saisi par l'utilisateur. */
+  /** Montant global saisi (sert de total de repli si aucune ligne n'est remplie). */
+  private globalAmount = signal(0);
+  /** Somme des lignes de catégorie. */
   linesTotal = computed(() =>
     this.categoryLines().reduce((sum, l) => sum + (Number(l.amount) || 0), 0)
   );
+  /**
+   * Total affiché : la somme des catégories dès qu'au moins une ligne est
+   * renseignée, sinon le montant global — ainsi le total suit toujours la saisie.
+   */
+  displayTotal = computed(() => {
+    const lines = this.linesTotal();
+    return lines > 0 ? lines : this.globalAmount();
+  });
 
   form: FormGroup;
 
@@ -214,6 +243,12 @@ export class OfferingForm implements OnInit, OnDestroy {
         if (churchId) this.loadSites(churchId);
       });
 
+    // ── Montant global (total de repli tant qu'aucune ligne de catégorie n'est remplie) ──
+    this.globalAmount.set(Number(this.form.get('amount')?.value) || 0);
+    this.form.get('amount')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((v) => this.globalAmount.set(Number(v) || 0));
+
     // ── Recherche de membre ──
     this.form.get('memberSearch')?.valueChanges
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -237,28 +272,59 @@ export class OfferingForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
 
   private loadCategories(): void {
+    this.loadingCategories.set(true);
     this.offeringsService.getCategories().subscribe({
       next: (res) => {
-        const options = res?.data ?? [];
-        this.offeringCategoryOptions.set(options);
-        const existing = this.categoryLines();
-        this.categoryLines.set(
-          options.map((o) => {
-            const found = existing.find((l) => l.code === o.code);
-            return { code: o.code, label: o.label, amount: found?.amount ?? 0 };
-          })
-        );
+        const options = res?.data?.length ? res.data : DEFAULT_OFFERING_CATEGORIES;
+        this.applyCategoryOptions(options);
+        this.loadingCategories.set(false);
       },
       error: () => {
-        // Les catégories sont optionnelles ; en cas d'échec, la saisie globale reste possible.
+        // Catégories optionnelles : on retombe sur la liste par défaut pour que
+        // le détail par catégorie et le total restent utilisables.
+        this.applyCategoryOptions(DEFAULT_OFFERING_CATEGORIES);
+        this.loadingCategories.set(false);
       },
     });
   }
 
+  /** Montants de lignes issus de l'offrande éditée, en attente des catégories. */
+  private pendingLineAmounts: Record<string, number> = {};
+
+  private applyCategoryOptions(options: OfferingCategoryOption[]): void {
+    const sorted = [...options].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    this.offeringCategoryOptions.set(sorted);
+    const existing = this.categoryLines();
+    this.categoryLines.set(
+      sorted.map((o) => {
+        const found = existing.find((l) => l.code === o.code);
+        return { code: o.code, label: o.label, amount: found?.amount ?? this.pendingLineAmounts[o.code] ?? 0 };
+      })
+    );
+  }
+
   updateLineAmount(code: string, value: string): void {
     const amount = Number(value) || 0;
+    this.pendingLineAmounts[code] = amount;
     this.categoryLines.update((list) =>
       list.map((l) => (l.code === code ? { ...l, amount } : l))
+    );
+  }
+
+  /** Reporte les lignes d'une offrande existante sur les champs de catégorie. */
+  private applyOfferingLines(lines: any[] | undefined): void {
+    if (!Array.isArray(lines) || lines.length === 0) return;
+    for (const l of lines) {
+      const code = l?.categoryId ?? l?.code;
+      if (!code) continue;
+      this.pendingLineAmounts[code] = Number(l?.amount) || 0;
+    }
+    this.categoryLines.update((list) =>
+      list.map((l) =>
+        this.pendingLineAmounts[l.code] !== undefined
+          ? { ...l, amount: this.pendingLineAmounts[l.code] }
+          : l
+      )
     );
   }
 
@@ -299,6 +365,9 @@ export class OfferingForm implements OnInit, OnDestroy {
       categories: offering.categories || [],
       validationPhotoUrl: offering.validationPhotoUrl || '',
     });
+
+    // Pré-remplir les lignes de catégorie à partir de l'offrande éditée.
+    this.applyOfferingLines(offering.lines);
 
     // Si membre existe, le sélectionner
     if (offering.memberId) {

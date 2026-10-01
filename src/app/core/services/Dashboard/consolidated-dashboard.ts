@@ -32,6 +32,37 @@ export interface ConsolidationRate {
   convertedAmount: number;
 }
 
+/** Un mois d'évolution. Montants déjà convertis dans la devise de référence. */
+export interface TimelinePoint {
+  period: string;
+  offerings: number;
+  expenses: number;
+  offeringsCount: number;
+  expensesCount: number;
+  servicesCount: number;
+  attendancePresent: number;
+}
+
+/** Détail par église/site d'un périmètre. */
+export interface ScopeChurchRow {
+  entityId: string;
+  name: string;
+  scope: string;
+  membersCount: number;
+  servicesCount: number;
+  attendancePresent: number;
+  offerings: number;
+  expenses: number;
+}
+
+/** Répartition des offrandes par type (montant converti en référence). */
+export interface OfferingTypeSplit {
+  type: string;
+  label: string;
+  amount: number;
+  count: number;
+}
+
 export interface ConsolidatedDashboard {
   from: string;
   to: string;
@@ -41,6 +72,14 @@ export interface ConsolidatedDashboard {
   internationalCounts: ScopeTotals;
   synthese: ScopeTotals;
   rates: ConsolidationRate[];
+  nationalTimeline: TimelinePoint[];
+  internationalTimeline: TimelinePoint[];
+  syntheseTimeline: TimelinePoint[];
+  nationalChurches: ScopeChurchRow[];
+  internationalChurches: ScopeChurchRow[];
+  nationalOfferingsByType: OfferingTypeSplit[];
+  internationalOfferingsByType: OfferingTypeSplit[];
+  syntheseOfferingsByType: OfferingTypeSplit[];
   nationalNote: string;
   internationalNote: string;
   syntheseNote: string;

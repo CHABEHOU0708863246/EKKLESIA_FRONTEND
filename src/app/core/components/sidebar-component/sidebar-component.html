@@ -69,6 +69,35 @@
       }
 
       <!-- ──────────────────────────────────────────────────────────── -->
+      <!-- 2️⃣bis CONSOLIDATION — National / International / Synthèse     -->
+      <!-- Réservé à la direction (pasteur principal, super admin,       -->
+      <!-- responsables de mission). Le serveur refuse ces vues (403)    -->
+      <!-- aux pasteurs de site.                                         -->
+      <!-- ──────────────────────────────────────────────────────────── -->
+      @if (permission.canViewConsolidated()) {
+      <div class="nav-section-label">Consolidation</div>
+
+      <li class="nav-item" routerLinkActive="active">
+        <a [routerLink]="['/dashboard/consolidation/national']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-flag"></i>
+          <span class="nav-text">Vue Nationale</span>
+        </a>
+      </li>
+      <li class="nav-item" routerLinkActive="active">
+        <a [routerLink]="['/dashboard/consolidation/international']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-world"></i>
+          <span class="nav-text">Vue Internationale</span>
+        </a>
+      </li>
+      <li class="nav-item" routerLinkActive="active">
+        <a [routerLink]="['/dashboard/consolidation/synthese']" class="nav-link" (click)="closeMobileSidebar()">
+          <i class="nav-icon bx bx-bar-chart-square"></i>
+          <span class="nav-text">Synthèse consolidée</span>
+        </a>
+      </li>
+      }
+
+      <!-- ──────────────────────────────────────────────────────────── -->
       <!-- 3️⃣ MEMBRES — le cœur du système, base de tout le reste     -->
       <!-- ──────────────────────────────────────────────────────────── -->
       @if (permission.canAccessMemberModule()) {

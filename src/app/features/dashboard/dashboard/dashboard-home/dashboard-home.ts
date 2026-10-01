@@ -53,11 +53,34 @@ export class DashboardHome implements OnInit, OnDestroy, AfterViewInit {
   attendanceByChurch: AttendanceByChurch[] = [];
   loadingAttendanceByChurch = false;
 
-  // ── Tableaux consolidés (National / International / Synthèse) — direction ──
+  // ── Vues consolidées (National / International / Synthèse) — direction ──
   consolidated: ConsolidatedDashboard | null = null;
-  consolidatedTab: 'National' | 'International' | 'Synthese' = 'National';
   get showConsolidated(): boolean { return this.canSelectScope(); }
-  setConsolidatedTab(tab: 'National' | 'International' | 'Synthese'): void { this.consolidatedTab = tab; }
+
+  /** Cartes d'accès vers les pages consolidées détaillées. */
+  readonly consolidatedViews = [
+    {
+      scope: 'National',
+      title: 'Vue Nationale',
+      desc: 'Activité des églises/sites du périmètre national (Siège et églises du pays).',
+      icon: 'bx-flag',
+      link: '/dashboard/consolidation/national',
+    },
+    {
+      scope: 'International',
+      title: 'Vue Internationale',
+      desc: 'Églises/sites hors Siège, présentés devise par devise (jamais additionnés).',
+      icon: 'bx-world',
+      link: '/dashboard/consolidation/international',
+    },
+    {
+      scope: 'Synthese',
+      title: 'Synthèse consolidée',
+      desc: 'National + International réconciliés dans la devise de référence, taux appliqués.',
+      icon: 'bx-bar-chart-square',
+      link: '/dashboard/consolidation/synthese',
+    },
+  ] as const;
 
   // ─── Périmètre consolidé (Lot 6) : National / International / Tous ───
   selectedScope = 'Tous';

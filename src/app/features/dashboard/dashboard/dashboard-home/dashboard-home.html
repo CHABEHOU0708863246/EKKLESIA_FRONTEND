@@ -1,75 +1,25 @@
 <!-- ══ CONTENT AREA ══ -->
 <main class="content-area">
 
-  <!-- ══ TABLEAUX CONSOLIDÉS : National / International / Synthèse (direction) ══ -->
+  <!-- ══ ACCÈS AUX VUES CONSOLIDÉES : National / International / Synthèse ══ -->
   @if (showConsolidated) {
-  <section class="card consolidated-card">
-    <div class="consolidated-head">
-      <div class="card-title"><i class="bx bx-world"></i> Vue consolidée — direction</div>
-      <div class="consolidated-tabs">
-        <button type="button" [class.is-active]="consolidatedTab === 'National'" (click)="setConsolidatedTab('National')">National (CI)</button>
-        <button type="button" [class.is-active]="consolidatedTab === 'International'" (click)="setConsolidatedTab('International')">International</button>
-        <button type="button" [class.is-active]="consolidatedTab === 'Synthese'" (click)="setConsolidatedTab('Synthese')">Synthèse</button>
-      </div>
+  <section class="cons-access">
+    <div class="cons-access-head">
+      <i class="bx bx-layer"></i> Vue consolidée — direction
+      <span class="cons-access-hint">Tableaux de bord détaillés avec cartes, graphiques et explication de chaque chiffre.</span>
     </div>
-
-    @if (!consolidated) {
-      <p class="cons-note">Consolidation en cours…</p>
-    } @else {
-      @if (consolidatedTab === 'National') {
-        <div class="cons-kpi">
-          <div class="cons-kpi-item"><span class="cons-label">Membres</span><strong class="cons-value">{{ consolidated.national.membersCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Églises</span><strong class="cons-value">{{ consolidated.national.churchesCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Cultes</span><strong class="cons-value">{{ consolidated.national.servicesCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Présences</span><strong class="cons-value">{{ consolidated.national.attendancePresent | number }}</strong></div>
-          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Offrandes (XOF)</span><strong class="cons-value">{{ consolidated.national.offerings | number:'1.0-0' }}</strong></div>
-          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Dépenses (XOF)</span><strong class="cons-value">{{ consolidated.national.expenses | number:'1.0-0' }}</strong></div>
-        </div>
-        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.nationalNote }}</p>
-      }
-
-      @if (consolidatedTab === 'International') {
-        @if (consolidated.international.length === 0) {
-          <p class="cons-note">Aucune donnée internationale sur la période.</p>
-        } @else {
-          <div class="cons-kpi">
-            @for (c of consolidated.international; track c.currency) {
-              <div class="cons-kpi-item">
-                <span class="cons-label">{{ c.currency }} — {{ c.churchesCount }} église(s)</span>
-                <strong class="cons-value">{{ c.offerings | number:'1.0-3' }} {{ c.currency }}</strong>
-                <span class="cons-sub">Dépenses : {{ c.expenses | number:'1.0-3' }} {{ c.currency }}</span>
-              </div>
-            }
+    <div class="cons-access-grid">
+      @for (v of consolidatedViews; track v.scope) {
+        <a class="cons-access-card" [class]="'is-' + v.scope.toLowerCase()" [routerLink]="v.link">
+          <div class="cons-access-ic"><i class="bx" [ngClass]="v.icon"></i></div>
+          <div class="cons-access-txt">
+            <div class="cons-access-t">{{ v.title }}</div>
+            <div class="cons-access-d">{{ v.desc }}</div>
           </div>
-          <div class="cons-kpi" style="margin-top:12px">
-            <div class="cons-kpi-item"><span class="cons-label">Membres (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.membersCount | number }}</strong></div>
-            <div class="cons-kpi-item"><span class="cons-label">Églises (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.churchesCount | number }}</strong></div>
-            <div class="cons-kpi-item"><span class="cons-label">Cultes (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.servicesCount | number }}</strong></div>
-            <div class="cons-kpi-item"><span class="cons-label">Présences (intl)</span><strong class="cons-value">{{ consolidated.internationalCounts.attendancePresent | number }}</strong></div>
-          </div>
-        }
-        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.internationalNote }}</p>
+          <i class="bx bx-right-arrow-alt cons-access-go"></i>
+        </a>
       }
-
-      @if (consolidatedTab === 'Synthese') {
-        <div class="cons-kpi">
-          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Offrandes ({{ consolidated.referenceCurrency }})</span><strong class="cons-value">{{ consolidated.synthese.offerings | number:'1.0-0' }}</strong></div>
-          <div class="cons-kpi-item cons-kpi-item--accent"><span class="cons-label">Dépenses ({{ consolidated.referenceCurrency }})</span><strong class="cons-value">{{ consolidated.synthese.expenses | number:'1.0-0' }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Membres</span><strong class="cons-value">{{ consolidated.synthese.membersCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Églises</span><strong class="cons-value">{{ consolidated.synthese.churchesCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Cultes</span><strong class="cons-value">{{ consolidated.synthese.servicesCount | number }}</strong></div>
-          <div class="cons-kpi-item"><span class="cons-label">Présences</span><strong class="cons-value">{{ consolidated.synthese.attendancePresent | number }}</strong></div>
-        </div>
-        <p class="cons-note"><i class="bx bx-info-circle"></i> {{ consolidated.syntheseNote }} {{ consolidated.conversionNote }}</p>
-        @if (consolidated.rates.length) {
-          <ul class="cons-rates">
-            @for (r of consolidated.rates; track r.from) {
-              <li>1 {{ r.from }} = {{ r.rate | number:'1.0-6' }} {{ r.to }} <span>(taux au {{ r.rateDate | date:'dd/MM/yyyy' }})</span></li>
-            }
-          </ul>
-        }
-      }
-    }
+    </div>
   </section>
   }
 

@@ -10,46 +10,40 @@
     </div>
   </div>
 
-  <!-- Recherche de membre -->
+  <!-- Sélection du membre : filtre + liste déroulante -->
   <div class="obm-search-section">
-    <div class="obm-search-wrap">
-      <div class="obm-search-input-wrap">
-        <i class="bx bx-search"></i>
-        <input type="text" [formControl]="searchControl" placeholder="Rechercher un membre…"
-          (focus)="showSearchResults.set(true)" autocomplete="off" />
-        @if (selectedMember()) {
-        <button class="obm-clear-btn" (click)="clearMember()">✕</button>
-        }
-      </div>
-
-      <!-- Résultats de recherche -->
-      @if (showSearchResults() && !selectedMember()) {
-      <div class="obm-search-dropdown">
-        @if (isSearching()) {
-        <p class="obm-search-status">Recherche en cours…</p>
-        } @else if (searchResults().length === 0) {
-        <p class="obm-search-status">Aucun membre trouvé</p>
-        } @else {
-        @for (member of searchResults(); track member.id) {
-        <button class="obm-search-result" (click)="selectMember(member)">
-          <div class="obm-mini-avatar">
-            @if (member.photoUrl) {
-            <img [appAuthImage]="getMemberPhotoUrl(member)" alt="{{ getMemberFullName(member) }}"
-              (error)="onImageError($event)" />
-            } @else {
-            {{ getMemberInitials(member) }}
-            }
-          </div>
-          <div class="obm-mini-info">
-            <strong>{{ getMemberFullName(member) }}</strong>
-            <span>{{ member.phone || '' }}</span>
-          </div>
-        </button>
-        }
-        }
-      </div>
+    <div class="obm-member-filter">
+      <i class="bx bx-search"></i>
+      <input type="text" [value]="filterTerm()" (input)="onFilterInput($any($event.target).value)"
+        placeholder="Filtrer par nom…" autocomplete="off" />
+      @if (filterTerm()) {
+      <button class="obm-clear-btn" (click)="clearFilter()" title="Effacer le filtre">✕</button>
       }
     </div>
+
+    <div class="obm-select-wrap">
+      <i class="bx bx-user obm-select-icon"></i>
+      <select class="obm-member-select" [value]="selectedMemberId()"
+        (change)="onMemberChange($any($event.target).value)" [disabled]="loadingMembers()">
+        <option value="">
+          @if (loadingMembers()) { Chargement des membres… }
+          @else if (members().length === 0) { — Aucun membre trouvé — }
+          @else { — Sélectionner un membre — }
+        </option>
+        @for (m of members(); track m.id) {
+        <option [value]="m.id">{{ getMemberFullName(m) }}{{ m.phone ? ' · ' + m.phone : '' }}</option>
+        }
+      </select>
+      @if (selectedMemberId()) {
+      <button class="obm-clear-btn" (click)="clearMember()" title="Effacer la sélection">✕</button>
+      } @else {
+      <i class="bx bx-chevron-down obm-select-caret"></i>
+      }
+    </div>
+    <p class="obm-select-hint">
+      Choisissez un membre pour afficher le résumé de ses dons.
+      @if (filterTerm()) { <span class="obm-hint-count">{{ members().length }} résultat(s) pour « {{ filterTerm() }} ».</span> }
+    </p>
   </div>
 
   <!-- Membre sélectionné -->
@@ -191,8 +185,8 @@
 
   } @else if (!selectedMember()) {
   <div class="obm-empty obm-empty-search">
-    <i class="bx bx-search-alt"></i>
-    <p>Recherchez un membre pour voir son résumé des offrandes.</p>
+    <i class="bx bx-user-voice"></i>
+    <p>Sélectionnez un membre ci-dessus pour voir le résumé de ses dons.</p>
   </div>
   }
 

@@ -3,7 +3,6 @@
 import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Members } from '../../../../../core/services/Members/members';
 import { Member } from '../../../../../core/models/Members/member.model';
@@ -15,7 +14,7 @@ import { AuthImageDirective } from '../../../../../core/directives/auth-image.di
 @Component({
   selector: 'app-offering-by-member',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, AuthImageDirective],
   templateUrl: './offering-by-member.html',
   styleUrls: ['./offering-by-member.scss'],
 })
@@ -28,13 +27,16 @@ export class OfferingByMember implements OnInit, OnDestroy {
   selectedMember = signal<Member | null>(null);
   summary = signal<OfferingSummaryDto | null>(null);
   isLoading = signal(false);
-  isSearching = signal(false);
   error = signal<string | null>(null);
 
-  // ── Recherche de membre ──
-  searchControl = new FormControl('');
-  showSearchResults = signal(false);
-  searchResults = signal<Member[]>([]);
+  // ── Liste déroulante des membres + filtre texte (utile au-delà de 500) ──
+  members = signal<Member[]>([]);
+  loadingMembers = signal(false);
+  selectedMemberId = signal<string>('');
+  filterTerm = signal('');
+
+  private readonly filter$ = new Subject<string>();
+  private readonly maxMembers = 500;
 
   // ── Exposé des utilitaires ──
   getTypeLabel = OfferingUtils.getTypeLabel;
@@ -76,18 +78,10 @@ export class OfferingByMember implements OnInit, OnDestroy {
   constructor() { }
 
   ngOnInit(): void {
-    // Recherche de membre avec debounce
-    this.searchControl.valueChanges
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((term: string | null) => {
-        const value = term ?? ''; // ou term || ''
-        if (value.trim().length >= 2) {
-          this.searchMembers(value.trim());
-        } else {
-          this.searchResults.set([]);
-          this.showSearchResults.set(false);
-        }
-      });
+    this.loadMembers('');
+    this.filter$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((term) => this.loadMembers(term));
   }
 
   getMemberPhotoUrl(member: Member): string {
@@ -112,40 +106,70 @@ onImageError(event: Event): void {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // RECHERCHE DE MEMBRE
+  // LISTE DÉROULANTE DES MEMBRES
   // ──────────────────────────────────────────────────────────────
 
-  private searchMembers(term: string): void {
-    this.isSearching.set(true);
-    this.showSearchResults.set(true);
+  private loadMembers(term: string): void {
+    this.loadingMembers.set(true);
+    const params: any = { page: 1, pageSize: this.maxMembers, sortBy: 'lastName', sortOrder: 'asc' };
+    if (term) params.fullName = term;
 
     this.memberService
-      .getMembers({ page: 1, pageSize: 10, fullName: term } as any)
+      .getMembers(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          const items = response?.items || [];
-          this.searchResults.set(items);
-          this.isSearching.set(false);
+          const items = response?.items ?? response?.data?.items ?? [];
+          const sorted = (items as Member[])
+            .slice()
+            .sort((a, b) => this.getMemberFullName(a).localeCompare(this.getMemberFullName(b), 'fr'));
+
+          // Conserver le membre sélectionné dans la liste même s'il sort du filtre.
+          const selected = this.selectedMember();
+          if (selected && !sorted.some((m) => m.id === selected.id)) {
+            sorted.unshift(selected);
+          }
+          this.members.set(sorted);
+          this.loadingMembers.set(false);
         },
         error: () => {
-          this.searchResults.set([]);
-          this.isSearching.set(false);
+          this.members.set([]);
+          this.loadingMembers.set(false);
         },
       });
   }
 
-  selectMember(member: Member): void {
-    this.selectedMember.set(member);
-    this.searchControl.setValue(`${member.firstName} ${member.lastName}`, { emitEvent: false });
-    this.showSearchResults.set(false);
-    this.searchResults.set([]);
-    this.loadMemberSummary(member.id);
+  /** Filtre texte : relance la recherche serveur (gère les églises > 500 membres). */
+  onFilterInput(value: string): void {
+    this.filterTerm.set(value);
+    this.filter$.next(value.trim());
+  }
+
+  clearFilter(): void {
+    if (!this.filterTerm()) return;
+    this.filterTerm.set('');
+    this.filter$.next('');
+  }
+
+  /** Sélection dans la liste déroulante : charge immédiatement le résumé. */
+  onMemberChange(id: string): void {
+    this.selectedMemberId.set(id);
+    if (!id) {
+      this.selectedMember.set(null);
+      this.summary.set(null);
+      this.error.set(null);
+      return;
+    }
+    const member = this.members().find((m) => m.id === id) ?? null;
+    if (member) {
+      this.selectedMember.set(member);
+      this.loadMemberSummary(member.id);
+    }
   }
 
   clearMember(): void {
+    this.selectedMemberId.set('');
     this.selectedMember.set(null);
-    this.searchControl.setValue('', { emitEvent: false });
     this.summary.set(null);
     this.error.set(null);
   }

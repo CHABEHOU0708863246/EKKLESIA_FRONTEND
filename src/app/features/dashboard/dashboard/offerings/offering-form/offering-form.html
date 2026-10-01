@@ -58,8 +58,10 @@
             Détail par catégorie
             <small>(optionnel — le total se calcule automatiquement)</small>
           </label>
-          @if (categoryLines().length === 0) {
+          @if (loadingCategories()) {
             <p class="of-hint">Chargement des catégories…</p>
+          } @else if (categoryLines().length === 0) {
+            <p class="of-hint">Aucune catégorie disponible — saisissez un montant global ci-dessus.</p>
           }
           @for (line of categoryLines(); track line.code) {
             <div style="display:flex;align-items:center;gap:10px;margin:6px 0">
@@ -71,7 +73,7 @@
             </div>
           }
           <p style="font-weight:600;margin-top:10px">
-            Total calculé : {{ linesTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
+            Total calculé : {{ displayTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
           </p>
         </div>
 
