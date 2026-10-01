@@ -213,7 +213,9 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   constructor() {
     this.form = this.fb.group({
-      type: [OfferingType.Other],
+      // RG-OFF-01 : jamais « Dîme » par défaut. Le backend redérive de toute
+      // façon le type à partir des lignes (Offrande dominicale par défaut).
+      type: [OfferingType.SundayOffering],
       // Le montant global est calculé à partir des lignes ; il n'est plus obligatoire.
       amount: [0],
       currency: ['XOF', Validators.required],
@@ -700,7 +702,9 @@ private searchMembers(term: string): void {
     const dominant = this.categoryLines()
       .filter((l) => Number(l.amount) > 0)
       .sort((a, b) => Number(b.amount) - Number(a.amount))[0];
-    const derivedType = dominant ? (CATEGORY_TO_TYPE[dominant.code] ?? OfferingType.Other) : (raw.type ?? OfferingType.Other);
+    const derivedType = dominant
+      ? (CATEGORY_TO_TYPE[dominant.code] ?? OfferingType.Other)
+      : OfferingType.SundayOffering;
 
     const payload: OfferingCreate | OfferingUpdate = {
       type: derivedType,

@@ -137,6 +137,9 @@
                 <span class="el-badge" [class]="getStatusClass(expense.status)">
                   {{ getStatusLabel(expense.status) }}
                 </span>
+                @if (expense.status === ExpenseStatus.Pending || expense.status === ExpenseStatus.Approved) {
+                  <small class="el-approval">{{ approvalLevelLabel(expense) }}</small>
+                }
               </td>
               <td>
                 <div class="el-actions-btn">

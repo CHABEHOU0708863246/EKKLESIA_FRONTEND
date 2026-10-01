@@ -15,7 +15,9 @@ import {
   ExpenseCategoryIcons,
   ExpenseStatusLabels,
   ExpenseStatusColors,
-  PaymentMethodLabels
+  PaymentMethodLabels,
+  ApprovalLevel,
+  ApprovalLevelLabels
 } from '../../../../../core/models/Finances/expense.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
 import { FormsModule } from '@angular/forms';
@@ -57,6 +59,16 @@ private permissions = inject(Permissions);
   getFormattedDate = ExpenseUtils.getFormattedDate;
   getFormattedDateTime = ExpenseUtils.getFormattedDateTime;
   getFormattedCurrency = ExpenseUtils.getFormattedCurrency;
+
+  /** Libellé français du niveau d'approbation d'une dépense. */
+  getApprovalLevelLabel(e: Expense): string {
+    if (e.approvalLevelLabel) return e.approvalLevelLabel;
+    return ApprovalLevelLabels[e.approvalLevel ?? 0] ?? 'En attente';
+  }
+
+  getApprovalLevelLabelByCode(code: number): string {
+    return ApprovalLevelLabels[code] ?? String(code);
+  }
 
   // ── Calculs dérivés pour les actions ── (droits alignés sur les policies)
   canEdit = computed(() => {

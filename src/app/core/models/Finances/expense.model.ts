@@ -66,10 +66,40 @@ export interface Expense {
   approvedAt?: string;
   approvedBy?: string;
   approvedByName?: string;
+  // ── Workflow d'approbation multi-niveaux ──
+  approvalLevel?: ApprovalLevel;
+  approvalLevelLabel?: string;
+  approvalHistory?: ExpenseApprovalStep[];
   formattedDate: string;
   formattedAmount: string;
   formattedCreatedAt: string;
   formattedApprovedAt?: string;
+}
+
+/** Niveau d'approbation (aligné sur l'enum backend). */
+export enum ApprovalLevel {
+  None = 0,
+  Site = 1,
+  Zone = 2,
+  Treasury = 3,
+  Paid = 4,
+}
+
+export const ApprovalLevelLabels: Record<number, string> = {
+  0: 'En attente',
+  1: 'Site',
+  2: 'Zone / Direction',
+  3: 'Trésorerie',
+  4: 'Payé',
+};
+
+export interface ExpenseApprovalStep {
+  level: number;
+  decision: string;
+  by: string;
+  byName?: string;
+  at: string;
+  comment?: string;
 }
 
 export interface ExpenseCreate {

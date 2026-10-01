@@ -153,6 +153,29 @@
             </div>
           }
 
+          <!-- Niveau d'approbation (workflow multi-niveaux) -->
+          <div class="ed-info-row">
+            <span class="ed-label">Niveau d'approbation</span>
+            <span class="ed-value">{{ getApprovalLevelLabel(e) }}</span>
+          </div>
+
+          @if (e.approvalHistory && e.approvalHistory.length) {
+            <div class="ed-approval-timeline">
+              <span class="ed-label">Circuit d'approbation</span>
+              <ul>
+                @for (step of e.approvalHistory; track step.at) {
+                  <li>
+                    <span class="ed-step-level">{{ getApprovalLevelLabelByCode(step.level) }}</span>
+                    <span class="ed-step-decision" [class.is-reject]="step.decision === 'Rejected'">
+                      {{ step.decision }}
+                    </span>
+                    <span class="ed-step-date">{{ getFormattedDateTime(step.at) }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
           <!-- Boutons d'action -->
           <div class="ed-actions-container">
             @if (canApprove()) {

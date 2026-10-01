@@ -17,7 +17,8 @@ import {
   ExpenseCategoryIcons,
   ExpenseStatusLabels,
   ExpenseStatusColors,
-  PaymentMethodLabels
+  PaymentMethodLabels,
+  ApprovalLevelLabels
 } from '../../../../../core/models/Finances/expense.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
@@ -99,6 +100,12 @@ export class ExpenseList implements OnInit, OnDestroy {
   getCategoryLabel = ExpenseUtils.getCategoryLabel;
   getCategoryIcon = ExpenseUtils.getCategoryIcon;
   getStatusLabel = ExpenseUtils.getStatusLabel;
+
+  /** Libellé du niveau d'approbation (workflow multi-niveaux). */
+  approvalLevelLabel(e: Expense): string {
+    if (e.approvalLevelLabel) return e.approvalLevelLabel;
+    return ApprovalLevelLabels[e.approvalLevel ?? 0] ?? 'En attente';
+  }
   getStatusColor = ExpenseUtils.getStatusColor;
   getPaymentMethodLabel = ExpenseUtils.getPaymentMethodLabel;
   getFormattedDate = ExpenseUtils.getFormattedDate;
