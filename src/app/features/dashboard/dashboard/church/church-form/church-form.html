@@ -451,19 +451,19 @@
                 <!-- Résultats de recherche -->
                 <div class="cf-search-dropdown" *ngIf="showPastorResults() && !selectedPastorMap.get(siteIndex)">
                   <p class="cf-search-status" *ngIf="searchingPastor()">Recherche en cours…</p>
-                  <p class="cf-search-status" *ngIf="!searchingPastor() && pastorResults().length === 0">Aucun pasteur
+                  <p class="cf-search-status" *ngIf="!searchingPastor() && pastorResults().length === 0">Aucun utilisateur
                     trouvé</p>
                   <button type="button" class="cf-search-result" *ngFor="let p of pastorResults()"
                     (click)="selectPastor(p)">
                     <div class="cf-mini-avatar">{{ getInitialsFromUser(p) }}</div>
                     <div class="cf-mini-info">
                       <strong>{{ p.fullName || p.firstName + ' ' + p.lastName }}</strong>
-                      <span>{{ p.phone }}</span>
+                      <span>{{ p.phone }}{{ getUserRoleLabel(p) ? ' · ' + getUserRoleLabel(p) : '' }}</span>
                     </div>
                   </button>
                 </div>
               </div>
-              <small class="cf-hint">Sélectionnez un membre ayant un rôle de pasteur (Principal ou de Site)</small>
+              <small class="cf-hint">Tous les utilisateurs de l'église sont proposés (nom · téléphone · rôle).</small>
             </div>
 
             <div class="cf-field">

@@ -7,7 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Notification } from '../../../../../core/services/Notification/notification';
 import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
-import { Users, pastorToUser } from '../../../../../core/services/Users/users';
+import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 import { User } from '../../../../../core/models/Users/user.model';
 
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
@@ -278,23 +278,40 @@ export class ChurchEdit implements OnInit, OnDestroy {
 
   private loadPastors(): void {
   this.loadingPastors.set(true);
-  // Endpoint dédié (accessible aux non-administrateurs, déjà filtré sur les
-  // rôles pastoraux). L'ancien getUsers() exigeait User_Create → 403.
+  // Annuaire complet et scopé (accessible aux non-administrateurs) : TOUS les
+  // utilisateurs de l'église, chacun avec nom, téléphone et rôle.
   this.userService
-    .getPastors('', 1, 100)
+    .getDirectory([], '', 1, 300)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
-        this.pastors.set((response?.data?.items ?? []).map(pastorToUser) as User[]);
+        const items = response?.data?.items ?? [];
+        this.pastors.set(items.map(directoryToUser) as User[]);
         this.loadingPastors.set(false);
       },
       error: (err) => {
-        console.error('❌ Chargement pasteurs — HTTP', err?.status, err?.error);
+        console.error('❌ Chargement annuaire — HTTP', err?.status, err?.error);
         this.pastors.set([]);
         this.loadingPastors.set(false);
       },
     });
 }
+
+  /** Rôle affichable d'un utilisateur dans le sélecteur de responsable. */
+  getUserRoleLabel(user: User): string {
+    const r = (user as any).roles?.[0];
+    return r ? String(r) : '';
+  }
+
+  /** Libellé « Nom — téléphone · rôle » du responsable d'un site. */
+  getPastorDisplay(site: Site): string {
+    const p = this.pastors().find((u) => u.id === site.pastorId);
+    if (!p) return site.pastorName || 'Responsable';
+    const parts = [this.getUserFullName(p)];
+    if ((p as any).phone) parts.push((p as any).phone);
+    const role = this.getUserRoleLabel(p);
+    return parts.join(' — ') + (role ? ' · ' + role : '');
+  }
 
   // S'assure que le pasteur actuellement assigné au site apparaît bien
   // dans la liste du select, même s'il n'a pas été renvoyé par loadPastors()

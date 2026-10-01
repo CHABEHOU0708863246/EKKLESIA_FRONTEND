@@ -318,6 +318,17 @@ textarea { resize: vertical; }
   font-size: 12px;
   color: var(--ce-ink-muted);
 }
+.ce-site-pastor {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ce-ink);
+  font-weight: 500;
+}
+.ce-site-pastor-label {
+  color: var(--ce-ink-muted);
+  font-weight: 600;
+  margin-right: 4px;
+}
 .ce-site-actions {
   display: flex;
   align-items: center;

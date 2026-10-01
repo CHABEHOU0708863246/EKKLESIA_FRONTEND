@@ -234,6 +234,10 @@
             </div>
             <p class="ce-site-address">{{ getSiteAddress(site) }}</p>
             <p class="ce-site-services" *ngIf="site.serviceTimes.length">{{ getSiteServices(site) }}</p>
+            <p class="ce-site-pastor" *ngIf="site.pastorId">
+              <span class="ce-site-pastor-label">Responsable :</span>
+              {{ getPastorDisplay(site) }}
+            </p>
           </div>
           <div class="ce-site-actions">
             <button type="button" class="ce-icon-btn" (click)="startEditSite(site, $event)" aria-label="Modifier">
@@ -286,16 +290,17 @@
           <!-- ─── SÉLECTION DU PASTEUR RESPONSABLE (select, pas d'ID visible) ─── -->
           <div class="ce-row ce-pastor-row">
             <div class="ce-col">
-              <label for="ce-site-pastorId">Pasteur / Responsable du site</label>
+              <label for="ce-site-pastorId">Responsable du site</label>
               <select id="ce-site-pastorId" formControlName="pastorId" class="ce-select">
                 <option value="">— Aucun responsable —</option>
                 <option *ngFor="let p of pastors()" [value]="p.id">
-                  {{ getUserFullName(p) }}{{ p.phone ? ' — ' + p.phone : '' }}
+                  {{ getUserFullName(p) }}{{ p.phone ? ' — ' + p.phone : '' }}{{ getUserRoleLabel(p) ? ' · ' + getUserRoleLabel(p) : '' }}
                 </option>
               </select>
               <p class="ce-loading-text ce-loading-text--sm" *ngIf="loadingPastors()">
-                <span class="ce-spinner ce-spinner--sm"></span> Chargement des pasteurs…
+                <span class="ce-spinner ce-spinner--sm"></span> Chargement des utilisateurs…
               </p>
+              <small class="ce-hint">Tous les utilisateurs de l'église sont proposés (nom · téléphone · rôle).</small>
             </div>
 
             <div class="ce-col ce-col--checkbox">

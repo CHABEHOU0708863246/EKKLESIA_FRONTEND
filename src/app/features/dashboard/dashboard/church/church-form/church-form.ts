@@ -1,4 +1,4 @@
-import { Users } from '../../../../../core/services/Users/users';
+import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 import { User } from '../../../../../core/models/Users/user.model';
 
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
@@ -160,6 +160,12 @@ export class ChurchForm implements OnInit, OnDestroy {
     return `${f}${l}`.toUpperCase();
   }
 
+  /** Rôle affichable d'un utilisateur dans le sélecteur de responsable. */
+  getUserRoleLabel(user: User): string {
+    const r = (user as any).roles?.[0];
+    return r ? String(r) : '';
+  }
+
   private loadParentChurches(): void {
     this.churchService
       .getChurches({ isHeadquarters: true, page: 1, pageSize: 200, sortBy: 'name', sortOrder: 'asc' })
@@ -182,23 +188,14 @@ export class ChurchForm implements OnInit, OnDestroy {
   this.searchingPastor.set(true);
   this.showPastorResults.set(true);
 
-  // Recherche paginée côté serveur, déjà filtrée sur les rôles pastoraux et
-  // servie sous forme de DTO allégé (bien plus rapide que getAllUsers()).
+  // Annuaire scopé : TOUS les utilisateurs de l'église (nom · téléphone · rôle),
+  // plus seulement les pasteurs. Accessible aux non-administrateurs.
   this.userService
-    .getPastors(term, 1, 20)
+    .getDirectory([], term, 1, 20)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
-        const items = (response.data?.items ?? []).map((p) => ({
-          id: p.id,
-          memberId: p.id,
-          firstName: p.firstName ?? '',
-          lastName: p.lastName ?? '',
-          fullName: p.fullName,
-          email: p.email,
-          phone: p.phone,
-        })) as unknown as User[];
-
+        const items = (response.data?.items ?? []).map(directoryToUser) as unknown as User[];
         this.pastorResults.set(items);
         this.searchingPastor.set(false);
       },
