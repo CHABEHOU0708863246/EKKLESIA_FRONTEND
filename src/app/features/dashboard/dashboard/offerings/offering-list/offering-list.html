@@ -118,7 +118,12 @@
                 </span>
               </td>
               <td>
-                <span class="ol-amount">{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</span>
+                <span class="ol-amount">
+                {{ offering.amount | number:'1.0-0' }} {{ offering.currency }}
+                @if (offering.currency !== 'XOF' && offering.amountXof) {
+                  <small class="ol-xof">≈ {{ offering.amountXof | number:'1.0-0' }} FCFA</small>
+                }
+              </span>
               </td>
               <td>
                 <span class="ol-badge" [class]="getStatusClass(offering.status)">

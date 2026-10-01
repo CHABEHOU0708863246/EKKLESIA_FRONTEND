@@ -53,6 +53,13 @@ export interface Offering {
   validationPhotoUrl?: string;       // URL de la photo justificative
   amount: number;
   currency: string;
+  // ── Multi-devises (RG-CURR-02) : devise d'origine + contre-valeur FCFA ──
+  originalCurrency?: string;
+  originalAmount?: number;
+  exchangeRateUsed?: number;
+  amountXof?: number;
+  formattedAmountXof?: string;
+  formattedAmountDual?: string;
   date: string;
   memberId?: string;
   memberName?: string;

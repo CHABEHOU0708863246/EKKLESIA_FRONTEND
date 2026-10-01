@@ -496,17 +496,38 @@ export class ConsolidatedScopePage implements OnInit {
     const d = this.data();
     const t = this.totals();
     if (!d || !t) return [];
-    const money: Kpi[] = [
-      { label: 'Offrandes encaissées', value: t.offerings, icon: 'bx-donate-heart', isMoney: true, currency: this.scope === 'International' ? '' : d.referenceCurrency,
-        source: `Somme des offrandes validées (${t.offeringsCount} saisies) du périmètre.` },
-      { label: 'Dépenses validées', value: t.expenses, icon: 'bx-wallet', isMoney: true, currency: this.scope === 'International' ? '' : d.referenceCurrency,
-        source: 'Somme des dépenses approuvées/validées du périmètre sur la période.' },
-    ];
+
     const counts: Kpi[] = [
       { label: 'Membres actifs', value: t.membersCount, icon: 'bx-group', source: 'Membres non inactifs rattachés aux églises/sites du périmètre.' },
       { label: 'Églises & sites', value: t.churchesCount, icon: 'bx-church', source: 'Nombre d’entités (églises/sites) incluses dans le périmètre.' },
       { label: 'Cultes célébrés', value: t.servicesCount, icon: 'bx-calendar-star', source: 'Cultes enregistrés sur la période dans le périmètre.' },
       { label: 'Présences cumulées', value: t.attendancePresent, icon: 'bx-chair', source: 'Somme des présences relevées à chaque culte du périmètre.' },
+    ];
+
+    // International : les montants sont PAR DEVISE et jamais additionnés.
+    // On affiche donc une carte par devise (les totaux « counts » n'ont pas de montant).
+    if (this.scope === 'International') {
+      const money: Kpi[] = [];
+      for (const c of d.international ?? []) {
+        money.push({
+          label: `Offrandes — ${c.currency}`, value: c.offerings, icon: 'bx-donate-heart', isMoney: true, currency: c.currency,
+          source: `Offrandes validées en ${c.currency} (${c.offeringsCount} saisies). Chaque devise reste isolée.`
+        });
+        if (c.expenses > 0) {
+          money.push({
+            label: `Dépenses — ${c.currency}`, value: c.expenses, icon: 'bx-wallet', isMoney: true, currency: c.currency,
+            source: `Dépenses approuvées en ${c.currency}.`
+          });
+        }
+      }
+      return [...money, ...counts];
+    }
+
+    const money: Kpi[] = [
+      { label: 'Offrandes encaissées', value: t.offerings, icon: 'bx-donate-heart', isMoney: true, currency: d.referenceCurrency,
+        source: `Somme des offrandes validées (${t.offeringsCount} saisies) du périmètre.` },
+      { label: 'Dépenses validées', value: t.expenses, icon: 'bx-wallet', isMoney: true, currency: d.referenceCurrency,
+        source: 'Somme des dépenses approuvées/validées du périmètre sur la période.' },
     ];
     return [...money, ...counts];
   });

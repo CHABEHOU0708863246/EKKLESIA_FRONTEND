@@ -199,6 +199,25 @@ $transition: 0.2s ease-in-out;
     font-size: 0.9rem;
     border-left: 1px solid $gray-300;
   }
+
+  .of-currency-select {
+    border: none;
+    border-left: 1px solid $gray-300;
+    border-radius: 0;
+    background: $gray-100;
+    color: $gray-700;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
+    max-width: 220px;
+    &:focus { outline: none; box-shadow: none; }
+  }
+}
+
+.of-xof {
+  color: #0e9f6e;
+  font-weight: 600;
 }
 
 // ─── TYPE CARD ───────────────────────────────────────────────

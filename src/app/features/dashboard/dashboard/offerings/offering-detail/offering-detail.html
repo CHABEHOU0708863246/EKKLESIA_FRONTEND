@@ -81,7 +81,12 @@
 
         <div class="od-info-row">
           <span class="od-label">Montant</span>
-          <span class="od-value od-amount">{{ o.amount | number:'1.0-0' }} {{ o.currency }}</span>
+            <span class="od-value od-amount">
+              {{ o.amount | number:'1.0-0' }} {{ o.currency }}
+              @if (o.currency !== 'XOF' && o.amountXof) {
+                <small class="od-xof">≈ {{ o.amountXof | number:'1.0-0' }} FCFA (taux {{ o.exchangeRateUsed | number:'1.0-6' }})</small>
+              }
+            </span>
         </div>
 
         <div class="od-info-row">

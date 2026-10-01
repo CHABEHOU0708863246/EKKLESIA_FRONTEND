@@ -21,6 +21,17 @@ export interface CurrencyConversion {
   converted: number;
 }
 
+/** Devise du catalogue, avec son taux vers la devise pivot XOF. RG-CURR-02. */
+export interface CurrencyCatalogItem {
+  codeIso: string;
+  label?: string;
+  symbol?: string;
+  decimals: number;
+  exchangeRateToXOF: number;
+  isActive: boolean;
+  isReference: boolean;
+}
+
 /**
  * Devises & taux de change historisés. La gestion des taux est réservée aux
  * gestionnaires d'église côté serveur. (RT5)
@@ -30,6 +41,11 @@ export class Currency {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Currency`;
 
   constructor(private http: HttpClient) {}
+
+  /** Catalogue des devises actives (sélecteur du formulaire d'offrande). RG-CURR-02. */
+  getCatalog(): Observable<ApiResponse<CurrencyCatalogItem[]>> {
+    return this.http.get<ApiResponse<CurrencyCatalogItem[]>>(`${this.baseUrl}/catalog`);
+  }
 
   getRates(): Observable<ApiResponse<ExchangeRateDto[]>> {
     return this.http.get<ApiResponse<ExchangeRateDto[]>>(`${this.baseUrl}/rates`);

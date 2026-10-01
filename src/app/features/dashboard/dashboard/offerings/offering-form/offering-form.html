@@ -29,9 +29,19 @@
           <label>Montant global <span class="of-required">*</span></label>
           <div class="of-amount-wrap">
             <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
-            <span class="of-currency">{{ form.get('currency')?.value || 'FCFA' }}</span>
+            <select class="of-currency-select" formControlName="currency">
+              @for (c of currencies(); track c.codeIso) {
+                <option [value]="c.codeIso">{{ c.label || c.codeIso }} ({{ c.codeIso }})</option>
+              }
+            </select>
           </div>
           <small class="of-hint">Doit correspondre au total du détail par catégorie ci-dessous.</small>
+          @if (isForeignCurrency()) {
+            <small class="of-hint of-xof">
+              ≈ {{ xofEquivalent(form.get('amount')?.value || 0) | number:'1.0-0' }} FCFA
+              (1 {{ selectedCurrency() }} = {{ currencyRate() | number:'1.0-6' }} XOF)
+            </small>
+          }
         </div>
 
         <div class="of-field" style="grid-column:1 / -1">
@@ -54,7 +64,10 @@
             </div>
           }
           <p style="font-weight:600;margin-top:10px">
-            Total du détail : {{ linesTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
+            Total du détail : {{ linesTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'XOF' }}
+            @if (isForeignCurrency()) {
+              <span class="of-xof">· ≈ {{ xofEquivalent(linesTotal()) | number:'1.0-0' }} FCFA</span>
+            }
           </p>
           @if (amountMismatch()) {
             <p class="of-error" style="margin-top:4px">

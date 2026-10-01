@@ -31,6 +31,7 @@ import { ApiResponse } from '../../../../../core/models/Common/api-response.mode
 import { Service } from '../../../../../core/services/Worship/service';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { Currency as CurrencyService, CurrencyCatalogItem } from '../../../../../core/services/Currency/currency';
 import { Token } from '../../../../../core/services/Token/token';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 import { UploadField } from '../../../../../core/components/upload-field/upload-field';
@@ -89,6 +90,7 @@ export class OfferingForm implements OnInit, OnDestroy {
   private router = inject(Router);
   private permissions = inject(Permissions);
   private tokenService = inject(Token);
+  private currencyService = inject(CurrencyService);
 
   /** Guide d'utilisation affiché en tête de formulaire (instructions + progression). */
   readonly guideSteps: GuideStep[] = [
@@ -151,6 +153,19 @@ export class OfferingForm implements OnInit, OnDestroy {
   offeringCategoryOptions = signal<OfferingCategoryOption[]>([]);
   loadingCategories = signal(false);
   categoryLines = signal<{ code: string; label: string; amount: number }[]>([]);
+  // ── Devise (RG-CURR-02/03) : sélecteur + contre-valeur temps réel en XOF ──
+  currencies = signal<CurrencyCatalogItem[]>([]);
+  selectedCurrency = signal<string>('XOF');
+  readonly currencyRate = computed(
+    () => this.currencies().find((c) => c.codeIso === this.selectedCurrency())?.exchangeRateToXOF ?? 1
+  );
+  readonly isForeignCurrency = computed(() => this.selectedCurrency() !== 'XOF');
+
+  /** Contre-valeur en FCFA (XOF) d'un montant saisi dans la devise sélectionnée. */
+  xofEquivalent(value: number): number {
+    return Math.round((Number(value) || 0) * this.currencyRate());
+  }
+
   /** Montant global saisi. */
   private globalAmount = signal(0);
   /** Somme des lignes de catégorie. */
@@ -201,7 +216,7 @@ export class OfferingForm implements OnInit, OnDestroy {
       type: [OfferingType.Other],
       // Le montant global est calculé à partir des lignes ; il n'est plus obligatoire.
       amount: [0],
-      currency: ['FCFA', Validators.required],
+      currency: ['XOF', Validators.required],
       date: ['', Validators.required],
       memberId: [''],
       memberSearch: [''],
@@ -222,6 +237,7 @@ export class OfferingForm implements OnInit, OnDestroy {
     this.loadChurches();
     this.loadCategories();
     this.loadUserServices();
+    this.loadCurrencies();
 
     // Détection du mode édition via l'URL
     const urlSegments = this.router.url.split('/');
@@ -248,6 +264,12 @@ export class OfferingForm implements OnInit, OnDestroy {
     this.form.get('amount')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((v) => this.globalAmount.set(Number(v) || 0));
+
+    // ── Devise sélectionnée (contre-valeur XOF temps réel) ──
+    this.selectedCurrency.set(this.form.get('currency')?.value || 'XOF');
+    this.form.get('currency')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((c) => this.selectedCurrency.set(c || 'XOF'));
 
     // ── Recherche de membre ──
     this.form.get('memberSearch')?.valueChanges
@@ -286,6 +308,23 @@ export class OfferingForm implements OnInit, OnDestroy {
         this.loadingCategories.set(false);
       },
     });
+  }
+
+  /** Charge le catalogue des devises actives (XOF par défaut). RG-CURR-02/03. */
+  private loadCurrencies(): void {
+    this.currencyService.getCatalog().subscribe({
+      next: (res) => this.currencies.set(res?.data?.length ? res.data : this.defaultCurrencies()),
+      error: () => this.currencies.set(this.defaultCurrencies()),
+    });
+  }
+
+  private defaultCurrencies(): CurrencyCatalogItem[] {
+    return [
+      { codeIso: 'XOF', label: 'Franc CFA (XOF)', decimals: 0, exchangeRateToXOF: 1, isActive: true, isReference: true },
+      { codeIso: 'GNF', label: 'Franc guinéen (GNF)', decimals: 0, exchangeRateToXOF: 1, isActive: true, isReference: false },
+      { codeIso: 'EUR', label: 'Euro (EUR)', decimals: 2, exchangeRateToXOF: 1, isActive: true, isReference: false },
+      { codeIso: 'USD', label: 'Dollar US (USD)', decimals: 2, exchangeRateToXOF: 1, isActive: true, isReference: false },
+    ];
   }
 
   /** Montants de lignes issus de l'offrande éditée, en attente des catégories. */
