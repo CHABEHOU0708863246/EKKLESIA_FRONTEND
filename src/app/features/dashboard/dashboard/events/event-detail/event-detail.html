@@ -159,7 +159,7 @@
           </div>
           <div class="ev-info-item">
             <label>Prix</label>
-            <p>{{ getFormattedPrice(event()!.price, event()!.currency) }}</p>
+            <app-dual-amount [amount]="event()!.price" [currency]="event()!.currency"></app-dual-amount>
           </div>
           <div class="ev-info-item">
             <label>Devise</label>
@@ -262,7 +262,7 @@
                     <span class="ev-formula-badge" *ngIf="a.formulaName; else noFormula">
                       {{ a.formulaName }}
                       <span class="ev-formula-price" *ngIf="a.formulaPrice != null">
-                        · {{ getFormattedPrice(a.formulaPrice, event()!.currency) }}
+                        · <app-dual-amount [amount]="a.formulaPrice" [currency]="event()!.currency"></app-dual-amount>
                       </span>
                     </span>
                     <ng-template #noFormula><span class="ev-muted">—</span></ng-template>

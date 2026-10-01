@@ -9,11 +9,12 @@ import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { Church } from '../../../../../core/services/Church/church';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 @Component({
   selector: 'app-event-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterLink],
+  imports: [CommonModule, RouterModule, RouterLink, DualAmount],
   templateUrl: './event-detail.html',
   styleUrls: ['./event-detail.scss'],
 })

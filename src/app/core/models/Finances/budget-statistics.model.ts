@@ -79,6 +79,14 @@ export interface BudgetResponseDto {
   createdBy: string;
   /** Montant total alloué */
   totalBudget: number;
+  /** Devise de saisie (défaut XOF) */
+  currency?: string;
+  /** Taux appliqué vers XOF */
+  exchangeRateUsed?: number;
+  /** Contre-valeur du total en FCFA (XOF) */
+  totalXof?: number;
+  /** Ex. « 1 234 EUR ≈ 809 090 FCFA » */
+  formattedTotalDual?: string;
   /** Montant total dépensé */
   totalSpent: number;
   /** Montant total restant (calculé) */

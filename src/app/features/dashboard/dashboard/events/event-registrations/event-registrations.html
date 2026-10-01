@@ -146,7 +146,7 @@
                 <select id="formulaId" formControlName="formulaId">
                   <option value="" disabled>Sélectionnez une formule</option>
                   <option *ngFor="let f of getAvailableFormulas()" [value]="f.id">
-                    {{ f.name }} – {{ f.price }} {{ f.currency }} ({{ f.availablePlaces }} places)
+                    {{ f.name }} — {{ f.price }} {{ f.currency }}@if (money.isForeign(f.currency)) { ≈ {{ money.xof(f.price, f.currency) }} FCFA } ({{ f.availablePlaces }} places)
                   </option>
                 </select>
                 <svg class="er-select-caret" viewBox="0 0 24 24" fill="none">

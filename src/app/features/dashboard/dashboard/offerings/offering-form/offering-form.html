@@ -31,7 +31,7 @@
             <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
             <select class="of-currency-select" formControlName="currency">
               @for (c of currencies(); track c.codeIso) {
-                <option [value]="c.codeIso">{{ c.label || c.codeIso }} ({{ c.codeIso }})</option>
+                <option [value]="c.codeIso">{{ c.codeIso }} — {{ c.label || c.codeIso }}</option>
               }
             </select>
           </div>

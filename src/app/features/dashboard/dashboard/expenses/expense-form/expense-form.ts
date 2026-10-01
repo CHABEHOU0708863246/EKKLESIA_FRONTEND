@@ -27,6 +27,7 @@ import { Member } from '../../../../../core/models/Members/member.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 const CATEGORY_OPTIONS = Object.values(ExpenseCategory).map((value) => ({
   value,
@@ -47,7 +48,7 @@ const STATUS_OPTIONS = Object.values(ExpenseStatus).map((value) => ({
 @Component({
   selector: 'app-expense-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide, DualAmount],
   templateUrl: './expense-form.html',
   styleUrls: ['./expense-form.scss'],
 })
@@ -80,6 +81,7 @@ export class ExpenseForm implements OnInit, OnDestroy {
   readonly ExpenseStatus = ExpenseStatus;
   readonly ExpenseCategory = ExpenseCategory;
   readonly PaymentMethod = PaymentMethod;
+  readonly currencyOptions = ['XOF', 'GNF', 'EUR', 'USD', 'CAD', 'KWD', 'JPY'];
   readonly categoryOptions = CATEGORY_OPTIONS;
   readonly paymentMethods = PAYMENT_METHODS;
   readonly statusOptions = STATUS_OPTIONS;

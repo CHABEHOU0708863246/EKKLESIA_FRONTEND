@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 import {
   Budget,
@@ -27,7 +28,7 @@ const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
 @Component({
   selector: 'app-budget-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
   templateUrl: './budget-list.html',
   styleUrls: ['./budget-list.scss'],
 })

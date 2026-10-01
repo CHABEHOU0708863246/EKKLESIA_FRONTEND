@@ -4,6 +4,7 @@ import { Component, OnDestroy, OnInit, signal, computed, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 import { Observable, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import {
   Expense,
@@ -35,7 +36,7 @@ const STATUS_OPTIONS = Object.values(ExpenseStatus).map((value) => ({
 @Component({
   selector: 'app-expense-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
   templateUrl: './expense-list.html',
   styleUrls: ['./expense-list.scss'],
 })

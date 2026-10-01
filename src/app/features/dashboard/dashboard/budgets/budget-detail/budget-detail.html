@@ -91,7 +91,9 @@
           <div class="bd-summary-grid">
             <div class="bd-summary-item">
               <span class="bd-summary-label">Total alloué</span>
-              <span class="bd-summary-value">{{ totalAllocated() | number:'1.0-0' }} FCFA</span>
+              <span class="bd-summary-value">
+                <app-dual-amount [amount]="totalAllocated()" [currency]="budget()?.currency || 'XOF'"></app-dual-amount>
+              </span>
             </div>
             <div class="bd-summary-item">
               <span class="bd-summary-label">Total dépensé</span>

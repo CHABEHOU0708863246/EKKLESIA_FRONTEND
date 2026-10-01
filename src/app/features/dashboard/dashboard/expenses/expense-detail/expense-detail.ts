@@ -4,6 +4,7 @@ import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 import {
   Expense,
   ExpenseStatus,
@@ -23,7 +24,7 @@ import { Permissions } from '../../../../../core/services/Permissions/permission
 @Component({
   selector: 'app-expense-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, DualAmount],
   templateUrl: './expense-detail.html',
   styleUrls: ['./expense-detail.scss'],
 })

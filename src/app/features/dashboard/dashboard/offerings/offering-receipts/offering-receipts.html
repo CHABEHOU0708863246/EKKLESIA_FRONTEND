@@ -89,7 +89,9 @@
                   {{ getTypeLabel(offering.type) }}
                 </span>
               </td>
-              <td class="or-amount">{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</td>
+              <td class="or-amount">
+                <app-dual-amount [amount]="offering.amount" [currency]="offering.currency"></app-dual-amount>
+              </td>
               <td>
                 <span class="or-badge" [class]="getStatusClass(offering.status)">
                   {{ getStatusLabel(offering.status) }}

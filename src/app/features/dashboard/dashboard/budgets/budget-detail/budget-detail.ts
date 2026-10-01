@@ -9,11 +9,12 @@ import { BudgetStatus, BudgetUtils, BudgetStatusLabels, BudgetStatusColors } fro
 import { BudgetResponseDto } from '../../../../../core/models/Finances/budget-statistics.model';
 import { BudgetService } from '../../../../../core/services/Finances/budjets';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 @Component({
   selector: 'app-budget-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, DualAmount],
   templateUrl: './budget-detail.html',
   styleUrls: ['./budget-detail.scss'],
 })

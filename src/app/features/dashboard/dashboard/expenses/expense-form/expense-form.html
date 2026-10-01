@@ -40,8 +40,12 @@
           <label>Montant <span class="ef-required">*</span></label>
           <div class="ef-amount-wrap">
             <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
-            <span class="ef-currency">{{ form.get('currency')?.value || 'FCFA' }}</span>
+            <select class="ef-currency-select" formControlName="currency">
+              @for (c of currencyOptions; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
           </div>
+          <app-dual-amount [amount]="form.get('amount')?.value || 0"
+            [currency]="form.get('currency')?.value"></app-dual-amount>
           <p class="ef-error" *ngIf="isFieldInvalid('amount')">Montant supérieur à 0 requis</p>
         </div>
 

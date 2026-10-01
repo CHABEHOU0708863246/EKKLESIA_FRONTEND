@@ -17,6 +17,7 @@ import {
 } from '../../../../../core/models/Finances/budget.model';
 import { BudgetService } from '../../../../../core/services/Finances/budjets';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
   value,
@@ -26,7 +27,7 @@ const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
 @Component({
   selector: 'app-budget-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide, DualAmount],
   templateUrl: './budget-form.html',
   styleUrls: ['./budget-form.scss'],
 })
@@ -48,6 +49,13 @@ export class BudgetForm implements OnInit, OnDestroy {
   // ── Exposé des énumérations ──
   readonly BudgetStatus = BudgetStatus;
   readonly statusOptions = STATUS_OPTIONS;
+  readonly currencyOptions = ['XOF', 'GNF', 'EUR', 'USD', 'CAD', 'KWD', 'JPY'];
+
+  /** Total alloué (somme des catégories) — pour la contre-valeur FCFA. */
+  totalAllocated(): number {
+    const cats = (this.form?.get('categories')?.value ?? []) as { allocated?: number }[];
+    return cats.reduce((sum, c) => sum + (Number(c?.allocated) || 0), 0);
+  }
 
   // ── État ──
   isEditMode = signal(false);
@@ -75,6 +83,7 @@ export class BudgetForm implements OnInit, OnDestroy {
       year: [new Date().getFullYear(), [Validators.required, Validators.min(2000)]],
       churchId: ['', Validators.required],
       siteId: [''],
+      currency: ['XOF', Validators.required],
       status: [BudgetStatus.Draft],
       categories: this.fb.array([]),
     });
@@ -258,6 +267,7 @@ export class BudgetForm implements OnInit, OnDestroy {
       year: raw.year,
       churchId: raw.churchId,
       siteId: raw.siteId || undefined,
+      currency: raw.currency || 'XOF',
       categories,
       status: raw.status || BudgetStatus.Draft,
     };

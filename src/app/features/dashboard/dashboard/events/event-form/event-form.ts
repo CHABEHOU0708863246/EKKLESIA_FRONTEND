@@ -15,6 +15,7 @@ import { EventTypeLabels, EventStatus, EventCreate, EventUpdate, EventFormula } 
 import { Events } from '../../../../../core/services/Event/events';
 import { EventType } from '../../../../../core/models/Events/event.model';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 
 const TYPE_OPTIONS = (Object.keys(EventType) as Array<keyof typeof EventType>).map((key) => ({
   value: EventType[key],
@@ -39,7 +40,7 @@ const CURRENCY_OPTIONS = ['FCFA', 'EUR', 'USD', 'GBP', 'CAD'];
 @Component({
   selector: 'app-event-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, FormGuide],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, FormGuide, DualAmount],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
 })

@@ -12,6 +12,7 @@ import { EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
 import { Church } from '../../../../../core/services/Church/church';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { MoneyService } from '../../../../../core/services/Money/money.service';
 
 @Component({
   selector: 'app-event-registrations',
@@ -28,6 +29,7 @@ export class EventRegistrations implements OnInit {
   private fb = inject(FormBuilder);
   private churchService = inject(Church);
   private permissions = inject(Permissions);
+  public money = inject(MoneyService);
 
   /**
    * 🔒 `POST /Event/{id}/register` exige Event_Register, alors que la page
@@ -64,6 +66,7 @@ export class EventRegistrations implements OnInit {
   }));
 
   constructor() {
+    this.money.load();
     this.registerForm = this.fb.group({
       memberId: [''],
       firstName: ['', [Validators.required, Validators.minLength(2)]],

@@ -66,7 +66,9 @@
           </div>
           <div class="ed-info-row">
             <span class="ed-label">Montant</span>
-            <span class="ed-value ed-amount">{{ e.amount | number:'1.0-0' }} {{ e.currency }}</span>
+            <span class="ed-value ed-amount">
+              <app-dual-amount [amount]="e.amount" [currency]="e.currency"></app-dual-amount>
+            </span>
           </div>
           <div class="ed-info-row">
             <span class="ed-label">Date</span>

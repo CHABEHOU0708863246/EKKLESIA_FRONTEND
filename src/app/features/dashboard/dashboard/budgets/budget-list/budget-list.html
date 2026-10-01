@@ -121,7 +121,9 @@
                   {{ getStatusLabel(budget.status) }}
                 </span>
               </td>
-              <td class="bl-amount">{{ budget.totalBudget | number:'1.0-0' }} FCFA</td>
+              <td class="bl-amount">
+                <app-dual-amount [amount]="budget.totalBudget" [currency]="budget.currency || 'XOF'"></app-dual-amount>
+              </td>
               <td class="bl-amount">{{ budget.totalSpent | number:'1.0-0' }} FCFA</td>
               <td>
                 <div class="bl-progress-wrap">

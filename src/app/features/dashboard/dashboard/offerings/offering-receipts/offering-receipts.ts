@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { DualAmount } from '../../../../../core/components/dual-amount/dual-amount';
 import { Offering, OfferingFilter, OfferingStatus, OfferingType, DEFAULT_OFFERING_FILTER } from '../../../../../core/models/Finances/offering.model';
 import { OfferingUtils } from '../../../../../core/models/Finances/offering.model';
 import { OfferingTypeLabels, OfferingTypeIcons, OfferingTypeColors } from '../../../../../core/models/Finances/offering.model';
@@ -19,7 +20,7 @@ const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
 @Component({
   selector: 'app-offering-receipts',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
   templateUrl: './offering-receipts.html',
   styleUrls: ['./offering-receipts.scss'],
 })

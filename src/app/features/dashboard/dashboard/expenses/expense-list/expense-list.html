@@ -129,7 +129,9 @@
                   {{ getCategoryLabel(expense.category) }}
                 </span>
               </td>
-              <td class="el-amount">{{ expense.amount | number:'1.0-0' }} {{ expense.currency }}</td>
+              <td class="el-amount">
+                <app-dual-amount [amount]="expense.amount" [currency]="expense.currency"></app-dual-amount>
+              </td>
               <td>{{ expense.requestedByName || expense.requestedBy }}</td>
               <td>
                 <span class="el-badge" [class]="getStatusClass(expense.status)">

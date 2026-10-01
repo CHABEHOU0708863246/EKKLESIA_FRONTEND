@@ -40,6 +40,10 @@ export interface Budget {
   totalSpent: number;
   totalRemaining: number;
   utilizationRate: number;
+  currency?: string;
+  exchangeRateUsed?: number;
+  totalXof?: number;
+  formattedTotalDual?: string;
   formattedCreatedAt: string;
   formattedApprovedAt?: string;
 }
@@ -49,6 +53,7 @@ export interface BudgetCreate {
   year: number;
   churchId: string;
   siteId?: string;
+  currency?: string;
   categories: BudgetCategory[];
   status?: BudgetStatus;
 }
@@ -57,6 +62,7 @@ export interface BudgetUpdate {
   name?: string;
   year?: number;
   siteId?: string;
+  currency?: string;
   categories?: BudgetCategory[];
   status?: BudgetStatus;
 }
