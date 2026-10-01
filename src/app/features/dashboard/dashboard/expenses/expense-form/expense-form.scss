@@ -175,7 +175,9 @@ $transition: 0.2s ease-in-out;
   input {
     border: none;
     border-radius: 0;
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
     padding: 0.5rem 0.75rem;
     font-size: 0.95rem;
     &:focus { box-shadow: none; }
@@ -188,6 +190,22 @@ $transition: 0.2s ease-in-out;
     font-weight: 500;
     font-size: 0.9rem;
     border-left: 1px solid $gray-300;
+  }
+
+  .ef-currency-select {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 150px;
+    border: none;
+    border-left: 1px solid $gray-300;
+    border-radius: 0;
+    background: $gray-100;
+    color: $gray-700;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.5rem;
+    cursor: pointer;
+    &:focus { outline: none; box-shadow: none; }
   }
 }
 

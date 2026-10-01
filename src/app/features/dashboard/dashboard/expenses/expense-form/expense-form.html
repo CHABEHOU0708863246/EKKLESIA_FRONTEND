@@ -39,8 +39,8 @@
         <div class="ef-field">
           <label>Montant <span class="ef-required">*</span></label>
           <div class="ef-amount-wrap">
-            <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
-            <select class="ef-currency-select" formControlName="currency">
+            <input type="number" formControlName="amount" min="1" step="1" placeholder="0" title="Montant de la dépense">
+            <select class="ef-currency-select" formControlName="currency" title="Devise">
               @for (c of currencyOptions; track c) { <option [value]="c">{{ c }}</option> }
             </select>
           </div>
