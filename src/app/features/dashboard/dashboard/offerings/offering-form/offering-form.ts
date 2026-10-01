@@ -16,8 +16,6 @@ import {
   OfferingStatus,
   OfferingCreate,
   OfferingUpdate,
-  OfferingCategory,
-  OfferingCategoryLabels,
   OfferingLinePayload,
   Offering,
 } from '../../../../../core/models/Finances/offering.model';
@@ -39,17 +37,20 @@ import { UploadField } from '../../../../../core/components/upload-field/upload-
 import { MemberSelect } from '../../../../../core/components/member-select/member-select';
 import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
 
-const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
-  value,
-  label: OfferingTypeLabels[value],
-  icon: OfferingTypeIcons[value],
-}));
-
-// ✅ Options pour les catégories (choix multiple)
-const CATEGORY_OPTIONS = Object.values(OfferingCategory).map((value) => ({
-  value,
-  label: OfferingCategoryLabels[value],
-}));
+/**
+ * Table de correspondance catégorie (Paramètres) → type technique conservé pour
+ * la compatibilité `offering.type`. Plus aucun choix manuel : le type est
+ * déduit de la ligne la plus élevée.
+ */
+const CATEGORY_TO_TYPE: Record<string, OfferingType> = {
+  Tithe: OfferingType.Tithe,
+  SundayOffering: OfferingType.SundayOffering,
+  SpecialOffering: OfferingType.SpecialOffering,
+  Thanksgiving: OfferingType.Thanksgiving,
+  Mission: OfferingType.Mission,
+  BuildingFund: OfferingType.BuildingFund,
+  Seed: OfferingType.Seed,
+};
 
 /**
  * Repli local si l'API des catégories est indisponible ou vide (paramètres non
@@ -91,9 +92,9 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   /** Guide d'utilisation affiché en tête de formulaire (instructions + progression). */
   readonly guideSteps: GuideStep[] = [
-    { icon: 'bx-list-check', tone: 'info', text: 'Choisissez le type d\'offrande, puis l\'église et le site concernés.' },
+    { icon: 'bx-list-check', tone: 'info', text: 'Choisissez l\'église et le site concernés.' },
     { icon: 'bx-calendar-event', tone: 'primary', text: 'Sélectionnez obligatoirement le culte associé (seuls les cultes que vous avez enregistrés sont proposés).' },
-    { icon: 'bx-coin-stack', tone: 'success', text: 'Renseignez le montant : soit le détail par catégorie (total calculé), soit un montant global.' },
+    { icon: 'bx-coin-stack', tone: 'success', text: 'Saisissez le montant global puis le détail par catégorie : les deux doivent concorder.' },
     { icon: 'bx-shield-quarter', tone: 'warning', text: 'Joignez la photo justificative si vous êtes habilité à valider les offrandes, puis enregistrez.' },
   ];
 
@@ -117,8 +118,6 @@ export class OfferingForm implements OnInit, OnDestroy {
   readonly OfferingType = OfferingType;
   readonly OfferingStatus = OfferingStatus;
   readonly PaymentMethod = PaymentMethod;
-  readonly typeOptions = TYPE_OPTIONS;
-  readonly categoryOptions = CATEGORY_OPTIONS;
   readonly paymentMethods = Object.values(PaymentMethod);
 
   // ── État ──
@@ -152,19 +151,20 @@ export class OfferingForm implements OnInit, OnDestroy {
   offeringCategoryOptions = signal<OfferingCategoryOption[]>([]);
   loadingCategories = signal(false);
   categoryLines = signal<{ code: string; label: string; amount: number }[]>([]);
-  /** Montant global saisi (sert de total de repli si aucune ligne n'est remplie). */
+  /** Montant global saisi. */
   private globalAmount = signal(0);
   /** Somme des lignes de catégorie. */
   linesTotal = computed(() =>
     this.categoryLines().reduce((sum, l) => sum + (Number(l.amount) || 0), 0)
   );
   /**
-   * Total affiché : la somme des catégories dès qu'au moins une ligne est
-   * renseignée, sinon le montant global — ainsi le total suit toujours la saisie.
+   * Incohérence : un montant global ET un détail par catégorie sont saisis mais
+   * ne concordent pas. Bloque l'enregistrement (anti « fausses valeurs »).
    */
-  displayTotal = computed(() => {
+  amountMismatch = computed(() => {
     const lines = this.linesTotal();
-    return lines > 0 ? lines : this.globalAmount();
+    const amount = this.globalAmount();
+    return lines > 0 && amount > 0 && amount !== lines;
   });
 
   form: FormGroup;
@@ -198,7 +198,7 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   constructor() {
     this.form = this.fb.group({
-      type: [OfferingType.Tithe, Validators.required],
+      type: [OfferingType.Other],
       // Le montant global est calculé à partir des lignes ; il n'est plus obligatoire.
       amount: [0],
       currency: ['FCFA', Validators.required],
@@ -213,7 +213,7 @@ export class OfferingForm implements OnInit, OnDestroy {
       notes: [''],
       status: [OfferingStatus.Pending],
       // ✅ Nouveaux champs
-      categories: [[], [Validators.required, Validators.minLength(1)]],
+      categories: [[]],
       validationPhotoUrl: [''],
     });
   }
@@ -540,30 +540,6 @@ private searchMembers(term: string): void {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // GESTION DES CATÉGORIES (choix multiple)
-  // ──────────────────────────────────────────────────────────────
-
-  isCategorySelected(category: OfferingCategory): boolean {
-    const categories = this.form.get('categories')?.value || [];
-    return categories.includes(category);
-  }
-
-  toggleCategory(category: OfferingCategory, event: Event): void {
-    const checkbox = event.target as HTMLInputElement;
-    const currentCategories = this.form.get('categories')?.value || [];
-    let newCategories: OfferingCategory[];
-
-    if (checkbox.checked) {
-      newCategories = [...currentCategories, category];
-    } else {
-      newCategories = currentCategories.filter((c: OfferingCategory) => c !== category);
-    }
-
-    this.form.patchValue({ categories: newCategories });
-    this.form.get('categories')?.markAsTouched();
-  }
-
-  // ──────────────────────────────────────────────────────────────
   // GESTION DE LA PHOTO
   // ──────────────────────────────────────────────────────────────
 
@@ -655,10 +631,19 @@ private searchMembers(term: string): void {
 
     const raw = this.form.value;
 
-    // Détail par catégorie : le montant global est la SOMME des lignes (jamais saisi).
+    // Détail par catégorie : le montant global est la SOMME des lignes.
     const lines: OfferingLinePayload[] = this.categoryLines()
       .filter((l) => Number(l.amount) > 0)
       .map((l) => ({ categoryId: l.code, amount: Number(l.amount) }));
+
+    // Anti « fausses valeurs » : le montant global doit concorder avec le détail.
+    if (this.amountMismatch()) {
+      this.saving.set(false);
+      this.error.set(
+        `Le montant global (${this.globalAmount()}) ne correspond pas au total du détail (${this.linesTotal()}).`
+      );
+      return;
+    }
 
     const computedAmount = lines.length > 0
       ? lines.reduce((sum, l) => sum + l.amount, 0)
@@ -666,12 +651,20 @@ private searchMembers(term: string): void {
 
     if (computedAmount <= 0) {
       this.saving.set(false);
-      this.error.set('Saisissez un montant (par catégorie, ou un montant global).');
+      this.error.set('Saisissez un montant global ou son détail par catégorie.');
       return;
     }
 
+    // Le type n'est plus choisi manuellement : il est déduit de la ligne la
+    // plus élevée (compatibilité), sinon « Autre ». Les tableaux de bord
+    // s'appuient désormais sur les LIGNES (catégories), pas sur ce champ.
+    const dominant = this.categoryLines()
+      .filter((l) => Number(l.amount) > 0)
+      .sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+    const derivedType = dominant ? (CATEGORY_TO_TYPE[dominant.code] ?? OfferingType.Other) : (raw.type ?? OfferingType.Other);
+
     const payload: OfferingCreate | OfferingUpdate = {
-      type: raw.type,
+      type: derivedType,
       amount: computedAmount,
       currency: raw.currency,
       date: raw.date,
@@ -683,8 +676,8 @@ private searchMembers(term: string): void {
       reference: raw.reference || undefined,
       notes: raw.notes || undefined,
       status: raw.status || OfferingStatus.Pending,
-      // ✅ Nouveaux champs
-      categories: raw.categories || [],
+      // Plus de sélection de catégories : le détail vit dans les lignes.
+      categories: [],
       validationPhotoUrl: raw.validationPhotoUrl || '',
       lines,
     };

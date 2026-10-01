@@ -18,25 +18,6 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="of-form">
 
-    <!-- ─── TYPE D'OFFRANDE ─── -->
-    <section class="of-panel">
-      <div class="of-panel-header">
-        <h2>Type d'offrande</h2>
-      </div>
-      <div class="of-panel-body">
-        <div class="of-type-grid">
-          @for (opt of typeOptions; track opt.value) {
-          <button type="button" class="of-type-card" [class.is-selected]="form.get('type')?.value === opt.value"
-            (click)="form.get('type')?.setValue(opt.value)">
-            <span class="of-type-icon"><i class="bx {{ opt.icon }}"></i></span>
-            <span class="of-type-label">{{ opt.label }}</span>
-          </button>
-          }
-        </div>
-        <p class="of-error" *ngIf="isFieldInvalid('type')">Le type est requis</p>
-      </div>
-    </section>
-
     <!-- ─── INFORMATIONS GÉNÉRALES ─── -->
     <section class="of-panel">
       <div class="of-panel-header">
@@ -45,18 +26,18 @@
       <div class="of-panel-body of-grid-2">
 
         <div class="of-field">
-          <label>Montant <span class="of-required">*</span></label>
+          <label>Montant global <span class="of-required">*</span></label>
           <div class="of-amount-wrap">
             <input type="number" formControlName="amount" min="1" step="1" placeholder="0">
             <span class="of-currency">{{ form.get('currency')?.value || 'FCFA' }}</span>
           </div>
-          <p class="of-error" *ngIf="isFieldInvalid('amount')">Montant supérieur à 0 requis</p>
+          <small class="of-hint">Doit correspondre au total du détail par catégorie ci-dessous.</small>
         </div>
 
         <div class="of-field" style="grid-column:1 / -1">
           <label>
             Détail par catégorie
-            <small>(optionnel — le total se calcule automatiquement)</small>
+            <small>(le total doit correspondre au montant global)</small>
           </label>
           @if (loadingCategories()) {
             <p class="of-hint">Chargement des catégories…</p>
@@ -73,8 +54,15 @@
             </div>
           }
           <p style="font-weight:600;margin-top:10px">
-            Total calculé : {{ displayTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
+            Total du détail : {{ linesTotal() | number:'1.0-0' }} {{ form.get('currency')?.value || 'FCFA' }}
           </p>
+          @if (amountMismatch()) {
+            <p class="of-error" style="margin-top:4px">
+              ⚠ Le montant global ({{ form.get('amount')?.value | number:'1.0-0' }})
+              ne correspond pas au total du détail ({{ linesTotal() | number:'1.0-0' }}).
+              Corrigez avant d'enregistrer.
+            </p>
+          }
         </div>
 
         <div class="of-field">
@@ -139,25 +127,6 @@
           <input type="text" formControlName="reference" placeholder="N° de virement, Mobile Money…">
         </div>
 
-      </div>
-    </section>
-
-    <!-- ─── CATÉGORIES (choix multiple) ─── -->
-    <section class="of-panel">
-      <div class="of-panel-header">
-        <h2>Catégories d'offrande</h2>
-        <span class="of-panel-hint">Sélectionnez une ou plusieurs catégories</span>
-      </div>
-      <div class="of-panel-body">
-        <div class="of-category-grid">
-          @for (cat of categoryOptions; track cat.value) {
-          <label class="of-checkbox-card" [class.is-checked]="isCategorySelected(cat.value)">
-            <input type="checkbox" [value]="cat.value" (change)="toggleCategory(cat.value, $event)">
-            <span class="of-checkbox-label">{{ cat.label }}</span>
-          </label>
-          }
-        </div>
-        <p class="of-error" *ngIf="isFieldInvalid('categories')">Veuillez sélectionner au moins une catégorie</p>
       </div>
     </section>
 
