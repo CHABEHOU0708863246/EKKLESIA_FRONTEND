@@ -131,6 +131,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
       phone: [''],
       email: ['', [Validators.email]],
       pastorId: [''],
+      country: ['CI'],
+      scope: ['National'],
+      currencyCode: ['XOF'],
+      timezone: ['Africa/Abidjan'],
       addressStreet: [''],
       addressCity: [''],
       addressState: [''],
@@ -141,6 +145,59 @@ export class ChurchEdit implements OnInit, OnDestroy {
       isActive: [true],
       serviceTimes: [[]],
     });
+
+    // Le pays du site pilote périmètre, devise et fuseau (RG-P1 / RG-CURR).
+    this.siteForm.get('country')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((c: string) => this.applyCountryDefaults(c));
+  }
+
+  readonly siteCountryOptions = [
+    { code: 'CI', label: "Côte d'Ivoire" },
+    { code: 'SN', label: 'Sénégal' },
+    { code: 'ML', label: 'Mali' },
+    { code: 'BF', label: 'Burkina Faso' },
+    { code: 'TG', label: 'Togo' },
+    { code: 'GN', label: 'Guinée' },
+    { code: 'FR', label: 'France' },
+    { code: 'BE', label: 'Belgique' },
+    { code: 'DE', label: 'Allemagne' },
+    { code: 'ES', label: 'Espagne' },
+    { code: 'IT', label: 'Italie' },
+    { code: 'US', label: 'États-Unis' },
+    { code: 'CA', label: 'Canada' },
+    { code: 'GB', label: 'Royaume-Uni' },
+    { code: 'KW', label: 'Koweït' },
+    { code: 'JP', label: 'Japon' },
+  ];
+  readonly siteScopeOptions = ['National', 'International'];
+  readonly siteCurrencyOptions = ['XOF', 'GNF', 'EUR', 'USD', 'CAD', 'KWD', 'JPY', 'GBP'];
+
+  private applyCountryDefaults(country: string): void {
+    const code = (country || 'CI').toUpperCase();
+    const map: Record<string, { currency: string; timezone: string }> = {
+      CI: { currency: 'XOF', timezone: 'Africa/Abidjan' },
+      SN: { currency: 'XOF', timezone: 'Africa/Dakar' },
+      ML: { currency: 'XOF', timezone: 'Africa/Bamako' },
+      BF: { currency: 'XOF', timezone: 'Africa/Ouagadougou' },
+      TG: { currency: 'XOF', timezone: 'Africa/Lome' },
+      GN: { currency: 'GNF', timezone: 'Africa/Conakry' },
+      FR: { currency: 'EUR', timezone: 'Europe/Paris' },
+      BE: { currency: 'EUR', timezone: 'Europe/Brussels' },
+      DE: { currency: 'EUR', timezone: 'Europe/Berlin' },
+      ES: { currency: 'EUR', timezone: 'Europe/Madrid' },
+      IT: { currency: 'EUR', timezone: 'Europe/Rome' },
+      US: { currency: 'USD', timezone: 'America/New_York' },
+      CA: { currency: 'CAD', timezone: 'America/Toronto' },
+      GB: { currency: 'GBP', timezone: 'Europe/London' },
+      KW: { currency: 'KWD', timezone: 'Asia/Kuwait' },
+      JP: { currency: 'JPY', timezone: 'Asia/Tokyo' },
+    };
+    const d = map[code] ?? { currency: 'XOF', timezone: 'Africa/Abidjan' };
+    this.siteForm.patchValue(
+      { scope: code === 'CI' ? 'National' : 'International', currencyCode: d.currency, timezone: d.timezone },
+      { emitEvent: false }
+    );
   }
 
   ngOnInit(): void {
@@ -363,7 +420,7 @@ export class ChurchEdit implements OnInit, OnDestroy {
 
   startAddSite(): void {
     this.editingSite.set(null);
-    this.siteForm.reset({ isActive: true, pastorId: '' });
+    this.siteForm.reset({ isActive: true, pastorId: '', country: 'CI', scope: 'National', currencyCode: 'XOF', timezone: 'Africa/Abidjan' });
     this.showSiteForm.set(true);
   }
 
@@ -375,6 +432,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
       phone: site.phone ?? '',
       email: site.email ?? '',
       pastorId: site.pastorId ?? '',
+      country: site.country ?? 'CI',
+      scope: site.scope ?? 'National',
+      currencyCode: site.currencyCode ?? 'XOF',
+      timezone: site.timezone ?? 'Africa/Abidjan',
       addressStreet: site.address?.street ?? '',
       addressCity: site.address?.city ?? '',
       addressState: site.address?.state ?? '',
@@ -417,6 +478,10 @@ export class ChurchEdit implements OnInit, OnDestroy {
       email: val.email || undefined,
       pastorId: val.pastorId || undefined,
       isActive: val.isActive,
+      country: val.country || 'CI',
+      scope: val.scope || undefined,
+      currencyCode: val.currencyCode || undefined,
+      timezone: val.timezone || undefined,
       serviceTimes: val.serviceTimes || [],
       address: {
         street: val.addressStreet || undefined,
