@@ -1123,6 +1123,11 @@ export class Permissions {
       this.hasRole('Pasteur Principal');
   }
 
+  /** Rôle « Consultant » : accès externe en lecture seule. */
+  public isConsultant(): boolean {
+    return this.hasRole('CONSULTANT') || this.hasRole('Consultant');
+  }
+
   public isPasteurSite(): boolean {
     return this.hasRole('PASTEUR_SITE') ||
       this.hasRole('Pasteur de Site');
