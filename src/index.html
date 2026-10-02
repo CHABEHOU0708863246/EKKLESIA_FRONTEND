@@ -35,6 +35,37 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/css/boxicons.min.css" />
   <link rel="manifest" href="manifest.webmanifest">
 
+  <!-- ⏳ Écran de démarrage : affiché instantanément (avant Angular), retiré
+       dès que l'application est prête. Évite l'impression de « page blanche ». -->
+  <style>
+    #miav-boot {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: #ffffff;
+      font-family: 'Public Sans', 'Segoe UI', sans-serif;
+      transition: opacity .35s ease;
+    }
+    #miav-boot.miav-boot--hide { opacity: 0; pointer-events: none; }
+    #miav-boot img { width: 128px; height: 128px; object-fit: contain; }
+    #miav-boot .miav-boot-title { font-size: 20px; font-weight: 700; color: #0F3D2E; letter-spacing: .5px; }
+    #miav-boot .miav-boot-sub { font-size: 13px; color: #64748b; }
+    #miav-boot .miav-boot-spinner {
+      width: 38px; height: 38px; border: 3px solid rgba(15,61,46,.15);
+      border-top-color: #0F3D2E; border-radius: 50%; animation: miav-spin .9s linear infinite;
+    }
+    @keyframes miav-spin { to { transform: rotate(360deg); } }
+    @media (prefers-color-scheme: dark) {
+      #miav-boot { background: #0b1220; }
+      #miav-boot .miav-boot-title { color: #e2e8f0; }
+    }
+  </style>
+
   <!-- Applique le thème mémorisé AVANT le rendu (évite le flash clair/sombre). -->
   <script>
     (function () {
@@ -51,6 +82,12 @@
 </head>
 
 <body>
+  <div id="miav-boot">
+    <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="MIAV" />
+    <div class="miav-boot-title">MIAV ERP</div>
+    <div class="miav-boot-spinner"></div>
+    <div class="miav-boot-sub">Chargement de l'application…</div>
+  </div>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>

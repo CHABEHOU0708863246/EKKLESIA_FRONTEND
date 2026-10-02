@@ -3,8 +3,15 @@
 import { Injectable } from '@angular/core';
 import { Token } from '../Token/token';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+
+/**
+ * Délai maximal d'attente du serveur au démarrage. Au-delà, on démarre avec
+ * les permissions du JWT (le token les porte) pour ne PAS bloquer l'écran
+ * d'accueil si le backend est lent à répondre (ex. instance Render endormie).
+ */
+const STARTUP_REFRESH_TIMEOUT_MS = 4000;
 
 @Injectable({
   providedIn: 'root',
@@ -51,7 +58,7 @@ export class Permissions {
       const fresh = await firstValueFrom(
         this.http.get<{ permissions?: string[]; roles?: string[]; mustChangePassword?: boolean }>(
           `${environment.apiUrl}/api/v1/Auth/me`
-        )
+        ).pipe(timeout(STARTUP_REFRESH_TIMEOUT_MS))
       );
 
       this.userPermissions = [...new Set(fresh?.permissions ?? [])];
@@ -63,8 +70,8 @@ export class Permissions {
       this.mustChange = !!fresh?.mustChangePassword;
       this.loadedFromServer = true;
     } catch {
-      // silencieux : on garde l'état issu du JWT en cas d'échec réseau
-      // (ex: hors ligne) plutôt que de vider les permissions et casser l'UI.
+      // silencieux : on garde l'état issu du JWT (rôles + permissions) en cas
+      // d'échec réseau ou de délai dépassé, plutôt que de bloquer l'UI.
     }
   }
 

@@ -25,15 +25,17 @@ export class NativeAppService {
 
     try {
       const { StatusBar, Style } = await import('@capacitor/status-bar');
-      // Barre de statut aux couleurs de la marque MIAV (vert foncé #0F3D2E).
-      await StatusBar.setBackgroundColor({ color: '#0F3D2E' });
-      await StatusBar.setStyle({ style: Style.Dark });
+      // Barre de statut claire, cohérente avec l'écran de démarrage MIAV.
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
+      await StatusBar.setStyle({ style: Style.Light });
     } catch {
       /* plugin indisponible : on ignore */
     }
 
     try {
       const { SplashScreen } = await import('@capacitor/splash-screen');
+      // Masque le splash natif : l'écran de démarrage HTML (index.html) prend
+      // le relais et évite tout flash blanc pendant le chargement d'Angular.
       await SplashScreen.hide();
     } catch {
       /* plugin indisponible : on ignore */

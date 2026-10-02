@@ -26,6 +26,9 @@ export const appConfig: ApplicationConfig = {
       const token = inject(Token);
 
       if (token.isLogged() && !token.isTokenExpired()) {
+        // Le JWT porte déjà les rôles/permissions : l'app démarre immédiatement.
+        // Le rafraîchissement serveur est borné (timeout) pour ne jamais bloquer
+        // l'affichage si le backend est lent (instance Render endormie).
         return permissions.refreshFromServer();
       }
 
