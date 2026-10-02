@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sécurité réseau Android.
+  Par défaut : HTTPS OBLIGATOIRE (cleartext interdit) — conforme aux stores.
+  Exception de DÉVELOPPEMENT uniquement : localhost et les IP LAN pour
+  tester l'API locale depuis un appareil réel.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Remplacer par l'IP LAN de votre poste de dev si nécessaire -->
+        <domain includeSubdomains="true">192.168.1.20</domain>
+    </domain-config>
+</network-security-config>

@@ -15,6 +15,7 @@ import {
 } from '../../models/Events/event.model';
 import { PublicRegistrationService } from '../../services/Event/public-registration-service';
 import { saveReceiptIdentity } from '../../services/Event/receipt-identity.store';
+import { NativeBrowserService } from '../../services/Native/native-browser.service';
 
 const PROFILE_OPTIONS = [
   { value: ParticipantProfileType.External, label: 'Personne extérieure' },
@@ -48,6 +49,7 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private registrationService = inject(PublicRegistrationService);
+  private nativeBrowser = inject(NativeBrowserService);
 
   // ── Mode maintenance ──
   maintenanceMode = signal(true); // à basculer à false pour réactiver
@@ -389,7 +391,9 @@ export class PublicEventRegistration implements OnInit, OnDestroy {
   goToPayment(): void {
     const result = this.registrationResult();
     const url = result?.checkoutUrl || result?.paymentUrl;
-    if (url) window.location.href = url;
+    // Mobile : ouvre le portail de paiement dans le navigateur système
+    // (évite l'impasse dans la WebView) ; web : redirection classique.
+    if (url) void this.nativeBrowser.open(url);
   }
 
   /**

@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { IMAGE_FILE_LIMITS, FileValidationLimits, validateFile } from '../../utils/file-validation';
 import { UploadProgressService } from '../../services/Uploads/upload-progress.service';
+import { NativeCameraService } from '../../services/Native/native-camera.service';
+import { PlatformService } from '../../services/Native/platform.service';
 
 /**
  * Champ d'upload réutilisable (photos, pièces jointes).
@@ -9,7 +11,9 @@ import { UploadProgressService } from '../../services/Uploads/upload-progress.se
  * - affiche un aperçu et le nom du fichier ;
  * - affiche la barre de progression globale pendant l'envoi ;
  * - émet le fichier au parent, qui gère l'appel réseau (donc aussi l'erreur réseau).
- * (RG-P0-6)
+ *
+ * Mobile : sur natif, un bouton « Caméra » (et « Galerie ») ouvre la caméra via
+ * Capacitor ; le sélecteur de fichier reste disponible en repli. (RG-P0-6)
  */
 @Component({
   selector: 'app-upload-field',
@@ -20,9 +24,18 @@ import { UploadProgressService } from '../../services/Uploads/upload-progress.se
       @if (label) { <label class="uf-upload__label">{{ label }}</label> }
 
       <div class="uf-upload__row">
-        <button type="button" class="uf-upload__btn" [disabled]="disabled" (click)="input.click()">
-          <i class="bx bx-cloud-upload"></i> Choisir un fichier
-        </button>
+        @if (isNative) {
+          <button type="button" class="uf-upload__btn" [disabled]="disabled" (click)="pickFromCamera()">
+            <i class="bx bx-camera"></i> Prendre une photo
+          </button>
+          <button type="button" class="uf-upload__btn uf-upload__btn--ghost" [disabled]="disabled" (click)="pickFromGallery()">
+            <i class="bx bx-image"></i> Galerie
+          </button>
+        } @else {
+          <button type="button" class="uf-upload__btn" [disabled]="disabled" (click)="input.click()">
+            <i class="bx bx-cloud-upload"></i> Choisir un fichier
+          </button>
+        }
         @if (fileName()) { <span class="uf-upload__name">{{ fileName() }}</span> }
       </div>
 
@@ -57,6 +70,7 @@ import { UploadProgressService } from '../../services/Uploads/upload-progress.se
       background: #6c5ce7; color: #fff; border: none; border-radius: 10px;
       padding: 9px 14px; font-weight: 600; font-size: 14px;
     }
+    .uf-upload__btn--ghost { background: #eef1f8; color: #475569; }
     .uf-upload__btn i { font-size: 18px; }
     .uf-upload__btn:disabled { opacity: .55; cursor: not-allowed; }
     .uf-upload__name { font-size: 13px; color: #475569; }
@@ -78,6 +92,8 @@ import { UploadProgressService } from '../../services/Uploads/upload-progress.se
 })
 export class UploadField {
   progress = inject(UploadProgressService);
+  private readonly camera = inject(NativeCameraService);
+  private readonly platform = inject(PlatformService);
 
   @Input() label = '';
   @Input() hint = '';
@@ -90,6 +106,9 @@ export class UploadField {
   @Output() fileSelected = new EventEmitter<File>();
   @Output() cleared = new EventEmitter<void>();
 
+  /** Bascule l'UI vers les boutons caméra/galerie sur plateforme native. */
+  readonly isNative = this.platform.isNative;
+
   localPreview = signal<string | null>(null);
   fileName = signal<string>('');
   error = signal<string>('');
@@ -98,8 +117,22 @@ export class UploadField {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     input.value = ''; // permet de rechoisir le même fichier
-    if (!file) return;
+    if (file) this.acceptFile(file);
+  }
 
+  /** Prise de photo native (mobile). */
+  async pickFromCamera(): Promise<void> {
+    const file = await this.camera.pickImage('camera');
+    if (file) this.acceptFile(file);
+  }
+
+  /** Sélection depuis la galerie (mobile). */
+  async pickFromGallery(): Promise<void> {
+    const file = await this.camera.pickImage('gallery');
+    if (file) this.acceptFile(file);
+  }
+
+  private acceptFile(file: File): void {
     const verdict = validateFile(file, this.limits);
     if (!verdict.ok) {
       this.error.set(verdict.message ?? 'Fichier refusé.');

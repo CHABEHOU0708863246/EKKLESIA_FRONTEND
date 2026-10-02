@@ -1,10 +1,11 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { isPlatformBrowser } from '@angular/common';
 import { TokenData } from '../../models/Tolen/TokenData';
 import { EkklesiaJwtPayload } from '../../models/Tolen/EkklesiaJwtPayload';
 import { isDevMode } from '@angular/core';
+import { SecureTokenStore } from '../Native/secure-token.store';
 
 function log(...args: unknown[]): void {
   if (isDevMode()) console.log(...args);
@@ -21,6 +22,8 @@ export class Token {
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly REMEMBER_ME_KEY = 'remember_me';
   private isBrowser: boolean;
+
+  private readonly secureStore = inject(SecureTokenStore);
 
   constructor(
     private router: Router,
@@ -67,11 +70,15 @@ export class Token {
     if (!this.isBrowser) return;
 
     const data: TokenData = { token, role };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    const authData = JSON.stringify(data);
+    localStorage.setItem(this.STORAGE_KEY, authData);
 
     if (refreshToken) {
       localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
     }
+
+    // Mobile : duplique la session en stockage CHIFFRÉ (best-effort, non bloquant).
+    void this.secureStore.mirror(authData, refreshToken);
 
     this.debugToken();
   }
@@ -188,6 +195,8 @@ export class Token {
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.REMEMBER_ME_KEY);
     sessionStorage.clear();
+    // Mobile : purge la copie chiffrée.
+    void this.secureStore.clear();
   }
 
   /**

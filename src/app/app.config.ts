@@ -8,6 +8,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { provideServiceWorker } from '@angular/service-worker';
 import { Permissions } from './core/services/Permissions/permissions';
 import { Token } from './core/services/Token/token';
+import { NativeAppService } from './core/services/Native/native-app.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +30,13 @@ export const appConfig: ApplicationConfig = {
       }
 
       return;
+    }),
+
+    // ✅ Réglages natifs mobile (Capacitor) : barre de statut + splash.
+    // Sans effet sur le web/SSR (le service se garde lui-même).
+    provideAppInitializer(() => {
+      const nativeApp = inject(NativeAppService);
+      return nativeApp.initialize();
     }),
 
     // ✅ Routage

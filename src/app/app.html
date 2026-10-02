@@ -1,2 +1,7 @@
+@if (!online()) {
+  <div class="app-offline-banner">
+    <i class="bx bx-wifi-off"></i> Pas de connexion — certaines données peuvent être indisponibles.
+  </div>
+}
 <router-outlet></router-outlet>
 
