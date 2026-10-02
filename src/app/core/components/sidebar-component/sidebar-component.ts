@@ -39,7 +39,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentUser();
-    console.log('✅ Sidebar chargée - Permissions:', this.permission.getUserPermissions());
   }
 
   ngOnDestroy(): void {
@@ -54,10 +53,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (user) => {
           this.currentUser = user;
-          console.log('✅ Utilisateur chargé dans sidebar:', user?.fullName);
         },
-        error: (error) => {
-          console.warn('⚠️ Impossible de charger l\'utilisateur courant:', error);
+        error: () => {
           this.currentUser = null;
         }
       });
@@ -130,7 +127,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-  console.log('🚪 Déconnexion en cours...');
   this.tokenService.logout();
   this.permission.clearPermissions();
 
@@ -139,10 +135,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: () => this.router.navigate(['/auth/login']),
-      error: (error) => {
-        console.warn('⚠️ Erreur API déconnexion (ignorée):', error);
-        this.router.navigate(['/auth/login']);
-      }
+      error: () => this.router.navigate(['/auth/login'])
     });
 }
 }

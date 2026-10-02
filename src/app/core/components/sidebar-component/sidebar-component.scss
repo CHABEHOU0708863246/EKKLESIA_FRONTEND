@@ -177,6 +177,29 @@ $touch-size:      44px;
   }
 }
 
+.sidebar-close-btn {
+  display: none;
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: $sidebar-text;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.18s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+
+  // Visible uniquement sous le seuil desktop (sidebar off-canvas).
+  @media (max-width: 900px) { display: flex; }
+}
+
 .brand-logo {
   width: 38px;
   min-width: 38px;

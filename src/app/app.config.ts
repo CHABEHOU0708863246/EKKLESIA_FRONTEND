@@ -25,11 +25,12 @@ export const appConfig: ApplicationConfig = {
       const permissions = inject(Permissions);
       const token = inject(Token);
 
+      // Le JWT porte DÉJÀ les rôles et permissions (chargés en synchrone par le
+      // constructeur de Permissions). On ne bloque donc PAS le démarrage sur le
+      // réseau : l'app s'affiche immédiatement, et le rafraîchissement serveur
+      // s'exécute en arrière-plan (borné par un timeout) pour confirmer les droits.
       if (token.isLogged() && !token.isTokenExpired()) {
-        // Le JWT porte déjà les rôles/permissions : l'app démarre immédiatement.
-        // Le rafraîchissement serveur est borné (timeout) pour ne jamais bloquer
-        // l'affichage si le backend est lent (instance Render endormie).
-        return permissions.refreshFromServer();
+        void permissions.refreshFromServer();
       }
 
       return;
