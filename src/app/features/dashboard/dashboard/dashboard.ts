@@ -108,6 +108,9 @@ export class Dashboard implements OnInit, OnDestroy {
   isLoading: boolean = true;
   errorMessage: string | null = null;
 
+  /** Barre de progression affichée pendant chaque navigation (feedback visuel). */
+  routeLoading: boolean = false;
+
   // ─── Options des graphiques ──────────────────────────────────
   chartOptions: any = {
     responsive: true,
@@ -156,6 +159,27 @@ export class Dashboard implements OnInit, OnDestroy {
     this.loadCurrentUser();
     this.loadDashboardData();
     this.startNotificationsPolling();
+    this.trackRouteProgress();
+  }
+
+  /** Affiche une barre de progression à chaque changement de route. */
+  private trackRouteProgress(): void {
+    this.subscriptions.add(
+      this.router.events.subscribe((event: any) => {
+        const type = event?.constructor?.name;
+        if (type === 'NavigationStart' || type === 'RouteConfigLoadStart') {
+          this.routeLoading = true;
+        } else if (
+          type === 'NavigationEnd' ||
+          type === 'NavigationCancel' ||
+          type === 'NavigationError' ||
+          type === 'RouteConfigLoadEnd'
+        ) {
+          // Petit délai pour laisser la vue se peindre, puis on masque.
+          setTimeout(() => (this.routeLoading = false), 250);
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {

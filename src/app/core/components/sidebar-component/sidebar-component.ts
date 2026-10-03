@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Token } from '../../services/Token/token';
@@ -106,13 +106,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
    * au lieu de manipuler le DOM directement.
    */
   onMenuToggleClick(): void {
-    const isMobile = typeof window !== 'undefined'
-      && window.innerWidth < SidebarComponent.DESKTOP_BREAKPOINT;
-
-    if (isMobile) {
+    if (this.isMobileViewport()) {
       this.toggleMobileSidebar();
     } else {
       this.toggleSidebar();
+    }
+  }
+
+  /** Détection fiable du mode mobile : le layout off-canvas est actif < 901px. */
+  private isMobileViewport(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia
+      ? window.matchMedia(`(max-width: ${SidebarComponent.DESKTOP_BREAKPOINT - 1}px)`).matches
+      : window.innerWidth < SidebarComponent.DESKTOP_BREAKPOINT;
+  }
+
+  /** Évite une sidebar « ouverte » fantôme après rotation ou agrandissement. */
+  @HostListener('window:resize')
+  onResize(): void {
+    if (!this.isMobileViewport() && this.isMobileOpen) {
+      this.isMobileOpen = false;
     }
   }
 

@@ -6,6 +6,11 @@
   <!-- MAIN CONTENT -->
   <div class="main-content">
 
+    <!-- 📶 Barre de progression de navigation (feedback instantané) -->
+    @if (routeLoading) {
+      <div class="route-progress" aria-hidden="true"><span></span></div>
+    }
+
     <!-- 🔔 Alerte de notifications non lues (clignotante, à la connexion) -->
     <app-notification-alert></app-notification-alert>
 

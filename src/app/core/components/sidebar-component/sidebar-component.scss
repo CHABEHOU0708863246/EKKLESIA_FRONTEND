@@ -72,8 +72,9 @@ $touch-size:      44px;
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.35);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-100%);
+  will-change: transform; // anime sur le GPU (ouverture/fermeture fluide)
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 
@@ -97,7 +98,6 @@ $touch-size:      44px;
 
   &.open {
     transform: translateX(0);
-    animation: slideInSidebar 0.28s ease;
   }
 
   // Scrollbar personnalisée
@@ -140,11 +140,11 @@ $touch-size:      44px;
   inset: 0;
   background: rgba(0, 0, 0, 0.50);
   z-index: 1090;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  // (backdrop-filter retiré : le flou d'arrière-plan est très coûteux sur GPU
+  // mobile et ralentissait l'ouverture du menu.)
   touch-action: none;
   opacity: 0;
-  transition: opacity 0.28s ease;
+  transition: opacity 0.22s ease;
 
   &.visible {
     display: block;

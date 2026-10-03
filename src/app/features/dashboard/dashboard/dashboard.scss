@@ -1730,6 +1730,32 @@ $touch-size:     44px;
   .notif-dropdown { right: -60px; width: 300px; }
 }
 
+// ─── Barre de progression de navigation ──────────────────────────────
+.route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 3000;
+  background: transparent;
+  pointer-events: none;
+
+  span {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: 0 2px 2px 0;
+    background: linear-gradient(90deg, #F0B429, #5C8D3F, #1B2A4A);
+    animation: route-progress-move 0.9s ease-in-out infinite;
+  }
+}
+
+@keyframes route-progress-move {
+  0%   { margin-left: -40%; }
+  100% { margin-left: 100%; }
+}
+
 
 
 

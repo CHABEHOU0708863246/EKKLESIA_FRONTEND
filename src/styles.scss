@@ -207,3 +207,33 @@ textarea.miav-input {
 
 [data-theme='dark'] .topbar { background: var(--color-surface); }
 [data-theme='dark'] .content-area { background: var(--color-bg); }
+
+/* ───────────────────────────────────────────────────────────────
+   Micro-interactions : l'application « vit » (feedback instantané).
+   ─────────────────────────────────────────────────────────────── */
+button:not(:disabled),
+a.nav-link,
+.cons-access-card,
+[role='button'] {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, color 0.15s ease;
+}
+
+/* Effet « press » au toucher/clic. */
+button:not(:disabled):active,
+a.nav-link:active,
+.cons-access-card:active,
+[role='button']:active {
+  transform: scale(0.97);
+}
+
+/* Apparition douce de chaque page pour éviter les sauts brusques. */
+@media (prefers-reduced-motion: no-preference) {
+  router-outlet + * {
+    animation: page-fade-in 0.22s ease-out;
+  }
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
