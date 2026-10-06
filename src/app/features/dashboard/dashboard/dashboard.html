@@ -152,11 +152,16 @@
                 @if (myScope.zones?.length) {
                   <div class="scope-row">
                     <span class="scope-label">Zone(s) gérée(s)</span>
-                    <span class="scope-chips">
-                      @for (z of myScope.zones; track z.id) {
+                    @for (z of myScope.zones; track z.id) {
+                      <div class="scope-zone">
                         <span class="scope-chip scope-chip--zone"><i class="bx bx-map"></i> {{ z.name }}</span>
-                      }
-                    </span>
+                        @if (z.sites?.length) {
+                          <ul class="scope-zone-sites">
+                            @for (s of z.sites; track s) { <li>{{ s }}</li> }
+                          </ul>
+                        }
+                      </div>
+                    }
                   </div>
                 }
 

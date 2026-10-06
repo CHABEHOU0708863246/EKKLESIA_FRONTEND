@@ -66,8 +66,31 @@ private permissions = inject(Permissions);
     return ApprovalLevelLabels[e.approvalLevel ?? 0] ?? 'En attente';
   }
 
-  getApprovalLevelLabelByCode(code: number): string {
+  /** Libellé du niveau (accepte le code numérique OU le nom d'enum anglais). */
+  getApprovalLevelLabelByCode(code: number | string): string {
+    const byName: Record<string, string> = {
+      None: 'En attente',
+      Site: 'Site',
+      Zone: 'Zone / Direction',
+      Treasury: 'Trésorerie',
+      Paid: 'Payé',
+    };
+    if (typeof code === 'string') return byName[code] ?? code;
     return ApprovalLevelLabels[code] ?? String(code);
+  }
+
+  /** Libellé français d'une décision d'approbation. */
+  getDecisionLabel(decision: string): string {
+    const map: Record<string, string> = {
+      Approved: 'Approuvé',
+      Approuve: 'Approuvé',
+      Rejected: 'Rejeté',
+      Rejete: 'Rejeté',
+      Paid: 'Payé',
+      Paye: 'Payé',
+      Pending: 'En attente',
+    };
+    return map[decision] ?? decision;
   }
 
   // ── Calculs dérivés pour les actions ── (droits alignés sur les policies)

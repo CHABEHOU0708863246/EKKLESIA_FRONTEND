@@ -148,6 +148,10 @@ interface Bar {
                     <path [attr.d]="c.offerArea" class="area-offer" />
                     <polyline [attr.points]="c.offerLine" class="ln-offer" />
                     <polyline [attr.points]="c.expLine" class="ln-exp" />
+                    @for (pt of c.points; track $index) {
+                      @if (pt.hasO) { <circle [attr.cx]="pt.x" [attr.cy]="pt.yO" r="4" class="dot-offer" /> }
+                      @if (pt.hasE) { <circle [attr.cx]="pt.x" [attr.cy]="pt.yE" r="3.5" class="dot-exp" /> }
+                    }
                   </svg>
                   <div class="evo-x">
                     @for (l of c.labels; track l.i) { <span>{{ l.text }}</span> }
@@ -384,14 +388,21 @@ interface Bar {
       stroke-linejoin:round; stroke-linecap:round; }
     .evo-svg .ln-exp { fill:none; stroke:#e02424; stroke-width:2; vector-effect:non-scaling-stroke;
       stroke-dasharray:5 4; stroke-linejoin:round; stroke-linecap:round; }
+    .evo-svg .dot-offer { fill:#0e9f6e; stroke:#fff; stroke-width:1.5; vector-effect:non-scaling-stroke; }
+    .evo-svg .dot-exp { fill:#e02424; stroke:#fff; stroke-width:1.5; vector-effect:non-scaling-stroke; }
     .evo-x { display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; margin-top:4px; }
     .evo-x span { flex:1; text-align:center; white-space:nowrap; }
 
     /* Détails (tableaux enrichis) */
     .csp-tr-m { grid-template-columns:1fr 1fr 1fr 1fr .7fr .8fr; }
     .csp-tr-c { grid-template-columns:2fr 1fr .8fr .7fr .9fr 1fr 1fr; }
-    .num { text-align:right; font-variant-numeric:tabular-nums; }
-    .csp-th .num { text-align:right; }
+    // Alignement : 1re colonne à gauche, les autres CENTRÉES (en-tête ET valeur)
+    // pour une lecture nette des nombres.
+    .csp-tr-m > span, .csp-tr-c > span { text-align:center; }
+    .csp-tr-m > span:first-child, .csp-tr-c > span:first-child { text-align:left; }
+    .num { text-align:center; font-variant-numeric:tabular-nums; }
+    .csp-th > span { text-align:center; }
+    .csp-th > span:first-child { text-align:left; }
     .pos { color:#0e9f6e; font-weight:600; }
     .neg { color:#c81e1e; font-weight:600; }
     .row-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -562,9 +573,36 @@ export class ConsolidatedScopePage implements OnInit {
   readonly timeline = computed<TimelinePoint[]>(() => {
     const d = this.data();
     if (!d) return [];
-    if (this.scope === 'International') return d.internationalTimeline ?? [];
-    if (this.scope === 'Synthese') return d.syntheseTimeline ?? [];
-    return d.nationalTimeline ?? [];
+    const base =
+      this.scope === 'International' ? (d.internationalTimeline ?? [])
+      : this.scope === 'Synthese' ? (d.syntheseTimeline ?? [])
+      : (d.nationalTimeline ?? []);
+
+    // Remplit les mois manquants (à zéro) entre le début et la fin de la période
+    // afin que la courbe soit TOUJOURS visible, même avec un seul mois de données.
+    const start = (d.from ?? '').slice(0, 7);
+    const end = (d.to ?? '').slice(0, 7);
+    if (!start || !end || start.length < 7 || end.length < 7) return base;
+
+    const map = new Map(base.map((p) => [p.period, p]));
+    const out: TimelinePoint[] = [];
+    let [y, m] = start.split('-').map(Number);
+    const [ey, em] = end.split('-').map(Number);
+
+    let guard = 0;
+    while ((y < ey || (y === ey && m <= em)) && guard < 36) {
+      const key = `${y}-${String(m).padStart(2, '0')}`;
+      out.push(
+        map.get(key) ?? {
+          period: key, offerings: 0, expenses: 0,
+          offeringsCount: 0, expensesCount: 0, servicesCount: 0, attendancePresent: 0,
+        }
+      );
+      m++;
+      if (m > 12) { m = 1; y++; }
+      guard++;
+    }
+    return out.length ? out : base;
   });
 
   readonly churches = computed<ScopeChurchRow[]>(() => {
@@ -609,6 +647,7 @@ export class ConsolidatedScopePage implements OnInit {
     offerLine: string;
     expLine: string;
     offerArea: string;
+    points: { x: number; yO: number; yE: number; hasO: boolean; hasE: boolean }[];
     labels: { i: number; text: string }[];
   } | null>(() => {
     const pts = this.timeline();
@@ -632,6 +671,14 @@ export class ConsolidatedScopePage implements OnInit {
       .map((p, i) => ({ i, text: this.monthLabel(p.period) }))
       .filter((l) => l.i % step === 0 || l.i === n - 1);
 
+    const points = pts.map((p, i) => ({
+      x: x(i),
+      yO: y(p.offerings),
+      yE: y(p.expenses),
+      hasO: p.offerings > 0,
+      hasE: p.expenses > 0,
+    }));
+
     return {
       max,
       y100: padT,
@@ -640,6 +687,7 @@ export class ConsolidatedScopePage implements OnInit {
       offerLine: offerPts.join(' '),
       expLine: expPts.join(' '),
       offerArea: `M ${x(0).toFixed(1)},${base} L ${offerPts.join(' L ')} L ${x(n - 1).toFixed(1)},${base} Z`,
+      points,
       labels,
     };
   });

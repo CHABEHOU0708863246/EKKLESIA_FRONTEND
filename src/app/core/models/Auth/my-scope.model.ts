@@ -4,6 +4,8 @@ export interface ScopeEntity {
   name: string;
   scope?: string;
   isPrimary?: boolean;
+  /** Pour une ZONE : noms des sites/églises qu'elle regroupe. */
+  sites?: string[];
 }
 
 /** Périmètre « clair » de l'utilisateur connecté (rôles, église, sites, zones). */

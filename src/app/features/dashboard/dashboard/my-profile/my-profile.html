@@ -64,14 +64,20 @@
         @if (scope.zones?.length) {
           <div class="mp-scope-section">
             <div class="mp-scope-section-title"><i class="bx bx-map"></i> Zones gérées ({{ scope.zones.length }})</div>
-            <ul class="mp-scope-list">
-              @for (z of scope.zones; track z.id) {
-                <li>
+            @for (z of scope.zones; track z.id) {
+              <div class="mp-zone-block">
+                <div class="mp-zone-head">
                   <span class="mp-scope-name">{{ z.name }}</span>
                   @if (z.scope) { <span class="mp-scope-tag">{{ z.scope }}</span> }
-                </li>
-              }
-            </ul>
+                  @if (z.sites?.length) { <span class="mp-scope-muted">{{ z.sites!.length }} église(s)</span> }
+                </div>
+                @if (z.sites?.length) {
+                  <ul class="mp-zone-sites">
+                    @for (s of z.sites; track s) { <li><i class="bx bx-church"></i> {{ s }}</li> }
+                  </ul>
+                }
+              </div>
+            }
           </div>
         }
 

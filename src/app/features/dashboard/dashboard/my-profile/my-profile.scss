@@ -363,6 +363,43 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .mp-scope-tag--primary { background: rgba(240, 180, 41, 0.25); color: #8a6510; }
 
+.mp-zone-block {
+  border: 1px solid var(--ekk-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--ekk-surface, #fff);
+}
+
+.mp-zone-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mp-zone-sites {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 6px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--ekk-ink, #1f2430);
+    padding: 6px 10px;
+    background: var(--ekk-bg, #f4f7fb);
+    border-radius: 8px;
+
+    i { color: var(--ekk-violet-600, #6c5ce7); font-size: 15px; }
+  }
+}
+
 // ─── Impression : n'imprimer QUE la carte « Mon périmètre » ───
 @media print {
   .no-print,

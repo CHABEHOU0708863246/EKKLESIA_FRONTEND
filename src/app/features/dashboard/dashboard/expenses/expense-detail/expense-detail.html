@@ -165,11 +165,11 @@
               <ul>
                 @for (step of e.approvalHistory; track step.at) {
                   <li>
-                    <span class="ed-step-level">{{ getApprovalLevelLabelByCode(step.level) }}</span>
+                    <span class="ed-step-level">{{ getApprovalLevelLabelByCode(step.level) }} :</span>
                     <span class="ed-step-decision" [class.is-reject]="step.decision === 'Rejected'">
-                      {{ step.decision }}
+                      {{ getDecisionLabel(step.decision) }}
                     </span>
-                    <span class="ed-step-date">{{ getFormattedDateTime(step.at) }}</span>
+                    <span class="ed-step-date">le {{ getFormattedDateTime(step.at) }}</span>
                   </li>
                 }
               </ul>
