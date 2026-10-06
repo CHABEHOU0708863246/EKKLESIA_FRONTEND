@@ -8,6 +8,8 @@ import { UserProfileCreate, UserProfileUtils } from '../../../../core/models/Use
 import { User } from '../../../../core/models/Users/user.model';
 import { Users } from '../../../../core/services/Users/users';
 import { Permissions } from '../../../../core/services/Permissions/permissions';
+import { MyScope } from '../../../../core/models/Auth/my-scope.model';
+import { MyScopeService } from '../../../../core/services/Auth/my-scope';
 import {
   PASSWORD_MIN_LENGTH,
   passwordPolicyValidator,
@@ -54,6 +56,9 @@ export class MyProfile implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
 
+  /** Périmètre : rôles, église, sites et zones gérés (affiché en grand). */
+  myScope = signal<MyScope | null>(null);
+
   // ── Édition des infos de compte (lecture seule pour l'instant, backend n'expose pas de PUT /me pour username/email) ──
   isEditMode = signal(false);
   saving = signal(false);
@@ -82,6 +87,7 @@ export class MyProfile implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private userService: Users,
     private permissions: Permissions,
+    private myScopeApi: MyScopeService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.form = this.fb.group({
@@ -117,6 +123,23 @@ export class MyProfile implements OnInit, OnDestroy {
     if (this.forcePasswordChange()) this.showPasswordSection.set(true);
 
     this.loadCurrentUser();
+    this.loadMyScope();
+  }
+
+  /** Charge le périmètre (rôles, église, sites, zones) pour l'affichage en grand. */
+  private loadMyScope(): void {
+    this.myScopeApi
+      .getMyScope()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => this.myScope.set(res?.data ?? null),
+        error: () => this.myScope.set(null),
+      });
+  }
+
+  /** Imprime la carte « Mon périmètre ». */
+  printScope(): void {
+    if (typeof window !== 'undefined') window.print();
   }
 
   ngOnDestroy(): void {

@@ -243,3 +243,139 @@
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--ekk-violet-600); outline-offset: 1px;
 }
+
+// ══════════════════════════════════════════════════════════════════
+// MON PÉRIMÈTRE (grand format + imprimable)
+// ══════════════════════════════════════════════════════════════════
+.mp-scope {
+  border: 1px solid var(--ekk-border, #e2e8f0);
+}
+
+.mp-scope .mp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h2 { display: flex; align-items: center; gap: 8px; margin: 0; }
+  h2 i { color: var(--ekk-violet-600, #6c5ce7); font-size: 20px; }
+}
+
+.mp-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ekk-border, #e2e8f0);
+  background: var(--ekk-surface, #fff);
+  color: var(--ekk-ink, #1f2430);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover { background: var(--ekk-bg, #f4f7fb); }
+}
+
+.mp-scope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.mp-scope-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  background: var(--ekk-bg, #f4f7fb);
+  border-radius: 10px;
+}
+
+.mp-scope-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--ekk-ink-muted, #64748b);
+}
+
+.mp-scope-value { font-size: 16px; color: var(--ekk-ink, #1f2430); font-weight: 600; }
+.mp-scope-value--strong { font-size: 18px; font-weight: 800; }
+.mp-scope-muted { color: var(--ekk-ink-muted, #64748b); font-style: italic; font-size: 13px; }
+
+.mp-scope-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.mp-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(92, 141, 63, 0.15);
+  color: #3f6329;
+}
+.mp-scope-chip--role { background: rgba(27, 42, 74, 0.12); color: #1B2A4A; }
+
+.mp-scope-section { margin-top: 16px; }
+
+.mp-scope-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ekk-ink, #1f2430);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  i { color: var(--ekk-violet-600, #6c5ce7); font-size: 16px; }
+}
+
+.mp-scope-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border: 1px solid var(--ekk-border, #e2e8f0);
+    border-radius: 9px;
+    background: var(--ekk-surface, #fff);
+  }
+}
+
+.mp-scope-name { font-size: 14px; font-weight: 600; color: var(--ekk-ink, #1f2430); flex: 1; }
+
+.mp-scope-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(92, 141, 63, 0.15);
+  color: #3f6329;
+}
+.mp-scope-tag--primary { background: rgba(240, 180, 41, 0.25); color: #8a6510; }
+
+// ─── Impression : n'imprimer QUE la carte « Mon périmètre » ───
+@media print {
+  .no-print,
+  .mp-page-header,
+  .mp-identity-panel,
+  .mp-force-password,
+  .mp-panel:not(.mp-scope) {
+    display: none !important;
+  }
+  .mp-scope {
+    border: none;
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+  .mp-scope-list { grid-template-columns: 1fr 1fr; }
+}

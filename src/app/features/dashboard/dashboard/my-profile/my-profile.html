@@ -11,6 +11,77 @@
     <h1>Mon profil</h1>
   </header>
 
+  <!-- ══════════════ MON PÉRIMÈTRE (rôles · église · sites · zones) ══════════════ -->
+  @if (myScope(); as scope) {
+    <section class="mp-panel mp-scope print-area">
+      <div class="mp-panel-header">
+        <h2><i class="bx bx-compass"></i> Mon périmètre</h2>
+        <button type="button" class="mp-btn-ghost no-print" (click)="printScope()">
+          <i class="bx bx-printer"></i> Imprimer
+        </button>
+      </div>
+
+      <div class="mp-panel-body">
+        <div class="mp-scope-grid">
+          <div class="mp-scope-item">
+            <span class="mp-scope-label">Rôle(s)</span>
+            <span class="mp-scope-chips">
+              @for (r of scope.roles; track r) {
+                <span class="mp-scope-chip mp-scope-chip--role">{{ r }}</span>
+              }
+              @if (!scope.roles?.length) { <span class="mp-scope-muted">—</span> }
+            </span>
+          </div>
+
+          @if (scope.churchName) {
+            <div class="mp-scope-item">
+              <span class="mp-scope-label">Église</span>
+              <span class="mp-scope-value">{{ scope.churchName }}</span>
+            </div>
+          }
+
+          <div class="mp-scope-item">
+            <span class="mp-scope-label">Périmètre</span>
+            <span class="mp-scope-value mp-scope-value--strong">{{ scope.scopeLabel }}</span>
+          </div>
+        </div>
+
+        @if (scope.sites?.length) {
+          <div class="mp-scope-section">
+            <div class="mp-scope-section-title"><i class="bx bx-map-pin"></i> Sites gérés ({{ scope.sites.length }})</div>
+            <ul class="mp-scope-list">
+              @for (s of scope.sites; track s.id) {
+                <li>
+                  <span class="mp-scope-name">{{ s.name }}</span>
+                  @if (s.scope) { <span class="mp-scope-tag">{{ s.scope }}</span> }
+                  @if (s.isPrimary) { <span class="mp-scope-tag mp-scope-tag--primary">Site de rattachement</span> }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (scope.zones?.length) {
+          <div class="mp-scope-section">
+            <div class="mp-scope-section-title"><i class="bx bx-map"></i> Zones gérées ({{ scope.zones.length }})</div>
+            <ul class="mp-scope-list">
+              @for (z of scope.zones; track z.id) {
+                <li>
+                  <span class="mp-scope-name">{{ z.name }}</span>
+                  @if (z.scope) { <span class="mp-scope-tag">{{ z.scope }}</span> }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (!scope.isGlobalScope && !scope.sites?.length && !scope.zones?.length) {
+          <p class="mp-scope-muted">Aucun site ni zone ne vous est encore assigné. Contactez un administrateur.</p>
+        }
+      </div>
+    </section>
+  }
+
   @if (forcePasswordChange()) {
     <div class="mp-force-password"
          style="background:#FEF3C7;border:1px solid #FDE68A;color:#92400E;padding:12px 16px;border-radius:10px;margin-bottom:16px">
