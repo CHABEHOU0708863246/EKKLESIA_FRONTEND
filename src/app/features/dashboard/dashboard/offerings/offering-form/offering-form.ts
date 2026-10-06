@@ -39,21 +39,6 @@ import { MemberSelect } from '../../../../../core/components/member-select/membe
 import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
 
 /**
- * Table de correspondance catégorie (Paramètres) → type technique conservé pour
- * la compatibilité `offering.type`. Plus aucun choix manuel : le type est
- * déduit de la ligne la plus élevée.
- */
-const CATEGORY_TO_TYPE: Record<string, OfferingType> = {
-  Tithe: OfferingType.Tithe,
-  SundayOffering: OfferingType.SundayOffering,
-  SpecialOffering: OfferingType.SpecialOffering,
-  Thanksgiving: OfferingType.Thanksgiving,
-  Mission: OfferingType.Mission,
-  BuildingFund: OfferingType.BuildingFund,
-  Seed: OfferingType.Seed,
-};
-
-/**
  * Repli local si l'API des catégories est indisponible ou vide (paramètres non
  * semés). Mêmes codes que la migration backend 011 → les lignes restent
  * enregistrables et le total se calcule quand même.
@@ -696,18 +681,10 @@ private searchMembers(term: string): void {
       return;
     }
 
-    // Le type n'est plus choisi manuellement : il est déduit de la ligne la
-    // plus élevée (compatibilité), sinon « Autre ». Les tableaux de bord
-    // s'appuient désormais sur les LIGNES (catégories), pas sur ce champ.
-    const dominant = this.categoryLines()
-      .filter((l) => Number(l.amount) > 0)
-      .sort((a, b) => Number(b.amount) - Number(a.amount))[0];
-    const derivedType = dominant
-      ? (CATEGORY_TO_TYPE[dominant.code] ?? OfferingType.Other)
-      : OfferingType.SundayOffering;
-
+    // Le type est TOUJOURS « Offrande dominicale » (l'offrande du culte) : la
+    // ventilation vit dans les LIGNES (catégories), jamais dans le type.
     const payload: OfferingCreate | OfferingUpdate = {
-      type: derivedType,
+      type: OfferingType.SundayOffering,
       amount: computedAmount,
       currency: raw.currency,
       date: raw.date,
