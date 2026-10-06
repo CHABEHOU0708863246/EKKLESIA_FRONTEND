@@ -40,9 +40,10 @@
           <i class="bx" [ngClass]="themeService.isDark() ? 'bx-sun' : 'bx-moon'"></i>
         </button>
 
-        <div class="session-pill">
+        <div class="session-pill" [title]="myScope?.scopeLabel || ''">
           <span class="session-dot"></span>
-          Connecté · {{ currentUser?.roles?.[0] || 'Membre' }}
+          {{ currentUser?.roles?.[0] || 'Membre' }}
+          @if (myScope?.scopeLabel) { · <strong>{{ myScope?.scopeLabel }}</strong> }
         </div>
 
         <!-- 🔔 Notifications -->
@@ -107,6 +108,64 @@
               <div class="dropdown-username">{{ userName }}</div>
               <div class="dropdown-role">{{ currentUser?.roles?.[0] || 'Membre MIAV' }}</div>
             </div>
+
+            <!-- 🧭 Mon périmètre : rôles, église, sites et zones gérés -->
+            @if (myScope) {
+              <div class="scope-panel">
+                <div class="scope-title"><i class="bx bx-compass"></i> Mon périmètre</div>
+
+                <div class="scope-row">
+                  <span class="scope-label">Rôle(s)</span>
+                  <span class="scope-chips">
+                    @for (r of myScope.roles; track r) {
+                      <span class="scope-chip scope-chip--role">{{ r }}</span>
+                    }
+                  </span>
+                </div>
+
+                @if (myScope.churchName) {
+                  <div class="scope-row">
+                    <span class="scope-label">Église</span>
+                    <span class="scope-value">{{ myScope.churchName }}</span>
+                  </div>
+                }
+
+                <div class="scope-row">
+                  <span class="scope-label">Périmètre</span>
+                  <span class="scope-value">{{ myScope.scopeLabel }}</span>
+                </div>
+
+                @if (myScope.sites?.length) {
+                  <div class="scope-row">
+                    <span class="scope-label">Site(s) géré(s)</span>
+                    <span class="scope-chips">
+                      @for (s of myScope.sites; track s.id) {
+                        <span class="scope-chip" [class.scope-chip--primary]="s.isPrimary">
+                          <i class="bx bx-map-pin"></i> {{ s.name }}
+                          @if (s.scope) { <em>[{{ s.scope }}]</em> }
+                        </span>
+                      }
+                    </span>
+                  </div>
+                }
+
+                @if (myScope.zones?.length) {
+                  <div class="scope-row">
+                    <span class="scope-label">Zone(s) gérée(s)</span>
+                    <span class="scope-chips">
+                      @for (z of myScope.zones; track z.id) {
+                        <span class="scope-chip scope-chip--zone"><i class="bx bx-map"></i> {{ z.name }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+
+                @if (!myScope.isGlobalScope && !myScope.sites?.length && !myScope.zones?.length) {
+                  <p class="scope-empty">Aucun site ni zone ne vous est encore assigné.</p>
+                }
+              </div>
+            }
+
             <hr class="dropdown-divider" />
             <a [routerLink]="['/dashboard/admin/mon-profil']" class="dropdown-item">
               <i class="bx bx-user"></i> Mon profil

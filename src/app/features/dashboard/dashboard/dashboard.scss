@@ -1756,6 +1756,91 @@ $touch-size:     44px;
   100% { margin-left: 100%; }
 }
 
+// ─── Panneau « Mon périmètre » (dans le menu utilisateur) ────────────
+.dropdown-menu { min-width: 300px; }
+
+.scope-panel {
+  padding: 10px 14px 4px;
+  max-width: 360px;
+}
+
+.scope-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: $text-3;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i { color: $purple; font-size: 16px; }
+}
+
+.scope-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.scope-label {
+  font-size: 11px;
+  color: $text-3;
+  font-weight: 600;
+}
+
+.scope-value {
+  font-size: 13px;
+  color: $text-1;
+  font-weight: 500;
+}
+
+.scope-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.scope-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(92, 141, 63, 0.16);
+  color: #3f6329;
+
+  em { font-style: normal; font-weight: 500; opacity: .75; font-size: 11px; }
+
+  i { font-size: 13px; }
+}
+
+.scope-chip--primary {
+  background: rgba(240, 180, 41, 0.22);
+  color: #8a6510;
+}
+
+.scope-chip--role {
+  background: rgba(27, 42, 74, 0.12);
+  color: #1B2A4A;
+}
+
+.scope-chip--zone {
+  background: rgba(108, 92, 231, 0.14);
+  color: #4b3f9e;
+}
+
+.scope-empty {
+  margin: 0;
+  font-size: 12px;
+  color: $text-3;
+  font-style: italic;
+}
+
 
 
 

@@ -26,6 +26,8 @@ import { Dashboards } from '../../../core/services/Dashboard/dashboards';
 import { AppNotifications } from '../../../core/services/Notifications/notifications-app';
 import { AppNotification } from '../../../core/models/Notifications/app-notification.model';
 import { ThemeService } from '../../../core/services/Theme/theme.service';
+import { MyScope } from '../../../core/models/Auth/my-scope.model';
+import { MyScopeService } from '../../../core/services/Auth/my-scope';
 
 
 
@@ -111,6 +113,9 @@ export class Dashboard implements OnInit, OnDestroy {
   /** Barre de progression affichée pendant chaque navigation (feedback visuel). */
   routeLoading: boolean = false;
 
+  /** Périmètre de l'utilisateur connecté (rôles, église, sites, zones). */
+  myScope: MyScope | null = null;
+
   // ─── Options des graphiques ──────────────────────────────────
   chartOptions: any = {
     responsive: true,
@@ -142,9 +147,20 @@ export class Dashboard implements OnInit, OnDestroy {
     public permission: Permissions,
     private dashboardApi: Dashboards,
     private notificationsApi: AppNotifications,
+    private myScopeApi: MyScopeService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  /** Charge le périmètre (rôles + sites + zones) de l'utilisateur connecté. */
+  private loadMyScope(): void {
+    this.subscriptions.add(
+      this.myScopeApi.getMyScope().subscribe({
+        next: (res) => (this.myScope = res?.data ?? null),
+        error: () => (this.myScope = null),
+      })
+    );
   }
 
   ngOnInit(): void {
@@ -160,6 +176,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.loadDashboardData();
     this.startNotificationsPolling();
     this.trackRouteProgress();
+    this.loadMyScope();
   }
 
   /** Affiche une barre de progression à chaque changement de route. */
