@@ -22,6 +22,8 @@ import { environment } from '../../../../environments/environment';
 export class MemberIdCardComponent implements OnChanges {
   @Input({ required: true }) member!: Member;
   @Input() churchName = 'Mission Internationale Arbre de Vie';
+  /** Nom du site déjà résolu par le parent (le backend renvoie SiteName = null). */
+  @Input() resolvedSiteName?: string;
 
   readonly qrDataUrl = signal<string | null>(null);
 
@@ -80,7 +82,9 @@ export class MemberIdCardComponent implements OnChanges {
   }
 
   get siteName(): string {
-    return this.member?.siteName || 'Église mère (siège)';
+    if (this.resolvedSiteName) return this.resolvedSiteName;
+    if (this.member?.siteName) return this.member.siteName;
+    return this.member?.siteId ? 'Site inconnu' : 'Église mère (siège)';
   }
 
   /** URL encodée dans le QR code (vérification de l'appartenance). */

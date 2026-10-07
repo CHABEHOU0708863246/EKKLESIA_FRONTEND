@@ -85,7 +85,7 @@
 
     <!-- ══════════════ CARTE D'IDENTITÉ MEMBRE (PREMIUM) ══════════════ -->
     <section class="md-panel md-idcard-panel">
-      <app-member-id-card [member]="m"
+      <app-member-id-card [member]="m" [resolvedSiteName]="getSiteName(m.siteId)"
         [churchName]="m.churchName || 'Mission Internationale Arbre de Vie'"></app-member-id-card>
     </section>
 
