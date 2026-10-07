@@ -6,7 +6,12 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { PastoralActType, PastoralActTypeLabels, PastoralActTypeIcons } from '../../../../../core/models/PastoralAct/pastoral-act.enums';
-import { PASTORAL_ACT_ROLES, PastoralActUtils } from '../../../../../core/models/PastoralAct/pastoral-act.models';
+import {
+  PastoralActUtils,
+  getRolesForType,
+  getPrimaryRoleForType,
+  getMainRolesForType,
+} from '../../../../../core/models/PastoralAct/pastoral-act.models';
 import { PastoralActResponseDto, PastoralActUpdateDto } from '../../../../../core/models/PastoralAct/pastoral-act.dtos';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
@@ -20,6 +25,7 @@ import { Church as ChurchModel } from '../../../../../core/models/Church/church.
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
+import { PastoralActCertificateComponent } from '../pastoral-act-certificate/pastoral-act-certificate';
 
 const TYPE_OPTIONS = Object.values(PastoralActType).map((value) => ({
   value,
@@ -30,7 +36,7 @@ const TYPE_OPTIONS = Object.values(PastoralActType).map((value) => ({
 @Component({
   selector: 'app-pastoral-act-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, PastoralActCertificateComponent],
   templateUrl: './pastoral-act-detail.html',
   styleUrl: './pastoral-act-detail.scss',
 })
@@ -76,23 +82,26 @@ export class PastoralActDetail implements OnInit, OnDestroy {
 
   // ── Certificat ──
   generatingCertificate = signal(false);
+  certificateVisible = signal(false);
+
+  openCertificate(): void { this.certificateVisible.set(true); }
+  closeCertificate(): void { this.certificateVisible.set(false); }
+  downloadPdf(): void { if (this.actId) this.pastoralActService.downloadCertificatePdf(this.actId); }
 
   form: FormGroup;
 
   selectedType = computed(() => this.form?.get('type')?.value as PastoralActType);
 
-  availableRoles = computed((): string[] => {
-  const type = this.selectedType();
-  let roles: readonly string[];
-  switch (type) {
-    case PastoralActType.Baptism: roles = PASTORAL_ACT_ROLES.Baptism; break;
-    case PastoralActType.Wedding: roles = PASTORAL_ACT_ROLES.Wedding; break;
-    case PastoralActType.Funeral: roles = PASTORAL_ACT_ROLES.Funeral; break;
-    case PastoralActType.ChildDedication: roles = PASTORAL_ACT_ROLES.ChildDedication; break;
-    default: roles = PASTORAL_ACT_ROLES.Other; break;
+  /** Rôles disponibles pour le type de l'acte. */
+  availableRoles = computed((): string[] => getRolesForType(this.selectedType()));
+
+  /** Rôle proposé pour un participant selon son rang. */
+  private defaultRoleForIndex(type: PastoralActType, index: number): string {
+    const mains = getMainRolesForType(type);
+    if (index < mains.length) return mains[index];
+    const roles = this.availableRoles();
+    return roles.find((r) => !mains.includes(r) && r !== 'Officiant') ?? roles[0] ?? 'Participant';
   }
-  return [...roles]; // ✅ conversion en string[] standard
-});
 
   constructor(
     private fb: FormBuilder,
@@ -122,6 +131,7 @@ export class PastoralActDetail implements OnInit, OnDestroy {
         burialLocation: [''],
         bibleVerse: [''],
         godparentsText: [''],
+        ordinationTitle: [''],
       }),
     });
   }
@@ -210,6 +220,7 @@ export class PastoralActDetail implements OnInit, OnDestroy {
         burialLocation: act.details?.burialLocation ?? '',
         bibleVerse: act.details?.bibleVerse ?? '',
         godparentsText: (act.details?.godparents ?? []).join('\n'),
+        ordinationTitle: act.details?.ordinationTitle ?? '',
       },
     }, { emitEvent: false });
 
@@ -382,13 +393,13 @@ export class PastoralActDetail implements OnInit, OnDestroy {
     return this.form.get('participants') as FormArray;
   }
 
-  private buildParticipantGroup(): FormGroup {
+  private buildParticipantGroup(role?: string): FormGroup {
     return this.fb.group({
       memberId: [''],
       memberSearch: [''],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      role: [this.availableRoles()[0], Validators.required],
+      role: [role ?? getPrimaryRoleForType(this.selectedType()), Validators.required],
       dateOfBirth: [''],
     });
   }
@@ -407,8 +418,8 @@ export class PastoralActDetail implements OnInit, OnDestroy {
   }
 
   addParticipant(): void {
-    const group = this.buildParticipantGroup();
     const index = this.participantsArray.length;
+    const group = this.buildParticipantGroup(this.defaultRoleForIndex(this.selectedType(), index));
     this.participantsArray.push(group);
     this.watchParticipantSearch(group, index);
   }
@@ -553,6 +564,8 @@ export class PastoralActDetail implements OnInit, OnDestroy {
           bibleVerse: details.bibleVerse || undefined,
           godparents: this.parseLines(details.godparentsText || ''),
         };
+      case PastoralActType.Ordination:
+        return { ordinationTitle: details.ordinationTitle || undefined };
       default:
         return null;
     }

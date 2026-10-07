@@ -1,0 +1,100 @@
+<!-- Carte d'identité ecclésiastique premium (recto / verso) -->
+<div class="idc-wrap">
+
+  <!-- Barre d'actions (masquée à l'impression) -->
+  <div class="idc-toolbar no-print">
+    <span class="idc-toolbar-title">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6" />
+        <circle cx="8.5" cy="11" r="2" stroke="currentColor" stroke-width="1.6" />
+        <path d="M13 9.5h5M13 13h5M6 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </svg>
+      Carte de membre
+    </span>
+    <button type="button" class="idc-btn" (click)="print()">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 9V4h12v5M6 18H4v-6h16v6h-2M8 14h8v6H8z" stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Exporter en PDF / Imprimer
+    </button>
+  </div>
+
+  <div class="idc-deck idcard-print-area">
+
+    <!-- ══════════ RECTO ══════════ -->
+    <article class="idc-card idc-card--front">
+      <span class="idc-sheen"></span>
+      <span class="idc-watermark">MIAV</span>
+
+      <header class="idc-head">
+        <img class="idc-logo" src="assets/icons/miav-logo.svg" alt="MIAV" />
+        <div class="idc-head-text">
+          <span class="idc-church">{{ churchName }}</span>
+          <span class="idc-kind">Carte de membre</span>
+        </div>
+      </header>
+
+      <div class="idc-body">
+        <div class="idc-photo">
+          <img *ngIf="photoSrc" [appAuthImage]="photoSrc" [alt]="fullName" />
+          <div *ngIf="!photoSrc" class="idc-photo-fallback">{{ initials }}</div>
+        </div>
+
+        <div class="idc-fields">
+          <div class="idc-name">{{ fullName }}</div>
+          <div class="idc-role">{{ statusLabel }}</div>
+
+          <dl class="idc-grid">
+            <div><dt>Matricule</dt><dd>{{ matricule }}</dd></div>
+            <div><dt>Téléphone</dt><dd>{{ member.phone || '—' }}</dd></div>
+            <div><dt>Membre depuis</dt><dd>{{ adhesionDate }}</dd></div>
+            <div><dt>Site</dt><dd>{{ siteName }}</dd></div>
+          </dl>
+        </div>
+
+        <div class="idc-qr">
+          <img *ngIf="qrDataUrl()" [src]="qrDataUrl()!" alt="QR de vérification" />
+          <span class="idc-qr-cap">Vérification</span>
+        </div>
+      </div>
+
+      <footer class="idc-foot">
+        <span class="idc-foot-brand">{{ churchName }}</span>
+        <span class="idc-chip">{{ matricule }}</span>
+      </footer>
+    </article>
+
+    <!-- ══════════ VERSO ══════════ -->
+    <article class="idc-card idc-card--back">
+      <span class="idc-sheen"></span>
+      <span class="idc-stripe"></span>
+
+      <div class="idc-back-body">
+        <p class="idc-back-text">
+          Cette carte atteste que <strong>{{ fullName }}</strong> est membre de
+          <strong>{{ churchName }}</strong>.
+        </p>
+
+        <dl class="idc-grid idc-grid--back">
+          <div><dt>Matricule</dt><dd>{{ matricule }}</dd></div>
+          <div><dt>Statut</dt><dd>{{ statusLabel }}</dd></div>
+          <div><dt>Naissance</dt><dd>{{ birthDate }}</dd></div>
+          <div><dt>Téléphone</dt><dd>{{ member.phone || '—' }}</dd></div>
+        </dl>
+
+        <div class="idc-back-bottom">
+          <div class="idc-sign">
+            <div class="idc-sign-line"></div>
+            <span>Le Pasteur / L'Officiant</span>
+          </div>
+          <div class="idc-back-qr" *ngIf="qrDataUrl()">
+            <img [src]="qrDataUrl()!" alt="QR de vérification" />
+            <small>Scannez pour vérifier</small>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</div>

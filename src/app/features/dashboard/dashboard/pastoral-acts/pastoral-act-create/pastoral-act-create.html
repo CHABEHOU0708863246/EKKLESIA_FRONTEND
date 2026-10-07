@@ -264,7 +264,7 @@
           </div>
         </ng-container>
 
-        <!-- Baptême / Dédicace -->
+        <!-- Baptême / Présentation d'enfant -->
         <ng-container
           *ngIf="selectedType() === PastoralActType.Baptism || selectedType() === PastoralActType.ChildDedication">
           <div class="pac-field pac-field--span-2">
@@ -274,6 +274,15 @@
           <div class="pac-field pac-field--span-2">
             <label for="godparentsText">Parrains / Marraines (un par ligne)</label>
             <textarea id="godparentsText" rows="2" formControlName="godparentsText"></textarea>
+          </div>
+        </ng-container>
+
+        <!-- Ordination -->
+        <ng-container *ngIf="selectedType() === PastoralActType.Ordination">
+          <div class="pac-field pac-field--span-2">
+            <label for="ordinationTitle">Titre d'ordination</label>
+            <input id="ordinationTitle" type="text" formControlName="ordinationTitle"
+              placeholder="Ex. Pasteur, Diacre, Ancien, Évangéliste">
           </div>
         </ng-container>
 

@@ -83,6 +83,12 @@
       <span>{{ error() }}</span>
     </div>
 
+    <!-- ══════════════ CARTE D'IDENTITÉ MEMBRE (PREMIUM) ══════════════ -->
+    <section class="md-panel md-idcard-panel">
+      <app-member-id-card [member]="m"
+        [churchName]="m.churchName || 'Mission Internationale Arbre de Vie'"></app-member-id-card>
+    </section>
+
     <!-- ══════════════ PARCOURS VISITEUR ══════════════ -->
     <section class="md-panel md-stage-panel" *ngIf="m.status === 'Visitor'">
       <div class="md-panel-header">

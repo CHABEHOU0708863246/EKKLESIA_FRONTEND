@@ -13,6 +13,7 @@ import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
 import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/confirm-dialog';
 import { PhoneInput } from '../../../../../core/components/phone-input/phone-input';
+import { MemberIdCardComponent } from '../../../../../core/components/member-id-card/member-id-card';
 import { environment } from '../../../../../../environments/environment';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
@@ -65,7 +66,7 @@ const VISITOR_STAGE_LABELS: Record<VisitorStageKey, string> = {
 @Component({
   selector: 'app-member-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, AuthImageDirective, PhoneInput],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, AuthImageDirective, PhoneInput, MemberIdCardComponent],
   templateUrl: './member-detail.html',
   styleUrl: './member-detail.scss',
 })

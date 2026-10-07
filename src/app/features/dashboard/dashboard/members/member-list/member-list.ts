@@ -11,6 +11,7 @@ import {
   DEFAULT_MEMBER_FILTER,
   MemberExportFilter,
   MemberStatus,
+  memberStatusLabel,
 } from '../../../../../core/models/Members/member.model';
 import { CellGroup } from '../../../../../core/models/Members/cell-group.model';
 import { Members } from '../../../../../core/services/Members/members';
@@ -323,7 +324,8 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
   }
 
   getStatusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
+    // Source unique (couvre les statuts configurables : Ministre Berger, Pasteur…).
+    return memberStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
@@ -333,8 +335,12 @@ getPhotoUrl(photoIdOrUrl: string | undefined): string {
       Active: 'is-active',
       Inactive: 'is-inactive',
       ExMember: 'is-exmember',
+      FraternityLeader: 'is-leader',
+      Shepherd: 'is-leader',
+      MinisterShepherd: 'is-minister',
+      Pastor: 'is-pastor',
     };
-    return map[status] ?? '';
+    return map[status] ?? 'is-unknown';
   }
 
   getSpiritualStatusLabel(status: string): string {

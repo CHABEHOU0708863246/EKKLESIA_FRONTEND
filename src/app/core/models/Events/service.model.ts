@@ -72,6 +72,10 @@ export interface Service {
   // ✅ Champs supprimés : worshipLeaderId, worshipLeaderName, team
   attendance: ServiceAttendance;
   offeringIds: string[];
+  /** Nombre d'offrandes déjà associées à ce culte (hors annulées). */
+  associatedOfferingsCount?: number;
+  /** Vrai si au moins une offrande est déjà rattachée à ce culte. */
+  hasExistingOffering?: boolean;
   status: ServiceStatus;
   statusLabel: string;
   statusColor: string;

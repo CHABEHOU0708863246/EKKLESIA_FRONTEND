@@ -105,20 +105,17 @@
           </select>
         </div>
 
-        <!-- ✅ Culte associé : liste déroulante (cultes enregistrés par l'utilisateur) -->
+        <!-- ✅ Culte associé : sélecteur enrichi (badge « Offrande existante » non bloquant) -->
         <div class="of-field of-field--span-2">
           <label>Culte associé (collecte) <span class="of-required">*</span></label>
-          <select formControlName="serviceId" [disabled]="loadingServices()">
-            <option value="">
-              @if (loadingServices()) { Chargement des cultes… }
-              @else if (services().length === 0) { — Aucun culte enregistré par vous — }
-              @else { — Sélectionner un culte — }
-            </option>
-            @for (s of services(); track s.id) {
-            <option [value]="s.id">{{ getServiceOptionLabel(s) }}</option>
-            }
-          </select>
-          <small class="of-hint">Seuls les cultes que vous avez enregistrés sont proposés.</small>
+          <app-service-select formControlName="serviceId" [services]="services()"
+            [placeholder]="loadingServices() ? 'Chargement des cultes…' : (services().length === 0 ? '— Aucun culte enregistré par vous —' : '— Sélectionner un culte —')">
+          </app-service-select>
+          <small class="of-hint">
+            Seuls les cultes que vous avez enregistrés sont proposés.
+            Un badge « Offrande existante » signale les cultes ayant déjà des offrandes
+            (vous pouvez en ajouter d’autres).
+          </small>
           <p class="of-error" *ngIf="isFieldInvalid('serviceId')">Le culte associé est obligatoire</p>
         </div>
 

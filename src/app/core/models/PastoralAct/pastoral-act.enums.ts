@@ -10,8 +10,10 @@ export enum PastoralActType {
   Wedding = 'Wedding',
   /** Funérailles */
   Funeral = 'Funeral',
-  /** Dédicace d'enfant */
+  /** Présentation d'enfant (ex. dédicace) */
   ChildDedication = 'ChildDedication',
+  /** Ordination (pasteur, diacre, ancien…) */
+  Ordination = 'Ordination',
   /** Autre */
   Other = 'Other'
 }
@@ -23,7 +25,8 @@ export const PastoralActTypeLabels: Record<PastoralActType, string> = {
   [PastoralActType.Baptism]: 'Baptême',
   [PastoralActType.Wedding]: 'Mariage',
   [PastoralActType.Funeral]: 'Funérailles',
-  [PastoralActType.ChildDedication]: 'Dédicace d\'enfant',
+  [PastoralActType.ChildDedication]: 'Présentation d\'enfant',
+  [PastoralActType.Ordination]: 'Ordination',
   [PastoralActType.Other]: 'Autre'
 };
 
@@ -35,6 +38,7 @@ export const PastoralActTypeIcons: Record<PastoralActType, string> = {
   [PastoralActType.Wedding]: '💍',
   [PastoralActType.Funeral]: '🕊️',
   [PastoralActType.ChildDedication]: '👶',
+  [PastoralActType.Ordination]: '🙏',
   [PastoralActType.Other]: '📋'
 };
 
@@ -46,5 +50,6 @@ export const PastoralActTypeColors: Record<PastoralActType, string> = {
   [PastoralActType.Wedding]: 'success',
   [PastoralActType.Funeral]: 'danger',
   [PastoralActType.ChildDedication]: 'warning',
+  [PastoralActType.Ordination]: 'primary',
   [PastoralActType.Other]: 'secondary'
 };

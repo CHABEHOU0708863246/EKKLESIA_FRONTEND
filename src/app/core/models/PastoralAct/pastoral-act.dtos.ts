@@ -346,7 +346,8 @@ export class PastoralActDtoUtils {
         dateOfDeath: act.details.dateOfDeath,
         burialLocation: act.details.burialLocation,
         bibleVerse: act.details.bibleVerse,
-        godparents: act.details.godparents
+        godparents: act.details.godparents,
+        ordinationTitle: act.details.ordinationTitle
       } : null,
       churchId: act.churchId || '',
       siteId: act.siteId || null,
@@ -375,7 +376,8 @@ export class PastoralActDtoUtils {
         dateOfDeath: act.details.dateOfDeath,
         burialLocation: act.details.burialLocation,
         bibleVerse: act.details.bibleVerse,
-        godparents: act.details.godparents
+        godparents: act.details.godparents,
+        ordinationTitle: act.details.ordinationTitle
       } : null,
       siteId: act.siteId || null,
       notes: act.notes || null

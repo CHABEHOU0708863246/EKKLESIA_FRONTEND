@@ -23,6 +23,7 @@ import { Dashboards } from '../../../../core/services/Dashboard/dashboards';
 import { Permissions } from '../../../../core/services/Permissions/permissions';
 import { Service as WorshipService, AttendanceSummary, AttendanceByChurch } from '../../../../core/services/Worship/service';
 import { ConsolidatedDashboardService, ConsolidatedDashboard } from '../../../../core/services/Dashboard/consolidated-dashboard';
+import { MemberStatusLabelPipe, MemberStatusColorPipe } from '../../../../core/pipes/member-status.pipe';
 
 // Enregistrer tous les composants Chart.js
 Chart.register(...registerables);
@@ -30,7 +31,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, MemberStatusLabelPipe, MemberStatusColorPipe],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })

@@ -13,6 +13,41 @@ export enum MemberStatus {
   Pastor = 'Pastor'
 }
 
+/**
+ * Classes CSS (couleur de badge) des statuts de membre, côté Dashboard.
+ * S'appuie sur les libellés de `MemberStatusLabels` (source unique, plus bas).
+ */
+export const MemberStatusCssClasses: Record<string, string> = {
+  Visitor: 'status-visitor',
+  Adherent: 'status-adherent',
+  Active: 'status-active',
+  Inactive: 'status-inactive',
+  ExMember: 'status-exmember',
+  FraternityLeader: 'status-leader',
+  Shepherd: 'status-leader',
+  MinisterShepherd: 'status-minister',
+  Pastor: 'status-pastor',
+};
+
+/** Libellé FRANÇAIS d'un statut, tolérant à la casse (repli : code brut). */
+export function memberStatusLabel(status?: string | null): string {
+  if (!status) return 'Inconnu';
+  const labels = MemberStatusLabels as Record<string, string>;
+  const direct = labels[status] ?? labels[status.trim()];
+  if (direct) return direct;
+  const key = Object.keys(labels).find((k) => k.toLowerCase() === status.toLowerCase());
+  return key ? labels[key] : status;
+}
+
+/** Classe CSS de couleur d'un statut (repli : « status-unknown »). */
+export function memberStatusColor(status?: string | null): string {
+  if (!status) return 'status-unknown';
+  const direct = MemberStatusCssClasses[status];
+  if (direct) return direct;
+  const key = Object.keys(MemberStatusCssClasses).find((k) => k.toLowerCase() === status.toLowerCase());
+  return key ? MemberStatusCssClasses[key] : 'status-unknown';
+}
+
 export enum VisitorStage {
   FirstContact = 'FirstContact',
   Invited = 'Invited',

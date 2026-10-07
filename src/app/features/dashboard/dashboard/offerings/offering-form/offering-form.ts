@@ -36,6 +36,7 @@ import { Token } from '../../../../../core/services/Token/token';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 import { UploadField } from '../../../../../core/components/upload-field/upload-field';
 import { MemberSelect } from '../../../../../core/components/member-select/member-select';
+import { ServiceSelect } from '../../../../../core/components/service-select/service-select';
 import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
 
 /**
@@ -59,7 +60,7 @@ const DEFAULT_OFFERING_CATEGORIES: OfferingCategoryOption[] = [
 @Component({
   selector: 'app-offering-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide, UploadField, MemberSelect],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide, UploadField, MemberSelect, ServiceSelect],
   templateUrl: './offering-form.html',
   styleUrls: ['./offering-form.scss'],
 })

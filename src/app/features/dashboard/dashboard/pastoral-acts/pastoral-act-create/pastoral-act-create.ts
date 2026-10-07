@@ -9,7 +9,11 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { Member } from '../../../../../core/models/Members/member.model';
 import { PastoralActCreateDto, PastoralActResponseDto } from '../../../../../core/models/PastoralAct/pastoral-act.dtos';
 import { PastoralActType, PastoralActTypeLabels, PastoralActTypeIcons } from '../../../../../core/models/PastoralAct/pastoral-act.enums';
-import { PASTORAL_ACT_ROLES } from '../../../../../core/models/PastoralAct/pastoral-act.models';
+import {
+  getRolesForType,
+  getPrimaryRoleForType,
+  getMainRolesForType,
+} from '../../../../../core/models/PastoralAct/pastoral-act.models';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
@@ -37,7 +41,7 @@ export class PastoralActCreate implements OnInit, OnDestroy {
 
   /** Guide d'utilisation (instructions + progression). */
   readonly guideSteps: GuideStep[] = [
-    { icon: 'bx-book-heart', tone: 'info', text: 'Choisissez le type d\'acte (baptême, mariage, funérailles, dédicace).' },
+    { icon: 'bx-book-heart', tone: 'info', text: 'Choisissez le type d\'acte (mariage, baptême, présentation d\'enfant, ordination, funérailles).' },
     { icon: 'bx-calendar-event', tone: 'primary', text: 'Renseignez la date, l\'église / le site et l\'officiant.' },
     { icon: 'bx-group', tone: 'warning', text: 'Ajoutez les participants concernés (un par ligne).' },
     { icon: 'bx-certification', tone: 'success', text: 'Enregistrez pour pouvoir générer le certificat de l\'acte.' },
@@ -81,28 +85,17 @@ loadingPastors = signal(false);
 
   selectedType = computed(() => this.form?.get('type')?.value as PastoralActType);
 
-  availableRoles = computed((): string[] => {
-  const type = this.selectedType();
-  let roles: readonly string[];
-  switch (type) {
-    case PastoralActType.Baptism:
-      roles = PASTORAL_ACT_ROLES.Baptism;
-      break;
-    case PastoralActType.Wedding:
-      roles = PASTORAL_ACT_ROLES.Wedding;
-      break;
-    case PastoralActType.Funeral:
-      roles = PASTORAL_ACT_ROLES.Funeral;
-      break;
-    case PastoralActType.ChildDedication:
-      roles = PASTORAL_ACT_ROLES.ChildDedication;
-      break;
-    default:
-      roles = PASTORAL_ACT_ROLES.Other;
-      break;
+  /** Rôles disponibles, recalculés à chaque changement de type d'acte. */
+  availableRoles = computed((): string[] => getRolesForType(this.selectedType()));
+
+  /** Rôle proposé pour un participant selon son rang (1er = sujet, 2e = 2e partie...). */
+  private defaultRoleForIndex(type: PastoralActType, index: number): string {
+    const mains = getMainRolesForType(type);
+    if (index < mains.length) return mains[index];
+    const roles = this.availableRoles();
+    // 2e rang : rôle secondaire (Parrain, Témoin Époux...), hors parties principales et officiant.
+    return roles.find((r) => !mains.includes(r) && r !== 'Officiant') ?? roles[0] ?? 'Participant';
   }
-  return [...roles]; // ✔ conversion en tableau simple
-});
 
   constructor(
     private fb: FormBuilder,
@@ -134,6 +127,7 @@ loadingPastors = signal(false);
         burialLocation: [''],
         bibleVerse: [''],
         godparentsText: [''], // saisie libre, une ligne par parrain/marraine
+        ordinationTitle: [''], // Pasteur, Diacre, Ancien…
       }),
     });
   }
@@ -160,17 +154,14 @@ loadingPastors = signal(false);
         }
       });
 
-    // Réinitialise le rôle par défaut des participants existants au changement de type
+    // Réinitialise les rôles au changement de type : chaque participant reçoit
+    // le rôle approprié au nouveau type (sujet, 2e partie, puis rôle secondaire).
     this.form.get('type')?.valueChanges
     .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
-    .subscribe(() => {
-      const newRoles = this.availableRoles();
-      for (const control of this.participantsArray.controls) {
-        const roleControl = control.get('role');
-        if (roleControl && !newRoles.includes(roleControl.value)) {
-          roleControl.setValue(newRoles[0] || '');
-        }
-      }
+    .subscribe((type: PastoralActType) => {
+      this.participantsArray.controls.forEach((control, index) => {
+        control.get('role')?.setValue(this.defaultRoleForIndex(type, index));
+      });
     });
   }
 
@@ -311,20 +302,20 @@ private toUsers(items: { id: string; fullName: string; firstName?: string; lastN
     return this.form.get('participants') as FormArray;
   }
 
-  private buildParticipantGroup(): FormGroup {
+  private buildParticipantGroup(role?: string): FormGroup {
     return this.fb.group({
       memberId: [''],
       memberSearch: [''],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      role: [this.availableRoles()[0], Validators.required],
+      role: [role ?? getPrimaryRoleForType(this.selectedType()), Validators.required],
       dateOfBirth: [''],
     });
   }
 
   addParticipant(): void {
-    const group = this.buildParticipantGroup();
     const index = this.participantsArray.length;
+    const group = this.buildParticipantGroup(this.defaultRoleForIndex(this.selectedType(), index));
     this.participantsArray.push(group);
 
     group.get('memberSearch')?.valueChanges
@@ -480,6 +471,8 @@ private toUsers(items: { id: string; fullName: string; firstName?: string; lastN
           bibleVerse: details.bibleVerse || undefined,
           godparents: this.parseLines(details.godparentsText || ''),
         };
+      case PastoralActType.Ordination:
+        return { ordinationTitle: details.ordinationTitle || undefined };
       default:
         return null;
     }

@@ -228,6 +228,14 @@
             </div>
           </ng-container>
 
+          <ng-container *ngIf="fixedType() === PastoralActType.Ordination">
+            <div class="pac-field pac-field--span-2">
+              <label>Titre d'ordination</label>
+              <input type="text" formControlName="ordinationTitle"
+                placeholder="Ex. Pasteur, Diacre, Ancien, Évangéliste">
+            </div>
+          </ng-container>
+
         </div>
       </section>
 

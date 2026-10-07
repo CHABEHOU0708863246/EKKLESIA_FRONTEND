@@ -14,7 +14,10 @@ import {
   PastoralActResponseDto,
 } from '../../../../../core/models/PastoralAct/pastoral-act.dtos';
 import { PastoralActType, PastoralActTypeLabels, PastoralActTypeIcons } from '../../../../../core/models/PastoralAct/pastoral-act.enums';
-import { PASTORAL_ACT_ROLES } from '../../../../../core/models/PastoralAct/pastoral-act.models';
+import {
+  getRolesForType,
+  getPrimaryRoleForType,
+} from '../../../../../core/models/PastoralAct/pastoral-act.models';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
@@ -80,25 +83,7 @@ export class PastoralActEdit implements OnInit, OnDestroy {
   // ✅ Rôles disponibles dérivés du type FIGÉ de l'acte, pas d'un select modifiable
   availableRoles = computed((): string[] => {
     const type = this.fixedType();
-    let roles: readonly string[];
-    switch (type) {
-      case PastoralActType.Baptism:
-        roles = PASTORAL_ACT_ROLES.Baptism;
-        break;
-      case PastoralActType.Wedding:
-        roles = PASTORAL_ACT_ROLES.Wedding;
-        break;
-      case PastoralActType.Funeral:
-        roles = PASTORAL_ACT_ROLES.Funeral;
-        break;
-      case PastoralActType.ChildDedication:
-        roles = PASTORAL_ACT_ROLES.ChildDedication;
-        break;
-      default:
-        roles = PASTORAL_ACT_ROLES.Other;
-        break;
-    }
-    return [...roles];
+    return type ? getRolesForType(type) : getRolesForType(PastoralActType.Other);
   });
 
   constructor(
@@ -129,6 +114,7 @@ export class PastoralActEdit implements OnInit, OnDestroy {
         burialLocation: [''],
         bibleVerse: [''],
         godparentsText: [''],
+        ordinationTitle: [''],
       }),
     });
   }
@@ -211,6 +197,7 @@ export class PastoralActEdit implements OnInit, OnDestroy {
         burialLocation: act.details?.burialLocation || '',
         bibleVerse: act.details?.bibleVerse || '',
         godparentsText: (act.details?.godparents || []).join('\n'),
+        ordinationTitle: act.details?.ordinationTitle || '',
       },
     }, { emitEvent: false });
 
@@ -386,12 +373,13 @@ private loadOfficiant(act: PastoralActResponseDto): void {
   }
 
   private buildParticipantGroup(): FormGroup {
+    const type = this.fixedType() ?? PastoralActType.Other;
     return this.fb.group({
       memberId: [''],
       memberSearch: [''],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      role: [this.availableRoles()[0] || '', Validators.required],
+      role: [this.availableRoles()[0] || getPrimaryRoleForType(type), Validators.required],
       dateOfBirth: [''],
     });
   }
@@ -556,6 +544,8 @@ private loadOfficiant(act: PastoralActResponseDto): void {
           bibleVerse: details.bibleVerse || undefined,
           godparents: this.parseLines(details.godparentsText || ''),
         };
+      case PastoralActType.Ordination:
+        return { ordinationTitle: details.ordinationTitle || undefined };
       default:
         return null;
     }

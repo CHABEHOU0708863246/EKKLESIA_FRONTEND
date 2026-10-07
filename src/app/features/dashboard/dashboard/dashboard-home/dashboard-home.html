@@ -319,7 +319,7 @@
           <tbody>
             <tr *ngFor="let member of recentMembers">
               <td><span class="cell-name">{{ member.fullName }}</span></td>
-              <td><span class="status-badge" [ngClass]="getMemberStatusClass(member.status)">{{ getMemberStatusText(member.status) }}</span></td>
+              <td><span class="status-badge" [ngClass]="member.status | memberStatusColor">{{ member.status | memberStatusLabel }}</span></td>
               <td><span class="cell-ref">{{ member.cellGroupName || '-' }}</span></td>
             </tr>
             <tr *ngIf="recentMembers.length === 0"><td colspan="3" class="empty-state">Aucun membre récent</td></tr>

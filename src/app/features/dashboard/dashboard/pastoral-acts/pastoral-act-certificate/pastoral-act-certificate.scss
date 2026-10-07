@@ -1,0 +1,342 @@
+/* Certificat officiel imprimable — design solennel, or & bordeaux sur ivoire. */
+
+:host {
+  --cert-ivory: #fbf6ea;
+  --cert-ivory-2: #f1e6cf;
+  --cert-gold: #bf9b4a;
+  --cert-gold-light: #e2c47a;
+  --cert-gold-dark: #8a6a2a;
+  --cert-burgundy: #5b1b22;
+  --cert-ink: #2a231e;
+  --cert-ink-soft: #6a6055;
+  --cert-script: 'Great Vibes', 'Segoe Script', 'Brush Script MT', 'Edwardian Script ITC', cursive;
+  --cert-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+}
+
+.cert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(12, 16, 24, 0.8);
+  backdrop-filter: blur(2px);
+  overflow: auto;
+}
+
+.cert-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 96vw;
+}
+
+/* ── Barre d'outils ── */
+.cert-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #fff;
+}
+
+.cert-toolbar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+
+  svg { width: 20px; height: 20px; }
+}
+
+.cert-toolbar-actions { display: inline-flex; gap: 0.5rem; }
+
+.cert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease;
+
+  svg { width: 18px; height: 18px; }
+  &:hover { background: rgba(255, 255, 255, 0.2); }
+  &:active { transform: scale(0.97); }
+}
+
+.cert-btn--primary {
+  background: linear-gradient(135deg, #bf9b4a, #8a6a2a);
+  border-color: transparent;
+  &:hover { background: linear-gradient(135deg, #c9a755, #96732f); }
+}
+
+/* ── Feuille ── */
+.cert-sheet {
+  position: relative;
+  width: min(1120px, 94vw);
+  aspect-ratio: 297 / 210;
+  font-size: clamp(7.5px, 1.03vw, 15px);
+  font-family: var(--cert-serif);
+  color: var(--cert-ink);
+  background:
+    radial-gradient(120% 120% at 0% 0%, #fdfaf2 0%, var(--cert-ivory) 45%, var(--cert-ivory-2) 100%);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* Bordure ornementale (double + coins) */
+.cert-frame {
+  position: absolute;
+  inset: 1.7em;
+  border: 0.28em solid var(--cert-gold-dark);
+  box-shadow: inset 0 0 0 0.12em var(--cert-gold-light), inset 0 0 0 0.42em transparent;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0.5em;
+    border: 0.09em solid var(--cert-gold);
+  }
+}
+
+.cert-corner {
+  position: absolute;
+  width: 2.6em;
+  height: 2.6em;
+  border: 0.16em solid var(--cert-gold);
+
+  &--tl { top: 1.2em; left: 1.2em; border-right: 0; border-bottom: 0; }
+  &--tr { top: 1.2em; right: 1.2em; border-left: 0; border-bottom: 0; }
+  &--bl { bottom: 1.2em; left: 1.2em; border-right: 0; border-top: 0; }
+  &--br { bottom: 1.2em; right: 1.2em; border-left: 0; border-top: 0; }
+}
+
+.cert-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-26deg);
+  font-family: var(--cert-serif);
+  font-weight: 700;
+  font-size: 15em;
+  letter-spacing: 0.04em;
+  color: rgba(138, 106, 42, 0.06);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cert-inner {
+  position: absolute;
+  inset: 3em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* En-tête */
+.cert-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+
+.cert-logo { height: 3.6em; width: 3.6em; object-fit: contain; }
+
+.cert-church { display: flex; flex-direction: column; text-align: left; }
+
+.cert-church-name {
+  font-size: 1.15em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--cert-gold-dark);
+}
+
+.cert-church-sub {
+  font-size: 0.85em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cert-ink-soft);
+}
+
+.cert-cross {
+  margin-top: 0.15em;
+  font-size: 1.6em;
+  color: var(--cert-burgundy);
+  line-height: 1;
+}
+
+/* Titre */
+.cert-title {
+  margin: 0.1em 0 0;
+  font-family: var(--cert-script);
+  font-weight: 400;
+  font-size: 3.2em;
+  color: var(--cert-burgundy);
+  line-height: 1.1;
+}
+
+.cert-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0.35em 0 0.1em;
+
+  span {
+    display: block;
+    width: 7em;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cert-gold), transparent);
+  }
+}
+
+.cert-diamond {
+  width: 0.5em;
+  height: 0.5em;
+  background: var(--cert-gold);
+  transform: rotate(45deg);
+}
+
+/* Corps */
+.cert-intro {
+  margin: 0.55em 0 0.1em;
+  font-style: italic;
+  font-size: 1.05em;
+  color: var(--cert-ink-soft);
+}
+
+.cert-names {
+  margin: 0.05em 0 0.1em;
+  font-family: var(--cert-script);
+  font-size: 3.4em;
+  line-height: 1.15;
+  color: var(--cert-burgundy);
+}
+
+.cert-sentence {
+  margin: 0.2em 0 0;
+  max-width: 42em;
+  font-size: 1.22em;
+  line-height: 1.5;
+  color: var(--cert-ink);
+}
+
+.cert-verse {
+  margin: 0.45em 0 0;
+  padding: 0.35em 1.2em;
+  border: 0.08em solid var(--cert-gold);
+  border-radius: 0.2em;
+  font-style: italic;
+  font-size: 1.02em;
+  color: var(--cert-ink-soft);
+}
+
+.cert-meta {
+  margin: 0.3em 0 0;
+  font-style: italic;
+  font-size: 1em;
+  color: var(--cert-ink-soft);
+}
+
+/* Signatures */
+.cert-footer {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.cert-sign {
+  flex: 1;
+  max-width: 32%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cert-sign-name {
+  font-family: var(--cert-script);
+  font-size: 1.8em;
+  color: var(--cert-ink);
+  min-height: 1.4em;
+}
+
+.cert-sign-line {
+  width: 100%;
+  margin-top: 0.1em;
+  border-top: 0.09em solid var(--cert-gold-dark);
+}
+
+.cert-sign-role {
+  margin-top: 0.25em;
+  font-size: 0.9em;
+  letter-spacing: 0.04em;
+  color: var(--cert-ink-soft);
+}
+
+.cert-seal {
+  flex: 0 0 auto;
+  width: 6em;
+  height: 6em;
+  border: 0.16em solid var(--cert-burgundy);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 0.22em #fff, inset 0 0 0 0.3em var(--cert-gold-light);
+}
+
+.cert-seal-inner {
+  font-family: var(--cert-serif);
+  font-weight: 700;
+  font-size: 0.72em;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+  color: var(--cert-burgundy);
+  text-align: center;
+}
+
+/* Pied */
+.cert-foot {
+  margin-top: 0.9em;
+  font-size: 0.92em;
+  letter-spacing: 0.05em;
+  color: var(--cert-ink-soft);
+}
+
+.cert-foot-dot { margin: 0 0.6em; color: var(--cert-gold); }
+
+/* ── Impression : la feuille occupe la page (visibilité gérée globalement) ── */
+@media print {
+  .cert-overlay {
+    position: static;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    overflow: visible;
+  }
+
+  .cert-toolbar { display: none !important; }
+
+  .cert-sheet {
+    width: 297mm;
+    height: 210mm;
+    aspect-ratio: auto;
+    font-size: 15px;
+    box-shadow: none;
+    overflow: hidden;
+  }
+}

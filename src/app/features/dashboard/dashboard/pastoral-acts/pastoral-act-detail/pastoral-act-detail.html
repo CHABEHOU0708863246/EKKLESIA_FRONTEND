@@ -45,6 +45,10 @@
               <span *ngIf="!generatingCertificate()">Générer le certificat</span>
               <span class="pad-spinner pad-spinner--btn" *ngIf="generatingCertificate()"></span>
             </button>
+            <button type="button" class="pad-btn pad-btn--ghost" *ngIf="a.certificateGenerated"
+              (click)="openCertificate()">Aperçu du certificat</button>
+            <button type="button" class="pad-btn pad-btn--ghost" *ngIf="a.certificateGenerated"
+              (click)="downloadPdf()">Télécharger le PDF</button>
             <button type="button" class="pad-btn pad-btn--primary" (click)="enterEditMode()">Modifier</button>
           </ng-container>
           <ng-container *ngIf="isEditMode()">
@@ -334,6 +338,10 @@
                 <span>Parrains / Marraines</span>
                 <strong>{{ details.godparents?.join(', ') || '—' }}</strong>
               </div>
+              <div class="pad-info-row" *ngIf="a.type === PastoralActType.Ordination">
+                <span>Titre d'ordination</span>
+                <strong>{{ details.ordinationTitle || '—' }}</strong>
+              </div>
             </ng-container>
           </ng-container>
 
@@ -353,6 +361,10 @@
               <div class="pad-field pad-field--span-2"><label>Parrains / Marraines (un par ligne)</label><textarea
                   rows="2" formControlName="godparentsText"></textarea></div>
             </ng-container>
+            <div class="pad-field pad-field--span-2" *ngIf="a.type === PastoralActType.Ordination">
+              <label>Titre d'ordination</label>
+              <input type="text" formControlName="ordinationTitle" placeholder="Ex. Pasteur, Diacre, Ancien">
+            </div>
           </ng-container>
 
         </div>
@@ -370,6 +382,10 @@
       </section>
 
     </form>
+
+    <!-- ══════════════ CERTIFICAT IMPRIMABLE ══════════════ -->
+    <app-pastoral-act-certificate *ngIf="certificateVisible()" [act]="a"
+      (close)="closeCertificate()"></app-pastoral-act-certificate>
   </ng-container>
 
   <!-- ══════════════ POPUP DE CONFIRMATION ══════════════ -->

@@ -325,6 +325,10 @@
   &.is-active { background: var(--ekk-emerald-bg); color: var(--ekk-emerald); }
   &.is-inactive { background: var(--ekk-slate-bg); color: var(--ekk-ink-muted); }
   &.is-exmember { background: var(--ekk-ruby-bg); color: var(--ekk-ruby); }
+  &.is-leader { background: rgba(108, 92, 231, 0.12); color: #6c5ce7; }
+  &.is-minister { background: rgba(155, 89, 182, 0.14); color: #8e44ad; }
+  &.is-pastor { background: rgba(9, 132, 227, 0.14); color: #0984e3; }
+  &.is-unknown { background: var(--ekk-slate-bg); color: var(--ekk-ink-muted); }
 }
 
 // ── États (chargement / vide) ──

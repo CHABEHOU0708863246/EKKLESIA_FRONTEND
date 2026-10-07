@@ -1,0 +1,93 @@
+<!-- Certificat officiel imprimable -->
+<div class="cert-overlay" (click)="close.emit()">
+  <div class="cert-stage">
+
+    <!-- Barre d'outils (masquée à l'impression) -->
+    <div class="cert-toolbar" (click)="$event.stopPropagation()">
+      <span class="cert-toolbar-title">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9V4h12v5M6 18H4v-6h16v6h-2M8 14h8v6H8z" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Aperçu du certificat
+      </span>
+      <div class="cert-toolbar-actions">
+        <button type="button" class="cert-btn cert-btn--primary" (click)="print()">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9V4h12v5M6 18H4v-6h16v6h-2M8 14h8v6H8z" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Imprimer
+        </button>
+        <button type="button" class="cert-btn" (click)="close.emit()">Fermer</button>
+      </div>
+    </div>
+
+    <!-- Feuille du certificat -->
+    <div class="cert-sheet certificate-print-area" (click)="$event.stopPropagation()">
+
+      <span class="cert-frame"></span>
+      <span class="cert-corner cert-corner--tl"></span>
+      <span class="cert-corner cert-corner--tr"></span>
+      <span class="cert-corner cert-corner--bl"></span>
+      <span class="cert-corner cert-corner--br"></span>
+      <span class="cert-watermark">{{ churchName.split(' ')[0] }}</span>
+
+      <div class="cert-inner">
+
+        <!-- En-tête -->
+        <header class="cert-header">
+          <img class="cert-logo" src="assets/icons/miav-logo.svg" alt="MIAV" />
+          <div class="cert-church">
+            <span class="cert-church-name">{{ churchName }}</span>
+            <span class="cert-church-sub">Registre des Actes Pastoraux</span>
+          </div>
+        </header>
+
+        <div class="cert-cross">✝</div>
+
+        <!-- Titre calligraphique -->
+        <h1 class="cert-title">{{ title }}</h1>
+        <div class="cert-rule"><span></span><i class="cert-diamond"></i><span></span></div>
+
+        <!-- Corps -->
+        <p class="cert-intro">Il est certifié par la présente que</p>
+        <p class="cert-names">{{ mainNames }}</p>
+        <p class="cert-sentence">{{ sentence }}</p>
+
+        <p class="cert-verse" *ngIf="showVerse">«&nbsp;{{ act.details?.bibleVerse }}&nbsp;»</p>
+
+        <p class="cert-meta" *ngIf="godparents">Parrain / Marraine&nbsp;: {{ godparents }}</p>
+        <p class="cert-meta" *ngIf="witnesses">Témoins&nbsp;: {{ witnesses }}</p>
+
+        <!-- Signatures -->
+        <footer class="cert-footer">
+          <div class="cert-sign">
+            <div class="cert-sign-name">{{ act.officiantName }}</div>
+            <div class="cert-sign-line"></div>
+            <div class="cert-sign-role">Officiant</div>
+          </div>
+
+          <div class="cert-seal">
+            <div class="cert-seal-inner">SCEAU<br />OFFICIEL<br />MIAV</div>
+          </div>
+
+          <div class="cert-sign">
+            <div class="cert-sign-name">&nbsp;</div>
+            <div class="cert-sign-line"></div>
+            <div class="cert-sign-role">Parties concernées</div>
+          </div>
+        </footer>
+
+        <!-- Pied -->
+        <div class="cert-foot">
+          <span *ngIf="act.certificateNumber">N° {{ act.certificateNumber }}</span>
+          <span *ngIf="!act.certificateNumber">Certificat provisoire — non numéroté</span>
+          <span class="cert-foot-dot">•</span>
+          <span>Émis le {{ today() }}</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

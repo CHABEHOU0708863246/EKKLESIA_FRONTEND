@@ -1355,7 +1355,11 @@ $touch-size:     44px;
   &.status-visitor { background: $gold-glow; color: $gold-dark; &::before { background: $gold; } }
   &.status-adherent { background: rgba(116, 185, 255, 0.10); color: #74B9FF; &::before { background: #74B9FF; } }
   &.status-inactive { background: rgba(0, 0, 0, 0.05); color: $text-3; &::before { background: $text-3; } }
-  &.status-exmember { background: rgba(225, 112, 85, 0.10); color: #E17055; &::before { background: #E17055; } }
+    &.status-exmember { background: rgba(225, 112, 85, 0.10); color: #E17055; &::before { background: #E17055; } }
+    &.status-leader { background: rgba(108, 92, 231, 0.10); color: #6c5ce7; &::before { background: #6c5ce7; } }
+    &.status-minister { background: rgba(155, 89, 182, 0.12); color: #8e44ad; &::before { background: #8e44ad; } }
+    &.status-pastor { background: rgba(9, 132, 227, 0.12); color: #0984e3; &::before { background: #0984e3; } }
+    &.status-unknown { background: rgba(0, 0, 0, 0.05); color: $text-3; &::before { background: $text-3; } }
 
   &.status-pending { background: rgba(253, 203, 110, 0.12); color: $gold-dark; &::before { background: $gold; animation: pulse-dot 1.2s infinite; } }
   &.status-verified { background: rgba(116, 185, 255, 0.10); color: #74B9FF; &::before { background: #74B9FF; } }

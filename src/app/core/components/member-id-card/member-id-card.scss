@@ -1,0 +1,356 @@
+/* Carte de membre MIAV — design premium (recto / verso). */
+
+:host {
+  --idc-navy-1: #0c2340;
+  --idc-navy-2: #143a63;
+  --idc-navy-3: #1c4d7a;
+  --idc-gold: #d4af37;
+  --idc-gold-soft: #ecd493;
+  --idc-gold-dark: #a9862a;
+  --idc-ink: #f4f7fb;
+  --idc-ink-soft: #b9c7da;
+  --idc-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  display: block;
+}
+
+.idc-wrap { display: flex; flex-direction: column; gap: 0.85rem; }
+
+/* ── Barre d'actions ── */
+.idc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.idc-toolbar-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ekk-ink, #22303f);
+
+  svg { width: 20px; height: 20px; }
+}
+
+.idc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #d4af37, #a9862a);
+  color: #1b1305;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(169, 134, 42, 0.35);
+  transition: transform 0.14s ease, filter 0.14s ease;
+
+  svg { width: 18px; height: 18px; }
+  &:hover { filter: brightness(1.06); }
+  &:active { transform: scale(0.97); }
+}
+
+/* ── Jeu de cartes ── */
+.idc-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+}
+
+.idc-card {
+  position: relative;
+  flex: 1 1 380px;
+  max-width: 460px;
+  aspect-ratio: 1.586 / 1;
+  border-radius: 1.1rem;
+  padding: 1.15rem 1.25rem;
+  overflow: hidden;
+  color: var(--idc-ink);
+  font-family: var(--ekk-font, 'Inter', system-ui, sans-serif);
+  background: linear-gradient(135deg, var(--idc-navy-1) 0%, var(--idc-navy-2) 52%, var(--idc-navy-3) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 18px 38px rgba(9, 20, 38, 0.35),
+    0 4px 12px rgba(9, 20, 38, 0.28);
+  display: flex;
+  flex-direction: column;
+}
+
+.idc-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.12) 46%, transparent 60%);
+  pointer-events: none;
+}
+
+.idc-watermark {
+  position: absolute;
+  right: -0.4rem;
+  bottom: -1.4rem;
+  font-size: 5.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgba(212, 175, 55, 0.07);
+  pointer-events: none;
+}
+
+/* ── En-tête ── */
+.idc-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.idc-logo {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.55rem;
+  background: #fff;
+  padding: 0.15rem;
+  object-fit: contain;
+}
+
+.idc-head-text { display: flex; flex-direction: column; min-width: 0; }
+
+.idc-church {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.15;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.idc-kind {
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--idc-gold-soft);
+}
+
+/* ── Corps ── */
+.idc-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 0 0.5rem;
+}
+
+.idc-photo {
+  flex: 0 0 auto;
+  width: 4.6rem;
+  height: 5.6rem;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--idc-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.idc-photo img { width: 100%; height: 100%; object-fit: cover; }
+
+.idc-photo-fallback {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--idc-gold-soft);
+}
+
+.idc-fields { flex: 1; min-width: 0; }
+
+.idc-name {
+  font-family: var(--idc-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idc-role {
+  display: inline-block;
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1b1305;
+  background: linear-gradient(135deg, var(--idc-gold-soft), var(--idc-gold));
+}
+
+.idc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.8rem;
+  margin: 0;
+
+  div { display: flex; flex-direction: column; min-width: 0; }
+  dt {
+    font-size: 0.58rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--idc-ink-soft);
+  }
+  dd {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.idc-qr {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  img {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.35rem;
+    background: #fff;
+    padding: 0.2rem;
+  }
+}
+
+.idc-qr-cap {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--idc-gold-soft);
+}
+
+/* ── Pied ── */
+.idc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.idc-foot-brand {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: var(--idc-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idc-chip {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--idc-gold-soft);
+}
+
+/* ── Verso ── */
+.idc-card--back { padding-top: 0; }
+
+.idc-stripe {
+  display: block;
+  height: 2.4rem;
+  margin: 0 -1.25rem 0.9rem;
+  background: linear-gradient(180deg, #061628, #0a2138);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.idc-back-body { flex: 1; display: flex; flex-direction: column; }
+
+.idc-back-text {
+  margin: 0 0 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--idc-ink-soft);
+
+  strong { color: #fff; }
+}
+
+.idc-grid--back { grid-template-columns: 1fr 1fr; }
+
+.idc-back-bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.idc-sign { flex: 1; }
+
+.idc-sign-line {
+  height: 1px;
+  background: var(--idc-gold);
+  margin-bottom: 0.25rem;
+}
+
+.idc-sign span {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: var(--idc-ink-soft);
+}
+
+.idc-back-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+
+  img {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.35rem;
+    background: #fff;
+    padding: 0.18rem;
+  }
+  small {
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--idc-gold-soft);
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .idc-card { flex-basis: 100%; max-width: 100%; }
+  .idc-name { font-size: 1.3rem; }
+}
+
+/* ── Impression (visibilité gérée globalement) ── */
+@media print {
+  .no-print { display: none !important; }
+  .idc-deck { gap: 8mm; }
+  .idc-card {
+    flex: 0 0 auto;
+    width: 85.6mm;
+    height: 54mm;
+    aspect-ratio: auto;
+    border-radius: 3mm;
+    box-shadow: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .idc-watermark { font-size: 4.4rem; }
+  .idc-name { font-size: 1.25rem; }
+}

@@ -39,10 +39,12 @@ export interface PastoralActDetails {
   dateOfDeath?: Date | null;
   /** Lieu d'inhumation (Funérailles) */
   burialLocation?: string | null;
-  /** Verset biblique (Baptême, Dédicace) */
+  /** Verset biblique (Baptême, Présentation d'enfant) */
   bibleVerse?: string | null;
   /** Liste des parrains/marraines */
   godparents?: string[];
+  /** Titre d'ordination (Pasteur, Diacre, Ancien…) */
+  ordinationTitle?: string | null;
 }
 
 /**
@@ -54,6 +56,7 @@ export interface PastoralActDetailsCreate {
   burialLocation?: string | null;
   bibleVerse?: string | null;
   godparents?: string[];
+  ordinationTitle?: string | null;
 }
 
 /**
@@ -218,7 +221,7 @@ export class PastoralActUtils {
    * Obtenir le rôle principal d'un participant
    */
   static getMainParticipantRole(participant: PastoralActParticipant): string {
-    const mainRoles = ['Baptisé', 'Époux', 'Épouse', 'Défunt', 'Enfant'];
+    const mainRoles = ['Baptisé(e)', 'Baptisé', 'Époux', 'Épouse', 'Défunt(e)', 'Défunt', 'Enfant', 'Ordonné(e)'];
     if (mainRoles.includes(participant.role)) {
       return participant.role;
     }
@@ -239,8 +242,7 @@ export class PastoralActUtils {
    * Obtient le participant principal
    */
   static getMainParticipant(act: PastoralAct): PastoralActParticipant | null {
-    const mainRoles = ['Baptisé', 'Époux', 'Épouse', 'Défunt', 'Enfant'];
-    return act.participants.find(p => mainRoles.includes(p.role)) || null;
+    return act.participants.find(p => isMainRole(act.type, p.role)) || null;
   }
 
   /**
@@ -273,13 +275,60 @@ export class PastoralActUtils {
 // 📊 CONSTANTES
 // ──────────────────────────────────────────────────────────────
 
+/**
+ * Référentiel des rôles de participants PAR type d'acte pastoral.
+ * Le premier rôle de chaque liste est le rôle principal (présélectionné).
+ * Source unique — miroir de PastoralActRoles.cs (backend).
+ */
 export const PASTORAL_ACT_ROLES = {
-  Baptism: ['Baptisé(e)', 'Parrain', 'Marraine', 'Témoin'] as const,
-  Wedding: ['Époux', 'Épouse', 'Témoin', 'Célébrant'] as const,
-  Funeral: ['Défunt', 'Famille', 'Ami'] as const,
-  ChildDedication: ['Enfant', 'Père', 'Mère', 'Parrain', 'Marraine'] as const,
-  Other: ['Participant', 'Témoin'] as const
+  Baptism: ['Baptisé(e)', 'Parrain', 'Marraine', 'Officiant'] as const,
+  Wedding: ['Époux', 'Épouse', 'Témoin Époux', 'Témoin Épouse', 'Officiant'] as const,
+  Funeral: ['Défunt(e)', 'Famille', 'Ami(e)', 'Officiant'] as const,
+  ChildDedication: ['Enfant', 'Père', 'Mère', 'Parrain', 'Marraine', 'Officiant'] as const,
+  Ordination: ['Ordonné(e)', 'Parrain d\'ordination', 'Marraine d\'ordination', 'Officiant'] as const,
+  Other: ['Participant', 'Témoin', 'Officiant'] as const
 } as const;
+
+/** Rôles disponibles pour un type d'acte (tableau simple). */
+export function getRolesForType(type: PastoralActType): string[] {
+  return [...(PASTORAL_ACT_ROLES[type] ?? PASTORAL_ACT_ROLES.Other)];
+}
+
+/** Rôle principal (sujet de l'acte), présélectionné dans le formulaire. */
+export function getPrimaryRoleForType(type: PastoralActType): string {
+  return getRolesForType(type)[0] ?? 'Participant';
+}
+
+/**
+ * Rôles des parties principales (sujets) de l'acte, dans l'ordre.
+ * Sert à présélectionner les participants (1er = 1er sujet, 2e = 2e sujet).
+ */
+export function getMainRolesForType(type: PastoralActType): string[] {
+  switch (type) {
+    case PastoralActType.Wedding: return ['Époux', 'Épouse'];
+    case PastoralActType.Baptism: return ['Baptisé(e)'];
+    case PastoralActType.ChildDedication: return ['Enfant'];
+    case PastoralActType.Ordination: return ['Ordonné(e)'];
+    case PastoralActType.Funeral: return ['Défunt(e)'];
+    default: return ['Participant'];
+  }
+}
+
+/** Synonymes hérités (actes déjà enregistrés) des rôles principaux. */
+const MAIN_ROLE_ALIASES: Record<string, string[]> = {
+  'Baptisé(e)': ['Baptisé', 'baptise'],
+  'Défunt(e)': ['Défunt'],
+};
+
+/** Vrai si le rôle est une partie principale (sujet), tolérant aux variantes héritées. */
+export function isMainRole(type: PastoralActType, role: string | null | undefined): boolean {
+  if (!role) return false;
+  const normalized = role.trim().toLowerCase();
+  return getMainRolesForType(type).some((r) => {
+    if (r.toLowerCase() === normalized) return true;
+    return (MAIN_ROLE_ALIASES[r] ?? []).some((a) => a.toLowerCase() === normalized);
+  });
+}
 
 export const PASTORAL_ACT_DEFAULT_VALUES = {
   page: 1,

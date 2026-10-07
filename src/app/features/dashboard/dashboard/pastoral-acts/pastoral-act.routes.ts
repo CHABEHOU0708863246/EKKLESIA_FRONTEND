@@ -42,12 +42,4 @@ export const PASTORAL_ACTS_ROUTES: Routes = [
     canActivate: [authGuard],
     data: { permissions: ['PastoralAct_Read'] },
   },
-  {
-    path: ':id/edit',
-    loadComponent: () =>
-      import('./pastoral-act-detail/pastoral-act-detail').then((m) => m.PastoralActDetail),
-    title: 'Modifier l\'acte pastoral — MIAV',
-    canActivate: [authGuard],
-    data: { permissions: ['PastoralAct_Update'] },
-  },
 ];
