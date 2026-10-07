@@ -53,6 +53,17 @@ export interface MemberImportReport {
   rows: MemberImportRowResult[];
 }
 
+/** Avatar par défaut (SVG inline) : évite une image manquante (assets/images/… inexistant). */
+const DEFAULT_AVATAR_DATA_URI =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">' +
+      '<rect width="128" height="128" fill="#e8edf3"/>' +
+      '<circle cx="64" cy="48" r="22" fill="#9fb0c2"/>' +
+      '<path d="M18 118c5-24 23-36 46-36s41 12 46 36z" fill="#9fb0c2"/>' +
+      '</svg>'
+  );
+
 @Injectable({
   providedIn: 'root',
 })
@@ -192,7 +203,7 @@ export class Members {
    */
   getMemberPhotoUrl(photoId: string | undefined | null): string {
     if (!photoId || photoId === 'default-profile-photo') {
-      return 'assets/images/default-avatar.png';
+      return DEFAULT_AVATAR_DATA_URI;
     }
     return `${this.baseUrl}/photo/${photoId}`;
   }
