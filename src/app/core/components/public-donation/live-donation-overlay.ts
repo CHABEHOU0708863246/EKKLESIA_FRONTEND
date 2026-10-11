@@ -43,6 +43,8 @@ export class LiveDonationOverlay implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    // Fond TRANSPARENT pour OBS (source navigateur).
+    document.body.classList.add('miav-live-overlay');
     this.serviceId = this.route.snapshot.paramMap.get('serviceId') ?? '';
 
     // Première borne : maintenant (on n'affiche que les nouveaux dons).
@@ -53,6 +55,9 @@ export class LiveDonationOverlay implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('miav-live-overlay');
+    }
   }
 
   private pollNotifications(): void {

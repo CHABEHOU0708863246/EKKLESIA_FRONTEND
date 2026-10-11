@@ -1,6 +1,7 @@
 // src/app/core/components/member-id-card/member-id-card.ts
 import { Component, Inject, Input, OnChanges, PLATFORM_ID, SimpleChanges, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import QRCode from 'qrcode';
 
 import { Member, memberStatusLabel } from '../../models/Members/member.model';
 import { AuthImageDirective } from '../../directives/auth-image.directive';
@@ -102,15 +103,18 @@ export class MemberIdCardComponent implements OnChanges {
   private async generateQr(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
-      // Import paresseux : le QR n'est généré que côté navigateur.
-      const QRCode = await import('qrcode');
-      const url = await QRCode.toDataURL(this.verificationUrl, {
+      // Interop CJS/ESM : l'API peut être sur le namespace ou sous `.default`.
+      const mod: any = QRCode as any;
+      const lib = typeof mod?.toString === 'function' ? mod : (mod?.default ?? mod);
+      // SVG (pur JS) : indépendant de canvas et du build « navigateur ».
+      const svg = await lib.toString(this.verificationUrl, {
+        type: 'svg',
         errorCorrectionLevel: 'M',
         margin: 1,
         width: 240,
         color: { dark: '#0f2a47', light: '#ffffff' },
       });
-      this.qrDataUrl.set(url);
+      this.qrDataUrl.set('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
     } catch {
       this.qrDataUrl.set(null);
     }

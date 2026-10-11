@@ -4,11 +4,13 @@ import {
   Inject,
   Input,
   OnChanges,
+  OnInit,
   PLATFORM_ID,
   SimpleChanges,
   signal,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import QRCode from 'qrcode';
 
 /**
  * Bloc QR code de don pour un culte (Live Stream).
@@ -24,7 +26,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   templateUrl: './live-donation-qr.html',
   styleUrl: './live-donation-qr.scss',
 })
-export class LiveDonationQrComponent implements OnChanges {
+export class LiveDonationQrComponent implements OnChanges, OnInit {
   @Input({ required: true }) serviceId = '';
   @Input() title = '';
   @Input() subtitle = 'Scannez pour donner';
@@ -36,6 +38,12 @@ export class LiveDonationQrComponent implements OnChanges {
   readonly qrError = signal(false);
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+
+  ngOnInit(): void {
+    // Génère aussi à l'init : couvre le cas d'hydratation où ngOnChanges
+    // ne se redéclenche pas côté client.
+    void this.generateQr();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['serviceId']) void this.generateQr();
@@ -50,16 +58,21 @@ export class LiveDonationQrComponent implements OnChanges {
   private async generateQr(): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.serviceId) return;
     try {
-      const QRCode = await import('qrcode');
-      const url = await QRCode.toDataURL(this.donationUrl, {
+      // Interop CJS/ESM : l'API peut être sur le namespace ou sous `.default`.
+      const mod: any = QRCode as any;
+      const lib = typeof mod?.toString === 'function' ? mod : (mod?.default ?? mod);
+      // SVG (pur JS) : indépendant de canvas et du build « navigateur ».
+      const svg = await lib.toString(this.donationUrl, {
+        type: 'svg',
         errorCorrectionLevel: 'M',
         margin: 1,
         width: 320,
         color: { dark: '#0c2340', light: '#ffffff' },
       });
-      this.qrDataUrl.set(url);
+      this.qrDataUrl.set('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
       this.qrError.set(false);
-    } catch {
+    } catch (e) {
+      console.error('❌ Génération du QR échouée', e, this.donationUrl);
       this.qrError.set(true);
     }
   }

@@ -269,3 +269,10 @@ a.nav-link:active,
   @page { size: A4 portrait; margin: 12mm; }
   body.idcard-printing { background: #fff !important; }
 }
+
+
+/* Overlay OBS : fond transparent (source navigateur OBS Studio). */
+body.miav-live-overlay,
+body.miav-live-overlay app-root {
+  background: transparent !important;
+}
