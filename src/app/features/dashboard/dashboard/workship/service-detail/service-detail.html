@@ -133,19 +133,21 @@
         </div>
         }
 
-<!-- Photo justificative -->
-@if (service()?.attendance?.photoUrl) {
+<!-- Photos justificatives (1 à 5) — RG-PHOTO -->
+@if (photoItems().length || photoLoadFailed()) {
   <div class="sd-photo">
-    <strong>Photo justificative :</strong>
-    <div class="sd-photo-preview" (click)="openPhoto(service()!.attendance.photoUrl)">
-      @if (!photoLoadFailed() && photoObjectUrl()) {
-        <img [src]="photoObjectUrl()" alt="Photo du culte" />
-      } @else if (photoLoadFailed()) {
-        <div class="sd-photo-placeholder">⚠️ Photo non disponible</div>
-      } @else {
-        <div class="sd-photo-loading">Chargement…</div>
-      }
-    </div>
+    <strong>Photos justificatives ({{ photoItems().length }}) :</strong>
+    @if (photoItems().length) {
+      <div class="sd-photo-grid">
+        @for (p of photoItems(); track p.id) {
+          <div class="sd-photo-thumb" (click)="openPhoto(p.id)" title="Agrandir">
+            <img [src]="p.url" alt="Photo du culte" />
+          </div>
+        }
+      </div>
+    } @else if (photoLoadFailed()) {
+      <div class="sd-photo-placeholder">⚠️ Photos non disponibles</div>
+    }
   </div>
 }
 
@@ -154,6 +156,48 @@
         <div class="sd-visitors">
           <strong>Visiteurs :</strong>
           <span>{{ s.attendance.visitorNames.join(', ') }}</span>
+        </div>
+        }
+
+        <!-- ✅ Dons en ligne du culte (Live Stream) -->
+        @if (loadingDonations() || donations().length) {
+        <div class="sd-donations">
+          <div class="sd-donations-head">
+            <strong>Dons en ligne ({{ donations().length }})</strong>
+            <div class="sd-donations-head-right">
+              <span class="sd-donations-total">Total payé : {{ donationsTotal() | number:'1.0-0' }} XOF</span>
+              <button type="button" class="sd-donations-export" (click)="exportDonations()"
+                [disabled]="exporting() || !donations().length" title="Exporter en CSV">
+                <i class="bx bxs-download"></i> {{ exporting() ? '…' : 'Exporter' }}
+              </button>
+            </div>
+          </div>
+          @if (loadingDonations()) {
+            <p class="sd-donations-empty">Chargement…</p>
+          } @else {
+            <ul class="sd-donations-list">
+              @for (d of donations(); track d.intentId) {
+                <li>
+                  <span class="sd-donation-donor">{{ d.donorName }}</span>
+                  <span class="sd-donation-amount">{{ d.amount | number:'1.0-0' }} {{ d.currency }}</span>
+                  <span class="sd-donation-status" [ngClass]="getDonationStatusClass(d.status)">{{ getDonationStatusLabel(d.status) }}</span>
+                  <span class="sd-donation-date">{{ (d.completedAt || d.createdAt) | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <span class="sd-donation-action">
+                    @if (d.isValidated) {
+                      <span class="sd-donation-validated"><i class="bx bx-check-circle"></i> Validé</span>
+                    } @else if (d.offeringId && d.status === 'Paid') {
+                      <button type="button" class="sd-donation-validate" (click)="validateDonation(d)"
+                        [disabled]="validatingIntent() === d.intentId">
+                        {{ validatingIntent() === d.intentId ? '…' : 'Valider' }}
+                      </button>
+                    } @else {
+                      <span class="sd-donation-na">—</span>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          }
         </div>
         }
       </div>

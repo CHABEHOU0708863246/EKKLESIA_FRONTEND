@@ -33,6 +33,8 @@ export class ContentDetail implements OnInit, OnDestroy {
   togglingPublish = signal(false);
   fileObjectUrl = signal<string | null>(null);
   fileLoadFailed = signal(false);
+  /** URL externe embarquable (YouTube/Vimeo) → lecteur iframe. */
+  embedExternalUrl = signal<string | null>(null);
   /** Miniature chargée en blob (l'endpoint fichiers exige un token). */
   thumbnailObjectUrl = signal<string | null>(null);
 
@@ -126,12 +128,25 @@ export class ContentDetail implements OnInit, OnDestroy {
   // FICHIER (affichage sécurisé via Blob)
   // ──────────────────────────────────────────────────────────────
 
-  private loadFileContent(fileId: string): void {
-    if (!fileId) return;
+  private loadFileContent(fileIdOrUrl: string): void {
+    if (!fileIdOrUrl) return;
     this.fileLoadFailed.set(false);
 
+    // 🔗 URL EXTERNE (YouTube, Vimeo, CDN, média direct…) : ce n'est PAS un
+    // identifiant de fichier GridFS. On l'utilise telle quelle — jamais
+    // d'appel `/Content/files/{url}` (qui renvoyait un 404).
+    if (this.isExternalUrl(fileIdOrUrl)) {
+      if (this.isEmbeddable(fileIdOrUrl)) {
+        this.embedExternalUrl.set(this.toEmbedUrl(fileIdOrUrl));
+      } else {
+        // Média direct (mp4, mp3, jpg…) affichable par la balise native.
+        this.fileObjectUrl.set(fileIdOrUrl);
+      }
+      return;
+    }
+
     this.contentService
-      .getFile(fileId)
+      .getFile(fileIdOrUrl)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob) => {
@@ -143,6 +158,25 @@ export class ContentDetail implements OnInit, OnDestroy {
           this.fileLoadFailed.set(true);
         },
       });
+  }
+
+  /** Vrai si la chaîne est une URL web externe (et non un id de fichier GridFS). */
+  private isExternalUrl(value: string): boolean {
+    return /^https?:\/\//i.test(value) && !value.includes('/api/v1/Content/files/');
+  }
+
+  /** Vrai si l'URL externe est une plateforme vidéo embarquable (iframe). */
+  private isEmbeddable(url: string): boolean {
+    return /(youtube\.com|youtu\.be|vimeo\.com)/i.test(url);
+  }
+
+  /** Convertit une URL YouTube/Vimeo en URL d'intégration lisible en iframe. */
+  toEmbedUrl(url: string): string {
+    const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&autoplay=1`;
+    const vm = url.match(/vimeo\.com\/(\d+)/);
+    if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+    return url;
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -302,6 +336,12 @@ export class ContentDetail implements OnInit, OnDestroy {
   downloadFile(): void {
     const c = this.content();
     if (!c || !c.url) return;
+
+    // URL externe (YouTube, CDN…) : on ouvre le lien, pas de fetch GridFS.
+    if (this.isExternalUrl(c.url)) {
+      window.open(c.url, '_blank');
+      return;
+    }
 
     this.contentService
       .getFile(c.url)

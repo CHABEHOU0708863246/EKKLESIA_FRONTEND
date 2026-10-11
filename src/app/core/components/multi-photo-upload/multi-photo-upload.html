@@ -1,0 +1,77 @@
+<!-- Sélecteur multi-photos (1 à 5) — cultes & offrandes. RG-PHOTO -->
+<div class="mpu" [class.mpu--disabled]="disabled">
+
+  <div class="mpu__head">
+    <label class="mpu__label">{{ label }} <span class="mpu__required" *ngIf="minCount > 0">*</span></label>
+    <span class="mpu__counter" [class.mpu__counter--full]="totalCount >= maxCount">
+      {{ counterLabel }}
+    </span>
+  </div>
+
+  <!-- Zone de dépôt / boutons -->
+  <div class="mpu__dropzone"
+    [class.mpu__dropzone--active]="dragActive()"
+    [class.mpu__dropzone--disabled]="!canAdd"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)">
+
+    <input #fileInput type="file" class="mpu__input" multiple hidden
+      [attr.accept]="allowedTypes.join(',')" (change)="onInputChange($event)" />
+
+    <div class="mpu__illus">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 16V4m0 0L8 8m4-4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </div>
+
+    <p class="mpu__prompt">
+      Glissez vos photos ici ou
+      <span class="mpu__link">parcourez vos fichiers</span>
+    </p>
+    <p class="mpu__rules">JPEG, PNG, WEBP — 5 Mo max/photo — {{ minCount }} à {{ maxCount }} photos</p>
+
+    <div class="mpu__actions">
+      <button type="button" class="mpu__btn" [disabled]="!canAdd" (click)="fileInput.click()">
+        <i class="bx bx-plus"></i> Ajouter des photos
+      </button>
+      @if (isNative) {
+        <button type="button" class="mpu__btn mpu__btn--ghost" [disabled]="!canAdd" (click)="pickFromCamera()">
+          <i class="bx bx-camera"></i> Caméra
+        </button>
+        <button type="button" class="mpu__btn mpu__btn--ghost" [disabled]="!canAdd" (click)="pickFromGallery()">
+          <i class="bx bx-image"></i> Galerie
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Vignettes -->
+  <div class="mpu__thumbs" *ngIf="count > 0 || retainedExisting.length > 0">
+    <!-- Photos existantes -->
+    <div class="mpu__thumb mpu__thumb--existing" *ngFor="let id of retainedExisting">
+      <img [appAuthImage]="resolveUrl(id)" alt="Photo justificative" />
+      <button type="button" class="mpu__remove" [disabled]="disabled"
+        (click)="removeExisting(id)" aria-label="Retirer cette photo">×</button>
+    </div>
+
+    <!-- Nouvelles photos -->
+    <div class="mpu__thumb" *ngFor="let p of photos(); let i = index">
+      <img [src]="p.url" [alt]="p.file.name" />
+      <button type="button" class="mpu__remove" [disabled]="disabled"
+        (click)="removeAt(i)" aria-label="Retirer cette photo">×</button>
+    </div>
+
+    <!-- Tuile d'ajout rapide -->
+    <button type="button" class="mpu__thumb mpu__thumb--add" *ngIf="canAdd" (click)="fileInput.click()"
+      aria-label="Ajouter des photos">
+      <i class="bx bx-plus"></i>
+    </button>
+  </div>
+
+  <p class="mpu__error" role="alert" *ngIf="error()">
+    <i class="bx bx-error-circle"></i> {{ error() }}
+  </p>
+  <p class="mpu__hint" *ngIf="hint">{{ hint }}</p>
+</div>

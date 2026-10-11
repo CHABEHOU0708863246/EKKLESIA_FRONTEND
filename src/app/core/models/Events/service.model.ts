@@ -39,6 +39,7 @@ export interface ServiceAttendance {
   notAcceptedJesus: number;
   observation?: string;
   photoUrl?: string;
+  photoUrls?: string[];   // Photos du culte (1 à 5) — RG-PHOTO
   visitorNames: string[];
   // ── Calculés côté serveur (lecture seule) ──
   adults?: number;

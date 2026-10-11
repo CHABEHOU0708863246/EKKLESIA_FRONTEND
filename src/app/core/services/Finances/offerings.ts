@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { compressedFormData } from '../../utils/upload.helper';
+import { compressedFormData, compressedFormDataMulti } from '../../utils/upload.helper';
 import { UploadProgressService } from '../Uploads/upload-progress.service';
 
 import { environment } from '../../../../environments/environment';
@@ -207,6 +207,36 @@ getValidationPhotoUrl(photoId: string): string {
       }),
       catchError(this.handleError<Offering>('uploadValidationPhoto'))
     );
+  }
+
+  /**
+   * Upload de 1 à 5 photos justificatives (RG-PHOTO).
+   * POST /api/v1/Offering/{id}/validation-photos (FormData, champ « photos »).
+   */
+  uploadValidationPhotos(offeringId: string, files: File[]): Observable<ApiResponse<Offering>> {
+    return compressedFormDataMulti('photos', files).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(
+          this.http.post<ApiResponse<Offering>>(
+            `${this.baseUrl}/${offeringId}/validation-photos`,
+            formData
+          )
+        )
+      ),
+      tap(response => {
+        if (response.success) {
+          console.log(`${files.length} photo(s) justificative(s) uploadée(s) pour l'offrande:`, offeringId);
+        }
+      }),
+      catchError(this.handleError<Offering>('uploadValidationPhotos'))
+    );
+  }
+
+  /** Supprime une photo justificative (RG-PHOTO). */
+  deleteValidationPhoto(offeringId: string, photoId: string): Observable<ApiResponse<Offering>> {
+    return this.http
+      .delete<ApiResponse<Offering>>(`${this.baseUrl}/${offeringId}/validation-photos/${photoId}`)
+      .pipe(catchError(this.handleError<Offering>('deleteValidationPhoto')));
   }
 
   /**

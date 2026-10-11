@@ -511,3 +511,61 @@ $transition: 0.2s ease-in-out;
     }
   }
 }
+
+
+/* --- Incrustation QR de don (overlay sur le lecteur) --- */
+.lb-player { position: relative; }
+
+.lb-qr-overlay {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+}
+
+/* --- Panneau Régie : collecte en direct --- */
+.lb-donation-panel {
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.3rem;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.lb-donation-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.4rem;
+
+  i { font-size: 22px; color: #0c2340; }
+  h3 { margin: 0; font-size: 1.05rem; color: #0c2340; }
+}
+
+.lb-donation-hint { font-size: 0.85rem; color: #64748b; margin: 0 0 1rem; }
+
+.lb-donation-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+
+  label { font-weight: 600; font-size: 0.85rem; color: #334155; min-width: 150px; }
+
+  select, input[type="text"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+}
+
+.lb-donation-row--obs input[type="text"] {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  color: #475569;
+}

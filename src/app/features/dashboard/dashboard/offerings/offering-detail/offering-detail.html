@@ -150,21 +150,25 @@
         }
       </div>
 
-      <!-- ✅ Carte : Photo justificative -->
-      @if (o.validationPhotoUrl) {
+      <!-- ✅ Carte : Photos justificatives (1 à 5) — RG-PHOTO -->
+      @if (photoIds(o).length) {
       <div class="od-card">
-        <h3>Photo justificative</h3>
-        <div class="od-photo-container">
-          <img [appAuthImage]="getPhotoUrl(o.validationPhotoUrl)" alt="Photo justificative" class="od-photo-preview"
-            (click)="viewPhoto(o.validationPhotoUrl)" />
-          <div class="od-photo-actions">
-            <button class="od-btn-icon" (click)="viewPhoto(o.validationPhotoUrl)" title="Agrandir">
-              <i class="bx bx-expand"></i>
-            </button>
-            <button class="od-btn-icon" (click)="downloadPhoto(o.validationPhotoUrl)" title="Télécharger">
-              <i class="bx bx-download"></i>
-            </button>
+        <h3>Photos justificatives ({{ photoIds(o).length }})</h3>
+        <div class="od-photo-grid">
+          @for (pid of photoIds(o); track pid) {
+          <div class="od-photo-container">
+            <img [appAuthImage]="getPhotoUrl(pid)" alt="Photo justificative" class="od-photo-preview"
+              (click)="viewPhoto(pid)" />
+            <div class="od-photo-actions">
+              <button class="od-btn-icon" (click)="viewPhoto(pid)" title="Agrandir">
+                <i class="bx bx-expand"></i>
+              </button>
+              <button class="od-btn-icon" (click)="downloadPhoto(pid)" title="Télécharger">
+                <i class="bx bx-download"></i>
+              </button>
+            </div>
           </div>
+          }
         </div>
       </div>
       }

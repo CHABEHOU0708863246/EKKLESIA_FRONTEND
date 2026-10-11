@@ -59,7 +59,11 @@
         @if (c.url && canViewFile()) {
           <div class="cd-card cd-player-card">
             <div class="cd-player-container">
-              @if (isVideo(c.type) && fileObjectUrl()) {
+              @if (embedExternalUrl()) {
+                <iframe class="cd-video" [src]="embedExternalUrl()" frameborder="0"
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                  allowfullscreen title="{{ c.title }}"></iframe>
+              } @else if (isVideo(c.type) && fileObjectUrl()) {
                 <video controls class="cd-video" [src]="fileObjectUrl()" [poster]="thumbnailObjectUrl() || ''"></video>
               } @else if (isAudio(c.type) && fileObjectUrl()) {
                 <audio controls class="cd-audio" [src]="fileObjectUrl()"></audio>

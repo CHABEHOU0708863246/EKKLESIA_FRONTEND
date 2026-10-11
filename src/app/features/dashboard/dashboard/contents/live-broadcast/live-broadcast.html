@@ -98,6 +98,13 @@
               <i class="bx bx-share-alt"></i>
             </button>
           </div>
+
+          <!-- ✅ Incrustation QR de don (overlay sur le lecteur) -->
+          @if (showQr() && selectedServiceId()) {
+            <div class="lb-qr-overlay">
+              <app-live-donation-qr [serviceId]="selectedServiceId()" [title]="broadcastTitle()"></app-live-donation-qr>
+            </div>
+          }
         </div>
 
         <!-- Informations de la diffusion -->
@@ -152,6 +159,41 @@
             </button>
           </div>
         }
+
+        <!-- ══════════ RÉGIE : DON EN DIRECT (QR) ══════════ -->
+        <div class="lb-donation-panel">
+          <div class="lb-donation-head">
+            <i class="bx bx-qr"></i>
+            <h3>Collecte en direct (QR de don)</h3>
+          </div>
+          <p class="lb-donation-hint">
+            Générez le QR code lié au culte en cours. Les fidèles à distance le scannent pour
+            donner via Mobile Money / carte (Genius Pay). Le don est attribué automatiquement au culte.
+          </p>
+
+          <div class="lb-donation-row">
+            <label>Culte rattaché</label>
+            <select [value]="selectedServiceId()" (change)="onServiceChange($any($event.target).value)">
+              @if (services().length === 0) { <option value="">Aucun culte disponible</option> }
+              @for (s of services(); track s.id) {
+                <option [value]="s.id">{{ s.title }} — {{ s.date | date:'dd/MM/yyyy' }}</option>
+              }
+            </select>
+
+            <button class="lb-btn lb-btn--primary" (click)="toggleQr()" [disabled]="!selectedServiceId()">
+              <i class="bx bx-qr-scan"></i> {{ showQr() ? 'Masquer le QR' : 'Afficher le QR' }}
+            </button>
+          </div>
+
+          <div class="lb-donation-row lb-donation-row--obs" *ngIf="selectedServiceId()">
+            <label>Source navigateur OBS</label>
+            <input type="text" [value]="obsUrl" readonly />
+            <button class="lb-btn lb-btn--outline" (click)="copyObsUrl()">
+              <i class="bx" [ngClass]="obsCopied() ? 'bx-check' : 'bx-copy'"></i>
+              {{ obsCopied() ? 'Copié !' : "Copier l'URL" }}
+            </button>
+          </div>
+        </div>
       </div>
     }
   }

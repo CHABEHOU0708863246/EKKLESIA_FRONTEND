@@ -438,3 +438,19 @@ $transition: 0.2s ease-in-out;
     max-height: 140px;
   }
 }
+
+
+/* Grille des photos justificatives (1 a 5) - RG-PHOTO */
+.od-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.od-photo-grid .od-photo-preview {
+  width: 100%;
+  height: 130px;
+  max-height: 130px;
+  object-fit: cover;
+}

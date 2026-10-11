@@ -485,3 +485,155 @@ $transition: 0.2s ease-in-out;
 // ─── SUPPRESSION DES STYLES OBSOLÈTES (équipes, etc.) ──────
 // Les classes .sd-team-*, .sd-member-* ne sont plus utilisées
 // mais peuvent être conservées si vous les réactivez plus tard.
+
+
+/* Grille des photos justificatives (1 a 5) - RG-PHOTO */
+.sd-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+}
+
+.sd-photo-thumb {
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid $gray-300;
+  overflow: hidden;
+  background: $gray-100;
+  transition: border-color $transition, box-shadow $transition;
+
+  &:hover {
+    border-color: $primary;
+    box-shadow: 0 4px 12px rgba($primary, 0.15);
+  }
+
+  img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+
+/* Dons en ligne du culte (Live Stream) */
+.sd-donations {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid $gray-200;
+}
+
+.sd-donations-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  strong { font-size: 0.9rem; color: $gray-700; }
+}
+
+.sd-donations-total {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $primary;
+}
+
+.sd-donations-empty { font-size: 0.85rem; color: $gray-500; }
+
+.sd-donations-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  li {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 0.8fr 1.1fr 0.9fr;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    background: $gray-100;
+    font-size: 0.82rem;
+  }
+}
+
+.sd-donations-head-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sd-donations-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid $gray-300;
+  border-radius: 8px;
+  background: #fff;
+  color: $gray-700;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { border-color: $primary; color: $primary; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.sd-donation-action { justify-self: end; }
+
+.sd-donation-validate {
+  padding: 0.25rem 0.7rem;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { filter: brightness(1.05); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.sd-donation-validated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sd-donation-na { color: $gray-400; }
+
+.sd-donation-donor { font-weight: 600; color: $gray-800; }
+.sd-donation-amount { font-weight: 700; color: $gray-900; }
+.sd-donation-date { color: $gray-500; font-size: 0.75rem; text-align: right; }
+
+.sd-donation-status {
+  justify-self: start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: $gray-300;
+  color: $gray-700;
+
+  &.is-paid { background: rgba(22, 163, 74, 0.15); color: #15803d; }
+  &.is-pending { background: rgba(234, 179, 8, 0.18); color: #a16207; }
+  &.is-failed { background: rgba(220, 38, 38, 0.15); color: #b91c1c; }
+  &.is-cancelled { background: $gray-300; color: $gray-700; }
+}
+
+@media (max-width: 640px) {
+  .sd-donations-list li { grid-template-columns: 1fr 1fr; }
+  .sd-donation-date { grid-column: 1 / 2; text-align: left; }
+  .sd-donation-action { grid-column: 2 / 3; justify-self: end; }
+}

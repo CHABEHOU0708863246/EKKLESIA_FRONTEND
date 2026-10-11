@@ -148,24 +148,24 @@
       </div>
       <div class="of-panel-body">
         <!-- 🔒 Le téléversement exige Finance_Offering_Validate côté backend -->
-        <div class="of-upload-area" *ngIf="canUploadValidationPhoto(); else photoReadOnly">
-          <app-upload-field
-            label="Photo justificative"
-            accept="image/jpeg,image/png,image/webp"
-            [limits]="imageLimits"
-            hint="JPEG, PNG ou WEBP — 12 Mo max."
-            [previewUrl]="photoPreview() || (form.get('validationPhotoUrl')?.value ? getPhotoUrl(form.get('validationPhotoUrl')?.value) : null)"
-            (fileSelected)="onValidationPhotoFile($event)"
-            (cleared)="removePhoto()">
-          </app-upload-field>
+        <div *ngIf="canUploadValidationPhoto(); else photoReadOnly">
+          <app-multi-photo-upload
+            label="Photos justificatives"
+            hint="Obligatoire pour la validation de l'offrande — 1 à 5 photos (JPEG, PNG, WEBP ; 5 Mo max/photo)."
+            [minCount]="1"
+            [maxCount]="5"
+            [existingPhotoIds]="existingPhotoIds"
+            [resolveUrl]="resolvePhotoUrl"
+            (filesChange)="onPhotosChange($event)">
+          </app-multi-photo-upload>
         </div>
         <ng-template #photoReadOnly>
-          <div class="of-upload-preview" *ngIf="form.get('validationPhotoUrl')?.value">
-            <img [appAuthImage]="getPhotoUrl(form.get('validationPhotoUrl')?.value)" alt="Photo justificative" />
+          <div class="of-upload-thumbs" *ngIf="existingPhotoIds.length">
+            <img *ngFor="let pid of existingPhotoIds" [appAuthImage]="getPhotoUrl(pid)" alt="Photo justificative" />
           </div>
-          <p class="of-hint">Seul un utilisateur habilité à valider les offrandes peut joindre la photo justificative.</p>
+          <p class="of-hint" *ngIf="!existingPhotoIds.length">Aucune photo justificative.</p>
+          <p class="of-hint">Seul un utilisateur habilité à valider les offrandes peut joindre les photos justificatives.</p>
         </ng-template>
-        <p class="of-error" *ngIf="isFieldInvalid('validationPhotoUrl')">Une photo est requise</p>
       </div>
     </section>
 

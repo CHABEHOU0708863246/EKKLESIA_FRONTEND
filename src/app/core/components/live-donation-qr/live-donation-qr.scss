@@ -1,0 +1,70 @@
+/* Bloc QR de don (Live Stream). */
+
+.ldq { display: inline-block; }
+
+.ldq__card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.8rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #d4af37;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Mode transparent (source navigateur OBS) : pas de fond de page. */
+.ldq--transparent .ldq__card { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+
+.ldq__qr {
+  width: 132px;
+  height: 132px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: contain; }
+}
+
+.ldq__qr-loading {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(12, 35, 64, 0.2);
+  border-top-color: #0c2340;
+  border-radius: 50%;
+  animation: ldq-spin 0.8s linear infinite;
+}
+
+@keyframes ldq-spin { to { transform: rotate(360deg); } }
+
+.ldq__qr-fallback { font-size: 0.8rem; color: #b91c1c; text-align: center; }
+
+.ldq__text { display: flex; flex-direction: column; gap: 0.15rem; max-width: 220px; }
+
+.ldq__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0c2340;
+  line-height: 1.15;
+}
+
+.ldq__subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8a6a2a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ldq__message { font-size: 0.78rem; color: #475569; }
+
+.ldq__brand {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  strong { color: #0c2340; }
+}

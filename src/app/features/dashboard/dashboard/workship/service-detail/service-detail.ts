@@ -10,6 +10,7 @@ import { Service } from '../../../../../core/services/Worship/service';
 import { Church } from '../../../../../core/services/Church/church';
 import { environment } from '../../../../../../environments/environment.development';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { ServiceDonation } from '../../../../../core/models/Donations/donation.model';
 
 
 @Component({
@@ -26,14 +27,20 @@ export class ServiceDetail implements OnInit, OnDestroy {
   public serviceService = inject(Service);
   public userService = inject(Users);
   private churchService = inject(Church);
-  photoObjectUrl = signal<string | null>(null);
+  /** Photos justificatives chargées (1 à 5) — RG-PHOTO. */
+  photoItems = signal<{ id: string; url: string }[]>([]);
   preacherPhotoObjectUrl = signal<string | null>(null);
-photoLoadFailed = signal(false);
+  photoLoadFailed = signal(false);
 
   service = signal<any | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
   deleting = signal(false);
+
+  // ── Dons en ligne du culte (Live Stream) ──
+  donations = signal<ServiceDonation[]>([]);
+  donationsTotal = signal(0);
+  loadingDonations = signal(false);
 
   // Helpers
   getStatusLabel = ServiceUtils.getStatusLabel;
@@ -53,30 +60,35 @@ photoLoadFailed = signal(false);
   }
 
 
-private loadServicePhoto(photoId: string): void {
-    if (!photoId) return;
+  /** Charge 0 à 5 photos (RG-PHOTO) et construit les URL objets pour l'aperçu. */
+  private loadServicePhotos(photoIds: string[]): void {
+    if (!photoIds?.length) return;
     this.photoLoadFailed.set(false);
-    this.serviceService.getPhoto(photoId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (blob) => {
-          // ✅ Créer une URL objet pour l’image
-          const url = URL.createObjectURL(blob);
-          this.photoObjectUrl.set(url);
-        },
-        error: (err) => {
-          console.error('❌ Erreur chargement photo culte:', err);
-          this.photoLoadFailed.set(true);
-        },
-      });
+    this.photoItems.set([]);
+
+    for (const photoId of photoIds) {
+      if (!photoId) continue;
+      this.serviceService.getPhoto(photoId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (blob) => {
+            const url = URL.createObjectURL(blob);
+            this.photoItems.update((list) => [...list, { id: photoId, url }]);
+          },
+          error: (err) => {
+            console.error('❌ Erreur chargement photo culte:', err);
+            this.photoLoadFailed.set(true);
+          },
+        });
+    }
   }
 
    ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    // ✅ Libérer l’URL objet pour éviter les fuites mémoire
-    if (this.photoObjectUrl()) {
-      URL.revokeObjectURL(this.photoObjectUrl()!);
+    // ✅ Libérer les URL objets pour éviter les fuites mémoire
+    for (const item of this.photoItems()) {
+      URL.revokeObjectURL(item.url);
     }
   }
 
@@ -158,11 +170,94 @@ private loadServicePhoto(photoId: string): void {
 
   private finishLoading(service: any): void {
     this.service.set(service);
-    // ✅ Charger la photo si elle existe
-    if (service.attendance?.photoUrl) {
-      this.loadServicePhoto(service.attendance.photoUrl);
-    }
+    // ✅ Charger les photos (1 à 5) — repli sur la photo unique héritée.
+    const ids: string[] = Array.isArray(service.attendance?.photoUrls) && service.attendance.photoUrls.length
+      ? service.attendance.photoUrls
+      : (service.attendance?.photoUrl ? [service.attendance.photoUrl] : []);
+    this.loadServicePhotos(ids);
+    // ✅ Dons en ligne du culte (Live Stream)
+    this.loadDonations(service.id);
     this.loading.set(false);
+  }
+
+  /** Dons/offrandes en ligne reçus pour ce culte (Live Stream). */
+  private loadDonations(serviceId: string): void {
+    if (!serviceId) return;
+    this.loadingDonations.set(true);
+    this.serviceService.getDonations(serviceId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.donations.set(res?.data ?? []);
+          this.donationsTotal.set(res?.total ?? 0);
+          this.loadingDonations.set(false);
+        },
+        error: () => {
+          this.donations.set([]);
+          this.donationsTotal.set(0);
+          this.loadingDonations.set(false);
+        },
+      });
+  }
+
+  /** Valide l'offrande liée à un don (Confirmer/Valider). */
+  validatingIntent = signal<string | null>(null);
+  exporting = signal(false);
+
+  validateDonation(d: ServiceDonation): void {
+    const sid = this.service()?.id;
+    if (!sid || !d.intentId || this.validatingIntent()) return;
+    this.validatingIntent.set(d.intentId);
+    this.serviceService.validateDonation(sid, d.intentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.validatingIntent.set(null);
+          this.loadDonations(sid);
+        },
+        error: () => {
+          this.validatingIntent.set(null);
+          this.error.set('Impossible de valider ce don.');
+        },
+      });
+  }
+
+  /** Export CSV des dons du culte. */
+  exportDonations(): void {
+    const sid = this.service()?.id;
+    if (!sid || this.exporting()) return;
+    this.exporting.set(true);
+    this.serviceService.exportDonations(sid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          this.exporting.set(false);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dons_culte_${sid}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.exporting.set(false);
+          this.error.set("Impossible d'exporter les dons.");
+        },
+      });
+  }
+
+  getDonationStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      Paid: 'Payé', Pending: 'En attente', Failed: 'Échoué', Cancelled: 'Annulé',
+    };
+    return map[status] ?? status;
+  }
+
+  getDonationStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      Paid: 'is-paid', Pending: 'is-pending', Failed: 'is-failed', Cancelled: 'is-cancelled',
+    };
+    return map[status] ?? '';
   }
 
 

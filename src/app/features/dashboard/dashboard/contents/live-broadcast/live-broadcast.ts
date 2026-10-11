@@ -7,19 +7,28 @@ import { Subject, takeUntil } from 'rxjs';
 import { Content, ContentType } from '../../../../../core/models/Communication/content.model';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import { Contents } from '../../../../../core/services/Content/contents';
+import { Service as WorshipService } from '../../../../../core/services/Worship/service';
+import { LiveDonationQrComponent } from '../../../../../core/components/live-donation-qr/live-donation-qr';
 
 @Component({
   selector: 'app-live-broadcast',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LiveDonationQrComponent],
   templateUrl: './live-broadcast.html',
   styleUrls: ['./live-broadcast.scss'],
 })
 export class LiveBroadcast implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private contentService = inject(Contents);
+  private worshipService = inject(WorshipService);
   private router = inject(Router);
   public permissions = inject(Permissions);
+
+  // ── Régie : don en direct (QR) ──
+  readonly services = signal<any[]>([]);
+  readonly selectedServiceId = signal<string>('');
+  readonly showQr = signal(false);
+  readonly obsCopied = signal(false);
 
   // ── État ──
   broadcast = signal<Content | null>(null);
@@ -47,6 +56,49 @@ export class LiveBroadcast implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadLiveBroadcast();
+    this.loadServices();
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // RÉGIE : DON EN DIRECT (QR)
+  // ──────────────────────────────────────────────────────────────
+
+  /** Charge les cultes récents pour rattacher le don/QR. */
+  private loadServices(): void {
+    this.worshipService.getAll({ page: 1, pageSize: 20 } as any)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          const items = res?.data?.items ?? res?.items ?? res?.data ?? [];
+          this.services.set(Array.isArray(items) ? items : []);
+          if (this.services().length && !this.selectedServiceId()) {
+            this.selectedServiceId.set(this.services()[0].id);
+          }
+        },
+        error: () => this.services.set([]),
+      });
+  }
+
+  onServiceChange(value: string): void {
+    this.selectedServiceId.set(value);
+  }
+
+  toggleQr(): void {
+    this.showQr.update((v) => !v);
+  }
+
+  /** URL de la source navigateur OBS (fond transparent, QR + remerciements). */
+  get obsUrl(): string {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/live/overlay/${this.selectedServiceId()}`;
+  }
+
+  copyObsUrl(): void {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    navigator.clipboard.writeText(this.obsUrl).then(() => {
+      this.obsCopied.set(true);
+      setTimeout(() => this.obsCopied.set(false), 2500);
+    }).catch(() => {});
   }
 
   ngOnDestroy(): void {

@@ -19,6 +19,8 @@ import { User } from '../../../../../core/models/Users/user.model';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
+import { MultiPhotoUpload } from '../../../../../core/components/multi-photo-upload/multi-photo-upload';
+import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -70,7 +72,7 @@ function isPastor(user: any): boolean {
 @Component({
   selector: 'app-service-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormGuide, MultiPhotoUpload, AuthImageDirective],
   templateUrl: './service-form.html',
   styleUrls: ['./service-form.scss'],
 })
@@ -120,7 +122,10 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   // ── Formulaire ──
   form: FormGroup;
-  private selectedPhotoFile: File | null = null;
+  /** Photos sélectionnées (1 à 5) — RG-PHOTO. */
+  selectedPhotos: File[] = [];
+  /** Photos déjà enregistrées (édition). */
+  existingPhotoIds: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -297,6 +302,12 @@ export class ServiceForm implements OnInit, OnDestroy {
       },
     });
 
+    // Photos déjà enregistrées (RG-PHOTO) : liste prioritaire, repli sur la photo unique.
+    const urls: string[] = Array.isArray((service.attendance as any)?.photoUrls) && (service.attendance as any).photoUrls.length
+      ? (service.attendance as any).photoUrls
+      : (service.attendance?.photoUrl ? [service.attendance.photoUrl] : []);
+    this.existingPhotoIds = urls;
+
     this.applyPreacherMode(mode, false);
 
     if (service.churchId) this.loadSites(service.churchId);
@@ -362,12 +373,13 @@ export class ServiceForm implements OnInit, OnDestroy {
   // PHOTO (upload)
   // ──────────────────────────────────────────────────────────────
 
-  onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedPhotoFile = input.files[0];
-    }
+  /** Callback du composant multi-photos (1 à 5). */
+  onPhotosChange(files: File[]): void {
+    this.selectedPhotos = files;
   }
+
+  /** URL d'aperçu d'une photo de culte déjà enregistrée. */
+  readonly resolvePhotoUrl = (id: string): string => this.serviceService.getPhotoUrl(id);
 
   // ──────────────────────────────────────────────────────────────
   // VALIDATION & SOUMISSION
@@ -385,6 +397,12 @@ export class ServiceForm implements OnInit, OnDestroy {
       return;
     }
 
+    // RG-PHOTO : au moins une photo justificative (1 à 5).
+    if ((this.selectedPhotos.length + this.existingPhotoIds.length) < 1) {
+      this.error.set('Au moins une photo justificative est obligatoire (1 à 5 photos).');
+      return;
+    }
+
     const rawValue = this.form.value;
     const isExternal = rawValue.preacherMode === 'external';
 
@@ -395,13 +413,6 @@ export class ServiceForm implements OnInit, OnDestroy {
 
     this.saving.set(true);
     this.error.set(null);
-
-    const photoUrlValue = rawValue.attendance?.photoUrl;
-    const isValidPhotoUrl =
-      photoUrlValue &&
-      photoUrlValue !== 'uploading...' &&
-      photoUrlValue !== '✅ Fichier sélectionné';
-    const photoUrl = isValidPhotoUrl ? photoUrlValue : '';
 
     const payload: ServiceCreate = {
       title: rawValue.title,
@@ -422,7 +433,6 @@ export class ServiceForm implements OnInit, OnDestroy {
         acceptedJesus: rawValue.attendance?.acceptedJesus || 0,
         notAcceptedJesus: rawValue.attendance?.notAcceptedJesus || 0,
         observation: rawValue.attendance?.observation || '',
-        photoUrl: photoUrl,
         visitorNames: rawValue.attendance?.visitorNames || [],
       },
     };
@@ -435,8 +445,8 @@ export class ServiceForm implements OnInit, OnDestroy {
       next: (response: any) => {
         this.saving.set(false);
         if (response && response.isSuccess !== false && response.id) {
-          if (this.selectedPhotoFile) {
-            this.uploadPhoto(response.id);
+          if (this.selectedPhotos.length) {
+            this.uploadPhotos(response.id);
           } else {
             this.router.navigate(['/dashboard/cultes']);
           }
@@ -456,14 +466,17 @@ export class ServiceForm implements OnInit, OnDestroy {
   // UPLOAD DE LA PHOTO (après création du culte)
   // ──────────────────────────────────────────────────────────────
 
-  private uploadPhoto(serviceId: string): void {
-    if (!this.selectedPhotoFile) return;
+  private uploadPhotos(serviceId: string): void {
+    if (!this.selectedPhotos.length) {
+      this.router.navigate(['/dashboard/cultes']);
+      return;
+    }
 
-    this.serviceService.uploadPhoto(serviceId, this.selectedPhotoFile)
+    this.serviceService.uploadPhotos(serviceId, this.selectedPhotos)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          // L'endpoint d'upload enregistre déjà la photo côté serveur.
+          // L'endpoint d'upload enregistre déjà les photos côté serveur.
           // On ne refait PAS de PUT (interdit si le culte est « Terminé »).
           this.router.navigate(['/dashboard/cultes']);
         },

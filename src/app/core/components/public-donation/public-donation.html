@@ -1,0 +1,68 @@
+<!-- Page PUBLIQUE de don d'un culte (Live Stream) -->
+<div class="pd">
+  <div class="pd__card">
+    <header class="pd__head">
+      <img src="/logos/photo_5807922839901294460_x.png" alt="MIAV" class="pd__logo" />
+      <div>
+        <h1>Faire une offrande</h1>
+        <p class="pd__church">Mission Internationale Arbre de Vie</p>
+      </div>
+    </header>
+
+    <div class="pd__loading" *ngIf="loading()"><span class="pd__spinner"></span> Chargement…</div>
+
+    <div class="pd__error" *ngIf="error()">{{ error() }}</div>
+
+    <ng-container *ngIf="!loading() && culte() as c">
+      <div class="pd__culte">
+        <span class="pd__badge" [class.pd__badge--live]="c.isLive">{{ c.isLive ? 'EN DIRECT' : 'Culte' }}</span>
+        <strong>{{ c.title }}</strong>
+        <span class="pd__date" *ngIf="c.date">{{ formatDate(c.date) }}</span>
+      </div>
+
+      <p class="pd__msg" *ngIf="c.message">{{ c.message }}</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label class="pd__label">Montant du don ({{ c.currency }})</label>
+        <div class="pd__amounts">
+          <button type="button" class="pd__chip" *ngFor="let a of c.suggestedAmounts"
+            [class.is-selected]="isAmountSelected(a)" (click)="pickAmount(a)">
+            {{ a | number:'1.0-0' }} {{ c.currency }}
+          </button>
+        </div>
+        <div class="pd__field">
+          <input type="number" formControlName="amount" min="1" placeholder="Autre montant…" />
+        </div>
+
+        <div class="pd__grid">
+          <div class="pd__field">
+            <label>Nom (optionnel)</label>
+            <input type="text" formControlName="donorName" placeholder="Votre nom" />
+          </div>
+          <div class="pd__field">
+            <label>Téléphone (optionnel)</label>
+            <input type="tel" formControlName="donorPhone" placeholder="+225 …" />
+          </div>
+        </div>
+
+        <div class="pd__field">
+          <label>Moyen de paiement</label>
+          <div class="pd__methods">
+            <button type="button" class="pd__chip" *ngFor="let m of methods"
+              [class.is-selected]="form.get('paymentMethod')?.value === m.value"
+              (click)="form.get('paymentMethod')?.setValue(m.value)">
+              {{ m.label }}
+            </button>
+          </div>
+        </div>
+
+        <p class="pd__secure">🔒 Paiement sécurisé par <strong>Genius Pay</strong> (Mobile Money / Carte).</p>
+
+        <button type="submit" class="pd__submit" [disabled]="submitting()">
+          <span *ngIf="!submitting()">Donner {{ form.get('amount')?.value || '' }} {{ c.currency }}</span>
+          <span *ngIf="submitting()">Redirection…</span>
+        </button>
+      </form>
+    </ng-container>
+  </div>
+</div>

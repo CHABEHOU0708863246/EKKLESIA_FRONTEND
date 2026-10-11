@@ -1,0 +1,91 @@
+/* Page publique de don (Live Stream). */
+
+.pd {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(160deg, #0c2340 0%, #143a63 55%, #1c4d7a 100%);
+}
+
+.pd__card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.6rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.pd__head { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem; }
+.pd__logo { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; }
+.pd__head h1 { margin: 0; font-size: 1.25rem; color: #0c2340; }
+.pd__church { margin: 0.15rem 0 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.pd__loading { display: flex; align-items: center; gap: 0.5rem; color: #475569; padding: 1rem 0; }
+.pd__spinner { width: 16px; height: 16px; border: 2px solid rgba(12,35,64,.25); border-top-color: #0c2340; border-radius: 50%; animation: pd-spin .8s linear infinite; }
+@keyframes pd-spin { to { transform: rotate(360deg); } }
+
+.pd__error { background: #fee2e2; color: #b91c1c; border-radius: 10px; padding: 0.7rem 0.9rem; font-size: 0.85rem; margin-bottom: 0.8rem; }
+
+.pd__culte { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.8rem; background: #f1f5f9; border-radius: 12px; margin-bottom: 0.8rem; }
+.pd__culte strong { color: #0c2340; font-size: 1rem; }
+.pd__date { font-size: 0.78rem; color: #64748b; }
+.pd__badge { align-self: flex-start; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; padding: 0.15rem 0.5rem; border-radius: 999px; background: #e2e8f0; color: #475569; }
+.pd__badge--live { background: #ef4444; color: #fff; animation: pd-pulse 1.6s infinite; }
+@keyframes pd-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.pd__msg { font-size: 0.85rem; color: #475569; margin: 0 0 0.8rem; }
+
+.pd__label { display: block; font-weight: 600; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem; }
+
+.pd__amounts, .pd__methods { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.7rem; }
+
+.pd__chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+
+  &:hover { border-color: #0c2340; }
+  &.is-selected { background: #0c2340; border-color: #0c2340; color: #fff; }
+}
+
+.pd__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+@media (max-width: 480px) { .pd__grid { grid-template-columns: 1fr; } }
+
+.pd__field { margin-bottom: 0.8rem; }
+.pd__field label { display: block; font-size: 0.8rem; color: #475569; margin-bottom: 0.3rem; }
+.pd__field input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  &:focus { outline: none; border-color: #0c2340; box-shadow: 0 0 0 3px rgba(12,35,64,.12); }
+}
+
+.pd__secure { font-size: 0.78rem; color: #64748b; margin: 0.3rem 0 0.9rem; }
+
+.pd__submit {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, #d4af37, #a9862a);
+  color: #1b1305;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  &:hover:not(:disabled) { filter: brightness(1.06); }
+  &:active:not(:disabled) { transform: scale(0.98); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}

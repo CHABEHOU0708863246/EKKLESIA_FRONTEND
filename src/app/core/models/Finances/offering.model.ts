@@ -51,6 +51,7 @@ export interface Offering {
   categories: OfferingCategory[];
   categoriesLabel: string;           // Liste des catégories en texte (ex: "1ère offrande, Dîmes")
   validationPhotoUrl?: string;       // URL de la photo justificative
+  validationPhotoUrls?: string[];    // Photos justificatives (1 à 5) — RG-PHOTO
   amount: number;
   currency: string;
   // ── Multi-devises (RG-CURR-02) : devise d'origine + contre-valeur FCFA ──

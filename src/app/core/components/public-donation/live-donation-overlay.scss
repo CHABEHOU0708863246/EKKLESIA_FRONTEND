@@ -1,0 +1,53 @@
+/* Overlay live (OBS) — fond transparent. */
+
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+}
+
+.ldo { position: absolute; inset: 0; }
+
+/* QR en bas à droite */
+.ldo__qr {
+  position: absolute;
+  right: 32px;
+  bottom: 32px;
+}
+
+/* Toasts de remerciement en haut à gauche */
+.ldo__toasts {
+  position: absolute;
+  left: 32px;
+  top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 360px;
+}
+
+.ldo__toast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: rgba(12, 35, 64, 0.92);
+  color: #fff;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+  border-left: 4px solid #d4af37;
+  animation: ldo-in 0.35s ease-out;
+
+  b { color: #ecd493; }
+}
+
+.ldo__toast-emoji { font-size: 1.3rem; }
+.ldo__toast-thanks { display: block; font-size: 0.8rem; color: #b9c7da; }
+
+@keyframes ldo-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

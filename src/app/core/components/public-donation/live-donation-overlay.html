@@ -1,0 +1,22 @@
+<!-- Overlay OBS / incrustation — fond transparent -->
+<div class="ldo">
+  <!-- Notifications « remerciement » en direct -->
+  <div class="ldo__toasts">
+    @for (t of toasts(); track t.id) {
+      <div class="ldo__toast">
+        <span class="ldo__toast-emoji">🎉</span>
+        <div>
+          <strong>{{ t.donorName }}</strong> vient de donner
+          <b>{{ t.amount | number:'1.0-0' }} {{ t.currency }}</b>
+          <span class="ldo__toast-thanks">Merci ! 🙏</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- QR de don -->
+  <div class="ldo__qr">
+    <app-live-donation-qr [serviceId]="serviceId" [transparent]="true"
+      subtitle="Scannez pour donner" message="Offrande & dîmes en ligne"></app-live-donation-qr>
+  </div>
+</div>

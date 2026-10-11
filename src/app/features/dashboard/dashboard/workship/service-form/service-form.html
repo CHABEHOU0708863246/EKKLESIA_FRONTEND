@@ -187,12 +187,17 @@
       <textarea formControlName="observation" rows="2" placeholder="Remarques sur le déroulement du culte..."></textarea>
     </div>
 
-    <!-- ✅ NOUVEAU : Photo justificative (upload) -->
+    <!-- ✅ Photos justificatives (1 à 5) — RG-PHOTO -->
     <div class="sf-field">
-      <label>Photo justificative (obligatoire pour valider les présences)</label>
-      <input type="file" (change)="onPhotoSelected($event)" accept="image/*" />
-      <p class="sf-field-hint" *ngIf="!form.get('attendance.photoUrl')?.value">Aucune photo sélectionnée</p>
-      <p class="sf-field-hint" *ngIf="form.get('attendance.photoUrl')?.value">✅ Photo téléchargée</p>
+      <app-multi-photo-upload
+        label="Photos justificatives (obligatoire pour valider les présences)"
+        hint="1 à 5 photos — JPEG, PNG, WEBP ; 5 Mo max/photo."
+        [minCount]="1"
+        [maxCount]="5"
+        [existingPhotoIds]="existingPhotoIds"
+        [resolveUrl]="resolvePhotoUrl"
+        (filesChange)="onPhotosChange($event)">
+      </app-multi-photo-upload>
     </div>
 
     <!-- ─── BOUTONS D'ACTION ─── -->

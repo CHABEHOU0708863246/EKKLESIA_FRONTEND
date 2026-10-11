@@ -34,7 +34,7 @@ import { Permissions } from '../../../../../core/services/Permissions/permission
 import { Currency as CurrencyService, CurrencyCatalogItem } from '../../../../../core/services/Currency/currency';
 import { Token } from '../../../../../core/services/Token/token';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
-import { UploadField } from '../../../../../core/components/upload-field/upload-field';
+import { MultiPhotoUpload } from '../../../../../core/components/multi-photo-upload/multi-photo-upload';
 import { MemberSelect } from '../../../../../core/components/member-select/member-select';
 import { ServiceSelect } from '../../../../../core/components/service-select/service-select';
 import { IMAGE_FILE_LIMITS } from '../../../../../core/utils/file-validation';
@@ -60,7 +60,7 @@ const DEFAULT_OFFERING_CATEGORIES: OfferingCategoryOption[] = [
 @Component({
   selector: 'app-offering-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide, UploadField, MemberSelect, ServiceSelect],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, FormGuide, MultiPhotoUpload, MemberSelect, ServiceSelect],
   templateUrl: './offering-form.html',
   styleUrls: ['./offering-form.scss'],
 })
@@ -97,10 +97,8 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   readonly imageLimits = IMAGE_FILE_LIMITS;
 
-  /** Reçoit le fichier validé par le champ d'upload réutilisable. */
-  onValidationPhotoFile(file: File): void {
-    this.handleFile(file);
-  }
+  /** Photos sélectionnées (1 à 5) — RG-PHOTO. */
+  selectedPhotos: File[] = [];
 
   // ── Exposé des énumérations au template ──
   readonly OfferingType = OfferingType;
@@ -131,9 +129,8 @@ export class OfferingForm implements OnInit, OnDestroy {
   services = signal<ServiceModel[]>([]);
   loadingServices = signal(false);
 
-  // ── Photo justificative ──
-  photoPreview = signal<string | null>(null);
-  selectedPhotoFile: File | null = null;
+  // ── Photos justificatives (1 à 5) ──
+  existingPhotoIds: string[] = [];
 
   // ── Offrande par catégorie (catégories issues des Paramètres) ──
   offeringCategoryOptions = signal<OfferingCategoryOption[]>([]);
@@ -393,6 +390,12 @@ export class OfferingForm implements OnInit, OnDestroy {
       validationPhotoUrl: offering.validationPhotoUrl || '',
     });
 
+    // Photos déjà enregistrées (RG-PHOTO) : liste prioritaire, repli sur la photo unique.
+    const urls: string[] = Array.isArray(offering.validationPhotoUrls) && offering.validationPhotoUrls.length
+      ? offering.validationPhotoUrls
+      : (offering.validationPhotoUrl ? [offering.validationPhotoUrl] : []);
+    this.existingPhotoIds = urls;
+
     // Pré-remplir les lignes de catégorie à partir de l'offrande éditée.
     this.applyOfferingLines(offering.lines);
 
@@ -414,11 +417,6 @@ export class OfferingForm implements OnInit, OnDestroy {
     // En édition, garantir que le culte de l'offrande figure bien dans la liste.
     if (offering.serviceId) {
       this.ensureServiceInList(offering.serviceId, offering.serviceTitle);
-    }
-
-    // Afficher l'aperçu de la photo si elle existe
-    if (offering.validationPhotoUrl) {
-      this.photoPreview.set(this.getPhotoUrl(offering.validationPhotoUrl));
     }
   }
 
@@ -570,71 +568,26 @@ private searchMembers(term: string): void {
   // GESTION DE LA PHOTO
   // ──────────────────────────────────────────────────────────────
 
-  onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.handleFile(input.files[0]);
-    }
+  /** Callback du composant multi-photos (1 à 5). */
+  onPhotosChange(files: File[]): void {
+    this.selectedPhotos = files;
   }
 
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      this.handleFile(files[0]);
-    }
-  }
-
-  private handleFile(file: File): void {
-    // Vérifier le type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (!allowedTypes.includes(file.type.toLowerCase())) {
-      this.error.set('Type de fichier non autorisé. Formats acceptés : JPEG, PNG, WEBP.');
-      return;
-    }
-
-    // Vérifier la taille (5 Mo max)
-    if (file.size > 5 * 1024 * 1024) {
-      this.error.set('La photo dépasse la taille maximale autorisée (5 Mo).');
-      return;
-    }
-
-    this.selectedPhotoFile = file;
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.photoPreview.set(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Marquer le champ comme touché pour la validation
-    this.form.get('validationPhotoUrl')?.markAsTouched();
-    this.form.get('validationPhotoUrl')?.setValue('uploading...');
-  }
-
-  removePhoto(): void {
-    this.selectedPhotoFile = null;
-    this.photoPreview.set(null);
-    this.form.patchValue({ validationPhotoUrl: '' });
-  }
+  /** URL d'aperçu d'une photo déjà enregistrée (liée pour le composant enfant). */
+  readonly resolvePhotoUrl = (id: string): string => this.getPhotoUrl(id);
 
   // ──────────────────────────────────────────────────────────────
   // UPLOAD DE LA PHOTO (après création ou mise à jour)
   // ──────────────────────────────────────────────────────────────
 
-  private uploadPhoto(offeringId: string): Observable<ApiResponse<Offering>> {
-    if (!this.selectedPhotoFile) {
+  private uploadPhotos(offeringId: string): Observable<ApiResponse<Offering>> {
+    if (!this.selectedPhotos.length) {
       return new Observable(observer => {
         observer.next({ success: true, data: null as any, message: 'Aucune photo à uploader' });
         observer.complete();
       });
     }
-    return this.offeringsService.uploadValidationPhoto(offeringId, this.selectedPhotoFile);
+    return this.offeringsService.uploadValidationPhotos(offeringId, this.selectedPhotos);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -650,6 +603,12 @@ private searchMembers(term: string): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.error.set('Veuillez corriger les champs invalides.');
+      return;
+    }
+
+    // RG-PHOTO : au moins une photo justificative (si l'utilisateur est habilité à en joindre).
+    if (this.canUploadValidationPhoto() && (this.selectedPhotos.length + this.existingPhotoIds.length) < 1) {
+      this.error.set('Au moins une photo justificative est obligatoire.');
       return;
     }
 
@@ -713,10 +672,10 @@ private searchMembers(term: string): void {
         if (response.success && response.data) {
           const offeringId = response.data.id;
 
-          // Si une photo a été sélectionnée, l'uploader
+          // Si des photos ont été sélectionnées, les uploader
           // 🔒 l'upload exige Finance_Offering_Validate côté backend
-          if (this.selectedPhotoFile && this.canUploadValidationPhoto()) {
-            this.uploadPhoto(offeringId).pipe(takeUntil(this.destroy$)).subscribe({
+          if (this.selectedPhotos.length && this.canUploadValidationPhoto()) {
+            this.uploadPhotos(offeringId).pipe(takeUntil(this.destroy$)).subscribe({
               next: (uploadResponse) => {
                 this.success.set(true);
                 setTimeout(() => {

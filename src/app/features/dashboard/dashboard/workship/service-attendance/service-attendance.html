@@ -84,19 +84,17 @@
       <textarea formControlName="observation" rows="2" placeholder="Remarques sur le déroulement du culte…"></textarea>
     </div>
 
-    <!-- Photo justificative -->
+    <!-- Photos justificatives (1 à 5) — RG-PHOTO -->
     <div class="sa-field">
-      <label>Photo justificative <span class="sa-required">*</span></label>
-      <input type="file" (change)="onPhotoSelected($event)" accept="image/*" />
-      <p class="sa-field-hint" *ngIf="!form.get('photoUrl')?.value && !selectedPhotoFile">
-        Une photo est obligatoire pour valider l’enregistrement.
-      </p>
-      <p class="sa-field-hint sa-field-hint-success" *ngIf="selectedPhotoFile || form.get('photoUrl')?.value">
-        ✅ {{ selectedPhotoFile ? selectedPhotoFile.name : 'Photo déjà téléchargée' }}
-      </p>
-      <p class="sa-error-text" *ngIf="isFieldInvalid('photoUrl') && (form.get('photoUrl')?.touched || form.get('photoUrl')?.dirty)">
-        La photo est obligatoire.
-      </p>
+      <app-multi-photo-upload
+        label="Photos justificatives"
+        hint="Obligatoire pour valider l'enregistrement — 1 à 5 photos (JPEG, PNG, WEBP ; 5 Mo max/photo)."
+        [minCount]="1"
+        [maxCount]="5"
+        [existingPhotoIds]="existingPhotoIds"
+        [resolveUrl]="resolvePhotoUrl"
+        (filesChange)="onPhotosChange($event)">
+      </app-multi-photo-upload>
     </div>
 
     <!-- Liste des visiteurs -->

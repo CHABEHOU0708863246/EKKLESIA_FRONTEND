@@ -129,7 +129,14 @@ export class OfferingDetail implements OnInit, OnDestroy {
     return `od-category-${color}`;
   }
 
-  // ── Gestion de la photo ──
+  // ── Gestion des photos (1 à 5) — RG-PHOTO ──
+  /** Identifiants des photos justificatives (liste prioritaire, repli mono-photo). */
+  photoIds(o: any): string[] {
+    const urls = o?.validationPhotoUrls;
+    if (Array.isArray(urls) && urls.length) return urls;
+    return o?.validationPhotoUrl ? [o.validationPhotoUrl] : [];
+  }
+
   getPhotoUrl(photoId: string): string {
   if (!photoId) return '';
   return this.offeringsService.getValidationPhotoUrl(photoId);

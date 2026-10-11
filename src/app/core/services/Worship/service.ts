@@ -2,13 +2,14 @@
 
 import { Injectable } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
-import { compressedFormData } from '../../utils/upload.helper';
+import { compressedFormData, compressedFormDataMulti } from '../../utils/upload.helper';
 import { UploadProgressService } from '../Uploads/upload-progress.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../models/Common/api-response.model';
+import { ServiceDonationsResponse } from '../../models/Donations/donation.model';
 import {
   ServiceCreate,
   ServiceFilter,
@@ -151,6 +152,47 @@ export class Service {
         )
       )
     );
+  }
+
+  /**
+   * Upload de 1 à 5 photos pour un culte (RG-PHOTO).
+   * POST /api/v1/Service/{id}/photos (FormData, champ « photos »).
+   */
+  uploadPhotos(serviceId: string, files: File[]): Observable<{ success: boolean; photoIds?: string[]; data?: Service; message?: string }> {
+    return compressedFormDataMulti('photos', files).pipe(
+      switchMap((formData) =>
+        this.uploadProgress.wrap(
+          this.http.post<{ success: boolean; photoIds?: string[]; data?: Service; message?: string }>(
+            `${this.baseUrl}/${serviceId}/photos`,
+            formData
+          )
+        )
+      )
+    );
+  }
+
+  /** Supprime une photo d'un culte (RG-PHOTO). */
+  deletePhoto(serviceId: string, photoId: string): Observable<{ success: boolean; data?: Service; message?: string }> {
+    return this.http.delete<{ success: boolean; data?: Service; message?: string }>(
+      `${this.baseUrl}/${serviceId}/photos/${photoId}`
+    );
+  }
+
+  /** Dons/offrandes en ligne reçus pour ce culte (Live Stream). */
+  getDonations(serviceId: string): Observable<ServiceDonationsResponse> {
+    return this.http.get<ServiceDonationsResponse>(`${this.baseUrl}/${serviceId}/donations`);
+  }
+
+  /** Valide l'offrande liée à un don (bouton « Confirmer/Valider »). */
+  validateDonation(serviceId: string, intentId: string): Observable<{ success: boolean; data: any[] }> {
+    return this.http.post<{ success: boolean; data: any[] }>(
+      `${this.baseUrl}/${serviceId}/donations/${intentId}/validate`, {}
+    );
+  }
+
+  /** Export CSV des dons du culte (blob). */
+  exportDonations(serviceId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${serviceId}/donations/export`, { responseType: 'blob' });
   }
 
   /**

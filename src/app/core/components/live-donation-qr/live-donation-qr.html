@@ -1,0 +1,21 @@
+<!-- Bloc QR de don (Live Stream) — incrustation ou source OBS -->
+<div class="ldq" [class.ldq--transparent]="transparent">
+  <div class="ldq__card">
+    <div class="ldq__qr">
+      @if (qrDataUrl()) {
+        <img [src]="qrDataUrl()!" alt="QR code pour donner" />
+      } @else if (qrError()) {
+        <div class="ldq__qr-fallback">QR indisponible</div>
+      } @else {
+        <div class="ldq__qr-loading"></div>
+      }
+    </div>
+
+    <div class="ldq__text">
+      @if (title) { <span class="ldq__title">{{ title }}</span> }
+      <span class="ldq__subtitle">{{ subtitle }}</span>
+      <span class="ldq__message">{{ message }}</span>
+      <span class="ldq__brand">MIAV · <strong>Genius Pay</strong></span>
+    </div>
+  </div>
+</div>

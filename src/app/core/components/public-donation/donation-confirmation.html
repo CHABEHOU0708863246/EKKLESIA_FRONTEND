@@ -1,0 +1,55 @@
+<!-- Confirmation de don (public) — statut en temps réel -->
+<div class="dc">
+  <div class="dc__card">
+    <img src="/logos/photo_5807922839901294460_x.png" alt="MIAV" class="dc__logo" />
+
+    <!-- Chargement / en attente -->
+    @if (state() === 'loading' || state() === 'pending') {
+      <div class="dc__state dc__state--pending">
+        <span class="dc__spinner"></span>
+        <h1>{{ state() === 'loading' ? 'Vérification du paiement…' : 'En attente de confirmation…' }}</h1>
+        <p>Votre paiement est en cours de traitement. Cette page se met à jour automatiquement.</p>
+        @if (status()) {
+          <p class="dc__amount">{{ formatAmount(status()!.amount, status()!.currency) }}</p>
+        }
+      </div>
+    }
+
+    <!-- Payé -->
+    @if (state() === 'paid') {
+      <div class="dc__state dc__state--ok">
+        <div class="dc__icon dc__icon--ok">✓</div>
+        <h1>Merci pour votre don !</h1>
+        <p>Votre offrande a bien été reçue. Que Dieu vous bénisse abondamment. 🙏</p>
+        <p class="dc__amount">{{ formatAmount(status()!.amount, status()!.currency) }}</p>
+        @if (status()!.completedAt) {
+          <p class="dc__meta">Confirmé le {{ formatDate(status()!.completedAt) }}</p>
+        }
+        @if (status()!.reference) {
+          <p class="dc__ref">Référence : {{ status()!.reference }}</p>
+        }
+      </div>
+    }
+
+    <!-- Échec / annulé -->
+    @if (state() === 'failed') {
+      <div class="dc__state dc__state--ko">
+        <div class="dc__icon dc__icon--ko">✕</div>
+        <h1>Paiement non abouti</h1>
+        <p>Le paiement n'a pas pu être confirmé. Vous pouvez réessayer.</p>
+        <a class="dc__btn" routerLink="/auth/login">Retour à l'accueil</a>
+      </div>
+    }
+
+    <!-- Introuvable -->
+    @if (state() === 'unknown') {
+      <div class="dc__state dc__state--ko">
+        <div class="dc__icon dc__icon--ko">?</div>
+        <h1>Don introuvable</h1>
+        <p>{{ error() || 'Aucun don ne correspond à cette référence.' }}</p>
+      </div>
+    }
+
+    <p class="dc__brand">Paiement sécurisé par <strong>Genius Pay</strong> · MIAV</p>
+  </div>
+</div>

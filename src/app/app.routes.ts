@@ -42,6 +42,33 @@ export const routes: Routes = [
       ),
     title: 'Confirmation de paiement — MIAV',
   },
+  // ✅ Don/offrande en ligne d'un culte (public — atterrissage du QR code)
+  {
+    path: 'don/culte/:serviceId',
+    loadComponent: () =>
+      import('./core/components/public-donation/public-donation').then(
+        (m) => m.PublicDonation
+      ),
+    title: 'Faire une offrande — MIAV',
+  },
+  // ✅ Confirmation de don (public — statut en temps réel par référence)
+  {
+    path: 'paiement/confirmation-don',
+    loadComponent: () =>
+      import('./core/components/public-donation/donation-confirmation').then(
+        (m) => m.DonationConfirmation
+      ),
+    title: 'Confirmation de don — MIAV',
+  },
+  // ✅ Overlay OBS (public — source navigateur, fond transparent)
+  {
+    path: 'live/overlay/:serviceId',
+    loadComponent: () =>
+      import('./core/components/public-donation/live-donation-overlay').then(
+        (m) => m.LiveDonationOverlay
+      ),
+    title: 'Overlay don — MIAV',
+  },
   {
     path: 'dashboard',
     loadChildren: () => import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
