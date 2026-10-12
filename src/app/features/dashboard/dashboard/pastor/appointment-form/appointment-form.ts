@@ -9,6 +9,7 @@ import { Appointment, AppointmentCreate, AppointmentUpdate, AppointmentUtils, Ap
 import { PastorAppointmentService } from '../../../../../core/services/PastortRvd/pastort-appointment';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Site } from '../../../../../core/models/Church/site.model';
@@ -68,6 +69,7 @@ export class AppointmentForm implements OnInit, OnDestroy {
   private roleService = inject(Roles);
 
   // ── Formulaire ──
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   // ── Statut du rendez-vous (pour édition) ──
@@ -107,6 +109,7 @@ export class AppointmentForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.applyDefaultAssignment();
     this.loadPastors();
     this.loadPastorRoleNames();
 
@@ -218,6 +221,16 @@ export class AppointmentForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES DONNÉES
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

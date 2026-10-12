@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { ContentType, ContentTypeLabels, ContentCreate, ContentUpdate } from '../../../../../core/models/Communication/content.model';
@@ -74,6 +75,7 @@ export class ContentForm implements OnInit, OnDestroy {
   selectedThumbnail: File | null = null;
 
   // ── Formulaire ──
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   constructor() {
@@ -104,6 +106,7 @@ export class ContentForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.applyDefaultAssignment();
 
     // Détection du mode édition
     const id = this.route.snapshot.paramMap.get('id');
@@ -131,6 +134,16 @@ export class ContentForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES DONNÉES
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

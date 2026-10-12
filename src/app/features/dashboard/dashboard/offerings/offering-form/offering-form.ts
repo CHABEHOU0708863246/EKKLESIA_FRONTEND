@@ -8,6 +8,7 @@ import { Observable, Subject, debounceTime, distinctUntilChanged, takeUntil } fr
 
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Users } from '../../../../../core/services/Users/users';
 import { Roles } from '../../../../../core/services/Roles/roles';
 
@@ -165,6 +166,7 @@ export class OfferingForm implements OnInit, OnDestroy {
     return lines > 0 && amount > 0 && amount !== lines;
   });
 
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   // ── Helpers d'affichage ──
@@ -220,6 +222,7 @@ export class OfferingForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.applyDefaultAssignment();
     this.loadCategories();
     this.loadUserServices();
     this.loadCurrencies();
@@ -429,6 +432,16 @@ export class OfferingForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES LISTES (églises, sites)
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

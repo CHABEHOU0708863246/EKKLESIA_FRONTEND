@@ -15,6 +15,9 @@ export interface MyScope {
   isGlobalScope: boolean;
   churchId?: string;
   churchName?: string;
+  /** Site de rattachement direct de l'utilisateur (profil). */
+  siteId?: string;
+  siteName?: string;
   scopeLabel: string;
   sites: ScopeEntity[];
   zones: ScopeEntity[];

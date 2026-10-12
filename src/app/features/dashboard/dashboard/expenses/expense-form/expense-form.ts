@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Members } from '../../../../../core/services/Members/members';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 
 import {
@@ -105,6 +106,7 @@ export class ExpenseForm implements OnInit, OnDestroy {
   requesterResults = signal<(Member | User)[]>([]);
   selectedRequester = signal<Member | User | null>(null);
 
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   // ── Helpers ──
@@ -149,6 +151,7 @@ export class ExpenseForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.applyDefaultAssignment();
     this.loadUsers();
 
     // Détection du mode édition
@@ -277,6 +280,16 @@ export class ExpenseForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES LISTES
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

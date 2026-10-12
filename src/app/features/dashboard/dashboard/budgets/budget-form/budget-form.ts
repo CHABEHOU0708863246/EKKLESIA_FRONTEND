@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Site } from '../../../../../core/models/Church/site.model';
 import {
@@ -71,6 +72,7 @@ export class BudgetForm implements OnInit, OnDestroy {
   loadingSites = signal(false);
 
   // ── Formulaire ──
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   // ── Helpers ──
@@ -91,6 +93,7 @@ export class BudgetForm implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadChurches();
+    this.applyDefaultAssignment();
 
     // Détection du mode édition
     const urlSegments = this.router.url.split('/');
@@ -169,6 +172,16 @@ export class BudgetForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES LISTES
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

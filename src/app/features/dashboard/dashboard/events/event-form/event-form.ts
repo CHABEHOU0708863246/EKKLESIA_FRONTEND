@@ -1,6 +1,6 @@
 // src/app/features/dashboard/dashboard/events/event-form/event-form.ts
 
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { Component, Inject, inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { User } from '../../../../../core/models/Users/user.model';
 import { Users, directoryToUser } from '../../../../../core/services/Users/users';
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { Site } from '../../../../../core/models/Church/site.model';
 import { EventTypeLabels, EventStatus, EventCreate, EventUpdate, EventFormula } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
@@ -85,6 +86,7 @@ loadingUsers = signal(false);
   formulas = signal<EventFormula[]>([]);
   editingFormulaIndex = signal<number | null>(null);
 
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   constructor(
@@ -141,6 +143,7 @@ loadingUsers = signal(false);
     this.isEditMode.set(!!this.eventId);
 
     this.loadChurches();
+    this.applyDefaultAssignment();
 
     if (this.isEditMode()) {
       this.loadEvent();
@@ -272,6 +275,16 @@ loadingUsers = signal(false);
   // ───────────────────────────────────────────────────────────────
   // ÉGLISE / SITE
   // ───────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

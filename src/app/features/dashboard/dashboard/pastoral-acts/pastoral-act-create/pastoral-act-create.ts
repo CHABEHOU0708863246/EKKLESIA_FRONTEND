@@ -1,5 +1,5 @@
 // src/app/features/dashboard/dashboard/members/pastoral-acts/pastoral-act-create/pastoral-act-create.ts
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
+import { Component, Inject, inject, OnDestroy, OnInit, PLATFORM_ID, signal, computed } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,6 +19,7 @@ import { Members } from '../../../../../core/services/Members/members';
 import { Roles } from '../../../../../core/services/Roles/roles';
 import { Users } from '../../../../../core/services/Users/users';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { PastoralActs } from '../../../../../core/services/PastoralAct/pastoral-acts';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 
@@ -81,6 +82,7 @@ loadingPastors = signal(false);
   participantResults = signal<Member[]>([]);
   selectedParticipantMap = new Map<number, Member>();
 
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
 
   selectedType = computed(() => this.form?.get('type')?.value as PastoralActType);
@@ -137,6 +139,7 @@ loadingPastors = signal(false);
      this.loadPastors();
 
     this.loadChurches();
+    this.applyDefaultAssignment();
     this.addParticipant(); // au moins un participant par défaut
 
     this.form.get('churchId')?.valueChanges
@@ -216,6 +219,15 @@ private toUsers(items: { id: string; fullName: string; firstName?: string; lastN
     phone: p.phone,
   })) as unknown as User[];
 }
+
+  /** Préremplit l'église + le site de l'utilisateur connecté. */
+  private applyDefaultAssignment(): void {
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);

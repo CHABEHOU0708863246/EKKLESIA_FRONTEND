@@ -1,6 +1,6 @@
 // src/app/features/dashboard/services/service-form/service-form.component.ts
 
-import { Component, computed, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +18,7 @@ import { Site } from '../../../../../core/models/Church/site.model';
 import { User } from '../../../../../core/models/Users/user.model';
 import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
+import { CurrentAssignmentService } from '../../../../../core/services/Auth/current-assignment.service';
 import { FormGuide, GuideStep } from '../../../../../core/components/form-guide/form-guide';
 import { MultiPhotoUpload } from '../../../../../core/components/multi-photo-upload/multi-photo-upload';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
@@ -121,6 +122,7 @@ export class ServiceForm implements OnInit, OnDestroy {
   });
 
   // ── Formulaire ──
+  private readonly assignment = inject(CurrentAssignmentService);
   form: FormGroup;
   /** Photos sélectionnées (1 à 5) — RG-PHOTO. */
   selectedPhotos: File[] = [];
@@ -175,6 +177,7 @@ export class ServiceForm implements OnInit, OnDestroy {
     }
 
     this.loadChurches();
+    this.applyDefaultAssignment();
     this.loadPreachers();
 
     this.form.get('churchId')?.valueChanges
@@ -316,6 +319,16 @@ export class ServiceForm implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────
   // CHARGEMENT DES LISTES
   // ──────────────────────────────────────────────────────────────
+
+  /** Préremplit l'église + le site de l'utilisateur connecté (création uniquement). */
+  private applyDefaultAssignment(): void {
+    if (this.isEditMode()) return;
+    this.assignment.get().pipe(takeUntil(this.destroy$)).subscribe((a) => {
+      if (!a.churchId) return;
+      this.loadSites(a.churchId);
+      this.form.patchValue({ churchId: a.churchId, siteId: a.siteId ?? '' }, { emitEvent: false });
+    });
+  }
 
   private loadChurches(): void {
     this.loadingChurches.set(true);
