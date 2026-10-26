@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { EMPTY, Observable, catchError, throwError } from 'rxjs';
+import { EMPTY, Observable, catchError, finalize, map, shareReplay, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { Token } from '../Token/token';
 import { LoginRequest } from '../../models/Login/LoginRequest';
 import { LoginResponse } from '../../models/Login/LoginResponse';
 import { ChangePasswordRequest } from '../../models/Password/ChangePasswordRequest';
@@ -19,8 +20,17 @@ export class Auth {
   private readonly baseUrl = `${environment.apiUrl}/api/v1/Auth`;
   private isBrowser: boolean;
 
+  /**
+   * Rafraîchissement « single-flight » : plusieurs requêtes qui reçoivent un
+   * 401 en même temps partagent CE MÊME appel. Sans cela, chaque 401
+   * consommerait le refresh token (rotation serveur) et les suivants
+   * échoueraient, déconnectant l'utilisateur.
+   */
+  private refreshInFlight$: Observable<string> | null = null;
+
   constructor(
     private http: HttpClient,
+    private tokenService: Token,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -48,6 +58,61 @@ export class Auth {
   refreshToken(refreshTokenRequest: RefreshTokenRequest): Observable<RefreshTokenRequest> {
     return this.http.post<RefreshTokenRequest>(`${this.baseUrl}/refresh-token`, refreshTokenRequest)
       .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Renouvelle le token d'accès à partir du refresh token stocké.
+   *
+   * - UN SEUL appel à la fois : tous les abonnés concurrents attendent le même
+   *   résultat (le serveur fait tourner le refresh token à chaque usage).
+   * - Le nouveau couple (token, refresh token) est persisté.
+   * - Ne ressuscite jamais une session fermée pendant l'appel.
+   * - Purge la session UNIQUEMENT si le refresh est réellement refusé
+   *   (400/401) ; une panne réseau ne détruit pas la session.
+   */
+  refreshAccessToken(): Observable<string> {
+    if (this.refreshInFlight$) return this.refreshInFlight$;
+
+    if (!this.isBrowser) {
+      return throwError(() => new Error('Rafraîchissement impossible côté SSR'));
+    }
+
+    const accessToken = this.tokenService.getToken();
+    const refreshToken = this.tokenService.getRefreshToken();
+
+    if (!accessToken || !refreshToken) {
+      return throwError(() => new Error('Session expirée'));
+    }
+
+    const request: RefreshTokenRequest = { token: accessToken, refreshToken };
+
+    this.refreshInFlight$ = this.http
+      .post<RefreshTokenRequest>(`${this.baseUrl}/refresh-token`, request)
+      .pipe(
+        map((response) => {
+          if (!response?.token) {
+            throw new Error('Jeton de rafraîchissement invalide');
+          }
+          // Session fermée (logout) pendant l'appel : on n'écrit rien.
+          if (!this.tokenService.getRefreshToken()) {
+            throw new Error('Session fermée');
+          }
+          this.tokenService.updateTokens(response.token, response.refreshToken);
+          return response.token;
+        }),
+        catchError((error) => {
+          if (error?.status === 400 || error?.status === 401) {
+            this.tokenService.clearSession();
+          }
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          this.refreshInFlight$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+
+    return this.refreshInFlight$;
   }
 
   /**

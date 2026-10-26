@@ -37,11 +37,17 @@ export const appConfig: ApplicationConfig = {
       const permissions = inject(Permissions);
       const token = inject(Token);
 
-      if (token.isLogged() && !token.isTokenExpired()) {
+      // On ne bloque JAMAIS le démarrage sur le réseau : l'app s'affiche avec
+      // les droits portés par le JWT, puis confirme en arrière-plan.
+      //
+      // - token encore valide → chargement du profil ;
+      // - token expiré mais refresh token présent (actualisation de page après
+      //   30 min) → l'intercepteur HTTP renouvelle le token en single-flight
+      //   au premier appel, ce qui conserve la session au lieu de renvoyer au
+      //   login. La garde laisse passer une session renouvelable.
+      if (token.getToken() && (token.isLogged() || token.hasRefreshToken())) {
         void permissions.refreshFromServer();
       }
-
-      return;
     }),
 
     // ✅ Réglages natifs mobile (Capacitor) : barre de statut + splash.

@@ -113,6 +113,23 @@ export class Token {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
+  /** Indique qu'une session peut potentiellement être renouvelée. */
+  hasRefreshToken(): boolean {
+    return !!this.getRefreshToken();
+  }
+
+  /**
+   * Met à jour le token d'accès (et éventuellement le refresh token) SANS
+   * perdre le rôle déjà stocké. Utilisé par le rafraîchissement « single-flight »
+   * (plusieurs requêtes en 401 partagent le même renouvellement).
+   */
+  updateTokens(token: string, refreshToken?: string): void {
+    if (!this.isBrowser || !token) return;
+
+    const role = this.getUserRole() ?? '';
+    this.saveToken(token, role, refreshToken ?? undefined);
+  }
+
   /**
    * Récupère le rôle stocké
    */

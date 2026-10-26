@@ -38,6 +38,14 @@ function checkAuthenticated(
   log(`📊 ${guardName}: isLogged =`, isLogged, 'isExpired =', isExpired);
 
   if (!isLogged || isExpired) {
+    // Token d'accès expiré MAIS refresh token présent : on ne détruit pas la
+    // session. L'intercepteur HTTP tentera un renouvellement (single-flight)
+    // au premier appel ; s'il échoue réellement, la session sera purgée.
+    if (tokenService.getToken() && tokenService.hasRefreshToken()) {
+      log(`🔄 ${guardName}: Token expiré, renouvellement délégué à l'intercepteur`);
+      return true;
+    }
+
     log(`❌ ${guardName}: Token invalide ou expiré - Redirection vers login`);
     tokenService.clearSession();
     return router.createUrlTree(LOGIN_ROUTE, {

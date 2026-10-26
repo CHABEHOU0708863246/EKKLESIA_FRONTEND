@@ -1,12 +1,20 @@
 import { Injectable, Inject, PLATFORM_ID, isDevMode } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Token } from '../services/Token/token';
+import { Auth } from '../services/Auth/auth';
 import { Notification } from '../services/Notification/notification';
 import { Router } from '@angular/router';
 import { describeError, formatDescribedError } from '../services/Errors/error-messages';
+
+/**
+ * Marque une requête DÉJÀ rejouée après un rafraîchissement de jeton.
+ * Évite toute boucle 401 → refresh → 401 → refresh…
+ * (HttpContextToken et non header : aucun impact CORS.)
+ */
+const REFRESH_RETRIED = new HttpContextToken<boolean>(() => false);
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -25,6 +33,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
     private tokenService: Token,
+    private authService: Auth,
     private router: Router,
     private notification: Notification,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -34,6 +43,20 @@ export class AuthInterceptor implements HttpInterceptor {
 
   private isPublicUrl(url: string): boolean {
     return this.publicUrlPrefixes.some((prefix) => url.includes(prefix));
+  }
+
+  /**
+   * Un 401 sur ces routes ne doit JAMAIS déclencher de rafraîchissement :
+   * ce sont les routes qui établissent ou renouvellent la session.
+   */
+  private isAuthSessionUrl(url: string): boolean {
+    return (
+      url.includes('/api/v1/Auth/login') ||
+      url.includes('/api/v1/Auth/refresh-token') ||
+      url.includes('/api/v1/Auth/forgot-password') ||
+      url.includes('/api/v1/Auth/validate-reset-token') ||
+      url.includes('/api/v1/Auth/reset-password')
+    );
   }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -56,11 +79,9 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    if (this.tokenService.isTokenExpired()) {
-      this.log('Token expiré - déconnexion');
-      this.tokenService.handleTokenExpired();
-      return throwError(() => new Error('Token expiré'));
-    }
+    // ⚠️ On n'appelle PLUS handleTokenExpired() ici : un token expiré doit
+    // d'abord déclencher le rafraîchissement (single-flight) sur le 401.
+    // Sinon l'actualisation de page après 30 min déconnectait l'utilisateur.
 
     const isFormData = request.body instanceof FormData;
     const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
@@ -71,7 +92,31 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(clonedRequest).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // 401 = session expirée / non authentifié → re-connexion.
+          // 401 = token expiré ou invalide. On tente UN renouvellement
+          // (single-flight), puis on rejoue la requête avec le nouveau token.
+          const alreadyRetried = request.context.get(REFRESH_RETRIED);
+
+          if (!alreadyRetried && !this.isAuthSessionUrl(request.url)) {
+            this.log('Erreur 401 - tentative de rafraîchissement du token');
+
+            return this.authService.refreshAccessToken().pipe(
+              switchMap((newToken) => {
+                const retried = request.clone({
+                  setHeaders: { Authorization: `Bearer ${newToken}` },
+                  context: request.context.set(REFRESH_RETRIED, true),
+                });
+                return next.handle(retried);
+              }),
+              catchError((refreshError) => {
+                this.log('Rafraîchissement impossible - déconnexion');
+                this.presentError(error, request.url);
+                this.tokenService.handleTokenExpired();
+                return throwError(() => refreshError);
+              })
+            );
+          }
+
+          // Pas de refresh possible (route de session, ou déjà rejouée).
           this.log('Erreur 401 - session expirée');
           this.presentError(error, request.url);
           this.tokenService.handleTokenExpired();
