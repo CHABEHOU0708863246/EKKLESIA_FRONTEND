@@ -70,7 +70,7 @@ export enum OfferingStatus {
 export class Dashboard implements OnInit, OnDestroy {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
-  @ViewChild(SidebarComponent) sidebarComponent!: SidebarComponent;
+  @ViewChild(SidebarComponent) sidebarComponent?: SidebarComponent;
 
   // ─── Thème clair / sombre ─────────────────────────────────────
   themeService = inject(ThemeService);

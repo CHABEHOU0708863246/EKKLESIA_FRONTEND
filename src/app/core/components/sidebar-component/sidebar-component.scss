@@ -72,15 +72,26 @@ $touch-size:      44px;
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.35);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  // Fermé : complètement hors écran ET non interactif. `visibility` (avec
+  // délai) évite qu'un navigateur mobile garde une zone cliquable fantôme
+  // à l'emplacement du tiroir, ce qui rendait le hamburger inopérant.
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.22s;
   transform: translateX(-100%);
   will-change: transform; // anime sur le GPU (ouverture/fermeture fluide)
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 
   @media (min-width: 901px) {
+    visibility: visible;
+    pointer-events: auto;
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.35);
+    transition: none;
   }
 
   &::before {
@@ -97,7 +108,10 @@ $touch-size:      44px;
   > * { position: relative; z-index: 1; }
 
   &.open {
+    visibility: visible;
+    pointer-events: auto;
     transform: translateX(0);
+    transition-delay: 0s, 0s;
   }
 
   // Scrollbar personnalisée
@@ -144,11 +158,13 @@ $touch-size:      44px;
   // mobile et ralentissait l'ouverture du menu.)
   touch-action: none;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.22s ease;
 
   &.visible {
     display: block;
     opacity: 1;
+    pointer-events: auto;
   }
 
   @media (min-width: 901px) {
@@ -180,8 +196,11 @@ $touch-size:      44px;
 .sidebar-close-btn {
   display: none;
   margin-left: auto;
-  width: 36px;
-  height: 36px;
+  // Zone tactile minimale de 44 x 44 px (accessibilité mobile / PWA).
+  width: $touch-size;
+  min-width: $touch-size;
+  height: $touch-size;
+  min-height: $touch-size;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -193,6 +212,7 @@ $touch-size:      44px;
   justify-content: center;
   flex-shrink: 0;
   transition: background 0.18s ease;
+  touch-action: manipulation;
 
   &:hover { background: rgba(255, 255, 255, 0.1); }
 
@@ -476,12 +496,13 @@ $touch-size:      44px;
   width: 100%;
   text-align: left;
   min-height: $touch-size;
+  touch-action: manipulation;
 
   @media (min-width: 577px) {
     padding: 9px 18px;
     font-size: 13px;
     gap: 11px;
-    min-height: 40px;
+    min-height: $touch-size;
   }
 
   @media (min-width: 901px) {
@@ -651,12 +672,12 @@ $touch-size:      44px;
     font-size: 12px;
     font-weight: 400;
     border-left: none;
-    min-height: 38px;
+    min-height: $touch-size;
 
     @media (min-width: 577px) {
       padding: 7.5px 18px 7.5px 46px;
       font-size: 12.5px;
-      min-height: 40px;
+      min-height: $touch-size;
     }
 
     @media (min-width: 901px) {

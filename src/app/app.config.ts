@@ -83,7 +83,10 @@ export const appConfig: ApplicationConfig = {
     // jusqu'à 30 s d'attente + rechargements de page).
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode() && !isNativeApp(),
-      registrationStrategy: 'registerWhenStable:30000'
+      // Enregistrement immédiat : une mise à jour déployée est détectée dès
+      // l'ouverture (registerWhenStable:30000 pouvait servir l'ancienne
+      // version jusqu'à 30 s après le démarrage, voire indéfiniment en PWA).
+      registrationStrategy: 'registerImmediately'
     })
   ]
 };

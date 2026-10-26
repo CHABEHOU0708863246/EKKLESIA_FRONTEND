@@ -1,5 +1,6 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, HostListener, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Token } from '../../services/Token/token';
 import { Permissions } from '../../../core/services/Permissions/permissions';
@@ -20,6 +21,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   /** Point de rupture mobile / desktop, aligné sur le SCSS (@media min-width: 901px) */
   private static readonly DESKTOP_BREAKPOINT = 901;
 
+  /** Classe posée sur <body> pour bloquer le défilement quand le menu est ouvert. */
+  private static readonly BODY_LOCK_CLASS = 'iam-sidebar-open';
+
+  private readonly isBrowser: boolean;
+
   isCollapsed: boolean = false;
   /** Sidebar visible en mode mobile (off-canvas) */
   isMobileOpen: boolean = false;
@@ -34,16 +40,35 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private authService: Auth,
     private tokenService: Token,
     private router: Router,
-    public permission: Permissions  // ✅ Utiliser PermissionsService
-  ) {}
+    public permission: Permissions,
+    @Inject(DOCUMENT) private document: Document,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.loadCurrentUser();
+
+    if (!this.isBrowser) return;
+
+    // Fermeture systématique à la navigation, y compris pour une navigation
+    // programmée (redirection, retour navigateur) qui n'appelle aucun lien.
+    this.router.events
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (event instanceof NavigationEnd) {
+          this.closeMobileSidebar();
+        }
+      });
+
+    this.syncBodyScrollLock();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.isBrowser && this.document.body.classList.remove(SidebarComponent.BODY_LOCK_CLASS);
   }
 
   private loadCurrentUser(): void {
@@ -87,10 +112,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
   /** Ouvre/ferme la sidebar en mode mobile (off-canvas) */
   toggleMobileSidebar(): void {
     this.isMobileOpen = !this.isMobileOpen;
+    this.syncBodyScrollLock();
   }
 
   closeMobileSidebar(): void {
     this.isMobileOpen = false;
+    // Toujours resynchroniser : garantit qu'aucun verrou de défilement
+    // ne survit à une fermeture (navigation, Échap, clic sur le fond).
+    this.syncBodyScrollLock();
   }
 
   /** Réduit/étend la sidebar en mode desktop (icônes seules) */
@@ -102,8 +131,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
    * Point d'entrée unique pour le bouton "hamburger" du Topbar.
    * Sur mobile : ouvre/ferme le panneau off-canvas.
    * Sur desktop : bascule le mode réduit (icônes seules).
-   * C'est cette méthode que le Dashboard doit appeler (via ViewChild),
-   * au lieu de manipuler le DOM directement.
    */
   onMenuToggleClick(): void {
     if (this.isMobileViewport()) {
@@ -113,19 +140,42 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Détection fiable du mode mobile : le layout off-canvas est actif < 901px. */
+  /**
+   * Détection fiable du mode mobile : le layout off-canvas est actif < 901px.
+   * On privilégie `window.innerWidth` (synchrone, fiable en PWA/WebView), avec
+   * `matchMedia` en repli pour les environnements qui l'exposent seuls.
+   */
   private isMobileViewport(): boolean {
-    if (typeof window === 'undefined') return false;
+    if (!this.isBrowser) return false;
+
+    if (typeof window.innerWidth === 'number') {
+      return window.innerWidth < SidebarComponent.DESKTOP_BREAKPOINT;
+    }
+
     return window.matchMedia
       ? window.matchMedia(`(max-width: ${SidebarComponent.DESKTOP_BREAKPOINT - 1}px)`).matches
-      : window.innerWidth < SidebarComponent.DESKTOP_BREAKPOINT;
+      : true;
+  }
+
+  /** Bloque le défilement de la page quand le tiroir mobile est ouvert. */
+  private syncBodyScrollLock(): void {
+    if (!this.isBrowser) return;
+
+    const shouldLock = this.isMobileOpen && this.isMobileViewport();
+    this.document.body.classList.toggle(SidebarComponent.BODY_LOCK_CLASS, shouldLock);
+  }
+
+  /** Échap ferme le tiroir mobile. */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeMobileSidebar();
   }
 
   /** Évite une sidebar « ouverte » fantôme après rotation ou agrandissement. */
   @HostListener('window:resize')
   onResize(): void {
     if (!this.isMobileViewport() && this.isMobileOpen) {
-      this.isMobileOpen = false;
+      this.closeMobileSidebar();
     }
   }
 
@@ -140,15 +190,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-  this.tokenService.logout();
-  this.permission.clearPermissions();
+    this.tokenService.logout();
+    this.permission.clearPermissions();
 
-  this.authService
-    .logout()
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => this.router.navigate(['/auth/login'])
-    });
-}
+    this.authService
+      .logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.router.navigate(['/auth/login']),
+        error: () => this.router.navigate(['/auth/login'])
+      });
+  }
 }

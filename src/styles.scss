@@ -238,7 +238,7 @@ a.nav-link:active,
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Certificat : n'imprimer que la feuille du certificat (classe togglée par le composant). */
+/* Certificat : n'imprimer que la feuille du certificat (classe togglï¿½e par le composant). */
 @media print {
   body.certificate-printing * { visibility: hidden !important; }
   body.certificate-printing .certificate-print-area,
@@ -254,7 +254,7 @@ a.nav-link:active,
   body.certificate-printing { background: #fff !important; }
 }
 
-/* Carte de membre : n'imprimer que la carte (classe togglée par le composant). */
+/* Carte de membre : n'imprimer que la carte (classe togglï¿½e par le composant). */
 @media print {
   body.idcard-printing * { visibility: hidden !important; }
   body.idcard-printing .idcard-print-area,
@@ -275,4 +275,12 @@ a.nav-link:active,
 body.miav-live-overlay,
 body.miav-live-overlay app-root {
   background: transparent !important;
+}
+
+/* Tiroir mobile ouvert : le fond ne dÃ©file plus (le tiroir lui-mÃªme reste
+   dÃ©filable via `touch-action: pan-y`). */
+body.iam-sidebar-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }

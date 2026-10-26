@@ -17,7 +17,13 @@
     <!-- ══ TOPBAR ══ -->
     <header class="topbar">
       <div class="topbar-left">
-        <button class="menu-toggle-btn" (click)="toggleSidebar()">
+        <button
+          type="button"
+          class="menu-toggle-btn"
+          (click)="toggleSidebar()"
+          aria-label="Ouvrir ou fermer le menu"
+          aria-controls="sidebar"
+          [attr.aria-expanded]="sidebarComponent?.isMobileOpen === true">
           <i class="bx bx-menu"></i>
         </button>
         <img src="/logos/A New Design - Fait avec PosterMyWall.png" alt="MIAV"

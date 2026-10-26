@@ -1,4 +1,8 @@
-<div class="sidebar-overlay" [class.visible]="isMobileOpen" (click)="closeMobileSidebar()"></div>
+<div
+  class="sidebar-overlay"
+  [class.visible]="isMobileOpen"
+  [attr.aria-hidden]="!isMobileOpen"
+  (click)="closeMobileSidebar()"></div>
 
 <aside class="sidebar" id="sidebar" [class.open]="isMobileOpen" [class.collapsed]="isCollapsed">
 

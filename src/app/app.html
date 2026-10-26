@@ -3,5 +3,11 @@
     <i class="bx bx-wifi-off"></i> Pas de connexion — certaines données peuvent être indisponibles.
   </div>
 }
+@if (updateAvailable()) {
+  <div class="app-update-banner" role="status" aria-live="polite">
+    <span><i class="bx bx-refresh"></i> Une nouvelle version est disponible.</span>
+    <button type="button" (click)="applyUpdate()">Recharger</button>
+  </div>
+}
 <router-outlet></router-outlet>   
 

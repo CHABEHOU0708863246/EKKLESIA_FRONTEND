@@ -148,11 +148,13 @@ $touch-size:     44px;
   }
 
   .menu-toggle-btn {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
+    // 44 x 44 : zone tactile fiable sur mobile (l'ancien 36 px faisait
+    // manquer le bouton et donnait l'impression qu'il ne réagissait pas).
+    width: $touch-size;
+    min-width: $touch-size;
+    height: $touch-size;
     min-height: $touch-size;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
