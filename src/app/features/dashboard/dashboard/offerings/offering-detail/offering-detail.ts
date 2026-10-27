@@ -361,7 +361,40 @@ export class OfferingDetail implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Impression du reçu : ouvre le PDF officiel (page principale + page de
+   * preuve) dans un onglet, afin que l'impression contienne la preuve sans
+   * déformer la mise en page de l'écran. Sans reçu généré, imprime la page.
+   */
   print(): void {
-    window.print();
+    const o = this.offering();
+    if (!o || !o.receiptGenerated || !o.receiptNumber) {
+      window.print();
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+
+    this.offeringsService.getReceiptPdf(o.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+
+        if (printWindow) {
+          printWindow.location.href = url;
+        } else {
+          // Pop-up bloquée : on télécharge le PDF, imprimable depuis le lecteur.
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `recu_${o.receiptNumber}.pdf`;
+          link.click();
+        }
+
+        setTimeout(() => window.URL.revokeObjectURL(url), 120_000);
+      },
+      error: () => {
+        printWindow?.close();
+        this.error.set('Impossible de préparer le reçu à imprimer.');
+      },
+    });
   }
 }

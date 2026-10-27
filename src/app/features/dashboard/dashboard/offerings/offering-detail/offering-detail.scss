@@ -340,6 +340,43 @@ $transition: 0.2s ease-in-out;
   color: $primary;
 }
 
+// ─── LOT 5 : preuve justificative sur le reçu (écran) ───
+.od-proof-block {
+  margin: 0.8rem 0;
+  padding-top: 0.8rem;
+  border-top: 1px dashed $gray-200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.od-proof-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.od-proof-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid $gray-200;
+  background: $gray-100;
+  cursor: zoom-in;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.od-proof-none {
+  color: $gray-500;
+  font-style: italic;
+}
+
 // ─── ACTIONS ──────────────────────────────────────────────────
 
 .od-action-row {

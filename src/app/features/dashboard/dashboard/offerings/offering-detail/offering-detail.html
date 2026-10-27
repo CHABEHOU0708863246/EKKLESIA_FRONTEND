@@ -199,6 +199,24 @@
         </div>
         }
 
+        <!-- Lot 5 : la preuve déposée par le pasteur figure sur le reçu -->
+        <div class="od-proof-block">
+          <span class="od-label">Preuve justificative</span>
+          @if (photoIds(o).length) {
+          <div class="od-proof-strip">
+            @for (pid of photoIds(o); track pid) {
+            <img
+              [appAuthImage]="getPhotoUrl(pid)"
+              alt="Preuve justificative du reçu"
+              class="od-proof-thumb"
+              (click)="viewPhoto(pid)" />
+            }
+          </div>
+          } @else {
+          <span class="od-value od-proof-none">Aucune preuve jointe</span>
+          }
+        </div>
+
         @if (canGenerateReceipt()) {
         <div class="od-action-row">
           <button class="od-btn-success" (click)="generateReceipt()" [disabled]="generatingReceipt()">
@@ -212,6 +230,11 @@
         }
 
         @if (canDownloadReceipt()) {
+        <div class="od-action-row">
+          <button class="od-btn-primary" (click)="print()">
+            <i class="bx bx-printer"></i> Imprimer le reçu (avec preuve)
+          </button>
+        </div>
         <div class="od-action-row">
           <button class="od-btn-primary" (click)="downloadReceipt()">
             <i class="bx bx-download"></i> Télécharger le reçu (PDF)
