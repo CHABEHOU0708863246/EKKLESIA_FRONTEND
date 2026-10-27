@@ -116,14 +116,14 @@
       <div class="od-day-grid">
         <div class="od-day-block">
           <h4>Par église</h4>
-          <table class="od-table">
+          <table class="iam-responsive-table od-table">
             <thead>
               <tr><th>Église</th><th class="od-right">Montant</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let row of dashboard.selectedDay.byChurch">
-                <td>{{ row.churchName || row.churchId }}</td>
-                <td class="od-right">{{ formatAmount(row.amount) }}</td>
+                <td data-label="Église">{{ row.churchName || row.churchId }}</td>
+                <td class="od-right" data-label="Montant">{{ formatAmount(row.amount) }}</td>
               </tr>
             </tbody>
             <tfoot>
@@ -136,15 +136,15 @@
         </div>
         <div class="od-day-block">
           <h4>Par type</h4>
-          <table class="od-table">
+          <table class="iam-responsive-table od-table">
             <thead>
               <tr><th>Type</th><th class="od-right">Montant</th><th class="od-right">%</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let t of dashboard.selectedDay.byType">
-                <td>{{ t.label }}</td>
-                <td class="od-right">{{ formatAmount(t.amount) }}</td>
-                <td class="od-right">{{ t.percentage }} %</td>
+                <td data-label="Type">{{ t.label }}</td>
+                <td class="od-right" data-label="Montant">{{ formatAmount(t.amount) }}</td>
+                <td class="od-right" data-label="%">{{ t.percentage }} %</td>
               </tr>
             </tbody>
             <tfoot>
@@ -163,7 +163,7 @@
     <div class="od-card" style="margin-top: 16px;">
       <div class="od-card-title"><i class="bx bx-table"></i> Répartition par église — période complète</div>
       <div class="od-table-scroll">
-        <table class="od-table">
+        <table class="iam-responsive-table od-table">
           <thead>
             <tr>
               <th>Église</th>
@@ -174,13 +174,13 @@
           </thead>
           <tbody>
             <tr *ngFor="let row of dashboard.byChurch">
-              <td>
+              <td data-label="Église">
                 {{ row.churchName || row.churchId }}
                 <small class="od-muted" *ngIf="row.isHeadquarters"> • Siège</small>
               </td>
-              <td class="od-right">{{ formatAmount(row.amount) }}</td>
-              <td class="od-right">{{ row.count }}</td>
-              <td class="od-right">
+              <td class="od-right" data-label="Montant">{{ formatAmount(row.amount) }}</td>
+              <td class="od-right" data-label="Offrandes">{{ row.count }}</td>
+              <td class="od-right" data-label="Part">
                 {{ dashboard.totalAmount > 0 ? ((row.amount / dashboard.totalAmount) * 100 | number:'1.0-1') : 0 }} %
               </td>
             </tr>
@@ -201,7 +201,7 @@
     <div class="od-card" style="margin-top: 16px;">
       <div class="od-card-title"><i class="bx bx-category"></i> Répartition par type — période complète</div>
       <div class="od-table-scroll">
-        <table class="od-table">
+        <table class="iam-responsive-table od-table">
           <thead>
             <tr>
               <th>Type</th>
@@ -212,10 +212,10 @@
           </thead>
           <tbody>
             <tr *ngFor="let t of dashboard.byType">
-              <td>{{ t.label }}</td>
-              <td class="od-right">{{ formatAmount(t.amount) }}</td>
-              <td class="od-right">{{ t.count }}</td>
-              <td class="od-right">{{ t.percentage }} %</td>
+              <td data-label="Type">{{ t.label }}</td>
+              <td class="od-right" data-label="Montant">{{ formatAmount(t.amount) }}</td>
+              <td class="od-right" data-label="Offrandes">{{ t.count }}</td>
+              <td class="od-right" data-label="Part">{{ t.percentage }} %</td>
             </tr>
           </tbody>
           <tfoot>

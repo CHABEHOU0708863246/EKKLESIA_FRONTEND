@@ -22,6 +22,7 @@
 
   <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
   <div class="pal-toolbar">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="pal-select-wrap pal-select-wrap--type">
       <select [formControl]="typeControl">
         <option *ngFor="let t of typeFilterOptions" [value]="t.value">{{ t.icon }} {{ t.label }}</option>
@@ -66,6 +67,7 @@
           stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
@@ -79,7 +81,7 @@
 
   <!-- ══════════════ TABLEAU ══════════════ -->
   <div class="pal-table-card">
-    <table class="pal-table">
+    <table class="iam-responsive-table" class="pal-table">
       <thead>
         <tr>
           <th class="pal-col-type">Type</th>
@@ -106,32 +108,32 @@
         </tr>
 
         <tr *ngFor="let act of acts()" class="pal-row" (click)="viewAct(act)">
-          <td class="pal-col-type">
+          <td class="pal-col-type" data-label="Type">
             <span class="pal-type-chip" [ngClass]="'is-' + getTypeColor(act.type)">
               <span class="pal-type-icon">{{ getTypeIcon(act.type) }}</span>
               {{ getTypeLabel(act.type) }}
             </span>
           </td>
-          <td>
+          <td data-label="Participant(s)">
             <div class="pal-participant-cell">
               <strong>{{ getMainParticipantName(act) }}</strong>
               <span class="pal-text-muted" *ngIf="getParticipantsCountLabel(act)">{{ getParticipantsCountLabel(act)
                 }}</span>
             </div>
           </td>
-          <td>{{ formatDate(act.date) }}</td>
-          <td>
+          <td data-label="Date">{{ formatDate(act.date) }}</td>
+          <td data-label="Officiant">
             <span class="pal-text-muted">{{ act.officiantName || '—' }}</span>
           </td>
-          <td>
+          <td data-label="Église">
             <span class="pal-text-muted">{{ act.location || '—' }}</span>
           </td>
-          <td>
+          <td data-label="Certificat">
             <button type="button" class="btn-primary" (click)="pastoralActService.downloadCertificatePdf(act.id)">
               <i class="bx bx-download"></i> Générer le PDF
             </button>
           </td>
-          <td class="pal-col-actions">
+          <td class="pal-col-actions" data-label="Actions">
             <button type="button" class="pal-icon-btn" *ngIf="canGenerateCertificate(act)"
               (click)="generateCertificate(act, $event)" [disabled]="generatingCertificateId() === act.id"
               aria-label="Générer le certificat" title="Générer le certificat">

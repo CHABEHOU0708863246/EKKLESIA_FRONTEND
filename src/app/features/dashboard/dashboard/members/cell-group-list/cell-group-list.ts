@@ -29,6 +29,7 @@ import { Church as ChurchService } from '../../../../../core/services/Church/chu
 import { Users } from '../../../../../core/services/Users/users';
 // ✅ NOUVEAU — modèle et service de site (à adapter selon tes chemins réels)
 import { Site as SiteModel } from '../../../../../core/models/Church/site.model';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
@@ -51,7 +52,7 @@ const ROLE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-cell-group-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, ConfirmDialog],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, ConfirmDialog, MobileFilterSheet],
   templateUrl: './cell-group-list.html',
   styleUrl: './cell-group-list.scss',
 })

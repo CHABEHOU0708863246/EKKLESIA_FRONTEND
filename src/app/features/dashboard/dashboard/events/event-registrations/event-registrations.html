@@ -204,7 +204,7 @@
         <div *ngIf="(event()?.attendees?.length || 0) === 0" class="er-empty-state">
           Aucun participant inscrit.
         </div>
-        <table class="er-table er-table--compact" *ngIf="(event()?.attendees?.length || 0) > 0">
+        <table class="iam-responsive-table er-table er-table--compact" *ngIf="(event()?.attendees?.length || 0) > 0">
           <thead>
             <tr>
               <th>Nom</th>
@@ -220,16 +220,16 @@
           </thead>
           <tbody>
             <tr *ngFor="let a of event()!.attendees">
-              <td>{{ getAttendeeFullName(a) }}</td>
-              <td>{{ a.email || '—' }}</td>
-              <td>{{ a.phone || '—' }}</td>
-              <td>
+              <td data-label="Nom">{{ getAttendeeFullName(a) }}</td>
+              <td data-label="Email">{{ a.email || '—' }}</td>
+              <td data-label="Téléphone">{{ a.phone || '—' }}</td>
+              <td data-label="Église / Site">
                 <span *ngIf="a.churchName">{{ a.churchName }}<span *ngIf="a.siteName"> — {{ a.siteName }}</span></span>
                 <span *ngIf="!a.churchName" class="er-muted">Externe</span>
               </td>
-              <td>{{ getFormulaName(a.formulaId) }}</td>
-              <td>{{ formatDateTime(a.registrationDate) }}</td>
-              <td>
+              <td data-label="Formule">{{ getFormulaName(a.formulaId) }}</td>
+              <td data-label="Inscription">{{ formatDateTime(a.registrationDate) }}</td>
+              <td data-label="Check-in">
                 <button *ngIf="canCheckin()" class="er-checkin-btn" [class.er-checkin-btn--checked]="a.checkedIn" (click)="toggleCheckIn(a)"
                   [disabled]="togglingCheckIn() === (a.memberId || a.email)">
                   <span *ngIf="togglingCheckIn() !== (a.memberId || a.email)">
@@ -239,12 +239,12 @@
                 </button>
                 <span *ngIf="!canCheckin()" class="er-muted">{{ a.checkedIn ? 'Présent' : '—' }}</span>
               </td>
-              <td>
+              <td data-label="Paiement">
                 <span class="er-payment-status" [class]="getPaymentStatusClass(a.paymentStatus)">
                   {{ getPaymentStatusLabel(a.paymentStatus) }}
                 </span>
               </td>
-              <td>
+              <td data-label="Actions">
                 <button class="er-action-btn er-action-btn--delete" (click)="unregisterAttendee(a)"
                   [disabled]="deleting() === (a.memberId || a.email)" title="Retirer">
                   <span *ngIf="deleting() === (a.memberId || a.email)" class="er-spinner er-spinner--btn"></span>

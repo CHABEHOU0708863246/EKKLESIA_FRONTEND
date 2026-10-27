@@ -22,6 +22,7 @@ import {
 } from '../../../../../core/models/Finances/expense.model';
 import { Expenses } from '../../../../../core/services/Finances/expenses';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const CATEGORY_OPTIONS = Object.values(ExpenseCategory).map((value) => ({
   value,
@@ -37,7 +38,7 @@ const STATUS_OPTIONS = Object.values(ExpenseStatus).map((value) => ({
 @Component({
   selector: 'app-expense-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount, MobileFilterSheet],
   templateUrl: './expense-list.html',
   styleUrls: ['./expense-list.scss'],
 })

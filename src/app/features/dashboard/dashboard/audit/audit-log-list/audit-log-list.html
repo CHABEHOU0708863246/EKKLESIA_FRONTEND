@@ -127,7 +127,7 @@
       <div class="al-state"><i class="bx bx-inbox"></i><p>Aucun événement sur la période.</p></div>
     } @else {
       <div class="al-table-scroll">
-        <table class="al-table">
+        <table class="iam-responsive-table al-table">
           <thead>
             <tr>
               <th>Horodatage</th>
@@ -143,24 +143,24 @@
           <tbody>
             @for (entry of logs(); track entry.id) {
               <tr (click)="openDetail(entry)">
-                <td>
+                <td data-label="Horodatage">
                   <span class="al-mono">{{ entry.formattedTimestamp }}</span>
                   <small class="al-muted">{{ entry.relativeTime }}</small>
                 </td>
-                <td>
+                <td data-label="Utilisateur">
                   <span class="al-user">{{ entry.userFullName || entry.userEmail }}</span>
                   <small class="al-muted">{{ entry.userEmail }}</small>
                 </td>
-                <td>
+                <td data-label="Action">
                   <span class="al-action"><i class="bx" [ngClass]="entry.actionIcon"></i> {{ entry.actionLabel }}</span>
                 </td>
-                <td>{{ entry.categoryLabel }}</td>
-                <td>
+                <td data-label="Catégorie">{{ entry.categoryLabel }}</td>
+                <td data-label="Cible">
                   <span class="al-target">{{ entry.entityIdentifier || entry.entityType }}</span>
                   <small class="al-muted">{{ entry.entityType }}</small>
                 </td>
-                <td class="al-desc">{{ entry.description || '—' }}</td>
-                <td>
+                <td class="al-desc" data-label="Description">{{ entry.description || '—' }}</td>
+                <td data-label="Sévérité">
                   <span class="al-sev" [ngClass]="getSeverityClass(entry.severity)">{{ entry.severityLabel }}</span>
                 </td>
                 <td>
@@ -216,14 +216,14 @@
 
         @if (getFieldChanges().length) {
           <h4 class="al-detail-section">Modifications</h4>
-          <table class="al-table al-table--diff">
+          <table class="iam-responsive-table al-table al-table--diff">
             <thead><tr><th>Champ</th><th>Avant</th><th>Après</th></tr></thead>
             <tbody>
               @for (change of getFieldChanges(); track change.fieldName) {
                 <tr>
-                  <td class="al-mono">{{ change.fieldName }}</td>
-                  <td class="al-old">{{ change.oldValue || '—' }}</td>
-                  <td class="al-new">{{ change.newValue || '—' }}</td>
+                  <td class="al-mono" data-label="Champ">{{ change.fieldName }}</td>
+                  <td class="al-old" data-label="Avant">{{ change.oldValue || '—' }}</td>
+                  <td class="al-new" data-label="Après">{{ change.newValue || '—' }}</td>
                 </tr>
               }
             </tbody>

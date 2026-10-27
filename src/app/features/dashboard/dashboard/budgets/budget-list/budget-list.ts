@@ -18,6 +18,7 @@ import {
 } from '../../../../../core/models/Finances/budget.model';
 import { BudgetResponseDto } from '../../../../../core/models/Finances/budget-statistics.model';
 import { BudgetService } from '../../../../../core/services/Finances/budjets';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 
 const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
@@ -28,7 +29,7 @@ const STATUS_OPTIONS = Object.values(BudgetStatus).map((value) => ({
 @Component({
   selector: 'app-budget-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount, MobileFilterSheet],
   templateUrl: './budget-list.html',
   styleUrls: ['./budget-list.scss'],
 })

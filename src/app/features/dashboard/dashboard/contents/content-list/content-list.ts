@@ -19,11 +19,12 @@ import {
 } from '../../../../../core/models/Communication/content.model';
 import { Contents } from '../../../../../core/services/Content/contents';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 @Component({
   selector: 'app-content-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, AuthImageDirective, MobileFilterSheet],
   templateUrl: './content-list.html',
   styleUrls: ['./content-list.scss'],
 })

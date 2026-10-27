@@ -65,6 +65,7 @@
 
   <!-- ══════════════ FILTRES ══════════════ -->
   <div class="cl-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <form [formGroup]="filterForm" class="cl-filter-form">
       <div class="cl-filter-row">
         <div class="cl-filter-field cl-filter-field--search">
@@ -109,6 +110,7 @@
         </div>
       </div>
     </form>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- ══════════════ TABLEAU ══════════════ -->
@@ -124,7 +126,7 @@
         <button class="cl-btn cl-btn--primary" (click)="goToCreate()">Ajouter un contenu</button>
       </div>
     } @else {
-      <table class="cl-table">
+      <table class="iam-responsive-table" class="cl-table">
         <thead>
           <tr>
             <th>Titre</th>
@@ -139,7 +141,7 @@
         <tbody>
           @for (content of contents(); track content.id) {
             <tr (click)="viewContent(content.id)">
-              <td>
+              <td data-label="Titre">
                 <div class="cl-content-title">
                   @if (content.thumbnailUrl) {
                     <img [appAuthImage]="content.thumbnailUrl" alt="" class="cl-thumbnail" (error)="$event.target.style.display='none'">
@@ -150,21 +152,21 @@
                   }
                 </div>
               </td>
-              <td>
+              <td data-label="Type">
                 <span class="cl-type-badge" [class]="getContentTypeClass(content.type)">
                   <i class="bx {{ getTypeIcon(content.type) }}"></i>
                   {{ getTypeLabel(content.type) }}
                 </span>
               </td>
-              <td>{{ content.metadata?.speaker || '—' }}</td>
-              <td>{{ content.views }}</td>
-              <td>{{ content.downloads }}</td>
-              <td>
+              <td data-label="Prédicateur">{{ content.metadata?.speaker || '—' }}</td>
+              <td data-label="Vues">{{ content.views }}</td>
+              <td data-label="Téléchargements">{{ content.downloads }}</td>
+              <td data-label="Statut">
                 <span class="cl-status-badge" [class]="getStatusClass(content.isPublished)">
                   {{ getStatusLabel(content.isPublished) }}
                 </span>
               </td>
-              <td>
+              <td data-label="Actions">
                 <div class="cl-actions">
                   <button class="cl-icon-btn" (click)="viewContent(content.id)" title="Voir">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>

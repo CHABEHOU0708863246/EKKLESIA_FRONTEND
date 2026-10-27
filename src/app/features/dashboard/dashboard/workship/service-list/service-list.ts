@@ -19,6 +19,7 @@ import { Users, pastorToUser } from '../../../../../core/services/Users/users';
 import { Service } from '../../../../../core/services/Worship/service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
   value,
@@ -28,7 +29,7 @@ const STATUS_OPTIONS = Object.values(ServiceStatus).map((value) => ({
 @Component({
   selector: 'app-service-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, MobileFilterSheet],
   templateUrl: './service-list.html',
   styleUrls: ['./service-list.scss'],
 })

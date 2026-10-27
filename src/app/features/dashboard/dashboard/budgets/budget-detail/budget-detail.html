@@ -177,7 +177,7 @@
     <div class="bd-categories-section">
       <h2>Catégories</h2>
       <div class="bd-table-wrap">
-        <table class="bd-table">
+        <table class="iam-responsive-table bd-table">
           <thead>
             <tr>
               <th>Nom</th>
@@ -191,12 +191,12 @@
           <tbody>
             @for (cat of b.categories; track cat.code) {
               <tr>
-                <td class="bd-cat-name">{{ cat.name }}</td>
-                <td><span class="bd-cat-code">{{ cat.code }}</span></td>
-                <td class="bd-amount">{{ cat.allocated | number:'1.0-0' }} FCFA</td>
-                <td class="bd-amount">{{ cat.spent | number:'1.0-0' }} FCFA</td>
-                <td class="bd-amount">{{ cat.remaining | number:'1.0-0' }} FCFA</td>
-                <td>
+                <td class="bd-cat-name" data-label="Nom">{{ cat.name }}</td>
+                <td data-label="Code"><span class="bd-cat-code">{{ cat.code }}</span></td>
+                <td class="bd-amount" data-label="Alloué">{{ cat.allocated | number:'1.0-0' }} FCFA</td>
+                <td class="bd-amount" data-label="Dépensé">{{ cat.spent | number:'1.0-0' }} FCFA</td>
+                <td class="bd-amount" data-label="Restant">{{ cat.remaining | number:'1.0-0' }} FCFA</td>
+                <td data-label="Utilisation">
                   <div class="bd-progress-wrap bd-progress-wrap-sm">
                     <span class="bd-progress-value">{{ cat.utilizationRate }}%</span>
                     <div class="bd-progress-bar">

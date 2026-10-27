@@ -11,6 +11,7 @@ import { OfferingUtils } from '../../../../../core/models/Finances/offering.mode
 import { OfferingTypeLabels, OfferingTypeIcons, OfferingTypeColors, OfferingStatusLabels, OfferingStatusColors } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -26,7 +27,7 @@ const STATUS_OPTIONS = Object.values(OfferingStatus).map((value) => ({
 @Component({
   selector: 'app-offering-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, MobileFilterSheet],
   templateUrl: './offering-list.html',
   styleUrls: ['./offering-list.scss'],
 })

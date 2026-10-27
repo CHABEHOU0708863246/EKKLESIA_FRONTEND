@@ -20,7 +20,9 @@
 
 <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
 <div class="ml-toolbar">
-  <div class="ml-search">
+  <app-mobile-filter-sheet title="Filtres des membres">
+    <div class="ml-filters-grid">
+      <div class="ml-search">
     <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     <input type="text" [formControl]="searchControl" placeholder="Rechercher par nom, téléphone…">
   </div>
@@ -49,16 +51,21 @@
   </div>
 
   <!-- ✅ NOUVEAU : Bouton Exporter Excel -->
-  <button type="button" class="ml-btn ml-btn--success" (click)="exportExcel()" [disabled]="loading()">
+    </div>
+  </app-mobile-filter-sheet>
+
+  <div class="ml-toolbar-actions">
+    <button type="button" class="ml-btn ml-btn--success" (click)="exportExcel()" [disabled]="loading()">
     <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     Exporter Excel
   </button>
 
-  <button type="button" class="ml-icon-btn" (click)="refresh()" aria-label="Actualiser" title="Actualiser">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
+    <button type="button" class="ml-icon-btn" (click)="refresh()" aria-label="Actualiser" title="Actualiser">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0114.13-3.36L21 8M20.49 15a9 9 0 01-14.13 3.36L3 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
 </div>
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
@@ -69,7 +76,7 @@
 
   <!-- ══════════════ TABLEAU ══════════════ -->
   <div class="ml-table-card">
-    <table class="ml-table">
+    <table class="iam-responsive-table ml-table">
       <thead>
         <tr>
           <th class="ml-col-member">Membre</th>
@@ -98,7 +105,7 @@
 
         <!-- Lignes de données -->
         <tr *ngFor="let member of members()" class="ml-row" (click)="viewMember(member)">
-          <td class="ml-col-member">
+          <td class="ml-col-member" data-label="Membre">
   <div class="ml-member-cell">
     <div class="ml-avatar">
       <img
@@ -116,19 +123,19 @@
     </div>
   </div>
 </td>
-          <td>{{ member.phone }}</td>
-          <td>
+          <td data-label="Téléphone">{{ member.phone }}</td>
+          <td data-label="Statut">
             <span class="ml-badge" [ngClass]="getStatusClass(member.status)">
               {{ getStatusLabel(member.status) }}
             </span>
           </td>
-          <td>
+          <td data-label="Statut spirituel">
             <span class="ml-text-muted">{{ getSpiritualStatusLabel(member.spiritualStatus) }}</span>
           </td>
-          <td>
+          <td data-label="Cellule">
             <span class="ml-text-muted">{{ getCellGroupName(member.cellGroupId) }}</span>
           </td>
-          <td class="ml-col-actions">
+          <td class="ml-col-actions" data-label="Actions">
             <!-- ✅ NOUVEAU : Bouton Fiche PDF -->
   <button type="button" class="ml-icon-btn" (click)="exportPdf(member, $event)" aria-label="Fiche PDF" title="Télécharger la fiche PDF">
     <svg viewBox="0 0 24 24" fill="none" width="20" height="20">

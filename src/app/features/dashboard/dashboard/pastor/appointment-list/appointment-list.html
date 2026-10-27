@@ -48,6 +48,7 @@
 
   <!-- FILTRES -->
   <div class="al-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <form [formGroup]="filterForm" class="al-filter-form">
       <div class="al-filter-row">
         <div class="al-field">
@@ -76,6 +77,7 @@
         </div>
       </div>
     </form>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- ÉTATS -->
@@ -97,7 +99,7 @@
   </div>
   } @else {
   <div class="al-table-wrap">
-    <table class="al-table">
+    <table class="iam-responsive-table" class="al-table">
       <thead>
         <tr>
           <th>Date & heure</th>
@@ -111,13 +113,13 @@
       <tbody>
         @for (app of appointments(); track app.id) {
         <tr (click)="viewAppointment(app.id)" class="al-row" [class.al-row-upcoming]="isUpcoming(app)" [class.al-row-today]="isToday(app)">
-          <td>
+          <td data-label="Date & heure">
             <div class="al-date-cell">
               <span class="al-date">{{ getFormattedDate(app.appointmentDate) }}</span>
               <span class="al-duration">{{ app.durationMinutes }} min</span>
             </div>
           </td>
-          <td>
+          <td data-label="Participant">
             <div class="al-participant">
               <span class="al-participant-name">{{ getParticipantName(app) }}</span>
               @if (app.visitorPhone) {
@@ -125,7 +127,7 @@
               }
             </div>
           </td>
-          <td>
+          <td data-label="Motif">
             <div class="al-reason">
               <span>{{ app.reason }}</span>
               @if (app.location) {
@@ -133,13 +135,13 @@
               }
             </div>
           </td>
-          <td>{{ app.pastorName || '—' }}</td>
-          <td>
+          <td data-label="Pasteur">{{ app.pastorName || '—' }}</td>
+          <td data-label="Statut">
             <span class="al-badge" [class]="getStatusClass(app.status)">
               {{ getStatusLabel(app.status) }}
             </span>
           </td>
-          <td>
+          <td data-label="Actions">
             <div class="al-actions">
               <button class="al-icon-btn" (click)="viewAppointment(app.id)" title="Voir">
                 <i class="bx bx-show"></i>

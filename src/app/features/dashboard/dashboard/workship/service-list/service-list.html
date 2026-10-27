@@ -64,6 +64,7 @@
 
   <!-- FILTRES -->
   <div class="sl-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="sl-filter-group">
       <div class="sl-field">
         <label>Rechercher</label>
@@ -91,6 +92,7 @@
         <button class="sl-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
       </div>
     </div>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- TABLEAU DES CULTES -->
@@ -105,7 +107,7 @@
   </div>
   } @else {
   <div class="sl-table-wrap">
-    <table class="sl-table">
+    <table class="iam-responsive-table" class="sl-table">
       <thead>
         <tr>
           <th>Titre</th>
@@ -119,7 +121,7 @@
       <tbody>
         @for (service of services(); track service.id) {
         <tr (click)="viewService(service)">
-          <td>
+          <td data-label="Titre">
             <div class="sl-service-title">
               <span class="sl-title">{{ service.title }}</span>
               @if (service.theme) {
@@ -127,8 +129,8 @@
               }
             </div>
           </td>
-          <td>{{ getFormattedDate(service.date) }}</td>
-          <td>
+          <td data-label="Date">{{ getFormattedDate(service.date) }}</td>
+          <td data-label="Prédicateur">
             <div class="sl-preacher">
               @if (service.preacherId) {
               <img class="sl-avatar" [appAuthImage]="userService.getPhotoUrl(service.preacherPhotoUrl)"
@@ -139,12 +141,12 @@
               <span>{{ getPreacherName(service) }}</span>
             </div>
           </td>
-          <td>
+          <td data-label="Statut">
             <span class="sl-badge" [class]="'sl-badge-' + getStatusColor(service.status)">
               {{ getStatusLabel(service.status) }}
             </span>
           </td>
-          <td>
+          <td data-label="Présence">
             <div class="sl-attendance">
               <!-- ✅ Affichage des deux totaux -->
               <div>
@@ -173,7 +175,7 @@
               </div>
             </div>
           </td>
-          <td>
+          <td data-label="Actions">
             <div class="sl-actions-btn">
               <button class="sl-icon-btn" (click)="viewService(service)" title="Voir">
                 <i class="bx bx-show"></i>

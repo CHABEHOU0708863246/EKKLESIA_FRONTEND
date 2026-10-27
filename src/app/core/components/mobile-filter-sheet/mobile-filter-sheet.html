@@ -1,0 +1,31 @@
+<button type="button" class="mfs-trigger" (click)="open()" [attr.aria-expanded]="isOpen()">
+  <i class="bx bx-filter-alt" aria-hidden="true"></i>
+  <span>{{ title }}</span>
+</button>
+
+@if (isOpen()) {
+  <div class="mfs-backdrop" (click)="close()" aria-hidden="true"></div>
+}
+
+<section
+  class="mfs-sheet"
+  [class.is-open]="isOpen()"
+  [attr.aria-hidden]="!isOpen()"
+  role="dialog"
+  [attr.aria-label]="title"
+  aria-modal="true">
+  <header class="mfs-header">
+    <span>{{ title }}</span>
+    <button type="button" class="mfs-close" (click)="close()" aria-label="Fermer les filtres">
+      <i class="bx bx-x" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <div class="mfs-body">
+    <ng-content></ng-content>
+  </div>
+
+  <footer class="mfs-footer">
+    <button type="button" class="mfs-apply" (click)="close()">{{ applyLabel }}</button>
+  </footer>
+</section>

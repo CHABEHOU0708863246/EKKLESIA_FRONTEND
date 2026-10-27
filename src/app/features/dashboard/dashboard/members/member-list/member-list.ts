@@ -18,6 +18,7 @@ import { Members } from '../../../../../core/services/Members/members';
 import { ConfirmDialog } from "../../../../../core/components/confirm-dialog/confirm-dialog";
 import { environment } from '../../../../../../environments/environment';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 // ── Libellés français pour les enums backend (clé anglaise -> libellé) ──
 const STATUS_LABELS: Record<string, string> = {
@@ -55,7 +56,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 @Component({
   selector: 'app-member-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, MobileFilterSheet],
   templateUrl: './member-list.html',
   styleUrl: './member-list.scss',
 })

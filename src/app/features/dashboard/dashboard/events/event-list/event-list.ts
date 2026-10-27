@@ -10,11 +10,12 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { Event, EventFilter, EventStatus, EventType, DEFAULT_EVENT_FILTER } from '../../../../../core/models/Events/event.model';
 import { EventStatusLabels, EventTypeLabels, EventUtils } from '../../../../../core/models/Events/event.model';
 import { Events } from '../../../../../core/services/Event/events';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 @Component({
   selector: 'app-event-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, MobileFilterSheet],
   templateUrl: './event-list.html',
   styleUrls: ['./event-list.scss'],
 })

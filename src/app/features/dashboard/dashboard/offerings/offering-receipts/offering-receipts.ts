@@ -10,6 +10,7 @@ import { Offering, OfferingFilter, OfferingStatus, OfferingType, DEFAULT_OFFERIN
 import { OfferingUtils } from '../../../../../core/models/Finances/offering.model';
 import { OfferingTypeLabels, OfferingTypeIcons, OfferingTypeColors } from '../../../../../core/models/Finances/offering.model';
 import { Offerings } from '../../../../../core/services/Finances/offerings';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
   value,
@@ -20,7 +21,7 @@ const TYPE_OPTIONS = Object.values(OfferingType).map((value) => ({
 @Component({
   selector: 'app-offering-receipts',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, DualAmount, MobileFilterSheet],
   templateUrl: './offering-receipts.html',
   styleUrls: ['./offering-receipts.scss'],
 })

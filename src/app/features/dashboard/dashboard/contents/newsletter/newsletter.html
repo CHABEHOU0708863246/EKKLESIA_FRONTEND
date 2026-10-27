@@ -37,6 +37,7 @@
 
   <!-- FILTRES -->
   <div class="nl-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="nl-filter-row">
       <div class="nl-filter-field nl-filter-field--search">
         <i class="bx bx-search"></i>
@@ -56,6 +57,7 @@
       </div>
       <button class="nl-btn nl-btn-ghost" (click)="resetFilters()">Réinitialiser</button>
     </div>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- LISTE -->
@@ -64,7 +66,7 @@
       <span class="nl-spinner"></span> Chargement des newsletters…
     </div>
 
-    <table class="nl-table" *ngIf="!loading()">
+    <table class="iam-responsive-table" class="nl-table" *ngIf="!loading()">
       <thead>
         <tr>
           <th>Titre</th>
@@ -76,20 +78,20 @@
       </thead>
       <tbody>
         <tr *ngFor="let nl of filteredNewsletters">
-          <td>
+          <td data-label="Titre">
             <div class="nl-title-cell">
               <span class="nl-title">{{ nl.title }}</span>
               <span class="nl-preview" *ngIf="nl.description">{{ nl.description | slice:0:60 }}…</span>
             </div>
           </td>
-          <td>{{ (nl.recipients || []).length }} destinataires</td>
-          <td>
+          <td data-label="Destinataires">{{ (nl.recipients || []).length }} destinataires</td>
+          <td data-label="Statut">
             <span class="nl-status-badge" [class]="'nl-status-badge--' + getStatusColor(nl.status)">
               {{ getStatusLabel(nl.status) }}
             </span>
           </td>
-          <td>{{ getFormattedDate(nl.createdAt) }}</td>
-          <td>
+          <td data-label="Créé le">{{ getFormattedDate(nl.createdAt) }}</td>
+          <td data-label="Actions">
             <div class="nl-actions">
               <button class="nl-action-btn nl-action-btn--view" (click)="openEditForm(nl)" title="Modifier" *ngIf="nl.status !== 'sent'">
                 <i class="bx bx-edit"></i>

@@ -2,7 +2,7 @@
   <div class="cs-loading" *ngIf="loading()">Chargement…</div>
   <div class="cs-error" *ngIf="error()">{{ error() }}</div>
 
-  <table class="cs-table" *ngIf="!loading() && stats().length > 0">
+  <table class="iam-responsive-table cs-table" *ngIf="!loading() && stats().length > 0">
     <thead>
       <tr>
         <th>Église</th>
@@ -17,14 +17,14 @@
     </thead>
     <tbody>
       <tr *ngFor="let s of stats()">
-        <td>{{ s.churchLabel }}</td>
-        <td>{{ s.siteLabel || '—' }}</td>
-        <td>{{ s.totalInscrits }}</td>
-        <td>{{ s.totalPayes }}</td>
-        <td>{{ s.totalEnAttente }}</td>
-        <td>{{ s.tauxPaiement }}%</td>
-        <td>{{ formatMoney(s.montantEncaisse) }}</td>
-        <td>{{ formatMoney(s.montantEnAttente) }}</td>
+        <td data-label="Église">{{ s.churchLabel }}</td>
+        <td data-label="Site">{{ s.siteLabel || '—' }}</td>
+        <td data-label="Inscrits">{{ s.totalInscrits }}</td>
+        <td data-label="Payés">{{ s.totalPayes }}</td>
+        <td data-label="En attente">{{ s.totalEnAttente }}</td>
+        <td data-label="Taux paiement">{{ s.tauxPaiement }}%</td>
+        <td data-label="Montant encaissé">{{ formatMoney(s.montantEncaisse) }}</td>
+        <td data-label="Montant en attente">{{ formatMoney(s.montantEnAttente) }}</td>
       </tr>
     </tbody>
     <tfoot *ngIf="globalTotals()">

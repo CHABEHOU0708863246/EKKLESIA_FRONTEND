@@ -312,15 +312,15 @@
         <a [routerLink]="['/dashboard/membres']" class="btn btn-outline btn-sm">Voir tout</a>
       </div>
       <div class="card-body" style="padding: 0;">
-        <table class="data-table">
+        <table class="iam-responsive-table data-table">
           <thead>
             <tr><th>Nom</th><th>Statut</th><th>Cellule</th></tr>
           </thead>
           <tbody>
             <tr *ngFor="let member of recentMembers">
-              <td><span class="cell-name">{{ member.fullName }}</span></td>
-              <td><span class="status-badge" [ngClass]="member.status | memberStatusColor">{{ member.status | memberStatusLabel }}</span></td>
-              <td><span class="cell-ref">{{ member.cellGroupName || '-' }}</span></td>
+              <td data-label="Nom"><span class="cell-name">{{ member.fullName }}</span></td>
+              <td data-label="Statut"><span class="status-badge" [ngClass]="member.status | memberStatusColor">{{ member.status | memberStatusLabel }}</span></td>
+              <td data-label="Cellule"><span class="cell-ref">{{ member.cellGroupName || '-' }}</span></td>
             </tr>
             <tr *ngIf="recentMembers.length === 0"><td colspan="3" class="empty-state">Aucun membre récent</td></tr>
           </tbody>
@@ -334,15 +334,15 @@
             <a [routerLink]="['/dashboard/offrandes']" class="btn btn-outline btn-sm">Voir tout</a>
       </div>
       <div class="card-body" style="padding: 0;">
-        <table class="data-table">
+        <table class="iam-responsive-table data-table">
           <thead>
             <tr><th>Type</th><th>Montant</th><th>Statut</th></tr>
           </thead>
           <tbody>
             <tr *ngFor="let offering of recentOfferings">
-              <td><span class="cell-name">{{ getOfferingTypeText(offering.type) }}</span></td>
-              <td><span class="cell-amount positive">{{ offering.amount | number:'1.0-0' }} FCFA</span></td>
-              <td><span class="status-badge" [ngClass]="getOfferingStatusClass(offering.status)">{{ getOfferingStatusText(offering.status) }}</span></td>
+              <td data-label="Type"><span class="cell-name">{{ getOfferingTypeText(offering.type) }}</span></td>
+              <td data-label="Montant"><span class="cell-amount positive">{{ offering.amount | number:'1.0-0' }} FCFA</span></td>
+              <td data-label="Statut"><span class="status-badge" [ngClass]="getOfferingStatusClass(offering.status)">{{ getOfferingStatusText(offering.status) }}</span></td>
             </tr>
             <tr *ngIf="recentOfferings.length === 0"><td colspan="3" class="empty-state">Aucune offrande récente</td></tr>
           </tbody>
@@ -388,7 +388,7 @@
 
           <!-- Tableau récapitulatif -->
           <div class="table-scroll" style="margin-top: 14px;">
-            <table class="data-table">
+            <table class="iam-responsive-table data-table">
               <thead>
                 <tr>
                   <th>Église</th>
@@ -405,7 +405,7 @@
                     class="members-church-row"
                     [class.members-church-row--active]="selectedChurch?.churchId === row.churchId"
                     (click)="selectChurch(row)">
-                  <td>
+                  <td data-label="Église">
                     <span class="cell-name">
                       <i class="bx bx-chevron-right" *ngIf="selectedChurch?.churchId !== row.churchId"></i>
                       <i class="bx bx-chevron-down" *ngIf="selectedChurch?.churchId === row.churchId"></i>
@@ -415,12 +415,12 @@
                       {{ row.isHeadquarters ? 'Siège' : '' }}{{ row.country ? (row.isHeadquarters ? ' • ' : '') + row.country : '' }}
                     </small>
                   </td>
-                  <td class="th-center">{{ row.male }}</td>
-                  <td class="th-center">{{ row.female }}</td>
-                  <td class="th-center">{{ row.other }}</td>
-                  <td class="th-center">{{ row.unknown }}</td>
-                  <td class="th-center"><strong>{{ row.total }}</strong></td>
-                  <td class="th-center">{{ getChurchShare(row) }} %</td>
+                  <td class="th-center" data-label="Hommes">{{ row.male }}</td>
+                  <td class="th-center" data-label="Femmes">{{ row.female }}</td>
+                  <td class="th-center" data-label="Autres">{{ row.other }}</td>
+                  <td class="th-center" data-label="Inconnu">{{ row.unknown }}</td>
+                  <td class="th-center" data-label="Total"><strong>{{ row.total }}</strong></td>
+                  <td class="th-center" data-label="Part">{{ getChurchShare(row) }} %</td>
                 </tr>
               </tbody>
               <tfoot>
@@ -460,7 +460,7 @@
                 <i class="bx bx-sitemap"></i>
                 Église Mère et sites ({{ selectedChurch.sites.length }})
               </h5>
-              <table class="data-table">
+              <table class="iam-responsive-table data-table">
                 <thead>
                   <tr>
                     <th>Site</th>
@@ -472,7 +472,7 @@
                 <tbody>
                   <tr *ngFor="let site of selectedChurch.sites"
                       [class.members-church-row--active]="site.isMotherChurch">
-                    <td>
+                    <td data-label="Site">
                       <span class="cell-name">
                         <i class="bx" [class.bx-home]="site.isMotherChurch" [class.bx-map-pin]="!site.isMotherChurch"></i>
                         {{ site.siteName }}
@@ -480,9 +480,9 @@
                         <span class="badge-inactive" *ngIf="!site.isActive">inactif</span>
                       </span>
                     </td>
-                    <td class="th-center">{{ site.male }}</td>
-                    <td class="th-center">{{ site.female }}</td>
-                    <td class="th-center"><strong>{{ site.total }}</strong></td>
+                    <td class="th-center" data-label="Hommes">{{ site.male }}</td>
+                    <td class="th-center" data-label="Femmes">{{ site.female }}</td>
+                    <td class="th-center" data-label="Total"><strong>{{ site.total }}</strong></td>
                   </tr>
                 </tbody>
                 <tfoot>

@@ -15,6 +15,7 @@
 
   <!-- Filtres -->
   <div class="or-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="or-filter-group">
       <div class="or-field">
         <label>Rechercher</label>
@@ -41,6 +42,7 @@
         <button class="or-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
       </div>
     </div>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- Tableau -->
@@ -56,7 +58,7 @@
     </div>
   } @else {
     <div class="or-table-wrap">
-      <table class="or-table">
+      <table class="iam-responsive-table" class="or-table">
         <thead>
           <tr>
             <th>N° reçu</th>
@@ -71,11 +73,11 @@
         <tbody>
           @for (offering of offerings(); track offering.id) {
             <tr (click)="viewOffering(offering)">
-              <td>
+              <td data-label="N° reçu">
                 <span class="or-receipt-number">{{ offering.receiptNumber }}</span>
               </td>
-              <td>{{ getFormattedDate(offering.date) }}</td>
-              <td>
+              <td data-label="Date">{{ getFormattedDate(offering.date) }}</td>
+              <td data-label="Membre">
                 <span class="or-member">
                   <span class="or-member-name">{{ offering.memberName || 'Anonyme' }}</span>
                   @if (offering.memberId) {
@@ -83,21 +85,21 @@
                   }
                 </span>
               </td>
-              <td>
+              <td data-label="Type">
                 <span class="or-type-badge" [class]="getTypeColorClass(offering.type)">
                   <i class="bx {{ getTypeIcon(offering.type) }}"></i>
                   {{ getTypeLabel(offering.type) }}
                 </span>
               </td>
-              <td class="or-amount">
+              <td class="or-amount" data-label="Montant">
                 <app-dual-amount [amount]="offering.amount" [currency]="offering.currency"></app-dual-amount>
               </td>
-              <td>
+              <td data-label="Statut">
                 <span class="or-badge" [class]="getStatusClass(offering.status)">
                   {{ getStatusLabel(offering.status) }}
                 </span>
               </td>
-              <td>
+              <td data-label="Actions">
                 <div class="or-actions-btn">
                   <button class="or-icon-btn" (click)="downloadReceipt(offering, $event)" title="Télécharger le reçu PDF">
                     <i class="bx bx-download"></i>

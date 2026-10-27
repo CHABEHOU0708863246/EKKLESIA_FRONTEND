@@ -58,6 +58,7 @@
 
   <!-- Filtres -->
   <div class="bl-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="bl-filter-group">
       <div class="bl-field">
         <label>Rechercher</label>
@@ -85,6 +86,7 @@
         <button class="bl-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
       </div>
     </div>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- Tableau -->
@@ -99,7 +101,7 @@
     </div>
   } @else {
     <div class="bl-table-wrap">
-      <table class="bl-table">
+      <table class="iam-responsive-table" class="bl-table">
         <thead>
           <tr>
             <th>Nom</th>
@@ -114,18 +116,18 @@
         <tbody>
           @for (budget of budgets(); track budget.id) {
             <tr (click)="viewBudget(budget)">
-              <td class="bl-name">{{ budget.name }}</td>
-              <td>{{ budget.year }}</td>
-              <td>
+              <td class="bl-name" data-label="Nom">{{ budget.name }}</td>
+              <td data-label="Année">{{ budget.year }}</td>
+              <td data-label="Statut">
                 <span class="bl-badge" [class]="getStatusClass(budget.status)">
                   {{ getStatusLabel(budget.status) }}
                 </span>
               </td>
-              <td class="bl-amount">
+              <td class="bl-amount" data-label="Alloué">
                 <app-dual-amount [amount]="budget.totalBudget" [currency]="budget.currency || 'XOF'"></app-dual-amount>
               </td>
-              <td class="bl-amount">{{ budget.totalSpent | number:'1.0-0' }} FCFA</td>
-              <td>
+              <td class="bl-amount" data-label="Dépensé">{{ budget.totalSpent | number:'1.0-0' }} FCFA</td>
+              <td data-label="Utilisation">
                 <div class="bl-progress-wrap">
                   <span class="bl-progress-value">{{ budget.utilizationRate }}%</span>
                   <div class="bl-progress-bar">
@@ -139,7 +141,7 @@
                   </div>
                 </div>
               </td>
-              <td>
+              <td data-label="Actions">
                 <div class="bl-actions-btn">
                   <button class="bl-icon-btn" (click)="viewBudget(budget)" title="Voir">
                     <i class="bx bx-show"></i>

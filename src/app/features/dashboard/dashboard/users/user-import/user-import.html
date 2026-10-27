@@ -59,17 +59,17 @@
         </p>
       }
 
-      <table class="ui-table">
+      <table class="iam-responsive-table ui-table">
         <thead>
           <tr><th>#</th><th>Email</th><th>Statut</th><th>Détail</th></tr>
         </thead>
         <tbody>
           @for (row of r.rows; track row.row) {
             <tr [class.ui-row-error]="row.status === 'error'">
-              <td>{{ row.row }}</td>
-              <td>{{ row.email }}</td>
-              <td><span class="ui-badge ui-badge-{{ row.status }}">{{ statusLabel(row.status) }}</span></td>
-              <td>
+              <td data-label="#">{{ row.row }}</td>
+              <td data-label="Email">{{ row.email }}</td>
+              <td data-label="Statut"><span class="ui-badge ui-badge-{{ row.status }}">{{ statusLabel(row.status) }}</span></td>
+              <td data-label="Détail">
                 @for (m of row.messages; track m) { <div class="ui-msg-error">{{ m }}</div> }
                 @for (w of row.warnings; track w) { <div class="ui-msg-warn">{{ w }}</div> }
               </td>

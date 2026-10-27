@@ -454,3 +454,34 @@ select:focus-visible {
     }
   }
 }
+
+.ml-filters-grid {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ml-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .ml-filters-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ml-toolbar-actions {
+    width: 100%;
+  }
+
+  .ml-toolbar-actions .ml-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

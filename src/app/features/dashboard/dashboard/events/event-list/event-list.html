@@ -29,6 +29,7 @@
 
   <!-- ══════════════ FILTRES ══════════════ -->
   <section class="ev-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="ev-filters-row">
       <div class="ev-filter-field ev-filter-field--search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -51,7 +52,8 @@
 
       <button type="button" class="ev-btn ev-btn--ghost" (click)="resetFilters()">Réinitialiser</button>
     </div>
-  </section>
+    </app-mobile-filter-sheet>
+</section>
 
   <!-- ══════════════ LISTE ══════════════ -->
   <section class="ev-table-wrap">
@@ -59,7 +61,7 @@
       <span class="ev-spinner"></span> Chargement des événements…
     </div>
 
-    <table class="ev-table" *ngIf="!loading()">
+    <table class="iam-responsive-table ev-table" *ngIf="!loading()">
       <thead>
         <tr>
           <th>Titre</th>

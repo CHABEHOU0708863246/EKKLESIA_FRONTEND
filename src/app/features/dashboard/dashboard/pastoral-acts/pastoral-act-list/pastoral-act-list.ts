@@ -21,6 +21,7 @@ import { ConfirmDialog } from '../../../../../core/components/confirm-dialog/con
 
 import { Church as ChurchModel } from '../../../../../core/models/Church/church.model';
 import { Church as ChurchService } from '../../../../../core/services/Church/church';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 const TYPE_FILTER_OPTIONS = [
   { value: '', label: 'Tous les types', icon: '📋' },
@@ -36,7 +37,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 @Component({
   selector: 'app-pastoral-act-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ConfirmDialog, MobileFilterSheet],
   templateUrl: './pastoral-act-list.html',
   styleUrl: './pastoral-act-list.scss',
 })

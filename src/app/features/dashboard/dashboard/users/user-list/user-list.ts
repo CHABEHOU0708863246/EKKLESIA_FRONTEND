@@ -8,6 +8,7 @@ import { User, UserFilter, DEFAULT_USER_FILTER, UserUtils } from '../../../../..
 import { Users } from '../../../../../core/services/Users/users';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthImageDirective } from '../../../../../core/directives/auth-image.directive';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 
 const ROLE_FILTER_OPTIONS = [
@@ -41,7 +42,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, AuthImageDirective, MobileFilterSheet],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
 })

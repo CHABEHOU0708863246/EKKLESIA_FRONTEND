@@ -40,6 +40,7 @@
 
   <!-- FILTRES -->
   <div class="ol-filters">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="ol-filter-group">
       <div class="ol-field">
         <label>Rechercher</label>
@@ -75,6 +76,7 @@
         <button class="ol-btn-secondary" (click)="resetFilters()">Réinitialiser</button>
       </div>
     </div>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- TABLEAU -->
@@ -89,7 +91,7 @@
     </div>
   } @else {
     <div class="ol-table-wrap">
-      <table class="ol-table">
+      <table class="iam-responsive-table" class="ol-table">
         <thead>
           <tr>
             <th>Type</th>
@@ -104,20 +106,20 @@
         <tbody>
           @for (offering of offerings(); track offering.id) {
             <tr (click)="viewOffering(offering)">
-              <td>
+              <td data-label="Type">
                 <span class="ol-type-badge" [class]="getTypeClass(offering.type)">
                   <i class="bx {{ getTypeIcon(offering.type) }}"></i>
                   {{ getTypeLabel(offering.type) }}
                 </span>
               </td>
-              <td>{{ getFormattedDate(offering.date) }}</td>
-              <td>
+              <td data-label="Date">{{ getFormattedDate(offering.date) }}</td>
+              <td data-label="Membre">
                 <span class="ol-member">
                   <span class="ol-member-name">{{ offering.memberName || 'Anonyme' }}</span>
                   <span class="ol-member-id" *ngIf="offering.memberId">#{{ offering.memberId | slice:0:6 }}</span>
                 </span>
               </td>
-              <td>
+              <td data-label="Montant">
                 <span class="ol-amount">
                 {{ offering.amount | number:'1.0-0' }} {{ offering.currency }}
                 @if (offering.currency !== 'XOF' && offering.amountXof) {
@@ -125,12 +127,12 @@
                 }
               </span>
               </td>
-              <td>
+              <td data-label="Statut">
                 <span class="ol-badge" [class]="getStatusClass(offering.status)">
                   {{ getStatusLabel(offering.status) }}
                 </span>
               </td>
-              <td>
+              <td data-label="Reçu">
                 @if (offering.receiptGenerated && offering.receiptNumber) {
                   <span class="ol-receipt-badge ol-receipt-ok">
                     <i class="bx bx-check-circle"></i> {{ offering.receiptNumber }}
@@ -141,7 +143,7 @@
                   <span class="ol-receipt-badge ol-receipt-none">—</span>
                 }
               </td>
-              <td>
+              <td data-label="Actions">
                 <div class="ol-actions-btn">
                   <button class="ol-icon-btn" (click)="viewOffering(offering)" title="Voir">
                     <i class="bx bx-show"></i>

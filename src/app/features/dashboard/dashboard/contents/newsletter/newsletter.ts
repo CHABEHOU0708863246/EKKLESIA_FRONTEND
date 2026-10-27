@@ -9,6 +9,7 @@ import { Subject, takeUntil, finalize, debounceTime, distinctUntilChanged } from
 import { Content, ContentType, ContentUtils } from '../../../../../core/models/Communication/content.model';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import { Contents } from '../../../../../core/services/Content/contents';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 // Interface locale pour une newsletter (extension de Content)
 interface NewsletterItem extends Content {
@@ -21,7 +22,7 @@ interface NewsletterItem extends Content {
 @Component({
   selector: 'app-newsletter',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, MobileFilterSheet],
   templateUrl: './newsletter.html',
   styleUrls: ['./newsletter.scss'],
 })

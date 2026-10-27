@@ -35,6 +35,7 @@
 
   <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
   <div class="ul-toolbar">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="ul-search">
       <svg viewBox="0 0 24 24" fill="none">
         <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
@@ -71,6 +72,7 @@
           stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
@@ -84,7 +86,7 @@
 
 <!-- ══════════════ TABLEAU ══════════════ -->
 <div class="ul-table-card">
-  <table class="ul-table">
+  <table class="iam-responsive-table" class="ul-table">
     <thead>
       <tr>
         <th class="ul-col-user">Utilisateur</th>
@@ -109,7 +111,7 @@
 
       <tr *ngFor="let user of users()" class="ul-row">
         <!-- Colonne Utilisateur -->
-        <td class="ul-col-user">
+        <td class="ul-col-user" data-label="Utilisateur">
           <div class="ul-user-cell">
             <div class="ul-avatar">
               <!-- ✅ Chargement authentifié de la photo (blob + token) -->
@@ -129,7 +131,7 @@
         </td>
 
         <!-- Colonne Rôles -->
-        <td>
+        <td data-label="Rôles">
           <div class="ul-role-tags">
             <span class="ul-role-tag" *ngFor="let role of user.roles">{{ getRoleLabel(role) }}</span>
             <span class="ul-text-muted" *ngIf="!user.roles?.length">Aucun rôle</span>
@@ -137,12 +139,12 @@
         </td>
 
         <!-- Colonne Dernière connexion -->
-        <td>
+        <td data-label="Dernière connexion">
           <span class="ul-text-muted">{{ getFormattedLastLogin(user.lastLogin) }}</span>
         </td>
 
         <!-- Colonne Statut -->
-        <td>
+        <td data-label="Statut">
           <button type="button"
                   class="ul-status-toggle"
                   [ngClass]="'is-' + getStatusColor(user.isActive)"

@@ -279,8 +279,240 @@ body.miav-live-overlay app-root {
 
 /* Tiroir mobile ouvert : le fond ne défile plus (le tiroir lui-même reste
    défilable via `touch-action: pan-y`). */
-body.iam-sidebar-open {
+body.iam-sidebar-open,
+body.iam-filter-sheet-open {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile — tableaux en cartes, formulaires et dialogues utilisables  */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  /* iOS zoome automatiquement sous 16px : on garde une taille lisible. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Les tableaux transactionnels deviennent des cartes empilées. */
+  table.iam-responsive-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  table.iam-responsive-table thead {
+    display: none !important;
+  }
+
+  table.iam-responsive-table > tbody,
+  table.iam-responsive-table > tfoot {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Pied de tableau (totaux) : carte de synthèse compacte. */
+  table.iam-responsive-table > tfoot > tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px 14px !important;
+    margin-top: 4px !important;
+    padding: 12px 14px !important;
+    background: var(--color-surface-2) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 12px !important;
+  }
+
+  table.iam-responsive-table > tfoot > tr > td {
+    display: block !important;
+    flex: 1 1 calc(50% - 14px) !important;
+    width: auto !important;
+    padding: 2px 0 !important;
+    border: 0 !important;
+    text-align: right !important;
+    font-size: 13px !important;
+  }
+
+  table.iam-responsive-table > tfoot > tr > td[colspan] {
+    flex-basis: 100% !important;
+    text-align: left !important;
+    font-weight: 700;
+  }
+
+  table.iam-responsive-table > tbody > tr {
+    display: block !important;
+    margin: 0 0 12px !important;
+    padding: 4px 14px !important;
+    background: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden;
+  }
+
+  table.iam-responsive-table > tbody > tr:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    text-align: right !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+
+  table.iam-responsive-table > tbody > tr > td:last-child {
+    border-bottom: 0 !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td::before {
+    content: attr(data-label);
+    flex: 0 0 42%;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Cellules d'actions : pas de libellé, boutons alignés à droite. */
+  table.iam-responsive-table > tbody > tr > td[data-label='Actions'],
+  table.iam-responsive-table > tbody > tr > td[data-label='Action'],
+  table.iam-responsive-table > tbody > tr > td[data-label='Opérations'],
+  table.iam-responsive-table > tbody > tr > td[data-label='Check-in'],
+  table.iam-responsive-table > tbody > tr > td.iam-cell-actions,
+  table.iam-responsive-table > tbody > tr > td.actions {
+    justify-content: flex-end !important;
+    border-top: 1px solid var(--color-border) !important;
+    padding-top: 12px !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td[data-label='Actions']::before,
+  table.iam-responsive-table > tbody > tr > td[data-label='Action']::before,
+  table.iam-responsive-table > tbody > tr > td[data-label='Opérations']::before,
+  table.iam-responsive-table > tbody > tr > td[data-label='Check-in']::before,
+  table.iam-responsive-table > tbody > tr > td.iam-cell-actions::before,
+  table.iam-responsive-table > tbody > tr > td.actions::before {
+    display: none !important;
+  }
+
+  /* Lignes de chargement / état vide. */
+  table.iam-responsive-table > tbody > tr > td[colspan] {
+    display: block !important;
+    padding: 28px 8px !important;
+    border: 0 !important;
+    text-align: center !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td[colspan]::before {
+    display: none !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td[colspan] > * {
+    text-align: center;
+  }
+
+  /* Les wrappers ne créent plus de défilement horizontal. */
+  .ml-table-card,
+  .ev-table-wrap,
+  .bl-table-wrap,
+  .cl-table-wrap,
+  .el-table-wrap,
+  .ol-table-wrap,
+  .or-table-wrap,
+  .al-table-wrap,
+  .sl-table-wrap,
+  .pal-table-card,
+  .cgl-table-card,
+  .ul-table-card,
+  .nl-table-wrap,
+  .obm-table-wrap,
+  .bd-table-wrap,
+  .od-table-scroll,
+  .al-table-scroll,
+  .table-scroll {
+    overflow: visible !important;
+  }
+
+  /* Le bouton flottant de l'assistant ne masque pas la fin de page. */
+  .content-area {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Dialogues : pleine largeur utile, hauteur maîtrisée, zone défilable. */
+  .modal-dialog,
+  .modal-content,
+  .dialog-container,
+  .form-dialog,
+  .al-modal,
+  .bd-modal,
+  .bl-modal,
+  .cl-modal,
+  .ed-modal,
+  .el-modal,
+  .nl-modal,
+  .ol-modal,
+  .rl-modal,
+  .sl-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    margin: 12px auto !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-body,
+  .dialog-body,
+  .form-dialog-body,
+  .al-modal-body,
+  .rl-modal-body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Actions de formulaire accessibles au pouce. */
+  .modal-footer,
+  .dialog-footer,
+  .form-dialog-footer,
+  .al-modal-footer,
+  .rl-modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--color-surface);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  table.iam-responsive-table > tbody > tr {
+    padding: 2px 10px !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td {
+    gap: 8px !important;
+    padding: 8px 0 !important;
+    font-size: 13px !important;
+  }
+
+  table.iam-responsive-table > tbody > tr > td::before {
+    flex-basis: 38%;
+    font-size: 10px;
+  }
 }

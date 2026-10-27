@@ -13,11 +13,12 @@ import {
 } from '../../../../../core/models/Pastor/appointment.model';
 import { Permissions } from '../../../../../core/services/Permissions/permissions';
 import { PastorAppointmentService } from '../../../../../core/services/PastortRvd/pastort-appointment';
+import { MobileFilterSheet } from '../../../../../core/components/mobile-filter-sheet/mobile-filter-sheet';
 
 @Component({
   selector: 'app-appointment-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, MobileFilterSheet],
   templateUrl: './appointment-list.html',
   styleUrls: ['./appointment-list.scss'],
 })

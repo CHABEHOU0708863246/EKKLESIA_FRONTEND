@@ -162,6 +162,7 @@
 
   <!-- ══════════════ BARRE DE FILTRES ══════════════ -->
   <div class="cgl-toolbar">
+    <app-mobile-filter-sheet title="Filtres">
     <div class="cgl-search">
       <svg viewBox="0 0 24 24" fill="none">
         <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
@@ -199,6 +200,7 @@
           stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
+    </app-mobile-filter-sheet>
   </div>
 
   <!-- ══════════════ BANNIÈRE D'ERREUR ══════════════ -->
@@ -212,7 +214,7 @@
 
   <!-- ══════════════ DATAGRID ══════════════ -->
   <div class="cgl-table-card">
-    <table class="cgl-table">
+    <table class="iam-responsive-table" class="cgl-table">
       <thead>
         <tr>
           <th class="cgl-col-name">Nom de la cellule</th>
@@ -237,7 +239,7 @@
         </tr>
 
         <tr *ngFor="let cg of cellGroups()" class="cgl-row">
-          <td class="cgl-col-name">
+          <td class="cgl-col-name" data-label="Nom de la cellule">
             <div class="cgl-name-cell">
               <div class="cgl-avatar">{{ getInitials(cg.name) }}</div>
               <div class="cgl-name-info">
@@ -246,21 +248,21 @@
               </div>
             </div>
           </td>
-          <td>
+          <td data-label="Église rattachée">
             <span class="cgl-text-muted">{{ cg.churchName || '—' }}</span>
           </td>
-          <td>
+          <td data-label="Responsable">
             <div class="cgl-leader-cell">
               <span>{{ cg.leaderName || '—' }}</span>
               <span class="cgl-role-badge" *ngIf="getLeaderRoleLabel(cg.leaderId) as roleLabel">{{ roleLabel }}</span>
             </div>
           </td>
-          <td>
+          <td data-label="Statut">
             <span class="cgl-badge" [ngClass]="'is-' + getStatusBadge(cg.isActive).color">
               {{ getStatusBadge(cg.isActive).label }}
             </span>
           </td>
-          <td class="cgl-col-actions">
+          <td class="cgl-col-actions" data-label="Actions">
             <button type="button" class="cgl-icon-btn" (click)="editCellGroup(cg, $event)" aria-label="Modifier"
               title="Modifier">
               <svg viewBox="0 0 24 24" fill="none">

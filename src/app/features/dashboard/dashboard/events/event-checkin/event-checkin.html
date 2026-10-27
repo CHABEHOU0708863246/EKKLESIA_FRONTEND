@@ -106,7 +106,7 @@
         <div *ngIf="totalAttendees() > 0 && filteredAttendees().length === 0" class="ec-empty-state">
           Aucun participant ne correspond à votre recherche.
         </div>
-        <table class="ec-table" *ngIf="filteredAttendees().length > 0">
+        <table class="iam-responsive-table ec-table" *ngIf="filteredAttendees().length > 0">
           <thead>
             <tr>
               <th>Nom</th>
@@ -118,11 +118,11 @@
           </thead>
           <tbody>
             <tr *ngFor="let a of filteredAttendees()">
-              <td>{{ getAttendeeFullName(a) }}</td>
-              <td>{{ a.email || '—' }}</td>
-              <td>{{ a.phone || '—' }}</td>
-              <td>{{ formatDateTime(a.registrationDate) }}</td>
-              <td class="ec-table-center">
+              <td data-label="Nom">{{ getAttendeeFullName(a) }}</td>
+              <td data-label="Email">{{ a.email || '—' }}</td>
+              <td data-label="Téléphone">{{ a.phone || '—' }}</td>
+              <td data-label="Inscription">{{ formatDateTime(a.registrationDate) }}</td>
+              <td class="ec-table-center" data-label="Check-in">
                 <button class="ec-checkin-btn"
                         [class.ec-checkin-btn--checked]="a.checkedIn"
                         [disabled]="!canCheckIn() || isToggling(a)"

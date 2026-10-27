@@ -136,7 +136,7 @@
   <div class="obm-section">
     <h3>Offrandes récentes</h3>
     <div class="obm-table-wrap">
-      <table class="obm-table">
+      <table class="iam-responsive-table obm-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -150,21 +150,21 @@
         <tbody>
           @for (offering of summary.recentOfferings; track offering.id) {
           <tr (click)="viewOffering(offering)">
-            <td>{{ getFormattedDate(offering.date) }}</td>
-            <td>
+            <td data-label="Date">{{ getFormattedDate(offering.date) }}</td>
+            <td data-label="Type">
               <span class="obm-type-badge" [class]="getOfferingTypeColor(offering.type)">
                 <i class="bx {{ getTypeIcon(offering.type) }}"></i>
                 {{ getTypeLabel(offering.type) }}
               </span>
             </td>
-            <td>{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</td>
-            <td>
+            <td data-label="Montant">{{ offering.amount | number:'1.0-0' }} {{ offering.currency }}</td>
+            <td data-label="Statut">
               <span class="obm-badge" [class]="'obm-badge-' + getStatusColor(offering.status)">
                 {{ getStatusLabel(offering.status) }}
               </span>
             </td>
-            <td>{{ getPaymentMethodLabel(offering.paymentMethod) }}</td>
-            <td>
+            <td data-label="Paiement">{{ getPaymentMethodLabel(offering.paymentMethod) }}</td>
+            <td data-label="Reçu">
               @if (offering.receiptNumber) {
               <span class="obm-receipt-ok">{{ offering.receiptNumber }}</span>
               } @else {
