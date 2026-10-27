@@ -2,7 +2,7 @@
 
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable, Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
@@ -74,6 +74,7 @@ export class OfferingForm implements OnInit, OnDestroy {
   private userService = inject(Users);
   private roleService = inject(Roles);
   private serviceService = inject(Service);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private permissions = inject(Permissions);
   private tokenService = inject(Token);
@@ -129,6 +130,8 @@ export class OfferingForm implements OnInit, OnDestroy {
   // ── Liste des cultes (select box) — limitée aux cultes créés par l'utilisateur ──
   services = signal<ServiceModel[]>([]);
   loadingServices = signal(false);
+  /** Culte demandé par le rappel « culte sans offrande » (?serviceId=...). */
+  private queryServiceId: string | null = null;
 
   // ── Photos justificatives (1 à 5) ──
   existingPhotoIds: string[] = [];
@@ -221,6 +224,10 @@ export class OfferingForm implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Lot 4 : le rappel « culte sans offrande » ouvre ce formulaire avec
+    // ?serviceId=<id> ; on présélectionne le culte (et son église/site).
+    this.queryServiceId = this.route.snapshot.queryParamMap.get('serviceId')?.trim() || null;
+
     this.loadChurches();
     this.applyDefaultAssignment();
     this.loadCategories();
@@ -539,6 +546,7 @@ private searchMembers(term: string): void {
           const items = (response?.data?.items ?? (response as any)?.items ?? []) as ServiceModel[];
           this.services.set(items);
           this.loadingServices.set(false);
+          this.applyQueryServiceSelection();
         },
         error: () => {
           this.services.set([]);
@@ -553,7 +561,11 @@ private searchMembers(term: string): void {
     this.serviceService.getById(serviceId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         const svc = response?.data as unknown as ServiceModel | undefined;
-        if (svc) this.services.update((list) => [svc, ...list]);
+        if (svc) {
+          this.services.update((list) => [svc, ...list]);
+          // Le culte demandé vient d'être ajouté : on peut le présélectionner.
+          this.applyQueryServiceSelection();
+        }
       },
       error: () => {
         if (fallbackTitle) {
@@ -564,6 +576,34 @@ private searchMembers(term: string): void {
         }
       },
     });
+  }
+
+  /**
+   * Présélectionne le culte passé en `?serviceId=` (rappel « culte sans
+   * offrande ») et aligne l'église / le site sur ceux du culte.
+   * Idempotent : appelé après le chargement de la liste et après l'ajout
+   * éventuel du culte manquant.
+   */
+  private applyQueryServiceSelection(): void {
+    const id = this.queryServiceId;
+    if (!id) return;
+
+    const service = this.services().find((s) => s.id === id);
+    if (!service) {
+      // Pas encore dans la liste : on la complète (le prochain passage
+      // présélectionnera dès que le culte sera présent).
+      this.ensureServiceInList(id);
+      return;
+    }
+
+    this.form.patchValue({ serviceId: id });
+    if (service.churchId) {
+      this.form.patchValue(
+        { churchId: service.churchId, siteId: service.siteId ?? '' },
+        { emitEvent: false }
+      );
+      this.loadSites(service.churchId);
+    }
   }
 
   /** Libellé lisible d'un culte dans le select : date · titre · site · statut. */

@@ -17,7 +17,8 @@ import {
   ServiceListResponse,
   ServiceUpdate,
   ServiceAttendance,
-  ServiceStatus
+  ServiceStatus,
+  OfferingAlertsResponse
 } from '../../models/Events/service.model';
 
 /** Répartition agrégée des effectifs (API). */
@@ -89,6 +90,25 @@ export class Service {
   getAll(filter: ServiceFilter = DEFAULT_SERVICE_FILTER): Observable<ApiResponse<ServiceListResponse>> {
     const params = this.buildFilterParams(filter);
     return this.http.get<ApiResponse<ServiceListResponse>>(this.baseUrl, { params });
+  }
+
+  /**
+   * Lot 4 — cultes terminés (60 jours) sans offrande comptabilisable et sans
+   * déclaration « aucune offrande ». Calculé côté serveur.
+   */
+  getOfferingAlerts(): Observable<OfferingAlertsResponse> {
+    return this.http.get<OfferingAlertsResponse>(`${this.baseUrl}/offering-alerts`);
+  }
+
+  /** Déclare « aucune offrande » pour un culte (motif obligatoire). */
+  declareNoOffering(
+    serviceId: string,
+    reason: string
+  ): Observable<{ success: boolean; errorMessage?: string; message?: string; data?: Service }> {
+    return this.http.post<{ success: boolean; errorMessage?: string; message?: string; data?: Service }>(
+      `${this.baseUrl}/${serviceId}/no-offering`,
+      { reason }
+    );
   }
 
   /**

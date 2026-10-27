@@ -5,7 +5,7 @@ import { RouterModule, RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subscription } from 'rxjs';
 import { Permissions } from '../../../core/services/Permissions/permissions';
 
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, HostListener, ViewChild, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 import { User } from '../../../core/models/Users/user.model';
@@ -19,6 +19,7 @@ import { AgentWidget } from "../../../core/components/agent-widget/agent-widget"
 import { UploadProgressComponent } from "../../../core/components/upload-progress/upload-progress";
 import { NotificationComponent } from "../../../core/components/notification-component/notification-component";
 import { NotificationAlert } from "../../../core/components/notification-alert/notification-alert";
+import { OfferingAlertModal } from "../../../core/components/offering-alert-modal/offering-alert-modal";
 import { environment } from '../../../../environments/environment';
 import { Auth } from '../../../core/services/Auth/auth';
 import { DashboardDto, DashboardKpiDto, DashboardChartsDto } from '../../../core/models/Dashboard/dashboard.model';
@@ -63,14 +64,15 @@ export enum OfferingStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent, UploadProgressComponent, NotificationAlert],
+  imports: [CommonModule, FormsModule, RouterModule, RouterLink, SidebarComponent, AgentWidget, NotificationComponent, UploadProgressComponent, NotificationAlert, OfferingAlertModal],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
-export class Dashboard implements OnInit, OnDestroy {
+export class Dashboard implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   @ViewChild(SidebarComponent) sidebarComponent?: SidebarComponent;
+  @ViewChild(OfferingAlertModal) offeringAlert?: OfferingAlertModal;
 
   // ─── Thème clair / sombre ─────────────────────────────────────
   themeService = inject(ThemeService);
@@ -192,11 +194,25 @@ export class Dashboard implements OnInit, OnDestroy {
           type === 'NavigationError' ||
           type === 'RouteConfigLoadEnd'
         ) {
+          // Lot 4 : rappel « culte sans offrande » à chaque navigation.
+          // Le composant sait ne pas s'afficher sur le formulaire d'offrande.
+          if (type === 'NavigationEnd') {
+            this.offeringAlert?.onNavigation(
+              event.urlAfterRedirects ?? event.url ?? ''
+            );
+          }
+
           // Petit délai pour laisser la vue se peindre, puis on masque.
           setTimeout(() => (this.routeLoading = false), 250);
         }
       })
     );
+  }
+
+  ngAfterViewInit(): void {
+    // Le NavigationEnd initial peut précéder l'instanciation du ViewChild :
+    // on vérifie une fois la vue prête pour afficher le rappel dès l'ouverture.
+    setTimeout(() => this.offeringAlert?.onNavigation(this.router.url), 0);
   }
 
   ngOnDestroy(): void {

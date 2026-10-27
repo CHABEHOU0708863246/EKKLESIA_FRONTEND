@@ -77,6 +77,10 @@ export interface Service {
   associatedOfferingsCount?: number;
   /** Vrai si au moins une offrande est déjà rattachée à ce culte. */
   hasExistingOffering?: boolean;
+  /** Déclaration active « ce culte n'a donné lieu à aucune offrande » (Lot 4). */
+  noOfferingDeclared?: boolean;
+  noOfferingReason?: string;
+  noOfferingDeclaredAt?: string;
   status: ServiceStatus;
   statusLabel: string;
   statusColor: string;
@@ -342,3 +346,26 @@ export const DEFAULT_SERVICE_FILTER: ServiceFilter = {
   sortBy: 'createdAt',
   sortOrder: 'desc'
 };
+
+// ============================================================
+// 9. RAPPEL « CULTE SANS OFFRANDE » (Lot 4)
+// ============================================================
+
+export interface OfferingAlert {
+  id: string;
+  title: string;
+  date: string;
+  churchId?: string;
+  churchName?: string;
+  siteId?: string;
+  siteName?: string;
+  daysSince: number;
+  canCreateOffering: boolean;
+  canDeclareNoOffering: boolean;
+  formattedDate?: string;
+}
+
+export interface OfferingAlertsResponse {
+  items: OfferingAlert[];
+  totalCount: number;
+}
