@@ -1,1 +1,62 @@
-<p>user-roles works!</p>
+<div class="roles-page">
+  <header class="roles-header">
+    <button type="button" class="roles-back" (click)="back()" aria-label="Retour à la liste des utilisateurs">
+      <i class="bx bx-arrow-back" aria-hidden="true"></i>
+    </button>
+    <div>
+      <h1>Rôles de l'utilisateur</h1>
+      <p *ngIf="user">{{ displayName }} · {{ user.email }}</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="roles-state" role="status">
+    <div class="roles-spinner" aria-hidden="true"></div>
+    <span>Chargement des rôles…</span>
+  </div>
+
+  <div *ngIf="!loading && error" class="roles-alert" role="alert">
+    <i class="bx bx-error-circle" aria-hidden="true"></i>
+    <span>{{ error }}</span>
+  </div>
+
+  <main *ngIf="!loading && !error && user" class="roles-card">
+    <div class="roles-summary">
+      <div class="roles-avatar" aria-hidden="true">{{ displayName.charAt(0) }}</div>
+      <div>
+        <strong>{{ displayName }}</strong>
+        <span>{{ user.isActive ? 'Compte actif' : 'Compte inactif' }}</span>
+      </div>
+    </div>
+
+    <p class="roles-hint">
+      Cochez les rôles à attribuer. Les permissions effectives sont déduites des rôles par le serveur.
+    </p>
+
+    <div class="roles-list">
+      <label class="role-option" *ngFor="let role of roles">
+        <input
+          type="checkbox"
+          [checked]="isSelected(role.code)"
+          (change)="toggle(role.code, $event)"
+        />
+        <span class="role-option__body">
+          <span class="role-option__name">{{ role.roleName }}</span>
+          <span class="role-option__code">{{ role.code }}</span>
+        </span>
+        <span class="role-option__tag" *ngIf="role.isSystem">Système</span>
+      </label>
+
+      <p *ngIf="roles.length === 0" class="roles-empty">Aucun rôle disponible.</p>
+    </div>
+
+    <div class="roles-actions">
+      <button type="button" class="roles-btn roles-btn--ghost" (click)="back()" [disabled]="saving">
+        Annuler
+      </button>
+      <button type="button" class="roles-btn roles-btn--primary" (click)="save()" [disabled]="saving">
+        <i class="bx bx-save" aria-hidden="true"></i>
+        {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+    </div>
+  </main>
+</div>

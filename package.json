@@ -4,13 +4,15 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "build:prod": "ng build --configuration=production",
+    "build": "ng build && node scripts/defer-bootstrap.mjs",
+    "build:prod": "ng build --configuration=production && node scripts/defer-bootstrap.mjs",
     "build:mobile": "ng build --configuration=mobile",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:recette": "playwright test --config=playwright.recette.config.ts",
+    "serve:dist": "node scripts/serve-dist.mjs",
     "serve:ssr:EKKLESIA_FRONTEND": "node dist/EKKLESIA_FRONTEND/server/server.mjs",
-    "vercel-build": "ng build --configuration=production"
+    "vercel-build": "npm run build:prod"
   },
   "prettier": {
     "printWidth": 100,
@@ -66,6 +68,7 @@
     "@angular/cli": "^21.0.5",
     "@angular/compiler-cli": "^21.0.0",
     "@capacitor/assets": "^3.0.5",
+    "@playwright/test": "^1.64.1",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "@types/qrcode": "^1.5.5",

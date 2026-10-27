@@ -45,14 +45,6 @@
           <input type="checkbox" [(ngModel)]="preferences.newsletter" name="prefNewsletter" />
           Newsletter
         </label>
-        <label class="mn-check mn-check--disabled">
-          <input type="checkbox" [(ngModel)]="preferences.smsEnabled" name="prefSms" disabled />
-          SMS (bientôt disponible)
-        </label>
-        <label class="mn-check mn-check--disabled">
-          <input type="checkbox" [(ngModel)]="preferences.pushEnabled" name="prefPush" disabled />
-          Notifications push (bientôt disponible)
-        </label>
       </div>
       <div class="mn-card-footer">
         <button type="button" class="mn-btn mn-btn--primary" [disabled]="savingPreferences()" (click)="savePreferences()">

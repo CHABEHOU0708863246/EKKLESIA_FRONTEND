@@ -41,3 +41,10 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Tests E2E et rapports Lighthouse
+/test-results
+/playwright-report
+/playwright/.cache
+/lighthouse-*.json
+/lh-*.json

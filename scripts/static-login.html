@@ -1,0 +1,439 @@
+<style>
+  #miav-static-login {
+    position: fixed;
+    inset: 0;
+    z-index: 100001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 100dvh;
+    padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px));
+    background: radial-gradient(circle at 20% 10%, #2a3f66 0%, #1b2a4a 45%, #111c33 100%);
+    color: #f8fafc;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  #miav-static-login[hidden] { display: none !important; }
+
+  .msl-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px 24px 22px;
+    border: 1px solid rgba(240, 180, 41, 0.28);
+    border-radius: 24px;
+    background: rgba(16, 26, 46, 0.96);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+    box-sizing: border-box;
+  }
+
+  .msl-logo {
+    display: block;
+    width: 108px;
+    height: 108px;
+    margin: 0 auto 14px;
+    object-fit: contain;
+  }
+
+  .msl-title {
+    margin: 0;
+    color: #f0b429;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-align: center;
+  }
+
+  .msl-subtitle {
+    margin: 5px 0 24px;
+    color: rgba(248, 250, 252, 0.62);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .msl-field { position: relative; margin-bottom: 14px; }
+
+  .msl-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(248, 250, 252, 0.72);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .msl-field input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 52px;
+    padding: 14px 14px 14px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(8, 14, 26, 0.9);
+    color: #f8fafc;
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .msl-field input::placeholder { color: rgba(248, 250, 252, 0.32); }
+  .msl-field input:focus {
+    outline: none;
+    border-color: #f0b429;
+    box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.16);
+  }
+
+  .msl-field--password input { padding-right: 92px; }
+
+  .msl-toggle {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    min-width: 72px;
+    height: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #f0b429;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .msl-toggle:focus-visible { outline: 2px solid #f0b429; outline-offset: 1px; }
+
+  .msl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0 18px;
+    font-size: 0.86rem;
+  }
+
+  .msl-row label { display: inline-flex; align-items: center; gap: 8px; color: rgba(248, 250, 252, 0.7); }
+  .msl-row input[type='checkbox'] { width: 18px; height: 18px; accent-color: #f0b429; }
+  .msl-row a { color: #f0b429; font-weight: 700; text-decoration: none; }
+  .msl-row a:hover { text-decoration: underline; }
+
+  .msl-submit {
+    width: 100%;
+    min-height: 52px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f0b429, #d99a1f);
+    color: #1b2a4a;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: 0 10px 24px rgba(240, 180, 41, 0.25);
+  }
+
+  .msl-submit:disabled { opacity: 0.6; }
+
+  .msl-alert {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(240, 68, 56, 0.45);
+    border-radius: 12px;
+    background: rgba(240, 68, 56, 0.14);
+    color: #ffd5d2;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .msl-install {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 14px;
+    border: 1px solid rgba(240, 180, 41, 0.45);
+    border-radius: 12px;
+    background: transparent;
+    color: #f7d488;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .msl-install[hidden] { display: none !important; }
+
+  .msl-foot {
+    margin: 18px 0 0;
+    color: rgba(248, 250, 252, 0.4);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  @media (min-width: 600px) {
+    .msl-card { padding: 34px 32px 26px; }
+  }
+</style>
+
+<div id="miav-static-login" hidden>
+  <main class="msl-card">
+    <img class="msl-logo" src="/logos/A New Design - Fait avec PosterMyWall.png" alt="Logo MIAV" />
+    <h1 class="msl-title">MIAV ERP</h1>
+    <p class="msl-subtitle">Mission Internationale Arbre de Vie<br />Accédez à votre espace sécurisé</p>
+
+    <form id="msl-form" novalidate>
+      <div id="msl-error" class="msl-alert" role="alert" aria-live="assertive" hidden></div>
+
+      <div class="msl-field">
+        <label for="msl-email">Email</label>
+        <input id="msl-email" name="username" type="email" autocomplete="username" inputmode="email"
+          autocapitalize="none" spellcheck="false" placeholder="nom@eglise.ci" required />
+      </div>
+
+      <div class="msl-field msl-field--password">
+        <label for="msl-password">Mot de passe</label>
+        <input id="msl-password" name="password" type="password" autocomplete="current-password"
+          placeholder="••••••••" required />
+        <button type="button" class="msl-toggle" id="msl-toggle" aria-label="Afficher le mot de passe"
+          aria-pressed="false">Afficher</button>
+      </div>
+
+      <div class="msl-row">
+        <label><input type="checkbox" id="msl-remember" checked /> Se souvenir de moi</label>
+        <a href="/auth/forgot-password">Mot de passe oublié ?</a>
+      </div>
+
+      <button type="submit" class="msl-submit" id="msl-submit">Se connecter</button>
+    </form>
+
+    <button type="button" class="msl-install" id="msl-install" hidden>Installer l'application</button>
+    <p class="msl-foot">© 2026 MIAV — Version 3.0</p>
+  </main>
+</div>
+
+<script>
+  (function () {
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      return;
+    }
+
+    var API_URL = __API_URL__;
+    var STORAGE_KEY = 'ekklesia_auth_data';
+    var REFRESH_KEY = 'refresh_token';
+    var REMEMBER_KEY = 'remember_me';
+
+    var root = document.getElementById('miav-static-login');
+    var form = document.getElementById('msl-form');
+    var email = document.getElementById('msl-email');
+    var password = document.getElementById('msl-password');
+    var remember = document.getElementById('msl-remember');
+    var toggle = document.getElementById('msl-toggle');
+    var submit = document.getElementById('msl-submit');
+    var errorBox = document.getElementById('msl-error');
+    var installBtn = document.getElementById('msl-install');
+    var boot = document.getElementById('miav-boot');
+    var installEvent = null;
+
+    if (boot) {
+      boot.remove();
+    }
+    root.removeAttribute('hidden');
+
+    function readSession() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      } catch (error) {
+        return null;
+      }
+    }
+
+    if (readSession() && readSession().token) {
+      window.location.replace('/dashboard');
+      return;
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.hidden = false;
+    }
+
+    function clearError() {
+      errorBox.hidden = true;
+      errorBox.textContent = '';
+    }
+
+    function decodeRole(token) {
+      try {
+        var part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        var payload = JSON.parse(
+          decodeURIComponent(
+            Array.prototype.map
+              .call(atob(part), function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join('')
+          )
+        );
+        return (
+          payload.role ||
+          payload.roles?.[0] ||
+          payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+          'user'
+        );
+      } catch (error) {
+        return 'user';
+      }
+    }
+
+    function saveSession(token, refreshToken, rememberMe) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ token: token, role: decodeRole(token) })
+      );
+      if (refreshToken) {
+        localStorage.setItem(REFRESH_KEY, refreshToken);
+      }
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_KEY, 'true');
+      } else {
+        localStorage.removeItem(REMEMBER_KEY);
+      }
+    }
+
+    function messageFor(status, body) {
+      var serverMessage = body && (body.message || body.title || body.detail);
+      var probe = String(serverMessage || '').toLowerCase();
+
+      if (status === 0) {
+        return 'Vous êtes hors ligne. Vérifiez votre connexion internet puis réessayez.';
+      }
+      if (status === 423 || /verrouill|locked|bloqu/.test(probe)) {
+        return 'Votre compte est verrouillé. Contactez un administrateur pour le débloquer.';
+      }
+      if (status === 401) {
+        return 'Email ou mot de passe incorrect.';
+      }
+      if (status === 403) {
+        return 'Votre compte est désactivé ou ne dispose pas des droits nécessaires.';
+      }
+      if (status === 429) {
+        return 'Trop de tentatives. Réessayez dans quelques minutes.';
+      }
+      if (status >= 500) {
+        return 'Le serveur rencontre un problème. Réessayez plus tard.';
+      }
+      return typeof serverMessage === 'string' && serverMessage.trim()
+        ? serverMessage
+        : 'La connexion a échoué. Veuillez réessayer.';
+    }
+
+    function redirectAfterLogin(token) {
+      fetch(API_URL + '/api/v1/Auth/me', {
+        headers: { Authorization: 'Bearer ' + token },
+      })
+        .then(function (response) {
+          return response.ok ? response.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (me) {
+          if (me && me.mustChangePassword) {
+            window.location.assign('/dashboard/admin/mon-profil?forcePassword=1');
+            return;
+          }
+          window.location.assign('/dashboard');
+        });
+    }
+
+    toggle.addEventListener('click', function () {
+      var hidden = password.type === 'password';
+      password.type = hidden ? 'text' : 'password';
+      toggle.textContent = hidden ? 'Masquer' : 'Afficher';
+      toggle.setAttribute('aria-label', hidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+      toggle.setAttribute('aria-pressed', String(hidden));
+    });
+
+    [email, password].forEach(function (input) {
+      input.addEventListener('input', clearError);
+    });
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      clearError();
+
+      if (!email.value.trim() || !password.value) {
+        showError('Veuillez saisir votre email et votre mot de passe.');
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = 'Connexion en cours…';
+
+      fetch(API_URL + '/api/v1/Auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value.trim(),
+          password: password.value,
+          rememberMe: remember.checked,
+        }),
+      })
+        .then(function (response) {
+          return response
+            .json()
+            .catch(function () {
+              return null;
+            })
+            .then(function (body) {
+              if (!response.ok) {
+                throw { status: response.status, body: body };
+              }
+              return body;
+            });
+        })
+        .then(function (body) {
+          var token =
+            (body && (body.token || body.accessToken || (body.data && body.data.token))) || null;
+          var refreshToken =
+            (body && (body.refreshToken || (body.data && body.data.refreshToken))) || null;
+
+          if (!token) {
+            showError('La réponse du serveur est invalide. Veuillez réessayer.');
+            return;
+          }
+
+          saveSession(token, refreshToken, remember.checked);
+          redirectAfterLogin(token);
+        })
+        .catch(function (error) {
+          showError(messageFor(error.status || 0, error.body));
+          submit.disabled = false;
+          submit.textContent = 'Se connecter';
+        });
+    });
+
+    window.addEventListener('beforeinstallprompt', function (event) {
+      event.preventDefault();
+      installEvent = event;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener('click', function () {
+      if (!installEvent) {
+        return;
+      }
+      installEvent.prompt();
+      installEvent = null;
+      installBtn.hidden = true;
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('ngsw-worker.js').catch(function () {
+          /* installation gérée par le navigateur quand disponible */
+        });
+      });
+    }
+
+    email.focus({ preventScroll: true });
+  })();
+</script>

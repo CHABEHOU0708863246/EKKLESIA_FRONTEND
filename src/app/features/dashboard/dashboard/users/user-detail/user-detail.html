@@ -1,1 +1,74 @@
-<p>user-detail works!</p>
+<div class="detail-page">
+  <header class="detail-header">
+    <button type="button" class="detail-back" (click)="back()" aria-label="Retour à la liste des utilisateurs">
+      <i class="bx bx-arrow-back" aria-hidden="true"></i>
+    </button>
+    <div>
+      <h1>Fiche utilisateur</h1>
+      <p *ngIf="user">{{ displayName }}</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="detail-state" role="status">
+    <div class="detail-spinner" aria-hidden="true"></div>
+    <span>Chargement de l'utilisateur…</span>
+  </div>
+
+  <div *ngIf="!loading && error" class="detail-alert" role="alert">
+    <i class="bx bx-error-circle" aria-hidden="true"></i>
+    <span>{{ error }}</span>
+  </div>
+
+  <main *ngIf="!loading && !error && user" class="detail-card">
+    <div class="detail-identity">
+      <div class="detail-avatar" aria-hidden="true">{{ displayName.charAt(0) }}</div>
+      <div>
+        <strong>{{ displayName }}</strong>
+        <span>{{ user.email }}</span>
+        <span class="detail-status" [class.detail-status--off]="!user.isActive">
+          {{ user.isActive ? 'Compte actif' : 'Compte inactif' }}
+        </span>
+      </div>
+    </div>
+
+    <dl class="detail-grid">
+      <div>
+        <dt>Nom d'utilisateur</dt>
+        <dd>{{ user.username || '—' }}</dd>
+      </div>
+      <div>
+        <dt>Téléphone</dt>
+        <dd>{{ user.phone || '—' }}</dd>
+      </div>
+      <div>
+        <dt>Église</dt>
+        <dd>{{ user.churchName || '—' }}</dd>
+      </div>
+      <div>
+        <dt>Dernière connexion</dt>
+        <dd>{{ formatDate(user.lastLogin) }}</dd>
+      </div>
+      <div>
+        <dt>Créé le</dt>
+        <dd>{{ formatDate(user.createdAt) }}</dd>
+      </div>
+      <div>
+        <dt>Rôles</dt>
+        <dd>
+          <span class="detail-role" *ngFor="let role of user.roles ?? []">{{ role }}</span>
+          <span *ngIf="!user.roles?.length">Aucun rôle</span>
+        </dd>
+      </div>
+    </dl>
+
+    <div class="detail-actions">
+      <button type="button" class="detail-btn detail-btn--ghost" (click)="back()">Retour</button>
+      <button type="button" class="detail-btn detail-btn--ghost" (click)="manageRoles()">
+        <i class="bx bx-shield-quarter" aria-hidden="true"></i> Gérer les rôles
+      </button>
+      <button type="button" class="detail-btn detail-btn--primary" (click)="edit()">
+        <i class="bx bx-edit" aria-hidden="true"></i> Modifier
+      </button>
+    </div>
+  </main>
+</div>

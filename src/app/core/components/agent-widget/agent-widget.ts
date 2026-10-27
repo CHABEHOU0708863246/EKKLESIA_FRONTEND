@@ -125,14 +125,12 @@ export class AgentWidget implements OnInit, OnDestroy {
   private recognition: SpeechRecognitionLike | null = null;
   private interimBase = '';
   private voiceNoticeTimer: ReturnType<typeof setTimeout> | null = null;
-  private autoOpenTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Préchargement de l'historique dès l'arrivée sur le dashboard (évite l'attente au 1er clic). */
   private prefetchTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly isBrowser: boolean;
   private readonly soundStorageKey = 'ekklesia_agent_sound';
-  private readonly seenStorageKey = 'ekklesia_agent_seen';
 
   constructor(
     private agentApi: Agent,
@@ -149,7 +147,6 @@ export class AgentWidget implements OnInit, OnDestroy {
     this.soundEnabled = this.readSoundPreference();
     this.speechSupported = this.getSpeechRecognitionCtor() !== null;
     this.loadCurrentUserName();
-    this.maybeAutoOpen();
     this.prefetchHistorySoon();
   }
 
@@ -157,7 +154,6 @@ export class AgentWidget implements OnInit, OnDestroy {
     this.stopListening();
     this.stopSpeaking();
     if (this.voiceNoticeTimer) clearTimeout(this.voiceNoticeTimer);
-    if (this.autoOpenTimer) clearTimeout(this.autoOpenTimer);
     if (this.prefetchTimer) clearTimeout(this.prefetchTimer);
     this.subscriptions.unsubscribe();
   }
@@ -202,29 +198,6 @@ export class AgentWidget implements OnInit, OnDestroy {
     if (this.isOpen) {
       this.closePanel();
     }
-  }
-
-  /** Première visite : ouverture automatique, sans lecture audio. */
-  private maybeAutoOpen(): void {
-    let alreadySeen = true;
-    try {
-      alreadySeen = localStorage.getItem(this.seenStorageKey) === '1';
-    } catch {
-      alreadySeen = true;
-    }
-
-    if (alreadySeen) return;
-
-    try {
-      localStorage.setItem(this.seenStorageKey, '1');
-    } catch {
-      // Stockage indisponible : l'ouverture unique reste sans conséquence.
-    }
-
-    this.autoOpenTimer = setTimeout(() => {
-      this.autoOpenTimer = null;
-      this.openPanel();
-    }, 600);
   }
 
   // ────────────────────────────────────────────────────────────────────

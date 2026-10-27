@@ -129,9 +129,9 @@
 }
 
 // Responsive
-@media (max-width: 480px) {
+@media (max-width: 900px) {
   .notification-container {
-    top: 10px;
+    top: calc(72px + env(safe-area-inset-top, 0px));
     right: 10px;
     left: 10px;
     max-width: none;

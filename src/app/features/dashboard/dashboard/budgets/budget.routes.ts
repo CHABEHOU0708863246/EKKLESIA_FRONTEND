@@ -39,12 +39,4 @@ export const BUDGET_ROUTES: Routes = [
     data: { permissions: ['Finance_Budget_Update'] },
   },
   // ─── Comparaison budget / réalisé ─── (optionnel)
-  {
-    path: ':id/comparison',
-    loadComponent: () =>
-      import('./budget-comparison/budget-comparison').then((m) => m.BudgetComparison),
-    title: 'Comparaison budgétaire — MIAV',
-    canActivate: [authGuard],
-    data: { permissions: ['Finance_Budget_Read'] },
-  },
 ];
